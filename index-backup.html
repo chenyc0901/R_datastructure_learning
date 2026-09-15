@@ -8,416 +8,308 @@
 <meta property="og:description" content="大數據分析與實踐 · R 資料結構互動教材">
 <meta property="og:type" content="article">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
-<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <style>
 :root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0;font:17px -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC",system-ui,sans-serif;background:#F2F2F7}
+body{margin:0;font:14px system-ui,-apple-system,sans-serif;background:#faf9f7}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <title>記憶體裡的 R 物件</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
-/* =========================================================================
-   Apple design language — light-first.
-   Tokens follow Apple's dynamic system colors (color.md > System colors):
-   grouped backgrounds for the content layer, label/secondary/tertiary for
-   foreground, and system Red/Orange/Green/Blue/Purple for the three memory
-   roles. Every role colour below is Apple's *increased-contrast* variant so
-   it clears 4.5:1 as text (accessibility.md > Vision); the vivid variant
-   lives in --*Fill and is used only for swatches and filled tiles.
-   ========================================================================= */
 :root{
-  /* --- content layer: grouped backgrounds --- */
-  --bg:#F2F2F7;            /* systemGroupedBackground          */
-  --surface:#FFFFFF;       /* secondarySystemGroupedBackground */
-  --surface2:#EFEFF4;      /* tertiary / control track         */
-  --line:#D6D6DB;          /* opaqueSeparator                  */
-  --lineSoft:#E6E6EB;      /* separator                        */
-
-  /* --- foreground labels (worst-case ratio vs any surface above) --- */
-  --text:#1D1D1F;          /* label            14.7:1 */
-  --dim:#48484A;           /* secondaryLabel    7.96:1 */
-  --faint:#65656B;         /* tertiaryLabel     5.05:1 */
-
-  /* --- the three memory roles: text tier / fill tier --- */
-  --data:#A24800;  --dataFill:#FF9500;   /* systemOrange 5.29:1 */
-  --ptr:#0040DD;   --ptrFill:#007AFF;    /* systemBlue   6.60:1 */
-  --attr:#8944AB;  --attrFill:#AF52DE;   /* systemPurple 5.27:1 */
-  --ok:#1D7A34;    --okFill:#34C759;     /* systemGreen  4.72:1 */
-  --warn:#C8000F;  --warnFill:#FF3B30;   /* systemRed    5.29:1 */
-
-  --dataBg:rgba(255,149,0,.14);
-  --ptrBg:rgba(0,122,255,.12);
-  --attrBg:rgba(175,82,222,.12);
-  --okBg:rgba(52,199,89,.14);
-  --warnBg:rgba(255,59,48,.12);
-
-  /* --- focus ring: Apple's keyboardFocusIndicatorColor --- */
-  --onRole:#FFFFFF;  /* light: the role fills are dark, so the label goes white */
-  --focus:#007AFF;
-
-  /* --- elevation: hairline + soft ambient, the way Apple stacks cards --- */
-  --shadow:0 0 0 .5px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -8px rgba(0,0,0,.10);
-  --shadowPill:0 0 0 .5px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.10);
-  --glass:rgba(242,242,247,.72);
-
-  /* --- corner radii: Apple's continuous-corner scale, approximated --- */
-  --r-card:14px; --r-ctl:10px; --r-sm:7px; --r-xs:5px;
-
-  /* --- one typeface family (typography.md > Conveying hierarchy) --- */
-  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
-  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,"Cascadia Mono","PingFang TC","Noto Sans TC",monospace;
-  --tech:var(--sans);
-
-  /* --- motion: Apple's standard ease --- */
-  --ease:cubic-bezier(.25,.1,.25,1);
-
-  color-scheme:light dark;
+  --bg:#0A0F14; --surface:#10171F; --surface2:#16202B;
+  --line:#22313F; --lineSoft:#1A2631;
+  --text:#DCE7EF; --dim:#8AA0B2; --faint:#5E7183;
+  --data:#F0A848; --ptr:#4FC8E8; --attr:#B38CF0;
+  --ok:#5FD39A; --warn:#F07B62;
+  --dataBg:rgba(240,168,72,.13); --ptrBg:rgba(79,200,232,.13); --attrBg:rgba(179,140,240,.13); --okBg:rgba(95,211,154,.12);
+  --shadow:0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
+  --mono:"JetBrains Mono","Noto Sans TC",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --tech:"Chakra Petch","Noto Sans TC",system-ui,sans-serif;
 }
-
-/* Dark appearance. No in-app switch — the system setting decides
-   (dark-mode.md > Best practices: "Avoid offering an app-specific
-   appearance setting"). data-theme exists only as an escape hatch. */
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#000000; --surface:#1C1C1E; --surface2:#2C2C2E;
-    --line:#38383A; --lineSoft:#2C2C2E;
-    --text:#F5F5F7; --dim:#C7C7CC; --faint:#98989F;
-    --data:#FFB340;  --dataFill:#FF9F0A;
-    --ptr:#6BAEFF;   --ptrFill:#0A84FF;
-    --attr:#DA8FFF;  --attrFill:#BF5AF2;
-    --ok:#30DB5B;    --okFill:#30D158;
-    --warn:#FF6961;  --warnFill:#FF453A;
-    --dataBg:rgba(255,159,10,.18);
-    --ptrBg:rgba(10,132,255,.20);
-    --attrBg:rgba(191,90,242,.20);
-    --okBg:rgba(48,209,88,.18);
-    --warnBg:rgba(255,69,58,.18);
-    --onRole:#000000;  /* dark: the role fills are light, so the label goes black */
-    --focus:#0A84FF;
-    --shadow:0 0 0 .5px rgba(255,255,255,.06), 0 8px 24px -8px rgba(0,0,0,.6);
-    --shadowPill:0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
-    --glass:rgba(28,28,30,.72);
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9; --surface:#FFFFFF; --surface2:#E9EFF5;
+    --line:#C7D6E2; --lineSoft:#DEE7EE;
+    --text:#132030; --dim:#4C6274; --faint:#7D91A2;
+    --data:#A85F06; --ptr:#0B6F92; --attr:#5E33B8;
+    --ok:#137A4F; --warn:#AB3620;
+    --dataBg:rgba(168,95,6,.11); --ptrBg:rgba(11,111,146,.11); --attrBg:rgba(94,51,184,.11); --okBg:rgba(19,122,79,.10);
+    --shadow:0 1px 0 rgba(255,255,255,.8), 0 6px 18px rgba(19,32,48,.08);
   }
 }
-:root[data-theme="dark"]{
-  --bg:#000000; --surface:#1C1C1E; --surface2:#2C2C2E;
-  --line:#38383A; --lineSoft:#2C2C2E;
-  --text:#F5F5F7; --dim:#C7C7CC; --faint:#98989F;
-  --data:#FFB340;  --dataFill:#FF9F0A;
-  --ptr:#6BAEFF;   --ptrFill:#0A84FF;
-  --attr:#DA8FFF;  --attrFill:#BF5AF2;
-  --ok:#30DB5B;    --okFill:#30D158;
-  --warn:#FF6961;  --warnFill:#FF453A;
-  --dataBg:rgba(255,159,10,.18);
-  --ptrBg:rgba(10,132,255,.20);
-  --attrBg:rgba(191,90,242,.20);
-  --okBg:rgba(48,209,88,.18);
-  --warnBg:rgba(255,69,58,.18);
-  --onRole:#000000;  /* dark: the role fills are light, so the label goes black */
-  --focus:#0A84FF;
-  --shadow:0 0 0 .5px rgba(255,255,255,.06), 0 8px 24px -8px rgba(0,0,0,.6);
-  --shadowPill:0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
-  --glass:rgba(28,28,30,.72);
+:root[data-theme="light"]{
+  --bg:#F3F6F9; --surface:#FFFFFF; --surface2:#E9EFF5;
+  --line:#C7D6E2; --lineSoft:#DEE7EE;
+  --text:#132030; --dim:#4C6274; --faint:#7D91A2;
+  --data:#A85F06; --ptr:#0B6F92; --attr:#5E33B8;
+  --ok:#137A4F; --warn:#AB3620;
+  --dataBg:rgba(168,95,6,.11); --ptrBg:rgba(11,111,146,.11); --attrBg:rgba(94,51,184,.11); --okBg:rgba(19,122,79,.10);
+  --shadow:0 1px 0 rgba(255,255,255,.8), 0 6px 18px rgba(19,32,48,.08);
 }
 
 *{box-sizing:border-box}
 body{
-  background-color:var(--bg); color:var(--text);
-  font-family:var(--sans); font-size:17px; line-height:1.7;   /* Body 17pt */
-  margin:0; padding-block:0 80px; padding-inline:20px;
-  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
-  font-synthesis-weight:none;
+  background:var(--bg); color:var(--text);
+  font-family:var(--sans); font-size:16px; line-height:1.75;
+  margin:0; padding-block:0 72px; padding-inline:20px; -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1340px; margin:0 auto; display:grid; grid-template-columns:238px minmax(0,1fr); gap:48px; align-items:start}
+.wrap{max-width:1300px; margin:0 auto; display:grid; grid-template-columns:186px minmax(0,1fr); gap:44px; align-items:start}
 @media (max-width:1040px){ .wrap{grid-template-columns:minmax(0,1fr); gap:0} }
 
-/* ---------- sidebar (sidebars.md: one level, quiet, never holds actions) ---------- */
-.rail{position:sticky; top:calc(env(safe-area-inset-top,0px) + 24px); padding-block:28px 0; font-size:13px}
-.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px}
-.rail a{display:grid; grid-template-columns:47px 1fr; gap:11px; align-items:baseline;
-  color:var(--dim); text-decoration:none; padding:8px 12px; border-radius:var(--r-sm);
-  min-height:32px; transition:background .18s var(--ease), color .18s var(--ease)}
-.rail a span.ad{font-family:var(--mono); font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums}
-.rail a span.nm{font-size:13px}
-.rail a:hover{color:var(--text); background-color:var(--surface2)}
-/* Selection is neutral on purpose: on this page colour means "memory role",
-   so the interactive layer speaks through fill, weight and elevation instead
-   (color.md > Best practices: "Avoid using the same color to mean different things"). */
-.rail a.on{color:var(--text); background-color:var(--surface); box-shadow:var(--shadowPill); font-weight:600}
-.rail a.on span.ad{color:var(--text)}
-.rail .railhd{font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--faint); padding-left:12px; margin-bottom:10px}
+/* ---------- rail ---------- */
+.rail{position:sticky; top:calc(env(safe-area-inset-top,0px) + 24px); padding-block:24px 0; font-family:var(--mono); font-size:12px}
+.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px}
+.rail a{display:grid; grid-template-columns:58px 1fr; gap:8px; align-items:baseline;
+  color:var(--faint); text-decoration:none; padding:5px 8px; border-left:2px solid var(--lineSoft); transition:.18s}
+.rail a span.ad{opacity:.7}
+.rail a span.nm{font-family:var(--sans); font-size:13px}
+.rail a:hover{color:var(--text); background:var(--surface)}
+.rail a.on{color:var(--ptr); border-left-color:var(--ptr); background:var(--surface)}
+.rail a.on span.ad{color:var(--ptr); opacity:1}
+.rail .railhd{font-family:var(--tech); letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-size:10.5px; padding-left:10px; margin-bottom:12px}
 @media (max-width:1040px){
-  /* Compact width: the rail becomes the floating functional layer, so this is
-     the one place Liquid Glass belongs (materials.md > Liquid Glass). */
-  .rail{position:sticky; top:0; z-index:40; background-color:var(--glass);
-    -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px);
-    border-bottom:.5px solid var(--line); margin-inline:-20px;
-    padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px}
+  .rail{position:sticky; top:0; z-index:40; background:var(--bg); border-bottom:1px solid var(--line); margin-inline:-20px; padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px}
   .rail .railhd{display:none}
-  .rail ol{flex-direction:row; overflow-x:auto; gap:4px; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+  .rail ol{flex-direction:row; overflow-x:auto; gap:4px; scrollbar-width:none}
   .rail ol::-webkit-scrollbar{display:none}
-  .rail a{grid-template-columns:1fr; white-space:nowrap; padding:7px 14px; border-radius:999px; min-height:36px; align-items:center}
+  .rail a{grid-template-columns:1fr; border-left:none; border-bottom:2px solid transparent; white-space:nowrap; padding:4px 10px}
   .rail a span.ad{display:none}
-}
-@media (prefers-reduced-transparency: reduce){
-  @media (max-width:1040px){ .rail{background-color:var(--bg); -webkit-backdrop-filter:none; backdrop-filter:none} }
+  .rail a.on{border-bottom-color:var(--ptr); background:transparent}
 }
 
-/* ---------- typography: Apple text styles ---------- */
-main{padding-block:32px 0; min-width:0}
-h1{font-weight:700; font-size:clamp(32px,5vw,44px); line-height:1.12; letter-spacing:-.022em; margin:0 0 20px; text-wrap:balance}
-h2{font-weight:700; font-size:clamp(24px,3vw,30px); line-height:1.25; letter-spacing:-.018em; margin:0 0 8px; text-wrap:balance}
-h3{font-weight:600; font-size:20px; line-height:1.3; letter-spacing:-.01em; margin:34px 0 10px}
-p{margin:0 0 17px; max-width:66ch}
-.lede{font-size:19px; line-height:1.6; color:var(--dim); max-width:60ch; letter-spacing:-.008em}
-.eyebrow{font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--faint); margin:0 0 8px}
-em{font-style:normal; color:var(--data); font-weight:600}
-strong{font-weight:600}
-.hl-attr{color:var(--attr); font-weight:600}
-ul.plain{margin:0 0 17px; padding-left:22px; max-width:66ch}
-ul.plain li{margin-bottom:8px}
+/* ---------- typography ---------- */
+main{padding-block:28px 0; min-width:0}
+h1{font-weight:700; font-size:clamp(30px,5.2vw,50px); line-height:1.18; letter-spacing:-.01em; margin:0 0 18px; text-wrap:balance}
+h2{font-weight:700; font-size:clamp(21px,3vw,27px); line-height:1.35; margin:0 0 6px; text-wrap:balance}
+h3{font-weight:700; font-size:16.5px; margin:26px 0 8px}
+p{margin:0 0 16px; max-width:66ch}
+.lede{font-size:18px; color:var(--dim); max-width:60ch}
+.eyebrow{font-family:var(--tech); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ptr); margin:0 0 10px; display:flex; align-items:center; gap:10px}
+.eyebrow::after{content:""; height:1px; flex:1; background:linear-gradient(90deg,var(--line),transparent)}
+em{font-style:normal; color:var(--data); font-weight:500}
+.hl-attr{color:var(--attr); font-weight:500}
+ul.plain{margin:0 0 16px; padding-left:20px; max-width:66ch}
+ul.plain li{margin-bottom:6px}
 ul.plain li::marker{color:var(--faint)}
-section{padding-block:60px; border-top:.5px solid var(--lineSoft)}
-section:first-of-type{border-top:none; padding-top:24px}
-a{color:var(--ptr)}
+section{padding-block:52px; border-top:1px solid var(--lineSoft)}
+section:first-of-type{border-top:none; padding-top:20px}
 
 /* ---------- hero ---------- */
-.hero .kicker{font-size:14px; color:var(--faint); margin-bottom:22px; letter-spacing:-.004em}
-.howto{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:30px 0 16px}
-.howto .h{padding:18px 20px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow)}
-.howto .h .tag{font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:6px}
-.howto .h .tag i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none}
-.howto .h p{margin:0; font-size:15px; line-height:1.55; color:var(--dim); max-width:none}
-.howto .mid{display:none}          /* the ╌╌► divider said nothing the two labels didn't */
-@media (max-width:640px){ .howto{grid-template-columns:1fr} }
-.hero-legend{display:flex; flex-wrap:wrap; gap:10px 22px; font-size:14px; color:var(--dim); margin-top:20px}
-.hero-legend span{display:inline-flex; align-items:center; gap:8px}
-.dot{width:10px; height:10px; border-radius:50%; display:inline-block; flex:none}
+.hero .kicker{font-family:var(--mono); font-size:12px; color:var(--faint); margin-bottom:22px}
+.howto{display:grid; grid-template-columns:1fr auto 1fr; border:1px solid var(--line); border-radius:4px; overflow:hidden; margin:28px 0 14px; background:var(--surface)}
+.howto .h{padding:14px 16px}
+.howto .h .tag{font-family:var(--tech); font-size:10px; letter-spacing:.16em; text-transform:uppercase; display:flex; align-items:center; gap:7px; margin-bottom:5px}
+.howto .h .tag i{width:7px; height:7px; border-radius:50%; display:inline-block}
+.howto .h p{margin:0; font-size:13.5px; color:var(--dim); max-width:none}
+.howto .mid{display:flex; align-items:center; justify-content:center; padding:0 14px; border-inline:1px solid var(--line); background:var(--bg); font-family:var(--mono); color:var(--ptr); font-size:13px; letter-spacing:-1px}
+@media (max-width:640px){ .howto{grid-template-columns:1fr} .howto .mid{border-inline:none; border-block:1px solid var(--line); padding:6px} }
+.hero-legend{display:flex; flex-wrap:wrap; gap:8px 18px; font-family:var(--mono); font-size:12px; color:var(--dim); margin-top:16px}
+.hero-legend span{display:inline-flex; align-items:center; gap:7px}
+.dot{width:9px; height:9px; border-radius:2px; display:inline-block}
 
-/* ---------- cards / split panes ---------- */
-.panel{background-color:var(--surface); border-radius:var(--r-card); margin:28px 0; box-shadow:var(--shadow); overflow:hidden}
-.panel-hd{display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:14px 18px; border-bottom:.5px solid var(--lineSoft)}
-.panel-hd .t{font-size:13px; font-weight:600; color:var(--dim); margin-right:auto; letter-spacing:-.004em}
-.panel-bd{padding:22px 18px}
+/* ---------- panel / split ---------- */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:4px; margin:24px 0; box-shadow:var(--shadow); overflow:hidden}
+.panel-hd{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid var(--line); background:var(--surface2)}
+.panel-hd .t{font-family:var(--tech); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-right:auto}
+.panel-bd{padding:20px 16px}
 .split{display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)}
-.pane{padding:20px 18px; min-width:0}
-.pane + .pane{border-left:.5px solid var(--lineSoft)}
+.pane{padding:18px 16px; min-width:0}
+.pane + .pane{border-left:1px solid var(--line)}
 @media (min-width:901px){ #p8 .pane:first-child{position:sticky; top:16px; align-self:start} }
-@media (max-width:900px){ .split{grid-template-columns:minmax(0,1fr)} .pane + .pane{border-left:none; border-top:.5px solid var(--lineSoft)} }
-.paneLbl{font-size:12px; font-weight:600; letter-spacing:.01em; color:var(--faint); margin-bottom:14px; display:flex; align-items:center; gap:8px}
-.paneLbl i{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
-.paneLbl.code i{background-color:var(--okFill)}
-.paneLbl.mem i{background-color:var(--dataFill)}
-.bridge{grid-column:1/-1; border-top:.5px solid var(--lineSoft); background-color:var(--surface2); padding:14px 18px;
-  font-family:var(--mono); font-size:13px; color:var(--dim); display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; min-height:56px}
-.bridge .wire{color:var(--ptr); letter-spacing:-1.5px; font-size:13px}
-.bridge .cv{background-color:var(--surface); border-radius:var(--r-xs); padding:3px 9px; color:var(--text); box-shadow:0 0 0 .5px var(--line)}
-.bridge .cv.c{color:var(--ok); box-shadow:0 0 0 1px var(--ok)}
-.bridge .cv.m{color:var(--data); box-shadow:0 0 0 1px var(--data)}
-.bridge .cv.a{color:var(--attr); box-shadow:0 0 0 1px var(--attr)}
-.bridge .cv.w{color:var(--warn); box-shadow:0 0 0 1px var(--warn)}
-.bridge .full{flex-basis:100%; color:var(--faint); line-height:1.6; font-family:var(--sans); font-size:13px}
-.axlab{font-size:12px; color:var(--faint); margin-bottom:9px}
-.hint{font-size:15px; line-height:1.6; color:var(--faint); margin:12px 0 0; max-width:62ch}
+@media (max-width:900px){ .split{grid-template-columns:minmax(0,1fr)} .pane + .pane{border-left:none; border-top:1px solid var(--line)} }
+.paneLbl{font-family:var(--tech); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:12px; display:flex; align-items:center; gap:7px}
+.paneLbl i{width:7px; height:7px; border-radius:50%; display:inline-block; flex:none}
+.paneLbl.code i{background:var(--ok)}
+.paneLbl.mem i{background:var(--data)}
+.bridge{grid-column:1/-1; border-top:1px solid var(--line); background:var(--bg); padding:12px 16px;
+  font-family:var(--mono); font-size:12.5px; color:var(--dim); display:flex; flex-wrap:wrap; gap:7px 9px; align-items:center; min-height:50px}
+.bridge .wire{color:var(--ptr); letter-spacing:-1.5px; font-size:12px}
+.bridge .cv{border:1px solid var(--line); background:var(--surface); border-radius:2px; padding:2px 8px; color:var(--text)}
+.bridge .cv.c{border-color:var(--ok); color:var(--ok)}
+.bridge .cv.m{border-color:var(--data); color:var(--data)}
+.bridge .cv.a{border-color:var(--attr); color:var(--attr)}
+.bridge .full{flex-basis:100%; color:var(--faint); line-height:1.6}
+.axlab{font-family:var(--mono); font-size:10px; color:var(--faint); letter-spacing:.06em; margin-bottom:7px}
+.hint{font-size:13px; color:var(--faint); margin:10px 0 0; max-width:62ch}
 
-/* ---------- controls: 44pt touch targets, Apple segmented control ---------- */
-.chips{display:flex; flex-wrap:wrap; gap:6px; padding:3px; background-color:var(--surface2); border-radius:var(--r-ctl)}
-button.chip{font-family:var(--sans); font-size:13px; font-weight:500; color:var(--dim); background:transparent;
-  border:none; border-radius:var(--r-sm); padding:7px 13px; min-height:30px; cursor:pointer;
-  transition:background .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease)}
-button.chip:hover:not(.on){color:var(--text)}
-button.chip.on{color:var(--text); background-color:var(--surface); box-shadow:var(--shadowPill); font-weight:600}
-button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:var(--r-xs)}
-.seg{display:inline-flex; padding:3px; gap:3px; background-color:var(--surface2); border-radius:var(--r-ctl)}
-.seg button{font-family:var(--sans); font-size:13px; font-weight:500; background:transparent; color:var(--dim);
-  border:none; border-radius:var(--r-sm); padding:7px 15px; min-height:30px; cursor:pointer;
-  transition:background .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease)}
-.seg button:hover:not(.on){color:var(--text)}
-.seg button.on{background-color:var(--surface); color:var(--text); box-shadow:var(--shadowPill); font-weight:600}
-label.rng{display:flex; align-items:center; gap:12px; font-size:13px; color:var(--dim); min-height:30px}
-input[type=range]{accent-color:var(--ptrFill); width:132px; height:28px}
-@media (hover:none){
-  button.chip,.seg button{min-height:38px; padding-block:9px}
-  .expr{min-height:38px}
-}
+/* ---------- controls ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+button.chip{font-family:var(--mono); font-size:12.5px; color:var(--dim); background:var(--bg);
+  border:1px solid var(--line); border-radius:3px; padding:6px 11px; cursor:pointer; transition:.15s}
+button.chip:hover{color:var(--text); border-color:var(--dim)}
+button.chip.on{color:var(--bg); background:var(--ptr); border-color:var(--ptr); font-weight:500}
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--ptr); outline-offset:2px}
+.seg{display:inline-flex; border:1px solid var(--line); border-radius:3px; overflow:hidden}
+.seg button{font-family:var(--mono); font-size:12.5px; background:var(--bg); color:var(--dim); border:none; border-right:1px solid var(--line); padding:6px 13px; cursor:pointer}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--ptr); color:var(--bg); font-weight:500}
+label.rng{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12.5px; color:var(--dim)}
+input[type=range]{accent-color:var(--ptr); width:120px}
 
 /* ---------- code ---------- */
-pre{font-family:var(--mono); font-size:13.5px; line-height:2.05; background-color:var(--surface2);
-  border-radius:var(--r-ctl); padding:15px 17px; overflow-x:auto; margin:0 0 16px; color:var(--text)}
+pre{font-family:var(--mono); font-size:13px; line-height:1.85; background:var(--bg);
+  border:1px solid var(--line); border-left:2px solid var(--ok); border-radius:0 3px 3px 0;
+  padding:13px 15px; overflow-x:auto; margin:0 0 14px; color:var(--text)}
 pre .cm{color:var(--faint); font-style:italic}
 pre .st{color:var(--ok)}
 pre .kw{color:var(--attr)}
 pre .nu{color:var(--data)}
 pre .fn{color:var(--ptr)}
 pre .op{color:var(--dim)}
-code.inline{font-family:var(--mono); font-size:.88em; background-color:var(--surface2); border-radius:var(--r-xs);
-  padding:2px 6px; color:var(--text); white-space:nowrap}
-.tok{border-radius:var(--r-xs); padding:4px 5px; margin-block:-2px; cursor:pointer; transition:box-shadow .18s var(--ease), background .18s var(--ease)}
-.tok:hover{box-shadow:0 0 0 1.5px var(--faint)}
-.tok.lit{background-color:var(--data); color:var(--onRole); box-shadow:none}
-.tok.lit span{color:var(--onRole) !important}
-.console{font-family:var(--mono); font-size:13px; line-height:1.85; background-color:var(--surface2);
-  border-radius:var(--r-ctl); padding:13px 15px; overflow-x:auto; color:var(--text); white-space:pre}
+code.inline{font-family:var(--mono); font-size:.9em; background:var(--surface2); border:1px solid var(--lineSoft); border-radius:2px; padding:1px 5px; color:var(--text); white-space:nowrap}
+.tok{border-radius:2px; padding:1px 3px; cursor:pointer; transition:.15s}
+.tok:hover{box-shadow:0 0 0 1px var(--dim)}
+.tok.lit{background:var(--data); color:var(--bg); box-shadow:none}
+.tok.lit span{color:var(--bg) !important}
+.console{font-family:var(--mono); font-size:12.5px; line-height:1.9; background:var(--bg); border:1px solid var(--line);
+  border-radius:3px; padding:11px 13px; overflow-x:auto; color:var(--text); white-space:pre}
 .console .pr{color:var(--faint)}
-.console .tok{padding:2px 3px; margin-block:-1px}
+.console .tok{padding:0}
 
-/* ================= MEMORY DUMP — the signature element ================= */
-.region{margin-bottom:16px}
+/* ================= MEMORY DUMP ================= */
+.region{margin-bottom:14px}
 .region:last-child{margin-bottom:0}
-.rhd{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 14px;
-  font-size:11px; color:var(--faint); margin-bottom:7px; padding:0 4px}
-.rhd b{font-weight:600; letter-spacing:.02em}
+.rhd{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; font-family:var(--mono);
+  font-size:10px; letter-spacing:.06em; color:var(--faint); margin-bottom:5px; padding:0 2px}
+.rhd b{font-weight:500; letter-spacing:.14em; text-transform:uppercase}
 .rhd b.d{color:var(--data)} .rhd b.p{color:var(--ptr)} .rhd b.a{color:var(--attr)}
-.dump{font-family:var(--mono); font-size:12px; border-radius:var(--r-ctl);
-  background-color:var(--surface2); overflow-x:auto; line-height:1.4}
-.drow{display:grid; grid-template-columns:62px var(--bw,max-content) minmax(140px,1fr); gap:0 14px;
-  align-items:center; padding:0 12px; min-height:32px; border-bottom:.5px solid var(--lineSoft);
-  transition:background .18s var(--ease)}
+.dump{font-family:var(--mono); font-size:11.5px; border:1px solid var(--line); border-radius:3px;
+  background:var(--bg); overflow-x:auto; line-height:1.4}
+.drow{display:grid; grid-template-columns:58px var(--bw,max-content) minmax(140px,1fr); gap:0 12px;
+  align-items:center; padding:0 10px; min-height:28px; border-bottom:1px solid var(--lineSoft)}
 .drow:last-child{border-bottom:none}
-.drow.hd{min-height:26px; background-color:var(--bg); border-bottom:.5px solid var(--line);
-  font-size:11px; letter-spacing:.02em; color:var(--faint)}
+.drow.hd{min-height:22px; background:var(--surface2); border-bottom:1px solid var(--line);
+  font-size:9px; letter-spacing:.12em; color:var(--faint)}
 .drow.sys{color:var(--faint)}
-.ga{color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums}
+.ga{color:var(--faint); white-space:nowrap}
 .gb{display:flex; gap:3px}
 .gc{color:var(--dim); min-width:0}
-.by{display:inline-block; min-width:22px; text-align:center; padding:5px 0; border-radius:var(--r-xs);
-  color:var(--dim); font-variant-numeric:tabular-nums; transition:background .18s var(--ease), color .18s var(--ease)}
-.by.hd{color:var(--faint); padding:3px 0}
-.by.zz{opacity:.4}
-.drow.d .by{background-color:var(--dataBg); color:var(--text)}
-.drow.p .by{background-color:var(--ptrBg); color:var(--ptr)}
-.drow.a .by{background-color:var(--attrBg); color:var(--attr)}
-.drow.sys .by{background:transparent; color:var(--faint); opacity:.65}
-.drow.lit{background-color:var(--surface); box-shadow:inset 3px 0 0 var(--ptrFill)}
-.drow.sys.lit .by{background-color:var(--attrBg); color:var(--attr); opacity:1}
+.by{display:inline-block; min-width:20px; text-align:center; padding:4px 0; border-radius:2px; color:var(--dim); transition:.15s}
+.by.hd{color:var(--faint); padding:2px 0}
+.by.zz{opacity:.45}
+.drow.d .by{background:var(--dataBg); color:var(--text)}
+.drow.p .by{background:var(--ptrBg); color:var(--ptr)}
+.drow.a .by{background:var(--attrBg); color:var(--attr)}
+.drow.sys .by{background:transparent; color:var(--faint); opacity:.6}
+.drow.lit{background:var(--surface); box-shadow:inset 2px 0 0 var(--ptr)}
+.drow.sys.lit .by{background:var(--attrBg); color:var(--attr); opacity:1}
 .drow.sys.lit .gc{color:var(--text)}
-.drow.d.lit .by{background-color:var(--data); color:var(--onRole)}
-.drow.p.lit .by{background-color:var(--ptr); color:var(--onRole)}
-.drow.a.lit .by{background-color:var(--attr); color:var(--onRole)}
+.drow.d.lit .by{background:var(--data); color:var(--bg)}
+.drow.p.lit .by{background:var(--ptr); color:var(--bg)}
+.drow.a.lit .by{background:var(--attr); color:var(--bg)}
 .drow[data-link]{cursor:pointer}
-.drow.dim{opacity:.32}
+.drow.dim{opacity:.3}
 .ann{white-space:nowrap}
 .ann .eq{color:var(--text)}
 .ann .ty{color:var(--faint)}
-.memgap{font-size:11px; color:var(--faint); text-align:center; padding:9px 0; letter-spacing:.06em}
-.tgt{display:inline-flex; flex-wrap:wrap; gap:5px; align-items:center;
-  background-color:var(--dataBg); border-radius:var(--r-sm); padding:4px 9px; font-size:12px; color:var(--text);
-  box-shadow:0 0 0 1px var(--data)}
-.tgt .sub{background-color:var(--surface); border-radius:var(--r-xs); padding:1px 6px; box-shadow:0 0 0 .5px var(--line)}
-.tgt .ty{font-size:11px; color:var(--dim); letter-spacing:.02em}
-.gc .arrow{color:var(--ptr); letter-spacing:-1.5px; margin:0 6px}
+.memgap{font-family:var(--mono); font-size:10px; color:var(--faint); text-align:center; padding:7px 0; letter-spacing:.1em}
+.tgt{display:inline-flex; flex-wrap:wrap; gap:4px; align-items:center; border:1px solid var(--data);
+  background:var(--dataBg); border-radius:2px; padding:3px 7px; font-size:11px; color:var(--text)}
+.tgt .sub{border:1px solid var(--line); background:var(--surface); border-radius:2px; padding:0 5px}
+.tgt .ty{font-size:9px; color:var(--faint); letter-spacing:.06em}
+.gc .arrow{color:var(--ptr); letter-spacing:-1.5px; margin:0 5px}
 .gc .nmlab{color:var(--text)}
-.boxwrap{border:2px dashed var(--ptrFill); border-radius:var(--r-card); padding:13px; background-color:var(--ptrBg); transition:.35s var(--ease)}
+.boxwrap{border:2px dashed var(--ptr); border-radius:4px; padding:11px; background:var(--ptrBg); transition:.35s}
 .boxwrap.open{border-color:transparent; background:transparent; padding:0}
-.boxwrap .lbl{font-size:12px; color:var(--ptr); margin-bottom:9px; transition:opacity .3s var(--ease)}
+.boxwrap .lbl{font-family:var(--mono); font-size:10.5px; color:var(--ptr); margin-bottom:8px; transition:opacity .3s}
 .boxwrap.open .lbl{opacity:0; height:0; margin:0; overflow:hidden}
 
 /* ---------- expressions ---------- */
-.exprs{display:flex; flex-wrap:wrap; gap:6px}
-.expr{font-family:var(--mono); font-size:13px; background-color:var(--surface2); color:var(--dim);
-  border:none; border-radius:var(--r-sm); padding:7px 12px; min-height:32px; cursor:pointer;
-  transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease)}
-.expr:hover{color:var(--text); background-color:var(--lineSoft)}
-.expr.lit{background-color:var(--dataBg); color:var(--data); font-weight:600; box-shadow:0 0 0 1px var(--data)}
-.expr.off{opacity:.5}
+.exprs{display:flex; flex-wrap:wrap; gap:5px}
+.expr{font-family:var(--mono); font-size:12.5px; border:1px solid var(--line); background:var(--bg); color:var(--dim);
+  border-radius:3px; padding:5px 10px; cursor:pointer; transition:.15s}
+.expr:hover{color:var(--text); border-color:var(--dim)}
+.expr.lit{background:var(--dataBg); border-color:var(--data); color:var(--data); font-weight:500}
+.expr.off{opacity:.55; border-style:dashed}
 
 /* ---------- matrix ---------- */
-.mgrid{display:inline-grid; gap:5px; font-family:var(--mono)}
-.mcell{background-color:var(--dataBg); border-radius:var(--r-sm); width:54px; padding:11px 0; color:var(--text);
-  text-align:center; font-size:14px; cursor:pointer; box-shadow:0 0 0 1px var(--data);
-  transition:transform .2s var(--ease), box-shadow .2s var(--ease)}
-.mcell.lit{box-shadow:0 0 0 2px var(--text); transform:translateY(-3px)}
-.mlab{font-size:11px; color:var(--faint); text-align:center; align-self:center; padding:0 8px; font-family:var(--mono)}
+.mgrid{display:inline-grid; gap:4px; font-family:var(--mono)}
+.mcell{border:1px solid var(--data); background:var(--dataBg); border-radius:2px; width:52px; padding:9px 0;
+  text-align:center; font-size:13.5px; cursor:pointer; transition:.2s}
+.mcell.lit{box-shadow:0 0 0 2px var(--text) inset; transform:translateY(-3px)}
+.mlab{font-family:var(--mono); font-size:10px; color:var(--faint); text-align:center; align-self:center; padding:0 6px}
 
-/* ---------- size table / calc card ---------- */
-.sizetbl{font-family:var(--mono); font-size:13px; width:auto; min-width:0}
-.sizetbl th,.sizetbl td{padding:6px 16px 6px 0; cursor:default; font-family:var(--mono)}
+
+.sizetbl{font-family:var(--mono); font-size:12.5px; width:auto; min-width:0}
+.sizetbl th,.sizetbl td{padding:5px 14px 5px 0; cursor:default; font-family:var(--mono)}
 .sizetbl td.hi{color:var(--data); font-weight:700}
-.calc{font-size:14px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow);
-  padding:18px 20px; margin:20px 0; max-width:62ch;
-  display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:8px 28px; align-items:baseline}
+.calc{font-family:var(--mono); font-size:13px; background:var(--bg); border:1px solid var(--line);
+  border-left:2px solid var(--data); border-radius:0 3px 3px 0; padding:14px 16px; margin:16px 0;
+  max-width:60ch; display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:6px 24px; align-items:baseline}
 .calc .k{color:var(--dim)}
-.calc .k em{color:var(--faint); font-style:normal; font-size:12.5px; font-weight:400}
-.calc .v{color:var(--text); text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.calc .k em{color:var(--faint); font-style:normal; font-size:11.5px}
+.calc .v{color:var(--text); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
 .calc .tot{color:var(--data); font-weight:700}
-.calc .note2{grid-column:1/-1; color:var(--faint); font-size:12.5px; margin-top:4px}
-.calc hr{grid-column:1/-1; border:none; border-top:.5px solid var(--line); margin:4px 0; width:100%}
+.calc .note2{grid-column:1/-1; color:var(--faint); font-size:11.5px; margin-top:2px}
+.calc hr{grid-column:1/-1; border:none; border-top:1px solid var(--line); margin:2px 0; width:100%}
 
 /* ---------- lineage diagram ---------- */
-figure.dgwrap{margin:28px 0; overflow-x:auto}
+figure.dgwrap{margin:24px 0; overflow-x:auto}
 .dgm{display:block; width:100%; min-width:720px; max-width:920px; height:auto; color:var(--dim); margin:0 auto}
 .dgm text{fill:currentColor; font-family:var(--mono); font-size:11px}
-.dgm .t{fill:var(--text); font-size:14px; font-family:var(--sans); font-weight:600}
-.dgm .s{font-size:11px; fill:var(--faint)}
+.dgm .t{fill:var(--text); font-size:13.5px; font-family:var(--sans); font-weight:700}
+.dgm .s{font-size:10px; fill:var(--faint)}
 .dgm rect{fill:none; stroke:currentColor; stroke-opacity:.3}
-.dgm .boxL{stroke:var(--data); stroke-opacity:.9}
-.dgm .boxR{stroke:var(--ptr); stroke-opacity:.9}
-.dgm .cL{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.6}
-.dgm .cR{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.6}
+.dgm .boxL{stroke:var(--data); stroke-opacity:.85}
+.dgm .boxR{stroke:var(--ptr); stroke-opacity:.85}
+.dgm .cL{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.55}
+.dgm .cR{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.55}
 .dgm line{stroke-width:1.3; fill:none}
 .dgm .wL{stroke:var(--data)} .dgm .wR{stroke:var(--ptr)}
 .dgm .hL{fill:var(--data)} .dgm .hR{fill:var(--ptr)}
 .dgm .lab{fill:var(--attr); font-size:11.5px}
 .dgm .mono{font-family:var(--mono)}
-figcaption{font-size:14px; color:var(--faint); text-align:center; margin-top:12px; max-width:62ch; margin-inline:auto; line-height:1.55}
+figcaption{font-size:13px; color:var(--faint); text-align:center; margin-top:10px; max-width:62ch; margin-inline:auto}
 
 /* ---------- tables ---------- */
 .tblwrap{overflow-x:auto}
-table{border-collapse:collapse; font-size:14px; width:100%; min-width:360px}
-th,td{text-align:left; padding:9px 12px; border-bottom:.5px solid var(--lineSoft); transition:background .15s var(--ease)}
-thead th{font-size:12px; color:var(--dim); font-weight:600; border-bottom:.5px solid var(--line); cursor:pointer}
+table{border-collapse:collapse; font-size:13px; width:100%; min-width:360px}
+th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--lineSoft); transition:background .15s}
+thead th{font-family:var(--mono); font-size:11.5px; color:var(--dim); font-weight:500; border-bottom:1px solid var(--line); cursor:pointer}
 td{font-family:var(--mono); font-variant-numeric:tabular-nums; cursor:pointer}
-th.lit,td.lit{background-color:var(--dataBg); color:var(--text)}
-.reftbl th{font-size:12px; letter-spacing:.01em; color:var(--faint); font-weight:600; cursor:default}
+th.lit,td.lit{background:var(--dataBg); color:var(--text)}
+.reftbl th{font-family:var(--tech); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); font-weight:600; cursor:default}
 .reftbl td{font-family:var(--sans); cursor:default}
-.reftbl td code{font-family:var(--mono); font-size:13px; color:var(--data)}
+.reftbl td code{font-family:var(--mono); font-size:12.5px; color:var(--data)}
 
 /* ---------- callouts ---------- */
-.note{background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow);
-  padding:18px 20px; margin:24px 0; font-size:15.5px; line-height:1.65; color:var(--dim); max-width:68ch}
-.note b.h{color:var(--attr); font-size:13px; font-weight:600; letter-spacing:-.004em; display:block; margin-bottom:8px}
-.note p{margin:0 0 10px; max-width:none}
+.note{border:1px solid var(--line); border-left:2px solid var(--attr); background:var(--surface);
+  border-radius:0 3px 3px 0; padding:14px 16px; margin:20px 0; font-size:14.5px; color:var(--dim); max-width:68ch}
+.note b.h{color:var(--attr); font-family:var(--tech); letter-spacing:.1em; font-size:11px; text-transform:uppercase; display:block; margin-bottom:6px}
+.note p{margin:0 0 8px; max-width:none}
 .note p:last-child{margin:0}
-.note pre{background-color:var(--surface2)}
 
-/* ---------- quiz: grouped list rows, 44pt targets ---------- */
-.quiz{display:flex; flex-direction:column; gap:16px}
-.q{border-radius:var(--r-card); background-color:var(--surface); box-shadow:var(--shadow); padding:20px}
-.q .qh{display:flex; gap:12px; align-items:baseline; margin-bottom:14px}
-.q .qn{font-family:var(--mono); font-size:12px; color:var(--faint); flex:none; font-variant-numeric:tabular-nums}
-.q .qt{font-weight:600; font-size:17px; line-height:1.45; letter-spacing:-.008em}
-.q .qt code{font-family:var(--mono); font-size:14px; font-weight:400; color:var(--data); background-color:var(--surface2); padding:2px 6px; border-radius:var(--r-xs)}
-.opts{display:flex; flex-direction:column; gap:7px}
-.opts button{text-align:left; font-family:var(--mono); font-size:14px; line-height:1.5; color:var(--dim); background-color:var(--surface2);
-  border:none; border-radius:var(--r-ctl); padding:12px 15px; min-height:44px; cursor:pointer;
-  transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease)}
-.opts button:hover:not(:disabled){color:var(--text); background-color:var(--lineSoft)}
+/* ---------- quiz ---------- */
+.quiz{display:flex; flex-direction:column; gap:14px}
+.q{border:1px solid var(--line); border-radius:4px; background:var(--surface); padding:16px}
+.q .qh{display:flex; gap:10px; align-items:baseline; margin-bottom:11px}
+.q .qn{font-family:var(--mono); font-size:11px; color:var(--faint); flex:none}
+.q .qt{font-weight:500; font-size:15px}
+.q .qt code{font-family:var(--mono); font-size:13px; color:var(--data); background:var(--bg); padding:1px 5px; border-radius:2px; border:1px solid var(--lineSoft)}
+.opts{display:flex; flex-direction:column; gap:6px}
+.opts button{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim); background:var(--bg);
+  border:1px solid var(--line); border-radius:3px; padding:8px 12px; cursor:pointer; transition:.15s}
+.opts button:hover:not(:disabled){border-color:var(--dim); color:var(--text)}
 .opts button:disabled{cursor:default}
-/* state carries a glyph as well as a colour (accessibility.md > Vision:
-   "Convey information with more than color alone") */
-.opts button.good{color:var(--ok); background-color:var(--okBg); box-shadow:0 0 0 1.5px var(--ok); font-weight:600}
-.opts button.bad{color:var(--warn); background-color:var(--warnBg); box-shadow:0 0 0 1.5px var(--warn); font-weight:600}
-.opts button.good::before{content:"✓ "; font-weight:700}
-.opts button.bad::before{content:"✕ "; font-weight:700}
-.exp{margin-top:14px; font-size:14.5px; line-height:1.6; color:var(--dim); background-color:var(--surface2);
-  border-radius:var(--r-ctl); padding:12px 14px; display:none}
+.opts button.good{border-color:var(--ok); color:var(--ok); background:var(--okBg)}
+.opts button.bad{border-color:var(--warn); color:var(--warn); background:rgba(240,123,98,.10)}
+.exp{margin-top:11px; font-size:13.5px; color:var(--dim); border-left:2px solid var(--ok); padding-left:11px; display:none}
 .exp.show{display:block}
-.score{font-size:15px; color:var(--dim); padding:16px 18px; background-color:var(--surface);
-  border-radius:var(--r-card); box-shadow:var(--shadow); text-align:center}
-.score b{color:var(--text); font-size:22px; font-weight:700; font-variant-numeric:tabular-nums}
+.score{font-family:var(--mono); font-size:13px; color:var(--dim); padding:12px 14px; border:1px dashed var(--line); border-radius:3px; text-align:center}
+.score b{color:var(--ptr); font-size:18px}
 
 /* ---------- tree ---------- */
-.tree{font-family:var(--mono); font-size:13px; line-height:1.95; color:var(--dim); overflow-x:auto; padding:6px 0}
-.tree b{color:var(--text); font-weight:600}
+.tree{font-family:var(--mono); font-size:12.5px; line-height:2; color:var(--dim); overflow-x:auto; padding:4px 0}
+.tree b{color:var(--text); font-weight:500}
 .tree .c1{color:var(--data)} .tree .c2{color:var(--ptr)} .tree .c3{color:var(--attr)}
 
-footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px solid var(--lineSoft); font-size:14px;
-  color:var(--faint); display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between}
+footer{max-width:1300px; margin:56px auto 0; padding-top:24px; border-top:1px solid var(--lineSoft); font-size:13px;
+  color:var(--faint); display:flex; flex-wrap:wrap; gap:8px 20px; justify-content:space-between; font-family:var(--mono)}
 
 @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
 </style>
@@ -439,21 +331,21 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
 
   <div class="howto">
     <div class="h">
-      <div class="tag" style="color:var(--ok)"><i style="background:var(--okFill)"></i>左邊 · 程式端</div>
+      <div class="tag" style="color:var(--ok)"><i style="background:var(--ok)"></i>左邊 · 程式端</div>
       <p>你寫的那一行 R 程式碼，以及 console 印出來給你看的樣子。</p>
     </div>
     <div class="mid">╌╌╌╌►<br>◄╌╌╌╌</div>
     <div class="h">
-      <div class="tag" style="color:var(--data)"><i style="background:var(--dataFill)"></i>右邊 · 電腦端</div>
+      <div class="tag" style="color:var(--data)"><i style="background:var(--data)"></i>右邊 · 電腦端</div>
       <p>同一時刻的記憶體傾印：位址、真正的 bytes、指標、屬性。</p>
     </div>
   </div>
   <p class="hint" style="margin-top:12px">每個面板都是左右對照的。<strong>把滑鼠移到任何一邊（手機用點的），另一邊會同步亮起來</strong>，最下面的連結列會告訴你這兩件事怎麼對上。右邊的十六進位數字不是裝飾 —— 是照 IEEE 754 與 little-endian 真的算出來的。</p>
 
   <div class="hero-legend">
-    <span><i class="dot" style="background:var(--dataFill)"></i>資料本體 &nbsp;直接躺在記憶體裡</span>
-    <span><i class="dot" style="background:var(--ptrFill)"></i>指標 pointer &nbsp;告訴你去哪裡找</span>
-    <span><i class="dot" style="background:var(--attrFill)"></i>屬性 attributes &nbsp;怎麼解讀這堆 bytes</span>
+    <span><i class="dot" style="background:var(--data)"></i>資料本體 &nbsp;直接躺在記憶體裡</span>
+    <span><i class="dot" style="background:var(--ptr)"></i>指標 pointer &nbsp;告訴你去哪裡找</span>
+    <span><i class="dot" style="background:var(--attr)"></i>屬性 attributes &nbsp;怎麼解讀這堆 bytes</span>
   </div>
 </section>
 
@@ -970,9 +862,9 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
 <section id="s12">
   <p class="eyebrow">12 · Self-check</p>
   <h2>隨堂測驗</h2>
-  <p>十題。每題選完會立刻給解釋，答錯不扣分，但請先自己在腦中畫一次「左邊程式碼 ↔ 右邊記憶體」的對照再選。</p>
+  <p>十一題。每題選完會立刻給解釋，答錯不扣分，但請先自己在腦中畫一次「左邊程式碼 ↔ 右邊記憶體」的對照再選。</p>
   <div class="quiz" id="quiz"></div>
-  <div class="score" id="score" style="margin-top:16px">尚未作答 · <b>0</b> / 10</div>
+  <div class="score" id="score" style="margin-top:16px">尚未作答 · <b>0</b> / 11</div>
 </section>
 
 <footer>
@@ -1034,7 +926,7 @@ function dumpHTML(o){
     h += sysRow(o.base-24, null, 'gengc_prev &nbsp;<span class="ty">GC 用的雙向串列</span>');
     h += sysRow(o.base-16, bytesOf(o.hdrLen || 0, "ptr"), '<span class="ann"><span class="eq">length = '+(o.hdrLen||0)+'</span></span>');
     h += sysRow(o.base-8,  null, 'truelength &nbsp;<span class="ty">R 內部用</span>');
-    h += '<div class="drow sys" style="background:var(--bg)"><span class="ga"></span><span class="gb"></span>' +
+    h += '<div class="drow sys" style="background:var(--surface2)"><span class="ga"></span><span class="gb"></span>' +
          '<span class="gc"><b style="color:var(--text)">header 小計 48 bytes</b>　↓ 以下才是你的資料</span></div>';
   } else if (o.header){
     h += sysRow(o.base-48, null, 'SEXP header 48 bytes &nbsp;<span class="ty">sxpinfo / attrib / GC / length / truelength（§01 有完整拆解）</span>');
@@ -1180,7 +1072,7 @@ var AS_STEPS = [
     con:'<span class="pr">&gt; x &lt;- "hello"</span>\n<span class="pr">&gt; x</span>\n[1] "hello"',
     br:'<span class="cv c">x &lt;- "hello"</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv m">造出 character 物件 @0x3300</span>'+
        '<span class="wire">╌╌►</span>'+'<span class="cv a">x 改指 0x3300</span>'+'<span class="wire">╌╌►</span>'+
-       '<span class="cv w">0x1000 成為垃圾</span>'+
+       '<span class="cv" style="border-color:var(--warn); color:var(--warn)">0x1000 成為垃圾</span>'+
        '<span class="full">變數沒有固定型別 —— 換的是名牌指向哪裡，不是把字串塞進原本那個 double 的箱子。原本 0x1000 那塊沒有任何名字指著了，交給 GC 回收。</span>' }
 ];
 var asIdx = 0, asLink;
@@ -1496,7 +1388,7 @@ function nvBridge(k){
     if (!b.named){
       $("nvBr").innerHTML =
         '<span class="cv c">v["'+NV.nms[i]+'"]</span>'+W+
-        '<span class="cv w">names 是 NULL，無從比對</span>'+W+'<span class="cv">NA</span>' +
+        '<span class="cv" style="border-color:var(--warn); color:var(--warn)">names 是 NULL，無從比對</span>'+W+'<span class="cv">NA</span>' +
         '<span class="full">沒有 names 屬性，R 找不到任何字串可以對，回傳 NA（而且不會報錯）。名字是屬性，不是資料的一部分。</span>';
       return;
     }
@@ -1651,7 +1543,7 @@ function drawSS(){
       var on = s.hit.indexOf(p.nm) >= 0;
       var tgt = '<span class="tgt">' + p.val.map(function(v,j){
         var m = (s.mark === j && p.nm === "visits");
-        return '<span class="sub"'+(m?' style="box-shadow:0 0 0 1px var(--data); background:var(--dataBg); color:var(--data)"':"")+'>'+esc(v)+'</span>';
+        return '<span class="sub"'+(m?' style="border-color:var(--data); background:var(--dataBg); color:var(--data)"':"")+'>'+esc(v)+'</span>';
       }).join("") + '<span class="ty">'+p.ty+' @'+hex(p.addr)+'</span></span>';
       return { val:p.addr, dim:!on, link:"x",
         ann:'<span class="ann"><span class="nmlab">'+p.nm+'</span> <span class="arrow">╌►</span></span> ' + tgt };
@@ -1949,6 +1841,9 @@ var QS = [
     o:["24 bytes，就是資料本身","80 bytes，因為還有 48 bytes 的 header，而且資料會進位到 32 bytes",
        "32 bytes，資料進位到 4 格","48 bytes，header 就是全部"], a:1,
     e:"物件的型別、長度、attrib 指標、GC 資訊都要佔記憶體 —— 在 64 位元的 R 上這段 header 固定 48 bytes（object.size(numeric(0)) 就是 48）。加上資料：3 個 double 需要 3 格，但 R 的小向量尺寸級距是 1、2、4、6、8、16 格，只好進位到 4 格 = 32 bytes。48 + 32 = 80。" },
+  { q:'<code>x &lt;- c(10,20,30,40)</code> 是 double（每格 8 bytes），起點在 0x1000。<code>x[3]</code> 在哪個位址？',
+    o:["0x1003","0x1008","0x1010","0x1018"], a:2,
+    e:"起點 + (3−1) × 8 = 0x1000 + 16 = 0x1010。索引從 1 開始，所以要減 1 才是位移量。" },
   { q:'<code>v &lt;- c(apple=1, banana=2, peach=3)</code>。<code>v["banana"]</code> 和 <code>v[2]</code> 都得到 2，就電腦而言差別在哪？',
     o:["完全一樣，只是寫法不同","v[\"banana\"] 要先到 names 那塊記憶體逐格比對字串，v[2] 直接算位址",
        "v[\"banana\"] 比較快，因為 R 對名字建了 hash table","v[2] 會先複製整個向量再取值"], a:1,
