@@ -1,0 +1,1896 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="從記憶體位址與 bytes 出發，互動解釋 R 的 variable 與 <-、vector、coercion、named vector、list、[ ] vs [[ ]]、matrix、factor 與 data.frame。">
+<meta property="og:title" content="記憶體裡的 R 物件">
+<meta property="og:description" content="大數據分析與實踐 · R 資料結構互動教材">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,sans-serif;background:#faf9f7}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<title>記憶體裡的 R 物件</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#0A0F14; --surface:#10171F; --surface2:#16202B;
+  --line:#22313F; --lineSoft:#1A2631;
+  --text:#DCE7EF; --dim:#8AA0B2; --faint:#5E7183;
+  --data:#F0A848; --ptr:#4FC8E8; --attr:#B38CF0;
+  --ok:#5FD39A; --warn:#F07B62;
+  --dataBg:rgba(240,168,72,.13); --ptrBg:rgba(79,200,232,.13); --attrBg:rgba(179,140,240,.13); --okBg:rgba(95,211,154,.12);
+  --shadow:0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.35);
+  --mono:"JetBrains Mono","Noto Sans TC",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --tech:"Chakra Petch","Noto Sans TC",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#F3F6F9; --surface:#FFFFFF; --surface2:#E9EFF5;
+    --line:#C7D6E2; --lineSoft:#DEE7EE;
+    --text:#132030; --dim:#4C6274; --faint:#7D91A2;
+    --data:#A85F06; --ptr:#0B6F92; --attr:#5E33B8;
+    --ok:#137A4F; --warn:#AB3620;
+    --dataBg:rgba(168,95,6,.11); --ptrBg:rgba(11,111,146,.11); --attrBg:rgba(94,51,184,.11); --okBg:rgba(19,122,79,.10);
+    --shadow:0 1px 0 rgba(255,255,255,.8), 0 6px 18px rgba(19,32,48,.08);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F3F6F9; --surface:#FFFFFF; --surface2:#E9EFF5;
+  --line:#C7D6E2; --lineSoft:#DEE7EE;
+  --text:#132030; --dim:#4C6274; --faint:#7D91A2;
+  --data:#A85F06; --ptr:#0B6F92; --attr:#5E33B8;
+  --ok:#137A4F; --warn:#AB3620;
+  --dataBg:rgba(168,95,6,.11); --ptrBg:rgba(11,111,146,.11); --attrBg:rgba(94,51,184,.11); --okBg:rgba(19,122,79,.10);
+  --shadow:0 1px 0 rgba(255,255,255,.8), 0 6px 18px rgba(19,32,48,.08);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:var(--sans); font-size:16px; line-height:1.75;
+  margin:0; padding-block:0 72px; padding-inline:20px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1300px; margin:0 auto; display:grid; grid-template-columns:186px minmax(0,1fr); gap:44px; align-items:start}
+@media (max-width:1040px){ .wrap{grid-template-columns:minmax(0,1fr); gap:0} }
+
+/* ---------- rail ---------- */
+.rail{position:sticky; top:calc(env(safe-area-inset-top,0px) + 24px); padding-block:24px 0; font-family:var(--mono); font-size:12px}
+.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px}
+.rail a{display:grid; grid-template-columns:58px 1fr; gap:8px; align-items:baseline;
+  color:var(--faint); text-decoration:none; padding:5px 8px; border-left:2px solid var(--lineSoft); transition:.18s}
+.rail a span.ad{opacity:.7}
+.rail a span.nm{font-family:var(--sans); font-size:13px}
+.rail a:hover{color:var(--text); background:var(--surface)}
+.rail a.on{color:var(--ptr); border-left-color:var(--ptr); background:var(--surface)}
+.rail a.on span.ad{color:var(--ptr); opacity:1}
+.rail .railhd{font-family:var(--tech); letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-size:10.5px; padding-left:10px; margin-bottom:12px}
+@media (max-width:1040px){
+  .rail{position:sticky; top:0; z-index:40; background:var(--bg); border-bottom:1px solid var(--line); margin-inline:-20px; padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px}
+  .rail .railhd{display:none}
+  .rail ol{flex-direction:row; overflow-x:auto; gap:4px; scrollbar-width:none}
+  .rail ol::-webkit-scrollbar{display:none}
+  .rail a{grid-template-columns:1fr; border-left:none; border-bottom:2px solid transparent; white-space:nowrap; padding:4px 10px}
+  .rail a span.ad{display:none}
+  .rail a.on{border-bottom-color:var(--ptr); background:transparent}
+}
+
+/* ---------- typography ---------- */
+main{padding-block:28px 0; min-width:0}
+h1{font-weight:700; font-size:clamp(30px,5.2vw,50px); line-height:1.18; letter-spacing:-.01em; margin:0 0 18px; text-wrap:balance}
+h2{font-weight:700; font-size:clamp(21px,3vw,27px); line-height:1.35; margin:0 0 6px; text-wrap:balance}
+h3{font-weight:700; font-size:16.5px; margin:26px 0 8px}
+p{margin:0 0 16px; max-width:66ch}
+.lede{font-size:18px; color:var(--dim); max-width:60ch}
+.eyebrow{font-family:var(--tech); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ptr); margin:0 0 10px; display:flex; align-items:center; gap:10px}
+.eyebrow::after{content:""; height:1px; flex:1; background:linear-gradient(90deg,var(--line),transparent)}
+em{font-style:normal; color:var(--data); font-weight:500}
+.hl-attr{color:var(--attr); font-weight:500}
+ul.plain{margin:0 0 16px; padding-left:20px; max-width:66ch}
+ul.plain li{margin-bottom:6px}
+ul.plain li::marker{color:var(--faint)}
+section{padding-block:52px; border-top:1px solid var(--lineSoft)}
+section:first-of-type{border-top:none; padding-top:20px}
+
+/* ---------- hero ---------- */
+.hero .kicker{font-family:var(--mono); font-size:12px; color:var(--faint); margin-bottom:22px}
+.howto{display:grid; grid-template-columns:1fr auto 1fr; border:1px solid var(--line); border-radius:4px; overflow:hidden; margin:28px 0 14px; background:var(--surface)}
+.howto .h{padding:14px 16px}
+.howto .h .tag{font-family:var(--tech); font-size:10px; letter-spacing:.16em; text-transform:uppercase; display:flex; align-items:center; gap:7px; margin-bottom:5px}
+.howto .h .tag i{width:7px; height:7px; border-radius:50%; display:inline-block}
+.howto .h p{margin:0; font-size:13.5px; color:var(--dim); max-width:none}
+.howto .mid{display:flex; align-items:center; justify-content:center; padding:0 14px; border-inline:1px solid var(--line); background:var(--bg); font-family:var(--mono); color:var(--ptr); font-size:13px; letter-spacing:-1px}
+@media (max-width:640px){ .howto{grid-template-columns:1fr} .howto .mid{border-inline:none; border-block:1px solid var(--line); padding:6px} }
+.hero-legend{display:flex; flex-wrap:wrap; gap:8px 18px; font-family:var(--mono); font-size:12px; color:var(--dim); margin-top:16px}
+.hero-legend span{display:inline-flex; align-items:center; gap:7px}
+.dot{width:9px; height:9px; border-radius:2px; display:inline-block}
+
+/* ---------- panel / split ---------- */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:4px; margin:24px 0; box-shadow:var(--shadow); overflow:hidden}
+.panel-hd{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:11px 16px; border-bottom:1px solid var(--line); background:var(--surface2)}
+.panel-hd .t{font-family:var(--tech); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin-right:auto}
+.panel-bd{padding:20px 16px}
+.split{display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)}
+.pane{padding:18px 16px; min-width:0}
+.pane + .pane{border-left:1px solid var(--line)}
+@media (min-width:901px){ #p8 .pane:first-child{position:sticky; top:16px; align-self:start} }
+@media (max-width:900px){ .split{grid-template-columns:minmax(0,1fr)} .pane + .pane{border-left:none; border-top:1px solid var(--line)} }
+.paneLbl{font-family:var(--tech); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:12px; display:flex; align-items:center; gap:7px}
+.paneLbl i{width:7px; height:7px; border-radius:50%; display:inline-block; flex:none}
+.paneLbl.code i{background:var(--ok)}
+.paneLbl.mem i{background:var(--data)}
+.bridge{grid-column:1/-1; border-top:1px solid var(--line); background:var(--bg); padding:12px 16px;
+  font-family:var(--mono); font-size:12.5px; color:var(--dim); display:flex; flex-wrap:wrap; gap:7px 9px; align-items:center; min-height:50px}
+.bridge .wire{color:var(--ptr); letter-spacing:-1.5px; font-size:12px}
+.bridge .cv{border:1px solid var(--line); background:var(--surface); border-radius:2px; padding:2px 8px; color:var(--text)}
+.bridge .cv.c{border-color:var(--ok); color:var(--ok)}
+.bridge .cv.m{border-color:var(--data); color:var(--data)}
+.bridge .cv.a{border-color:var(--attr); color:var(--attr)}
+.bridge .full{flex-basis:100%; color:var(--faint); line-height:1.6}
+.axlab{font-family:var(--mono); font-size:10px; color:var(--faint); letter-spacing:.06em; margin-bottom:7px}
+.hint{font-size:13px; color:var(--faint); margin:10px 0 0; max-width:62ch}
+
+/* ---------- controls ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+button.chip{font-family:var(--mono); font-size:12.5px; color:var(--dim); background:var(--bg);
+  border:1px solid var(--line); border-radius:3px; padding:6px 11px; cursor:pointer; transition:.15s}
+button.chip:hover{color:var(--text); border-color:var(--dim)}
+button.chip.on{color:var(--bg); background:var(--ptr); border-color:var(--ptr); font-weight:500}
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--ptr); outline-offset:2px}
+.seg{display:inline-flex; border:1px solid var(--line); border-radius:3px; overflow:hidden}
+.seg button{font-family:var(--mono); font-size:12.5px; background:var(--bg); color:var(--dim); border:none; border-right:1px solid var(--line); padding:6px 13px; cursor:pointer}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--ptr); color:var(--bg); font-weight:500}
+label.rng{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12.5px; color:var(--dim)}
+input[type=range]{accent-color:var(--ptr); width:120px}
+
+/* ---------- code ---------- */
+pre{font-family:var(--mono); font-size:13px; line-height:1.85; background:var(--bg);
+  border:1px solid var(--line); border-left:2px solid var(--ok); border-radius:0 3px 3px 0;
+  padding:13px 15px; overflow-x:auto; margin:0 0 14px; color:var(--text)}
+pre .cm{color:var(--faint); font-style:italic}
+pre .st{color:var(--ok)}
+pre .kw{color:var(--attr)}
+pre .nu{color:var(--data)}
+pre .fn{color:var(--ptr)}
+pre .op{color:var(--dim)}
+code.inline{font-family:var(--mono); font-size:.9em; background:var(--surface2); border:1px solid var(--lineSoft); border-radius:2px; padding:1px 5px; color:var(--text); white-space:nowrap}
+.tok{border-radius:2px; padding:1px 3px; cursor:pointer; transition:.15s}
+.tok:hover{box-shadow:0 0 0 1px var(--dim)}
+.tok.lit{background:var(--data); color:var(--bg); box-shadow:none}
+.tok.lit span{color:var(--bg) !important}
+.console{font-family:var(--mono); font-size:12.5px; line-height:1.9; background:var(--bg); border:1px solid var(--line);
+  border-radius:3px; padding:11px 13px; overflow-x:auto; color:var(--text); white-space:pre}
+.console .pr{color:var(--faint)}
+.console .tok{padding:0}
+
+/* ================= MEMORY DUMP ================= */
+.region{margin-bottom:14px}
+.region:last-child{margin-bottom:0}
+.rhd{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; font-family:var(--mono);
+  font-size:10px; letter-spacing:.06em; color:var(--faint); margin-bottom:5px; padding:0 2px}
+.rhd b{font-weight:500; letter-spacing:.14em; text-transform:uppercase}
+.rhd b.d{color:var(--data)} .rhd b.p{color:var(--ptr)} .rhd b.a{color:var(--attr)}
+.dump{font-family:var(--mono); font-size:11.5px; border:1px solid var(--line); border-radius:3px;
+  background:var(--bg); overflow-x:auto; line-height:1.4}
+.drow{display:grid; grid-template-columns:58px var(--bw,max-content) minmax(140px,1fr); gap:0 12px;
+  align-items:center; padding:0 10px; min-height:28px; border-bottom:1px solid var(--lineSoft)}
+.drow:last-child{border-bottom:none}
+.drow.hd{min-height:22px; background:var(--surface2); border-bottom:1px solid var(--line);
+  font-size:9px; letter-spacing:.12em; color:var(--faint)}
+.drow.sys{color:var(--faint)}
+.ga{color:var(--faint); white-space:nowrap}
+.gb{display:flex; gap:3px}
+.gc{color:var(--dim); min-width:0}
+.by{display:inline-block; min-width:20px; text-align:center; padding:4px 0; border-radius:2px; color:var(--dim); transition:.15s}
+.by.hd{color:var(--faint); padding:2px 0}
+.by.zz{opacity:.45}
+.drow.d .by{background:var(--dataBg); color:var(--text)}
+.drow.p .by{background:var(--ptrBg); color:var(--ptr)}
+.drow.a .by{background:var(--attrBg); color:var(--attr)}
+.drow.sys .by{background:transparent; color:var(--faint); opacity:.6}
+.drow.lit{background:var(--surface); box-shadow:inset 2px 0 0 var(--ptr)}
+.drow.sys.lit .by{background:var(--attrBg); color:var(--attr); opacity:1}
+.drow.sys.lit .gc{color:var(--text)}
+.drow.d.lit .by{background:var(--data); color:var(--bg)}
+.drow.p.lit .by{background:var(--ptr); color:var(--bg)}
+.drow.a.lit .by{background:var(--attr); color:var(--bg)}
+.drow[data-link]{cursor:pointer}
+.drow.dim{opacity:.3}
+.ann{white-space:nowrap}
+.ann .eq{color:var(--text)}
+.ann .ty{color:var(--faint)}
+.memgap{font-family:var(--mono); font-size:10px; color:var(--faint); text-align:center; padding:7px 0; letter-spacing:.1em}
+.tgt{display:inline-flex; flex-wrap:wrap; gap:4px; align-items:center; border:1px solid var(--data);
+  background:var(--dataBg); border-radius:2px; padding:3px 7px; font-size:11px; color:var(--text)}
+.tgt .sub{border:1px solid var(--line); background:var(--surface); border-radius:2px; padding:0 5px}
+.tgt .ty{font-size:9px; color:var(--faint); letter-spacing:.06em}
+.gc .arrow{color:var(--ptr); letter-spacing:-1.5px; margin:0 5px}
+.gc .nmlab{color:var(--text)}
+.boxwrap{border:2px dashed var(--ptr); border-radius:4px; padding:11px; background:var(--ptrBg); transition:.35s}
+.boxwrap.open{border-color:transparent; background:transparent; padding:0}
+.boxwrap .lbl{font-family:var(--mono); font-size:10.5px; color:var(--ptr); margin-bottom:8px; transition:opacity .3s}
+.boxwrap.open .lbl{opacity:0; height:0; margin:0; overflow:hidden}
+
+/* ---------- expressions ---------- */
+.exprs{display:flex; flex-wrap:wrap; gap:5px}
+.expr{font-family:var(--mono); font-size:12.5px; border:1px solid var(--line); background:var(--bg); color:var(--dim);
+  border-radius:3px; padding:5px 10px; cursor:pointer; transition:.15s}
+.expr:hover{color:var(--text); border-color:var(--dim)}
+.expr.lit{background:var(--dataBg); border-color:var(--data); color:var(--data); font-weight:500}
+.expr.off{opacity:.55; border-style:dashed}
+
+/* ---------- matrix ---------- */
+.mgrid{display:inline-grid; gap:4px; font-family:var(--mono)}
+.mcell{border:1px solid var(--data); background:var(--dataBg); border-radius:2px; width:52px; padding:9px 0;
+  text-align:center; font-size:13.5px; cursor:pointer; transition:.2s}
+.mcell.lit{box-shadow:0 0 0 2px var(--text) inset; transform:translateY(-3px)}
+.mlab{font-family:var(--mono); font-size:10px; color:var(--faint); text-align:center; align-self:center; padding:0 6px}
+
+
+.sizetbl{font-family:var(--mono); font-size:12.5px; width:auto; min-width:0}
+.sizetbl th,.sizetbl td{padding:5px 14px 5px 0; cursor:default; font-family:var(--mono)}
+.sizetbl td.hi{color:var(--data); font-weight:700}
+.calc{font-family:var(--mono); font-size:13px; background:var(--bg); border:1px solid var(--line);
+  border-left:2px solid var(--data); border-radius:0 3px 3px 0; padding:14px 16px; margin:16px 0;
+  max-width:60ch; display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:6px 24px; align-items:baseline}
+.calc .k{color:var(--dim)}
+.calc .k em{color:var(--faint); font-style:normal; font-size:11.5px}
+.calc .v{color:var(--text); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+.calc .tot{color:var(--data); font-weight:700}
+.calc .note2{grid-column:1/-1; color:var(--faint); font-size:11.5px; margin-top:2px}
+.calc hr{grid-column:1/-1; border:none; border-top:1px solid var(--line); margin:2px 0; width:100%}
+
+/* ---------- lineage diagram ---------- */
+figure.dgwrap{margin:24px 0; overflow-x:auto}
+.dgm{display:block; width:100%; min-width:720px; max-width:920px; height:auto; color:var(--dim); margin:0 auto}
+.dgm text{fill:currentColor; font-family:var(--mono); font-size:11px}
+.dgm .t{fill:var(--text); font-size:13.5px; font-family:var(--sans); font-weight:700}
+.dgm .s{font-size:10px; fill:var(--faint)}
+.dgm rect{fill:none; stroke:currentColor; stroke-opacity:.3}
+.dgm .boxL{stroke:var(--data); stroke-opacity:.85}
+.dgm .boxR{stroke:var(--ptr); stroke-opacity:.85}
+.dgm .cL{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.55}
+.dgm .cR{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.55}
+.dgm line{stroke-width:1.3; fill:none}
+.dgm .wL{stroke:var(--data)} .dgm .wR{stroke:var(--ptr)}
+.dgm .hL{fill:var(--data)} .dgm .hR{fill:var(--ptr)}
+.dgm .lab{fill:var(--attr); font-size:11.5px}
+.dgm .mono{font-family:var(--mono)}
+figcaption{font-size:13px; color:var(--faint); text-align:center; margin-top:10px; max-width:62ch; margin-inline:auto}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse; font-size:13px; width:100%; min-width:360px}
+th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--lineSoft); transition:background .15s}
+thead th{font-family:var(--mono); font-size:11.5px; color:var(--dim); font-weight:500; border-bottom:1px solid var(--line); cursor:pointer}
+td{font-family:var(--mono); font-variant-numeric:tabular-nums; cursor:pointer}
+th.lit,td.lit{background:var(--dataBg); color:var(--text)}
+.reftbl th{font-family:var(--tech); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); font-weight:600; cursor:default}
+.reftbl td{font-family:var(--sans); cursor:default}
+.reftbl td code{font-family:var(--mono); font-size:12.5px; color:var(--data)}
+
+/* ---------- callouts ---------- */
+.note{border:1px solid var(--line); border-left:2px solid var(--attr); background:var(--surface);
+  border-radius:0 3px 3px 0; padding:14px 16px; margin:20px 0; font-size:14.5px; color:var(--dim); max-width:68ch}
+.note b.h{color:var(--attr); font-family:var(--tech); letter-spacing:.1em; font-size:11px; text-transform:uppercase; display:block; margin-bottom:6px}
+.note p{margin:0 0 8px; max-width:none}
+.note p:last-child{margin:0}
+
+/* ---------- quiz ---------- */
+.quiz{display:flex; flex-direction:column; gap:14px}
+.q{border:1px solid var(--line); border-radius:4px; background:var(--surface); padding:16px}
+.q .qh{display:flex; gap:10px; align-items:baseline; margin-bottom:11px}
+.q .qn{font-family:var(--mono); font-size:11px; color:var(--faint); flex:none}
+.q .qt{font-weight:500; font-size:15px}
+.q .qt code{font-family:var(--mono); font-size:13px; color:var(--data); background:var(--bg); padding:1px 5px; border-radius:2px; border:1px solid var(--lineSoft)}
+.opts{display:flex; flex-direction:column; gap:6px}
+.opts button{text-align:left; font-family:var(--mono); font-size:13px; color:var(--dim); background:var(--bg);
+  border:1px solid var(--line); border-radius:3px; padding:8px 12px; cursor:pointer; transition:.15s}
+.opts button:hover:not(:disabled){border-color:var(--dim); color:var(--text)}
+.opts button:disabled{cursor:default}
+.opts button.good{border-color:var(--ok); color:var(--ok); background:var(--okBg)}
+.opts button.bad{border-color:var(--warn); color:var(--warn); background:rgba(240,123,98,.10)}
+.exp{margin-top:11px; font-size:13.5px; color:var(--dim); border-left:2px solid var(--ok); padding-left:11px; display:none}
+.exp.show{display:block}
+.score{font-family:var(--mono); font-size:13px; color:var(--dim); padding:12px 14px; border:1px dashed var(--line); border-radius:3px; text-align:center}
+.score b{color:var(--ptr); font-size:18px}
+
+/* ---------- tree ---------- */
+.tree{font-family:var(--mono); font-size:12.5px; line-height:2; color:var(--dim); overflow-x:auto; padding:4px 0}
+.tree b{color:var(--text); font-weight:500}
+.tree .c1{color:var(--data)} .tree .c2{color:var(--ptr)} .tree .c3{color:var(--attr)}
+
+footer{max-width:1300px; margin:56px auto 0; padding-top:24px; border-top:1px solid var(--lineSoft); font-size:13px;
+  color:var(--faint); display:flex; flex-wrap:wrap; gap:8px 20px; justify-content:space-between; font-family:var(--mono)}
+
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
+</style>
+
+<div class="wrap">
+
+<nav class="rail" aria-label="章節">
+  <div class="railhd">Memory Map</div>
+  <ol id="rail"></ol>
+</nav>
+
+<main>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="s0">
+  <div class="kicker">大數據分析與實踐 · Lecture 2–3 補充 · 中國醫藥大學 醫技系</div>
+  <h1>記憶體裡的 R 物件</h1>
+  <p class="lede">R 的 vector、list、matrix、factor、data.frame 看起來像五種毫不相干的東西。從「電腦怎麼擺放 bytes」看下去，它們其實只是<strong>同一件事的五種包裝</strong>。</p>
+
+  <div class="howto">
+    <div class="h">
+      <div class="tag" style="color:var(--ok)"><i style="background:var(--ok)"></i>左邊 · 程式端</div>
+      <p>你寫的那一行 R 程式碼，以及 console 印出來給你看的樣子。</p>
+    </div>
+    <div class="mid">╌╌╌╌►<br>◄╌╌╌╌</div>
+    <div class="h">
+      <div class="tag" style="color:var(--data)"><i style="background:var(--data)"></i>右邊 · 電腦端</div>
+      <p>同一時刻的記憶體傾印：位址、真正的 bytes、指標、屬性。</p>
+    </div>
+  </div>
+  <p class="hint" style="margin-top:12px">每個面板都是左右對照的。<strong>把滑鼠移到任何一邊（手機用點的），另一邊會同步亮起來</strong>，最下面的連結列會告訴你這兩件事怎麼對上。右邊的十六進位數字不是裝飾 —— 是照 IEEE 754 與 little-endian 真的算出來的。</p>
+
+  <div class="hero-legend">
+    <span><i class="dot" style="background:var(--data)"></i>資料本體 &nbsp;直接躺在記憶體裡</span>
+    <span><i class="dot" style="background:var(--ptr)"></i>指標 pointer &nbsp;告訴你去哪裡找</span>
+    <span><i class="dot" style="background:var(--attr)"></i>屬性 attributes &nbsp;怎麼解讀這堆 bytes</span>
+  </div>
+</section>
+
+<!-- ===================== 01 RAM ===================== -->
+<section id="s1">
+  <p class="eyebrow">01 · The Machine</p>
+  <h2>CPU 只看得到位址與 bytes</h2>
+  <p>RAM 就是一長排編了號的抽屜。CPU 不認得 <code class="inline">glucose</code>、<code class="inline">patient_id</code> 這些名字，它只會接到一種命令：<span style="font-family:var(--mono); color:var(--data)">「去位址 0x1000，把接下來 8 個 bytes 拿出來。」</span></p>
+  <p>右邊那張表就是<strong>記憶體傾印（hex dump）</strong>的樣子：最左是位址，中間是那幾個 byte 真正的值（十六進位），最右是 R 對它的解讀。注意<strong>資料上面還有六列</strong> —— 那是 R 為了管理這個物件而放的 header，它跟資料一樣要佔記憶體。</p>
+
+  <div class="panel" id="p1">
+    <div class="panel-hd"><span class="t">SEXP · 一行程式碼的兩面</span></div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 你寫的</div>
+        <pre id="p1code"></pre>
+        <div class="console" id="p1con"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 記憶體傾印</div>
+        <div id="p1mem"></div>
+      </div>
+      <div class="bridge" id="p1br"></div>
+    </div>
+  </div>
+
+  <h3>所以一個 3 個數字的向量，到底佔多少記憶體？</h3>
+  <p><strong>絕對不只 24 bytes</strong> —— 型別、長度、屬性指標、GC 資訊全都要佔位置，而且它們就<strong>緊貼在資料前面</strong>。上面那張傾印已經把 header 的六個欄位一格一格拆給你看了：</p>
+
+  <div class="calc">
+    <span class="k">sxpinfo <em>型別 double ＋ GC 標記</em></span><span class="v">8</span>
+    <span class="k">attrib <em>屬性清單的位址，這裡是 NULL</em></span><span class="v">8</span>
+    <span class="k">gengc_next / gengc_prev <em>GC 串列</em></span><span class="v">16</span>
+    <span class="k">length <em>= 3</em></span><span class="v">8</span>
+    <span class="k">truelength</span><span class="v">8</span>
+    <hr>
+    <span class="k">header 小計</span><span class="v">48</span>
+    <span class="k">資料 <em>3 × 8</em></span><span class="v">24</span>
+    <hr>
+    <span class="k tot">合計</span><span class="v tot">72 bytes</span>
+    <span class="note2">…但 R 實際配置 80 bytes。差在哪？見下。</span>
+  </div>
+
+  <div class="note">
+    <b class="h">實測：為什麼是 80 而不是 72</b>
+    <p>在 R 4.3.3（64 位元）裡實際量一下：</p>
+    <pre style="margin:10px 0"><span class="fn">object.size</span>(<span class="fn">numeric</span>(<span class="nu">0</span>))       <span class="cm"># 48 bytes ← 這就是純 header</span>
+<span class="fn">object.size</span>(<span class="fn">c</span>(<span class="nu">10</span>, <span class="nu">20</span>, <span class="nu">30</span>))  <span class="cm"># 80 bytes</span></pre>
+    <p>差的那 8 bytes 是因為 R <strong>不會剛好只配 24 bytes</strong>：小向量是從固定的「尺寸級距」裡拿的，以 8 bytes 為一格，級距是 1、2、4、6、8、16 格。3 個 double 需要 3 格，只好進位到 <strong>4 格 = 32 bytes</strong>，所以 48 + 32 = 80。</p>
+    <div class="tblwrap">
+      <table class="sizetbl">
+        <thead><tr><th>物件</th><th>object.size</th><th>＝ header</th><th>＋ 實際配置的資料</th></tr></thead>
+        <tbody>
+          <tr><td>numeric(0)</td><td>48</td><td>48</td><td>0</td></tr>
+          <tr><td>numeric(1)</td><td>56</td><td>48</td><td>8（1 格）</td></tr>
+          <tr><td>numeric(2)</td><td>64</td><td>48</td><td>16（2 格）</td></tr>
+          <tr><td class="hi">numeric(3)</td><td class="hi">80</td><td>48</td><td class="hi">32（進位到 4 格）</td></tr>
+          <tr><td>numeric(4)</td><td>80</td><td>48</td><td>32（4 格）</td></tr>
+          <tr><td>numeric(5)</td><td>96</td><td>48</td><td>48（進位到 6 格）</td></tr>
+          <tr><td>numeric(9…16)</td><td>176</td><td>48</td><td>128（16 格）</td></tr>
+          <tr><td>numeric(17)</td><td>184</td><td>48</td><td>136（超過 16 格就照實配）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>兩個推論值得記住：<strong>小物件的 header 比資料還貴</strong>（3 個數字：48 bytes 的管理費 vs 24 bytes 的資料），所以 R 裡「一百萬個長度 1 的向量」會比「一個長度一百萬的向量」貴非常多；而長度一大，48 bytes 就可以忽略不計了（<code class="inline">numeric(100)</code> 是 848 bytes，幾乎全是資料）。</p>
+  </div>
+
+  <div class="note">
+    <b class="h">那串 00 00 00 00 00 00 24 40 是什麼</b>
+    <p>數字 10 在 R 裡是雙精度浮點數，照 <strong>IEEE 754 binary64</strong> 編碼是 <code class="inline">0x4024000000000000</code>。x86 與 Apple silicon 都是 <strong>little-endian</strong>（低位組在前），所以寫進記憶體時順序整個反過來，變成 <code class="inline">00 00 00 00 00 00 24 40</code>。</p>
+    <p>同一堆 bytes，說明書寫 double 就是 10，說明書寫 character 就會變成一段無意義的指標。<strong>型別不是資料的一部分，是解讀方式。</strong></p>
+  </div>
+</section>
+
+<!-- ===================== 02 ASSIGNMENT ===================== -->
+<section id="s2">
+  <p class="eyebrow">02 · Variable &amp; Assignment</p>
+  <h2>變數不是箱子，是貼在位址上的名牌</h2>
+  <p>課堂上我們說 <code class="inline">&lt;-</code> 是「裝箱」。那是很好的第一印象，但電腦裡發生的其實是<strong>分開的兩件事</strong>：</p>
+  <ul class="plain">
+    <li>R 先在記憶體某處<strong>造出一個物件</strong>（一段 header ＋ 資料），這個物件有自己的位址。</li>
+    <li>R 再到目前的 <span class="hl-attr">environment</span>（一張「名字 → 位址」的對照表）裡登記：<code class="inline">x</code> 這個名字，指向那個位址。</li>
+  </ul>
+  <p>所以<strong>名字不在物件裡，物件也不知道自己叫什麼</strong>。一個物件可以同時有好幾個名字，也可以一個名字都沒有。<code class="inline">&lt;-</code> 做的事情是「改寫名牌指向哪裡」，不是「把東西塞進一個固定的箱子」。</p>
+
+  <div class="panel" id="pAS">
+    <div class="panel-hd">
+      <span class="t">Assignment Walkthrough</span>
+      <div class="chips" id="asStep"></div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 一行一行往下跑</div>
+        <pre id="asCode"></pre>
+        <div class="axlab">console</div>
+        <div class="console" id="asCon"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 名字表 ＋ 物件</div>
+        <div id="asMem"></div>
+      </div>
+      <div class="bridge" id="asBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">為什麼 y &lt;- x 不會讓記憶體變兩倍</b>
+    <p>第 2 步只是在名字表裡多寫一列，指向<strong>同一個位址</strong>。所以把一個 500 MB 的 data.frame 指派給另一個變數是免費的 —— 直到你去改它為止。</p>
+    <p>第 3 步才是重點：R 發現有<strong>兩個</strong>名字指著那塊記憶體，於是複製一份到新位址再改，好讓 <code class="inline">x</code> 看到的東西不變。這就是 <strong>copy-on-modify</strong>，也是 <code class="inline">tracemem()</code> 在幫你監看的事。</p>
+  </div>
+
+  <h3>幾個順帶釐清的小地方</h3>
+  <ul class="plain">
+    <li><strong>名字表是雜湊的。</strong>environment 是 R 裡少數真的用 hash table 的結構，所以用變數名字找東西很快。等一下你會看到，<code class="inline">v["banana"]</code> 那種「用名字索引向量」完全是另一回事 —— 那是線性搜尋。</li>
+    <li><strong><code class="inline">=</code> 與 <code class="inline">&lt;-</code> 不完全一樣。</strong>在最外層兩者都能賦值，但在函式呼叫的括號裡，<code class="inline">f(x = 3)</code> 的 <code class="inline">=</code> 是「指定參數」，不會在你的環境裡留下 <code class="inline">x</code>。寫 <code class="inline">&lt;-</code> 可以避免這種混淆（RStudio 快捷鍵 <code class="inline">Alt</code> + <code class="inline">-</code>）。</li>
+    <li><strong>沒有名字指著的物件會被回收</strong>（見下面的 GC）。第 4 步之後，原本那塊 double[3] 沒有任何名牌指向它。</li>
+  </ul>
+
+  <div class="note">
+    <b class="h">GC 是什麼</b>
+    <p><strong>GC = garbage collection，垃圾回收。</strong>「垃圾」有明確定義：<strong>從名字表出發，再也走不到的物件</strong>。R 會不定時從所有 environment 的名字開始往外走，走得到的標記為「還活著」，剩下沒被走到的，那段記憶體就釋放掉給下一個物件用。</p>
+    <p>所以第 4 步裡 0x1000 那塊之所以是垃圾，不是因為「x 變了」，而是因為<strong>現在沒有任何名字能走到它</strong>。只要還有一個名字指著（例如你先做過 <code class="inline">z &lt;- x</code>），它就會繼續活著。</p>
+    <p>這是 R、Python、Java 這類語言跟 C 最大的差別之一：<strong>你不用、也不能自己釋放記憶體</strong>。C 要自己 <code class="inline">malloc</code> / <code class="inline">free</code>，忘了 free 就記憶體洩漏、free 兩次就當機；R 幫你處理掉了，代價是 GC 執行的那個瞬間程式會稍微停一下。<code class="inline">gc()</code> 可以手動叫它跑一次，但幾乎沒有必要 —— R 自己會在需要記憶體時觸發。</p>
+    <p>常見誤會：<code class="inline">rm(x)</code> <strong>不是</strong>刪除資料，它只是把名字表裡 x 那一列拿掉。資料要等到 GC 發現沒人指著它，才真的消失。</p>
+  </div>
+</section>
+
+<!-- ===================== 03 VECTOR ===================== -->
+<section id="s3">
+  <p class="eyebrow">03 · Atomic Vector</p>
+  <h2>Vector：一排同規格的抽屜</h2>
+  <p>因為每一格<strong>大小都一樣</strong>，CPU 要找第 <em>i</em> 個元素不需要一格一格數，直接算就好：<span style="font-family:var(--mono); color:var(--data)">位址 = 起點 + (i − 1) × 每格 bytes</span></p>
+  <p>切換型別時注意左邊位址欄的<strong>跨距</strong>：double 每次跳 8，integer 與 logical 每次只跳 4。</p>
+
+  <div class="panel" id="p2">
+    <div class="panel-hd">
+      <span class="t">Memory Inspector</span>
+      <div class="chips" id="vecPick"></div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <pre id="vecCode"></pre>
+        <div class="axlab">點一個索引運算式，看它落在哪一列</div>
+        <div class="exprs" id="vecExpr"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端</div>
+        <div id="vecMem"></div>
+      </div>
+      <div class="bridge" id="vecBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">character vector 為什麼是指標</b>
+    <p>字串長度不一，塞不進固定大小的格子。所以 character vector 每一格放的是<strong>指向 R 全域字串池（CHARSXP cache）的 8-byte 指標</strong>，字串本體住在別的地方。切到 character 那一頁，右邊的 bytes 就是那些位址本身。</p>
+    <p>這也是為什麼同一個字串重複出現一萬次，記憶體不會漲一萬倍 —— 一萬格指標指向同一份字串。</p>
+  </div>
+</section>
+
+<!-- ===================== 03 COERCION ===================== -->
+<section id="s4">
+  <p class="eyebrow">04 · Coercion</p>
+  <h2>混裝的下場：往「比較包容」的型別硬轉</h2>
+  <p>既然一排抽屜只能有一套解讀方式，<code class="inline">c(TRUE, 1, "a")</code> 就不可能真的混裝。R 的選擇是：<strong>全部轉成能裝下所有人的那一種</strong>。</p>
+  <p style="font-family:var(--mono); font-size:13.5px; color:var(--dim)">logical &nbsp;→&nbsp; integer &nbsp;→&nbsp; double &nbsp;→&nbsp; character &nbsp;&nbsp;<span style="color:var(--faint)">（愈右愈包容，字串是終點站）</span></p>
+
+  <div class="panel" id="p3">
+    <div class="panel-hd">
+      <span class="t">Coercion Lab</span>
+      <div class="chips" id="coPick"></div>
+      <button class="chip" id="coClear">清空</button>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 你打算放進去的</div>
+        <pre id="coCall"></pre>
+        <div class="axlab">型別階梯 · 亮起來的是最後的共同型別</div>
+        <div id="coLadder" style="display:flex; font-family:var(--mono); font-size:11.5px"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 實際存進去的 bytes</div>
+        <div id="coMem"></div>
+      </div>
+      <div class="bridge" id="coBr"></div>
+    </div>
+  </div>
+
+  <p>注意看 bytes 怎麼變：<code class="inline">TRUE</code> 在 logical 是 <code class="inline">01 00 00 00</code>，被推到 double 就變成 <code class="inline">00 00 00 00 00 00 F0 3F</code>（也就是 1.0），再被推到 character 就只剩一個指向 <code class="inline">"TRUE"</code> 的指標。同一個概念，三種完全不同的 bytes。</p>
+</section>
+
+<!-- ===================== 04 NAMED VECTOR ===================== -->
+<section id="s5">
+  <p class="eyebrow">05 · Named Vector</p>
+  <h2>Named vector：資料一格沒動，旁邊多掛一條名牌</h2>
+  <p>向量可以有名字，但名字<strong>不住在抽屜裡</strong>。R 把它放在一條<span class="hl-attr">完全獨立的 character vector</span>，掛在 <code class="inline">attr(, "names")</code> 上 —— 右邊你會看到三塊位址差很遠的記憶體。</p>
+  <h3>那兩塊記憶體是怎麼連起來的？</h3>
+  <p>靠的是物件 header 裡的 <code class="inline">attrib</code> 欄位 —— 每個 R 物件的 header 都有一格專門放「屬性清單的位址」。沒有屬性時它是 NULL；一旦你設了 names，R 會做三件事：</p>
+  <ul class="plain">
+    <li>另外配置一條 character vector 存名字（右邊第 ③ 塊）。</li>
+    <li>建一個<strong>屬性節點</strong>（pairlist，右邊第 ② 塊）：<code class="inline">TAG</code> 記著「這個屬性叫 names」，<code class="inline">VALUE</code> 記著那條 vector 的位址，<code class="inline">NEXT</code> 指向下一個屬性。</li>
+    <li>把資料物件 header 的 <code class="inline">attrib</code> 欄位指向這個節點。</li>
+  </ul>
+  <p>所以整條鏈是：<span style="font-family:var(--mono); font-size:13.5px">資料物件 → <span class="hl-attr">attrib</span> → 屬性節點 → names 向量</span>。<code class="inline">names(v)</code> 這個函式做的就是走完這條鏈。右邊面板裡滑過 <code class="inline">attrib</code> 那一列可以看到整條路徑。</p>
+  <p>因為節點有 <code class="inline">NEXT</code>，屬性是可以一個接一個串下去的。後面 matrix 的 <code class="inline">dim</code>、factor 的 <code class="inline">levels</code> 與 <code class="inline">class</code>、data.frame 的 <code class="inline">names</code> / <code class="inline">row.names</code> / <code class="inline">class</code>，全都是掛在<strong>同一條鏈</strong>上的節點 —— 你在那幾節的 header 裡會看到同一個 attrib 欄位。</p>
+  <p class="hint" style="margin-bottom:8px">要注意的是：① 和 ③ 之間<strong>沒有</strong>任何指標互指。名字和值是靠<strong>位置</strong>對齊的 —— names 的第 <em>i</em> 格就是資料的第 <em>i</em> 格的名字，如此而已。這也是為什麼 <code class="inline">names(v)</code> 長度必須跟 <code class="inline">v</code> 一樣，短了就會補 NA。</p>
+
+  <div class="panel" id="pNV">
+    <div class="panel-hd">
+      <span class="t">names Attribute</span>
+      <div class="chips" id="nvBuild"></div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <pre id="nvCode"></pre>
+        <div class="console" id="nvCon"></div>
+        <div class="axlab" style="margin-top:14px">用位置找</div>
+        <div class="exprs" id="nvExprPos"></div>
+        <div class="axlab" style="margin-top:12px">用名字找</div>
+        <div class="exprs" id="nvExprName"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 三塊不相鄰的記憶體，用 attrib 串起來</div>
+        <div id="nvMem"></div>
+      </div>
+      <div class="bridge" id="nvBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">用名字找東西不是免費的</b>
+    <p><code class="inline">v[2]</code> 是一次乘法就到位。<code class="inline">v["banana"]</code> 則要先在 names 那條 character vector 裡<strong>逐格比對字串</strong>，找到是第幾格，才回頭去算資料本體的位址 —— 這是線性搜尋（O(n)），不是雜湊。</p>
+    <p>所以 R 的 named vector 跟 Python 的 <code class="inline">dict</code> 並不一樣：dict 背後是 hash table，查名字接近 O(1)；R 的 named vector 與 list 用名字查找都是從頭掃到尾。資料量小時無感，但在迴圈裡用名字反覆索引十萬筆就會很有感。（R 裡真正用雜湊的是 <code class="inline">environment</code>。）</p>
+  </div>
+
+  <div class="note">
+    <b class="h">實測：名字比資料貴得多</b>
+    <pre style="margin:10px 0"><span class="fn">object.size</span>(<span class="fn">c</span>(<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>))                       <span class="cm"># 80 bytes</span>
+<span class="fn">object.size</span>(<span class="fn">c</span>(apple = <span class="nu">1</span>, banana = <span class="nu">2</span>, peach = <span class="nu">3</span>)) <span class="cm"># 440 bytes</span></pre>
+    <p>多出來的 360 bytes 就是右邊 ② ③ 兩塊：屬性節點、names 那條 character vector（它自己也有 48 bytes 的 header），加上字串池裡三個 CHARSXP（每個字串本身又是一個完整的 R 物件，各 56 bytes）。<strong>三個名字比三個數字貴了四倍。</strong></p>
+    <p>（小提醒：<code class="inline">object.size()</code> 會把字串池裡共用的 CHARSXP 也算進來，所以對 character 資料它傾向高估；R 4.3.3 實測。）</p>
+  </div>
+
+  <h3>三件跟著就懂的事</h3>
+  <ul class="plain">
+    <li><code class="inline">names(v)[2] &lt;- "lemon"</code> 只改寫右邊那條 character vector，<strong>資料本體那塊記憶體完全沒被碰到</strong>。</li>
+    <li><code class="inline">names(v) &lt;- NULL</code>（或 <code class="inline">unname(v)</code>）把屬性拔掉，整塊 names 記憶體被回收，物件退回最單純的 atomic vector —— 上面第四個按鈕就是在演這件事。</li>
+    <li>名字<strong>可以重複</strong>，R 不會阻止你；用名字索引時只會回傳<strong>第一個</strong>對到的。這是資料清理時很容易中招的地方。</li>
+  </ul>
+</section>
+
+<!-- ===================== 05 LIST ===================== -->
+<section id="s6">
+  <p class="eyebrow">06 · List</p>
+  <h2>List：一排地址卡</h2>
+  <p>一位病人有 id（字串）、血糖（數值）、是否空腹（邏輯值）、三次回診數值（向量）。這些東西大小不一、型別不一，塞不進同一排抽屜。</p>
+  <p>R 的解法很聰明：<strong>那就不要放資料，改放位址。</strong>右邊那塊記憶體每一列都是 8 bytes 的指標 —— 你可以直接把那串 hex 倒過來讀，就是箭頭另一端的位址。</p>
+
+  <div class="panel" id="p4">
+    <div class="panel-hd">
+      <span class="t">Pointer View</span>
+      <div class="seg" id="lvMode">
+        <button class="on" data-m="list">list()</button>
+        <button data-m="vec">改用 c() 會怎樣</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <pre id="lvCode"></pre>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端</div>
+        <div id="lvMem"></div>
+      </div>
+      <div class="bridge" id="lvBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">這張圖是理解 R 最重要的一張圖</b>
+    <p>Vector 的格子裡是<span style="color:var(--data)">貨</span>；list 的格子裡是<span style="color:var(--ptr)">地址</span>。之後 <code class="inline">[[ ]]</code>、<code class="inline">$</code>、data.frame、甚至 <code class="inline">unlist()</code> 為什麼會把結構壓扁，全部都從這張圖推得出來。</p>
+  </div>
+</section>
+
+<!-- ===================== 06 SUBSETTING ===================== -->
+<section id="s7">
+  <p class="eyebrow">07 · Subsetting</p>
+  <h2><code class="inline">[ ]</code> 拿盒子，<code class="inline">[[ ]]</code> 打開盒子</h2>
+  <p>很多人死背這兩個符號的差別。有了地址卡的圖就不用背了：</p>
+  <ul class="plain">
+    <li><code class="inline">[ ]</code> —— 把那幾張<strong>地址卡連同卡夾</strong>抽出來 → 拿到的還是一個 list。</li>
+    <li><code class="inline">[[ ]]</code> —— <strong>沿著地址走過去</strong>，把真正指到的東西拿回來 → 拿到的是那個物件本身。</li>
+    <li><code class="inline">$</code> —— 用名字找到地址卡，然後跟著走。等同 <code class="inline">[["名字"]]</code>。</li>
+  </ul>
+
+  <div class="panel" id="p5">
+    <div class="panel-hd"><span class="t">Subsetting Sandbox · 左邊換運算式，右邊看它走到哪</span></div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <div class="exprs" id="ssPick" style="margin-bottom:14px"></div>
+        <div class="axlab">console 輸出</div>
+        <div class="console" id="ssCon"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 這一次動到的位址</div>
+        <div id="ssStage"></div>
+      </div>
+      <div class="bridge" id="ssBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">臨床資料上真的會踩到</b>
+    <p><code class="inline">df["glucose"]</code> 回傳的是只有一欄的 data.frame，<code class="inline">df[["glucose"]]</code> 與 <code class="inline">df$glucose</code> 回傳的才是數值向量。把前者丟進 <code class="inline">mean()</code> 會直接報錯 —— 因為你遞給它的是一個盒子，不是裡面的數字。</p>
+  </div>
+</section>
+
+<!-- ===================== 07 MATRIX ===================== -->
+<section id="s8">
+  <p class="eyebrow">08 · Matrix &amp; Array</p>
+  <h2>Matrix ＝ vector ＋ 一句話</h2>
+  <p>Matrix 不是新的資料結構。它底下仍然是<strong>一條平的 vector</strong>，R 只是多掛了一個屬性 <code class="inline">dim</code>，等於在旁邊貼了張便條：「這 12 個整數，請當成 3 列 × 4 行來讀。」</p>
+
+  <div class="panel" id="p6">
+    <div class="panel-hd">
+      <span class="t">dim Attribute</span>
+      <label class="rng">nrow <input type="range" id="mRow" min="0" max="5" step="1" value="2"><b id="mRowV" style="color:var(--ptr)">3</b></label>
+      <div class="seg" id="mBy">
+        <button class="on" data-b="0">byrow = FALSE</button>
+        <button data-b="1">TRUE</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 你寫的與你看到的</div>
+        <pre id="mCode"></pre>
+        <div class="axlab">print(m) —— 點任何一格</div>
+        <div style="overflow-x:auto; padding-bottom:4px"><div id="mGridWrap"></div></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 48 bytes，從頭到尾沒動過</div>
+        <div id="mMem"></div>
+      </div>
+      <div class="bridge" id="mBr"></div>
+    </div>
+  </div>
+  <p class="hint">拉動 nrow 時盯著右邊：<strong>位址欄與 bytes 一個字都沒變</strong>，變的只有 dim 屬性，也就是「怎麼讀」。</p>
+</section>
+
+<!-- ===================== 08 FACTOR ===================== -->
+<section id="s9">
+  <p class="eyebrow">09 · Factor</p>
+  <h2>Factor：整數向量 ＋ 一張對照表</h2>
+  <p>血型、分期、性別這種「有限組別」的資料，如果用字串存，每一格都要比對字串，又慢又佔空間。Factor 的做法是：<strong>把類別換成整數編碼，再用 levels 屬性記住對照表。</strong></p>
+
+  <div class="panel" id="p7">
+    <div class="panel-hd">
+      <span class="t">factor() 的兩層構造</span>
+      <div class="seg" id="fSeg">
+        <button class="on" data-f="0">blood_type</button>
+        <button data-f="1">education（ordered）</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · print 出來的樣子</div>
+        <pre id="fCode"></pre>
+        <div class="console" id="fCon"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · integer ＋ levels</div>
+        <div id="fMem"></div>
+      </div>
+      <div class="bridge" id="fBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">為什麼「最後分析階段再轉 factor」</b>
+    <p>因為 <code class="inline">as.numeric(f)</code> 拿到的是<strong>編碼</strong>，不是原本的數字。<code class="inline">factor(c(28, 34, 30))</code> 轉回數值會得到 1、3、2，不是 28、34、30。要拿回原值必須繞一圈：<code class="inline">as.numeric(as.character(f))</code>。</p>
+  </div>
+</section>
+
+<!-- ===================== 09 DATA FRAME ===================== -->
+<section id="s10">
+  <p class="eyebrow">10 · data.frame</p>
+  <h2>data.frame ＝ 等長 vector 組成的 named list</h2>
+  <p>這是整堂課的收斂點。data.frame 印出來像一張表格，但它<strong>不是矩陣</strong> —— 矩陣要求整張表同型別，而檢驗報告裡 id 是字串、血糖是數值、空腹是邏輯值。</p>
+  <p>它真正的身分是一個 named list：一塊只有四個指標的記憶體，加上 <code class="inline">names</code>、<code class="inline">row.names</code> 兩個屬性，再貼上 <code class="inline">class = "data.frame"</code> 的標籤讓 <code class="inline">print()</code> 知道要畫成表格。</p>
+
+  <p>右邊把每一塊都展開了，由上往下三段：<strong>①</strong> data.frame 本體 —— 只有四個位址，一個資料都沒有；<strong>②</strong> 四條各自獨立的 vector，位址互不相鄰；<strong>③</strong> 掛在 attrib 上的三個屬性（欄名、列名、class）。點左邊任一欄，右邊對應的那整塊會亮起來。</p>
+
+  <div class="panel" id="p8">
+    <div class="panel-hd"><span class="t">同一份資料 · 全部展開</span></div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · print(patients)</div>
+        <pre id="dfCode"></pre>
+        <div class="tblwrap" id="dfTbl"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 全部攤開：① 指標 ② 四塊欄位 ③ 三個屬性</div>
+        <div id="dfMem"></div>
+      </div>
+      <div class="bridge" id="dfBr"></div>
+    </div>
+  </div>
+
+  <p>看懂右邊之後，幾件事就變得理所當然：一欄之內必須同型別（因為那是一條 vector），不同欄可以不同型別（因為那是四塊不相干的記憶體），而<strong>新增一欄</strong>（<code class="inline">df$gender &lt;- ...</code>）比<strong>新增一列</strong>（<code class="inline">rbind()</code>）便宜得多 —— 前者只是在指標陣列後面多加 8 bytes，後者要把四塊記憶體全部重新配置一次。</p>
+</section>
+
+<!-- ===================== 10 MAP ===================== -->
+<section id="s11">
+  <p class="eyebrow">11 · The Whole Map</p>
+  <h2>一條線串起來</h2>
+  <p>把前面十段接起來，R 的資料結構其實只有兩個源頭，其餘都是「加屬性」加出來的：</p>
+
+  <figure class="dgwrap">
+  <svg class="dgm" viewBox="0 0 920 430" role="img" aria-label="R 的資料結構只有兩個源頭：atomic vector 加上 names、dim、levels 屬性變成 named vector、matrix、factor；list 加上 names、row.names、class 屬性變成 named list 與 data.frame">
+  <defs><marker id="aL" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="hL" d="M0 0 L10 5 L0 10 z"/></marker><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="hR" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+  <rect class="boxL" x="120" y="26" width="220" height="84" rx="3"/>
+  <text class="t" x="230" y="50" text-anchor="middle">atomic vector</text>
+  <text class="s" x="230" y="66" text-anchor="middle">一排同型資料，直接放值</text>
+  <rect class="cL" x="146" y="78" width="40" height="22" rx="2"/>
+  <text x="166" y="93" text-anchor="middle">10</text>
+  <rect class="cL" x="192" y="78" width="40" height="22" rx="2"/>
+  <text x="212" y="93" text-anchor="middle">20</text>
+  <rect class="cL" x="238" y="78" width="40" height="22" rx="2"/>
+  <text x="258" y="93" text-anchor="middle">30</text>
+  <rect class="cL" x="284" y="78" width="40" height="22" rx="2"/>
+  <text x="304" y="93" text-anchor="middle">40</text>
+  <rect class="boxR" x="580" y="26" width="220" height="84" rx="3"/>
+  <text class="t" x="690" y="50" text-anchor="middle">list</text>
+  <text class="s" x="690" y="66" text-anchor="middle">一排指標，指向別的物件</text>
+  <rect class="cR" x="606" y="78" width="40" height="22" rx="2"/>
+  <text x="626" y="93" text-anchor="middle">&#8226;</text>
+  <rect class="cR" x="652" y="78" width="40" height="22" rx="2"/>
+  <text x="672" y="93" text-anchor="middle">&#8226;</text>
+  <rect class="cR" x="698" y="78" width="40" height="22" rx="2"/>
+  <text x="718" y="93" text-anchor="middle">&#8226;</text>
+  <rect class="cR" x="744" y="78" width="40" height="22" rx="2"/>
+  <text x="764" y="93" text-anchor="middle">&#8226;</text>
+  <line class="wL" x1="230" y1="110" x2="230" y2="152"/>
+  <line class="wL" x1="75" y1="152" x2="385" y2="152"/>
+  <line class="wR" x1="690" y1="110" x2="690" y2="152"/>
+  <line class="wR" x1="565" y1="152" x2="835" y2="152"/>
+  <line class="wL" x1="75" y1="152" x2="75" y2="188"/>
+  <text class="lab" x="75" y="211" text-anchor="middle">+ names</text>
+  <line class="wL" x1="75" y1="232" x2="75" y2="286" marker-end="url(#aL)"/>
+  <rect class="boxL" x="10" y="292" width="130" height="62" rx="3"/>
+  <text class="t" x="75" y="317" text-anchor="middle">named vector</text>
+  <text class="s" x="75" y="335" text-anchor="middle">名字在另一塊記憶體</text>
+  <line class="wL" x1="230" y1="152" x2="230" y2="188"/>
+  <text class="lab" x="230" y="211" text-anchor="middle">+ dim</text>
+  <line class="wL" x1="230" y1="232" x2="230" y2="286" marker-end="url(#aL)"/>
+  <rect class="boxL" x="165" y="292" width="130" height="62" rx="3"/>
+  <text class="t" x="230" y="317" text-anchor="middle">matrix / array</text>
+  <text class="s" x="230" y="335" text-anchor="middle">同一條 vector，換讀法</text>
+  <line class="wL" x1="385" y1="152" x2="385" y2="188"/>
+  <text class="lab" x="385" y="205" text-anchor="middle">+ levels</text>
+  <text class="lab" x="385" y="220" text-anchor="middle">+ class</text>
+  <line class="wL" x1="385" y1="232" x2="385" y2="286" marker-end="url(#aL)"/>
+  <rect class="boxL" x="320" y="292" width="130" height="62" rx="3"/>
+  <text class="t" x="385" y="317" text-anchor="middle">factor</text>
+  <text class="s" x="385" y="335" text-anchor="middle">底層其實是 integer</text>
+  <line class="wR" x1="565" y1="152" x2="565" y2="188"/>
+  <text class="lab" x="565" y="211" text-anchor="middle">+ names</text>
+  <line class="wR" x1="565" y1="232" x2="565" y2="286" marker-end="url(#aR)"/>
+  <rect class="boxR" x="495" y="292" width="140" height="62" rx="3"/>
+  <text class="t" x="565" y="317" text-anchor="middle">named list</text>
+  <text class="s" x="565" y="335" text-anchor="middle">key–value，像 dict</text>
+  <line class="wR" x1="835" y1="152" x2="835" y2="188"/>
+  <text class="lab" x="835" y="205" text-anchor="middle">+ names + row.names</text>
+  <text class="lab" x="835" y="220" text-anchor="middle">+ class</text>
+  <line class="wR" x1="835" y1="232" x2="835" y2="286" marker-end="url(#aR)"/>
+  <rect class="boxR" x="750" y="292" width="170" height="62" rx="3"/>
+  <text class="t" x="835" y="317" text-anchor="middle">data.frame</text>
+  <text class="s" x="835" y="335" text-anchor="middle">每格指向一條等長 vector</text>
+  <text class="s" x="230" y="392" text-anchor="middle">左半邊：格子裡是「值」</text>
+  <text class="s" x="690" y="392" text-anchor="middle">右半邊：格子裡是「位址」</text>
+  <line x1="460" y1="20" x2="460" y2="370" stroke-dasharray="4 6" stroke-opacity=".25"/>
+  </svg>
+  <figcaption>紫色標的就是「加了什麼屬性」—— 五種結構全都是這兩個源頭加屬性長出來的，沒有第三種東西。</figcaption>
+  </figure>
+
+  <div class="tblwrap" style="margin:16px 0">
+    <table class="reftbl">
+      <thead><tr><th>結構</th><th>記憶體裡放什麼</th><th>同型別？</th><th>什麼時候用</th></tr></thead>
+      <tbody>
+        <tr><td><code>vector</code></td><td>資料本體</td><td>必須</td><td>一串同性質的值</td></tr>
+        <tr><td><code>named vector</code></td><td>資料本體 ＋ names 那塊</td><td>必須</td><td>查表、對照碼、小型 key–value</td></tr>
+        <tr><td><code>matrix / array</code></td><td>資料本體 ＋ dim</td><td>必須</td><td>矩陣運算、影像、格狀數據</td></tr>
+        <tr><td><code>factor</code></td><td>整數編碼 ＋ levels</td><td>必須</td><td>血型、分期、性別等有限組別</td></tr>
+        <tr><td><code>list</code></td><td>一排指標</td><td>不必</td><td>什麼都能裝的收納箱</td></tr>
+        <tr><td><code>data.frame</code></td><td>一排指標（各指向一條等長 vector）</td><td>欄內必須</td><td>真實資料表：一列一筆、一欄一變數</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>最後補一個常被誤解的觀念：copy-on-modify</h3>
+  <p>課堂上常說「R 的向量不可改變，一改就搬家」。用 <code class="inline">tracemem()</code> 看的確常常如此，但更精確的說法是 <strong>copy-on-modify</strong>：R 會數有幾個名字指著同一塊記憶體，</p>
+  <ul class="plain">
+    <li>如果<strong>只有一個名字</strong>指著它，R 3.5 之後通常會<strong>就地修改</strong>，位址不變；</li>
+    <li>如果<strong>有兩個以上</strong>（例如你先做過 <code class="inline">y &lt;- x</code>），修改時才複製一份到新位址，好讓另一個名字看到的東西不變。</li>
+  </ul>
+  <p>這解釋了一個很實際的現象：在迴圈裡用 <code class="inline">df$new[i] &lt;- ...</code> 逐格塞值有時飛快、有時慢到不可思議 —— 差別就在當下有幾個名字指著那塊記憶體。</p>
+</section>
+
+<!-- ===================== 11 QUIZ ===================== -->
+<section id="s12">
+  <p class="eyebrow">12 · Self-check</p>
+  <h2>隨堂測驗</h2>
+  <p>十一題。每題選完會立刻給解釋，答錯不扣分，但請先自己在腦中畫一次「左邊程式碼 ↔ 右邊記憶體」的對照再選。</p>
+  <div class="quiz" id="quiz"></div>
+  <div class="score" id="score" style="margin-top:16px">尚未作答 · <b>0</b> / 11</div>
+</section>
+
+<footer>
+  <span>記憶體裡的 R 物件 · 大數據分析與實踐 W2–W3 補充教材</span>
+  <span>陳育辰 · 中國醫藥大學 醫技系</span>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var esc = function(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+var hex = function(n){ return "0x" + n.toString(16).toUpperCase().padStart(4,"0"); };
+var W = '<span class="wire">╌╌►</span>';
+function sp(n){ var s = ""; while (n-- > 0) s += " "; return s; }
+
+/* ---------- real bytes ---------- */
+var _buf = new ArrayBuffer(8), _dv = new DataView(_buf);
+function sizeOf(kind){ return (kind === "double" || kind === "ptr") ? 8 : 4; }
+function bytesOf(val, kind){
+  var n = sizeOf(kind), i;
+  for (i = 0; i < 8; i++) _dv.setUint8(i, 0);
+  if (kind === "double") _dv.setFloat64(0, val, true);
+  else if (kind === "ptr") _dv.setUint32(0, val >>> 0, true);
+  else _dv.setInt32(0, kind === "logical" ? (val ? 1 : 0) : val, true);
+  var out = [];
+  for (i = 0; i < n; i++) out.push(_dv.getUint8(i).toString(16).toUpperCase().padStart(2, "0"));
+  return out;
+}
+
+/* ---------- dump renderer ----------
+   o = { base, kind, cc, items:[{val, ann, link}], title, sub, header } */
+function dumpHTML(o){
+  var size = sizeOf(o.kind), cc = o.cc || "d", h = "", i;
+  h += '<div class="region">';
+  if (o.title){
+    h += '<div class="rhd"><b class="'+cc+'">'+o.title+'</b><span>'+(o.sub || "") +
+         ((o.header || o.hdrFull) ? ' <span style="color:var(--data)">＋ header 48 bytes</span>' : "") + '</span></div>';
+  }
+  var nb = Math.max(size, o.attrib ? 8 : 0);
+  h += '<div class="dump" style="--bw:'+(nb*23-3)+'px"><div class="drow hd"><span class="ga">ADDR</span><span class="gb">';
+  for (i = 0; i < size; i++) h += '<span class="by hd">+'+i+'</span>';
+  h += '</span><span class="gc">解讀</span></div>';
+  function sysRow(addr, bytes, txt, link){
+    var r = '<div class="drow sys"'+(link ? ' data-link="'+link+'"' : "")+'><span class="ga">'+hex(addr)+'</span><span class="gb">';
+    if (bytes) bytes.forEach(function(b){ r += '<span class="by">'+b+'</span>'; });
+    else for (var j = 0; j < 8; j++) r += '<span class="by zz">··</span>';
+    return r + '</span><span class="gc">'+txt+'</span></div>';
+  }
+  if (o.hdrFull){
+    h += sysRow(o.base-48, null, 'sxpinfo &nbsp;<span class="ty">型別（'+(o.hdrType||"double")+'）、GC 標記</span>');
+    h += sysRow(o.base-40, bytesOf(o.attrib ? o.attrib.val : 0, "ptr"),
+         '<span class="ann"><span class="nmlab">attrib</span> <span class="arrow">╌►</span> '+(o.attrib ? o.attrib.txt : '<span style="color:var(--faint)">NULL（沒有屬性）</span>')+'</span>',
+         o.attrib ? (o.attrib.link || "attr") : null);
+    h += sysRow(o.base-32, null, 'gengc_next &nbsp;<span class="ty">GC 用的雙向串列</span>');
+    h += sysRow(o.base-24, null, 'gengc_prev &nbsp;<span class="ty">GC 用的雙向串列</span>');
+    h += sysRow(o.base-16, bytesOf(o.hdrLen || 0, "ptr"), '<span class="ann"><span class="eq">length = '+(o.hdrLen||0)+'</span></span>');
+    h += sysRow(o.base-8,  null, 'truelength &nbsp;<span class="ty">R 內部用</span>');
+    h += '<div class="drow sys" style="background:var(--surface2)"><span class="ga"></span><span class="gb"></span>' +
+         '<span class="gc"><b style="color:var(--text)">header 小計 48 bytes</b>　↓ 以下才是你的資料</span></div>';
+  } else if (o.header){
+    h += sysRow(o.base-48, null, 'SEXP header 48 bytes &nbsp;<span class="ty">sxpinfo / attrib / GC / length / truelength（§01 有完整拆解）</span>');
+    if (o.attrib){
+      h += sysRow(o.base-40, bytesOf(o.attrib.val, "ptr"),
+           '<span class="ann"><span class="nmlab">attrib</span> <span class="arrow">╌►</span> '+o.attrib.txt+'</span>',
+           o.attrib.link || "attr");
+    }
+  } else if (o.attrib){
+    h += sysRow(o.base-40, bytesOf(o.attrib.val, "ptr"),
+         '<span class="ann"><span class="nmlab">attrib</span> <span class="arrow">╌►</span> '+o.attrib.txt+'</span>',
+         o.attrib.link || "attr");
+  }
+  o.items.forEach(function(it, idx){
+    h += '<div class="drow '+cc+(it.dim ? " dim" : "")+'" data-link="'+it.link+'" tabindex="0" role="button">' +
+         '<span class="ga">'+hex(o.base + idx*size)+'</span><span class="gb">';
+    bytesOf(it.val, o.kind).forEach(function(b){ h += '<span class="by">'+b+'</span>'; });
+    h += '</span><span class="gc">'+it.ann+'</span></div>';
+  });
+  return h + '</div></div>';
+}
+function span(base, n, kind){ return hex(base) + "–" + hex(base + n*sizeOf(kind) - 1) + " · " + (n*sizeOf(kind)) + " bytes"; }
+function gap(txt){ return '<div class="memgap">⋮&nbsp;&nbsp;'+(txt || "其他物件、其他程式的記憶體")+'&nbsp;&nbsp;⋮</div>'; }
+
+/* ---------- R highlighter ---------- */
+var RX = /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(TRUE|FALSE|NA|NULL|Inf|NaN|function|if|else|for|while|return)\b|\b(\d+\.?\d*L?)\b|([A-Za-z._][A-Za-z0-9._]*)(?=\s*\()|(<-|%in%|%%|%\/%|%\*%|[+\-*\/^<>=!&|$@~])/g;
+function hl(code){
+  var out = "", last = 0, m; RX.lastIndex = 0;
+  while ((m = RX.exec(code)) !== null){
+    out += esc(code.slice(last, m.index));
+    var cls = m[1] ? "cm" : m[2] ? "st" : m[3] ? "kw" : m[4] ? "nu" : m[5] ? "fn" : "op";
+    out += '<span class="'+cls+'">' + esc(m[0]) + "</span>";
+    last = m.index + m[0].length;
+  }
+  return out + esc(code.slice(last));
+}
+function codeHTML(parts){
+  return parts.map(function(p){
+    var h = hl(p[0]);
+    return (p[1] == null) ? h : '<span class="tok" data-link="'+p[1]+'" tabindex="0" role="button">'+h+'</span>';
+  }).join("");
+}
+
+/* ---------- two-way linker ---------- */
+function linker(rootId, onPick, initial){
+  var root = $(rootId), pinned = (initial === undefined ? null : initial);
+  function paint(k){
+    var all = root.querySelectorAll("[data-link]");
+    for (var i = 0; i < all.length; i++){
+      all[i].classList.toggle("lit", k != null && all[i].getAttribute("data-link") === String(k));
+    }
+    if (onPick) onPick(k, root);
+  }
+  root.addEventListener("mouseover", function(e){
+    var t = e.target.closest("[data-link]"); if (t) paint(t.getAttribute("data-link"));
+  });
+  root.addEventListener("mouseleave", function(){ paint(pinned); });
+  root.addEventListener("click", function(e){
+    var t = e.target.closest("[data-link]"); if (!t) return;
+    pinned = t.getAttribute("data-link"); paint(pinned);
+  });
+  root.addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var t = e.target.closest("[data-link]"); if (!t) return;
+    e.preventDefault(); pinned = t.getAttribute("data-link"); paint(pinned);
+  });
+  return { repaint:function(){ paint(pinned); }, set:function(k){ pinned = (k==null?null:String(k)); paint(pinned); } };
+}
+
+/* ================= RAIL ================= */
+var SECTIONS = [["s0","封面"],["s1","RAM 的真相"],["s2","變數與 <-"],["s3","Vector"],["s4","Coercion"],
+  ["s5","Named vector"],["s6","List"],["s7","[ ] vs [[ ]]"],["s8","Matrix"],["s9","Factor"],
+  ["s10","data.frame"],["s11","全圖"],["s12","隨堂測驗"]];
+(function(){
+  var ol = $("rail"), html = "";
+  SECTIONS.forEach(function(s,i){
+    html += '<li><a href="#'+s[0]+'" data-t="'+s[0]+'"><span class="ad">'+hex(0x1000+i*8)+'</span><span class="nm">'+s[1]+'</span></a></li>';
+  });
+  ol.innerHTML = html;
+  var links = Array.prototype.slice.call(ol.querySelectorAll("a"));
+  links[0].classList.add("on");
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if (e.isIntersecting) links.forEach(function(a){ a.classList.toggle("on", a.dataset.t === e.target.id); });
+      });
+    }, { rootMargin:"-25% 0px -60% 0px" });
+    SECTIONS.forEach(function(s){ var el = $(s[0]); if (el) io.observe(el); });
+  }
+})();
+
+/* ================= 01 SEXP ================= */
+(function(){
+  var vals = [10,20,30];
+  $("p1code").innerHTML = codeHTML([
+    ["x <- c(", null], ["10", 0], [", ", null], ["20", 1], [", ", null], ["30", 2], [")", null]
+  ]);
+  $("p1con").innerHTML = '<span class="pr">&gt; typeof(x)</span>\n[1] "double"\n<span class="pr">&gt; length(x)</span>\n[1] 3';
+  $("p1mem").innerHTML = dumpHTML({
+    base:0x1000, kind:"double", cc:"d", hdrFull:true, hdrLen:3, hdrType:"double",
+    title:"x · double[3]", sub:"資料 " + span(0x1000, 3, "double"),
+    items: vals.map(function(v,i){
+      return { val:v, link:i, ann:'<span class="ann"><span class="eq">x['+(i+1)+'] = '+v+'</span> <span class="ty">double</span></span>' };
+    })
+  });
+  linker("p1", function(k){
+    if (k == null){
+      $("p1br").innerHTML = '<span class="full">左邊那一行字，在右邊變成「48 bytes 的說明書」＋「3 × 8 bytes 的資料」。滑過任一個數字，看它落在哪個位址。</span>';
+      return;
+    }
+    var i = +k, b = bytesOf(vals[i], "double").join(" ");
+    $("p1br").innerHTML =
+      '<span class="cv c">c() 裡第 '+(i+1)+' 個數字 '+vals[i]+'</span>'+W+
+      '<span class="cv m">'+hex(0x1000+i*8)+'</span>'+W+'<span class="cv">'+b+'</span>' +
+      '<span class="full">IEEE 754 雙精度、little-endian。這 8 個 bytes 本身沒有「我是數字」的資訊 —— 是前面那段 header 說它是 double，R 才這樣讀。</span>';
+  }, null).repaint();
+})();
+
+/* ================= 02 ASSIGNMENT ================= */
+var AS_LINES = ['x <- c(10, 20, 30)', 'y <- x', 'y[1] <- 99', 'x <- "hello"'];
+var OBJ = {
+  A:{ addr:0x1000, kind:"double", vals:[10,20,30], ty:"double[3]" },
+  B:{ addr:0x2600, kind:"double", vals:[99,20,30], ty:"double[3]" },
+  C:{ addr:0x3300, kind:"ptr",    vals:[0x7F00],   ty:"character[1]", strs:['"hello"'] }
+};
+var AS_STEPS = [
+  { env:[["x","A"]], live:["A"], refs:{A:1},
+    con:'<span class="pr">&gt; x</span>\n[1] 10 20 30\n<span class="pr">&gt; tracemem(x)</span>\n[1] "&lt;0x1000&gt;"',
+    br:'<span class="cv c">x &lt;- c(10, 20, 30)</span>'+'<span class="wire">╌╌►</span>'+
+       '<span class="cv m">造出物件 @0x1000</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv a">名字表登記 x → 0x1000</span>'+
+       '<span class="full">兩個動作，先後發生。物件本身不知道自己叫 x —— 名字只存在左邊那張表裡。</span>' },
+  { env:[["x","A"],["y","A"]], live:["A"], refs:{A:2},
+    con:'<span class="pr">&gt; y &lt;- x</span>\n<span class="pr">&gt; tracemem(y)</span>\n[1] "&lt;0x1000&gt;"   <span class="pr"># 跟 x 同一個位址</span>',
+    br:'<span class="cv c">y &lt;- x</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv a">名字表多一列 y → 0x1000</span>'+
+       '<span class="wire">╌╌►</span>'+'<span class="cv m">資料一個 byte 都沒複製</span>'+
+       '<span class="full">兩張名牌指向同一塊記憶體，refs 變成 2。這一步不管向量多大都是常數時間。</span>' },
+  { env:[["x","A"],["y","B"]], live:["A","B"], refs:{A:1,B:1}, hot:"B",
+    con:'<span class="pr">&gt; y[1] &lt;- 99</span>\ntracemem[0x1000 -&gt; 0x2600]:\n<span class="pr">&gt; x</span>\n[1] 10 20 30   <span class="pr"># x 沒被動到</span>',
+    br:'<span class="cv c">y[1] &lt;- 99</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv m">refs = 2，必須先複製</span>'+
+       '<span class="wire">╌╌►</span>'+'<span class="cv m">新物件 @0x2600</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv a">y 改指 0x2600</span>'+
+       '<span class="full"><strong>copy-on-modify。</strong>如果當時只有 y 一個名字指著 0x1000，R 會就地改、位址不變；因為 x 也指著它，只好複製一份再改。tracemem 印出的箭頭就是這件事。</span>' },
+  { env:[["x","C"],["y","B"]], live:["B","C"], dead:["A"], refs:{B:1,C:1}, hot:"C",
+    con:'<span class="pr">&gt; x &lt;- "hello"</span>\n<span class="pr">&gt; x</span>\n[1] "hello"',
+    br:'<span class="cv c">x &lt;- "hello"</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv m">造出 character 物件 @0x3300</span>'+
+       '<span class="wire">╌╌►</span>'+'<span class="cv a">x 改指 0x3300</span>'+'<span class="wire">╌╌►</span>'+
+       '<span class="cv" style="border-color:var(--warn); color:var(--warn)">0x1000 成為垃圾</span>'+
+       '<span class="full">變數沒有固定型別 —— 換的是名牌指向哪裡，不是把字串塞進原本那個 double 的箱子。原本 0x1000 那塊沒有任何名字指著了，交給 GC 回收。</span>' }
+];
+var asIdx = 0, asLink;
+function drawAS(){
+  var s = AS_STEPS[asIdx];
+  $("asCode").innerHTML = AS_LINES.map(function(l,i){
+    return i === asIdx ? '<span class="tok lit">'+hl(l)+'</span>'
+         : '<span style="opacity:'+(i < asIdx ? ".55" : ".25")+'">'+hl(l)+'</span>';
+  }).join("\n");
+  $("asCon").innerHTML = s.con;
+
+  var envRows = s.env.map(function(e){
+    var o = OBJ[e[1]];
+    return { val:o.addr, link:e[1],
+      ann:'<span class="ann"><span class="nmlab">'+e[0]+'</span> <span class="arrow">╌►</span> '+hex(o.addr)+' <span class="ty">'+o.ty+'</span></span>' };
+  });
+  var mem = dumpHTML({
+    base:0x9000, kind:"ptr", cc:"a",
+    title:"Global environment · 名字表", sub:"名字 → 位址（hash table）",
+    items: envRows
+  });
+  s.live.forEach(function(id){
+    var o = OBJ[id];
+    mem += gap() + dumpHTML({
+      base:o.addr, kind:o.kind, cc:(o.kind === "ptr" ? "p" : "d"), header:true,
+      title:(id === s.hot ? "◆ 剛造出來 · " : "") + o.ty + " @" + hex(o.addr),
+      sub:"refs = " + s.refs[id] + "（有 " + s.refs[id] + " 個名字指著它）",
+      items: o.vals.map(function(v,i){
+        return { val:v, link:id, ann:'<span class="ann"><span class="eq">['+(i+1)+'] = '+
+          (o.kind === "ptr" ? o.strs[i] : v)+'</span></span>' };
+      })
+    });
+  });
+  (s.dead || []).forEach(function(id){
+    var o = OBJ[id];
+    mem += gap() + '<div class="region"><div class="rhd"><b class="d" style="color:var(--warn)">' +
+      o.ty + " @" + hex(o.addr) + '</b><span style="color:var(--warn)">refs = 0 · 沒有名字指著它 → 等待 GC 回收</span></div>' +
+      '<div class="dump" style="opacity:.4"><div class="drow d"><span class="ga">'+hex(o.addr)+'</span><span class="gb">' +
+      bytesOf(o.vals[0], o.kind).map(function(b){ return '<span class="by">'+b+'</span>'; }).join("") +
+      '</span><span class="gc">已成為垃圾</span></div></div></div>';
+  });
+  $("asMem").innerHTML = mem;
+  $("asBr").innerHTML = s.br;
+  asLink.repaint();
+  Array.prototype.forEach.call($("asStep").children, function(c,i){ c.classList.toggle("on", i === asIdx); });
+}
+(function(){
+  var h = "";
+  AS_LINES.forEach(function(l,i){ h += '<button class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+(i+1)+'. '+esc(l)+'</button>'; });
+  $("asStep").innerHTML = h;
+  $("asStep").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    asIdx = +b.dataset.i; asLink.set(null); drawAS();
+  });
+  asLink = linker("pAS", function(){}, null);
+  drawAS();
+})();
+
+/* ================= 03 VECTOR ================= */
+var VECS = [
+  { type:"double", kind:"double", lits:["10","20","30","40","50"], vals:[10,20,30,40,50] },
+  { type:"integer", kind:"int", lits:["1L","2L","3L","4L"], vals:[1,2,3,4] },
+  { type:"logical", kind:"logical", lits:["TRUE","FALSE","TRUE"], vals:[1,0,1] },
+  { type:"character", kind:"ptr", lits:['"A"','"O"','"AB"'], vals:[0x7F20,0x7F28,0x7F40], strs:["A","O","AB"] }
+];
+var vIdx = 0, VBASE = 0x1000, vLink;
+function drawVec(){
+  var v = VECS[vIdx], n = v.lits.length, size = sizeOf(v.kind);
+  var parts = [["x <- c(", null]];
+  v.lits.forEach(function(l,i){ if (i) parts.push([", ", null]); parts.push([l, i]); });
+  parts.push([")", null]);
+  $("vecCode").innerHTML = codeHTML(parts);
+  var e = "";
+  for (var i = 0; i < n; i++) e += '<span class="expr" data-link="'+i+'" tabindex="0" role="button">x['+(i+1)+']</span>';
+  $("vecExpr").innerHTML = e;
+
+  var mem = dumpHTML({
+    base:VBASE, kind:v.kind, cc:(v.kind === "ptr" ? "p" : "d"), header:true,
+    attrib:{ val:0, txt:'<span style="color:var(--faint)">NULL（沒有任何屬性）</span>', link:"attrib" },
+    title:"x · "+v.type+"["+n+"]", sub:span(VBASE, n, v.kind) + " · 每格 " + size + " bytes",
+    items: v.lits.map(function(l,i){
+      var ann = v.kind === "ptr"
+        ? '<span class="ann"><span class="eq">x['+(i+1)+']</span> <span class="arrow">╌►</span> '+hex(v.vals[i])+' <span class="ty">字串池</span></span>'
+        : '<span class="ann"><span class="eq">x['+(i+1)+'] = '+esc(l)+'</span> <span class="ty">'+v.type+'</span></span>';
+      return { val:v.vals[i], link:i, ann:ann };
+    })
+  });
+  if (v.kind === "ptr"){
+    mem += gap("R 全域字串池 CHARSXP cache") + dumpHTML({
+      base:0x7F20, kind:"ptr", cc:"a", title:'字串本體（示意）', sub:"長度不一，不住在 x 這排抽屜裡",
+      items: v.strs.map(function(s,i){
+        return { val:v.vals[i], link:i, ann:'<span class="ann">'+hex(v.vals[i])+' : <span class="eq">"'+esc(s)+'"</span></span>' };
+      })
+    });
+  }
+  $("vecMem").innerHTML = mem;
+  vLink.repaint();
+}
+function vecBridge(k){
+  var v = VECS[vIdx], size = sizeOf(v.kind);
+  if (k == null){
+    $("vecBr").innerHTML = '<span class="cv m">'+v.type+'['+v.lits.length+']</span><span style="color:var(--faint)">每格 '+size+' bytes，位址每次跳 '+size+'</span>' +
+      '<span class="full">滑過左邊的 x[i] 或右邊任一列，看它們怎麼對上。</span>';
+    return;
+  }
+  var i = +k, addr = VBASE + i*size;
+  $("vecBr").innerHTML =
+    '<span class="cv c">x['+(i+1)+']</span>'+W+
+    '<span class="cv">'+hex(VBASE)+' + '+i+' × '+size+'</span>'+W+
+    '<span class="cv m">'+hex(addr)+'</span>'+W+
+    '<span class="cv">'+bytesOf(v.vals[i], v.kind).join(" ")+'</span>' +
+    '<span class="full">' + (v.kind === "ptr"
+      ? '這 8 bytes 倒過來讀就是 '+hex(v.vals[i])+' —— 一個位址。R 還得再跑一趟才拿得到字串 '+esc(v.lits[i])+'。'
+      : '一次乘法一次加法就到了，這就是 O(1) 索引。') + '</span>';
+}
+(function(){
+  var h = "";
+  VECS.forEach(function(v,i){ h += '<button class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+v.type+'</button>'; });
+  $("vecPick").innerHTML = h;
+  $("vecPick").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    vIdx = +b.dataset.i;
+    Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+    vLink.set(null); drawVec();
+  });
+  vLink = linker("p2", vecBridge, null);
+  drawVec();
+})();
+
+/* ================= 03 COERCION ================= */
+var LADDER = ["logical","integer","double","character"];
+var KINDS = ["logical","int","double","ptr"];
+var TOKENS = [
+  { lit:"TRUE",    rank:0, disp:{0:"TRUE",1:"1L",2:"1",3:'"TRUE"'},   num:{0:1,1:1,2:1} },
+  { lit:"FALSE",   rank:0, disp:{0:"FALSE",1:"0L",2:"0",3:'"FALSE"'}, num:{0:0,1:0,2:0} },
+  { lit:"3L",      rank:1, disp:{1:"3L",2:"3",3:'"3"'},               num:{1:3,2:3} },
+  { lit:"2.5",     rank:2, disp:{2:"2.5",3:'"2.5"'},                  num:{2:2.5} },
+  { lit:'"Hello"', rank:3, disp:{3:'"Hello"'},                        num:{} }
+];
+var coSel = [0,2,4], coLink, coMax = 0;
+function drawCo(){
+  coMax = coSel.length ? Math.max.apply(null, coSel.map(function(i){ return TOKENS[i].rank; })) : -1;
+  var lh = "";
+  LADDER.forEach(function(name,i){
+    var on = i === coMax, passed = coMax >= 0 && i < coMax;
+    lh += '<div style="flex:1; text-align:center; padding:7px 4px; border:1px solid '+(on?"var(--data)":"var(--line)")+
+          '; border-right:none; background:'+(on?"var(--dataBg)":"transparent")+
+          '; color:'+(on?"var(--data)":(passed?"var(--dim)":"var(--faint)"))+';">'+name+'</div>';
+  });
+  $("coLadder").innerHTML = lh + '<div style="width:1px; background:var(--line)"></div>';
+
+  if (!coSel.length){
+    $("coCall").innerHTML = hl("c()   # 先從上面挑幾個元素");
+    $("coMem").innerHTML = '<div class="dump"><div class="drow"><span class="ga">—</span><span class="gb"></span><span class="gc">還沒有東西</span></div></div>';
+    $("coBr").innerHTML = '<span class="full">試試把 TRUE 跟 "Hello" 放在一起 —— 你的邏輯值會變成字串 "TRUE"。</span>';
+    return;
+  }
+  var parts = [["c(", null]];
+  coSel.forEach(function(ti,i){ if (i) parts.push([", ", null]); parts.push([TOKENS[ti].lit, i]); });
+  parts.push([")", null]);
+  $("coCall").innerHTML = codeHTML(parts);
+
+  var ty = LADDER[coMax], kind = KINDS[coMax];
+  $("coMem").innerHTML = dumpHTML({
+    base:0x1000, kind:kind, cc:(coMax === 3 ? "p" : "d"), header:true,
+    title:"結果 · "+ty+"["+coSel.length+"]", sub:span(0x1000, coSel.length, kind),
+    items: coSel.map(function(ti,i){
+      var t = TOKENS[ti], shown = t.disp[coMax], changed = shown !== t.lit;
+      var val = (coMax === 3) ? (0x7F00 + i*16) : t.num[coMax];
+      var ann = coMax === 3
+        ? '<span class="ann"><span class="eq">['+(i+1)+']</span> <span class="arrow">╌►</span> '+hex(val)+' <span class="ty">'+esc(shown)+'</span></span>'
+        : '<span class="ann"><span class="eq">['+(i+1)+'] = '+esc(shown)+'</span> '+(changed
+            ? '<span class="ty" style="color:var(--warn)">原本 '+esc(t.lit)+'</span>'
+            : '<span class="ty">原樣</span>')+'</span>';
+      return { val:val, link:i, ann:ann };
+    })
+  });
+  coLink.repaint();
+}
+function coBridge(k){
+  if (!coSel.length) return;
+  var ty = LADDER[coMax], kind = KINDS[coMax];
+  if (k == null){
+    var n = coSel.filter(function(ti){ return TOKENS[ti].disp[coMax] !== TOKENS[ti].lit; }).length;
+    $("coBr").innerHTML = n
+      ? '<span class="cv c">你寫的 '+coSel.length+' 個元素</span>'+W+'<span class="cv m">'+n+' 個被硬轉成 '+ty+'</span>' +
+        '<span class="full">R 不會報錯也不會警告，它只是安靜地把整塊記憶體換成同一種規格。檢查方式：typeof() 看底層型別，class() 看物件類別，str() 看整體結構。</span>'
+      : '<span class="full">全部本來就是 '+ty+'，不需要轉型。加一個字串進去看看整塊記憶體會怎麼變。</span>';
+    return;
+  }
+  var i = +k, t = TOKENS[coSel[i]], shown = t.disp[coMax], changed = shown !== t.lit;
+  var val = (coMax === 3) ? (0x7F00 + i*16) : t.num[coMax];
+  $("coBr").innerHTML =
+    '<span class="cv c">'+esc(t.lit)+'</span><span style="color:var(--faint)">'+LADDER[t.rank]+'</span>'+W+
+    '<span class="cv m">'+bytesOf(val, kind).join(" ")+'</span><span style="color:var(--faint)">'+ty+'</span>' +
+    '<span class="full">' + (changed
+      ? '這個元素<strong>被改寫了</strong>：整排抽屜必須同規格，它只好從 '+LADDER[t.rank]+' 被推到共同型別 '+ty+
+        (coMax === 3 ? '，最後連值都不在這裡了 —— 剩下的只是一個指向字串池的位址。' : '，連 bytes 都換了一套。')
+      : '它本來就是 '+ty+'，原樣寫進去。') + '</span>';
+}
+(function(){
+  var h = "";
+  TOKENS.forEach(function(t,i){ h += '<button class="chip" data-i="'+i+'">+ '+esc(t.lit)+'</button>'; });
+  $("coPick").innerHTML = h;
+  $("coPick").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    if (coSel.length >= 6) coSel.shift();
+    coSel.push(+b.dataset.i); coLink.set(null); drawCo();
+  });
+  $("coClear").addEventListener("click", function(){ coSel = []; coLink.set(null); drawCo(); });
+  coLink = linker("p3", coBridge, null);
+  drawCo();
+})();
+
+/* ================= 04 NAMED VECTOR ================= */
+var NV = { vals:[1,2,3], nms:["apple","banana","peach"], base:0x1000, abase:0x4600, nbase:0x4800, sbase:0x7F00, sym:0x0A40 };
+var NVB = [
+  { btn:"c(apple = 1, ...)", named:true, parts:[
+    ["v <- c(", null], ["apple = 1", 0], [", ", null], ["banana = 2", 1], [", ", null], ["peach = 3", 2], [")", null]] },
+  { btn:"names(v) <- ...", named:true, parts:[
+    ["v <- c(", null], ["1", 0], [", ", null], ["2", 1], [", ", null], ["3", 2], [")\nnames(v) <- c(", null],
+    ['"apple"', 0], [", ", null], ['"banana"', 1], [", ", null], ['"peach"', 2], [")", null]] },
+  { btn:"setNames()", named:true, parts:[
+    ["v <- setNames(\n  c(", null], ["1", 0], [", ", null], ["2", 1], [", ", null], ["3", 2], ["),\n  c(", null],
+    ['"apple"', 0], [", ", null], ['"banana"', 1], [", ", null], ['"peach"', 2], [")\n)", null]] },
+  { btn:"names(v) <- NULL", named:false, parts:[
+    ["v <- c(apple = 1, banana = 2, peach = 3)\nnames(v) <- NULL    # 或 unname(v)", null]] }
+];
+var nvIdx = 0, nvMode = "pos", nvLink;
+function drawNV(){
+  var b = NVB[nvIdx], n = NV.vals.length;
+  $("nvCode").innerHTML = codeHTML(b.parts);
+
+  var con = '<span class="pr">&gt; v</span>\n';
+  if (b.named){
+    var l1 = "", l2 = "";
+    for (var i = 0; i < n; i++){
+      var nm = NV.nms[i], vl = String(NV.vals[i]), w = Math.max(nm.length, vl.length) + 2;
+      l1 += sp(w - nm.length) + '<span class="tok" data-link="'+i+'" tabindex="0" role="button">'+nm+'</span>';
+      l2 += sp(w - vl.length) + '<span class="tok" data-link="'+i+'" tabindex="0" role="button">'+vl+'</span>';
+    }
+    con += l1 + "\n" + l2;
+  } else {
+    con += "[1] " + NV.vals.map(function(v,i){
+      return '<span class="tok" data-link="'+i+'" tabindex="0" role="button">'+v+'</span>';
+    }).join(" ");
+  }
+  $("nvCon").innerHTML = con;
+
+  var ep = "", en = "";
+  for (var j = 0; j < n; j++){
+    ep += '<span class="expr" data-link="'+j+'" tabindex="0" role="button">v['+(j+1)+']</span>';
+    en += '<span class="expr'+(b.named?"":" off")+'" data-link="'+j+'" tabindex="0" role="button">v[&quot;'+NV.nms[j]+'&quot;]</span>';
+  }
+  $("nvExprPos").innerHTML = ep;
+  $("nvExprName").innerHTML = en;
+
+  var mem = dumpHTML({
+    base:NV.base, kind:"double", cc:"d", header:true,
+    attrib: b.named
+      ? { val:NV.abase, txt:'屬性節點 @'+hex(NV.abase), link:"attr" }
+      : { val:0, txt:'<span style="color:var(--faint)">NULL（沒有任何屬性）</span>', link:"attr" },
+    title:"① v · 資料本體 double[3]", sub:span(NV.base, n, "double"),
+    items: NV.vals.map(function(v,i){
+      return { val:v, link:i, ann:'<span class="ann"><span class="eq">v['+(i+1)+'] = '+v+'</span> <span class="ty">double</span></span>' };
+    })
+  });
+  if (b.named){
+    mem += gap() + dumpHTML({
+      base:NV.abase, kind:"ptr", cc:"a",
+      title:"② 屬性節點 · pairlist", sub:"一個節點 = 三個 8-byte 指標",
+      items: [
+        { val:NV.sym, link:"attr", ann:'<span class="ann"><span class="nmlab">TAG</span> <span class="arrow">╌►</span> symbol <b>names</b></span>' },
+        { val:NV.nbase, link:"attr", ann:'<span class="ann"><span class="nmlab">VALUE</span> <span class="arrow">╌►</span> '+hex(NV.nbase)+' <span class="ty">名字那條 vector</span></span>' },
+        { val:0, link:"attr", ann:'<span class="ann"><span class="nmlab">NEXT</span> <span class="arrow">╌►</span> NULL <span class="ty">沒有其他屬性了</span></span>' }
+      ]
+    });
+    mem += gap() + dumpHTML({
+      base:NV.nbase, kind:"ptr", cc:"a",
+      title:'③ names 的內容 · character[3]', sub:span(NV.nbase, n, "ptr") + " · 第三塊記憶體",
+      items: NV.nms.map(function(s,i){
+        return { val:NV.sbase + i*16, link:i,
+          ann:'<span class="ann"><span class="eq">names['+(i+1)+']</span> <span class="arrow">╌►</span> "'+s+'"</span>' };
+      })
+    });
+  } else {
+    mem += '<div class="memgap" style="color:var(--warn)">attrib 改回 NULL，屬性節點與 names 向量都成為垃圾，被 GC 回收</div>';
+  }
+  $("nvMem").innerHTML = mem;
+  nvLink.repaint();
+}
+function nvBridge(k){
+  var b = NVB[nvIdx];
+  if (k == null){
+    $("nvBr").innerHTML = b.named
+      ? '<span class="cv m">① 資料 '+hex(NV.base)+'</span>'+W+'<span class="cv a">② 屬性節點 '+hex(NV.abase)+'</span>'+W+'<span class="cv a">③ names '+hex(NV.nbase)+'</span>' +
+        '<span class="full">三塊各自獨立的記憶體，用 header 裡的 <strong>attrib 指標</strong>串起來（滑過那一列看整條鏈）。①③ 之間沒有指標，是靠<strong>位置</strong>對應：names 的第 i 列就是資料第 i 列的名字。</span>'
+      : '<span class="cv m">double[3] '+hex(NV.base)+'</span>'+W+'<span class="cv">attributes = NULL</span>' +
+        '<span class="full">名字拿掉了，但三列 bytes 一個字都沒變 —— 這就是「屬性掛在旁邊」最直接的證據。點下面的名稱索引看看會拿到什麼。</span>';
+    return;
+  }
+  if (k === "attr"){
+    $("nvBr").innerHTML = b.named
+      ? '<span class="cv m">v 的 header</span>'+W+'<span class="cv">attrib = '+hex(NV.abase)+'</span>'+W+
+        '<span class="cv a">節點 TAG = names</span>'+W+'<span class="cv a">VALUE = '+hex(NV.nbase)+'</span>' +
+        '<span class="full">這就是兩塊記憶體<strong>唯一</strong>的連結：資料物件 header 裡的 attrib 欄位 ╌► 屬性節點 ╌► names 那條 vector。<code class="inline">names(v)</code> 這個函式做的就是走完這條鏈。節點還有 NEXT 欄位，所以可以再串 dim、class…… 想掛幾個屬性都行。</span>'
+      : '<span class="cv m">v 的 header</span>'+W+'<span class="cv">attrib = NULL</span>' +
+        '<span class="full">attrib 欄位是 NULL，這個物件沒有掛任何屬性 —— 最單純的 atomic vector。切到別的按鈕看看這一格會變成什麼。</span>';
+    return;
+  }
+  var i = +k, addr = hex(NV.base + i*8);
+  if (nvMode === "name"){
+    if (!b.named){
+      $("nvBr").innerHTML =
+        '<span class="cv c">v["'+NV.nms[i]+'"]</span>'+W+
+        '<span class="cv" style="border-color:var(--warn); color:var(--warn)">names 是 NULL，無從比對</span>'+W+'<span class="cv">NA</span>' +
+        '<span class="full">沒有 names 屬性，R 找不到任何字串可以對，回傳 NA（而且不會報錯）。名字是屬性，不是資料的一部分。</span>';
+      return;
+    }
+    var scan = NV.nms.slice(0, i+1).map(function(s,j){
+      return (j === i ? '<span style="color:var(--ok)">'+s+' ✓</span>' : s + " ✗");
+    }).join(" → ");
+    $("nvBr").innerHTML =
+      '<span class="cv c">v["'+NV.nms[i]+'"]</span>'+W+
+      '<span class="cv a">掃 '+hex(NV.nbase)+' 那塊：'+scan+'</span>'+W+
+      '<span class="cv">第 '+(i+1)+' 格</span>'+W+'<span class="cv m">'+addr+'</span>' +
+      '<span class="full">比對了 '+(i+1)+' 次字串才知道要去第 '+(i+1)+' 格 —— 名字是<strong>標籤</strong>，不是捷徑。找到位置之後，剩下的動作跟 v['+(i+1)+'] 一模一樣。</span>';
+  } else {
+    $("nvBr").innerHTML =
+      '<span class="cv c">v['+(i+1)+']</span>'+W+'<span class="cv">'+hex(NV.base)+' + '+i+' × 8</span>'+W+
+      '<span class="cv m">'+addr+'</span>'+W+'<span class="cv">'+bytesOf(NV.vals[i], "double").join(" ")+'</span>' +
+      '<span class="full">一次乘法一次加法就到了，'+(b.named ? hex(NV.nbase)+' 那塊記憶體從頭到尾沒被碰過。' : "這是最單純的 atomic vector 索引。")+'</span>';
+  }
+}
+(function(){
+  var h = "";
+  NVB.forEach(function(b,i){ h += '<button class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+esc(b.btn)+'</button>'; });
+  $("nvBuild").innerHTML = h;
+  $("nvBuild").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    nvIdx = +b.dataset.i;
+    Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+    nvLink.set(null); drawNV();
+  });
+  function mode(id, m){
+    ["mouseover","click","focusin"].forEach(function(ev){ $(id).addEventListener(ev, function(){ nvMode = m; }); });
+  }
+  mode("nvExprPos", "pos"); mode("nvExprName", "name");
+  ["mouseover","click","focusin"].forEach(function(ev){
+    $("nvMem").addEventListener(ev, function(e){
+      var r = e.target.closest(".drow"); if (r) nvMode = r.classList.contains("a") ? "name" : "pos";
+    });
+  });
+  nvLink = linker("pNV", nvBridge, null);
+  drawNV();
+})();
+
+/* ================= 05 LIST ================= */
+var LBASE = 0x5000;
+var PATIENT = [
+  { nm:"id",      addr:0x2A10, val:['"P01"'],         ty:"character[1]" },
+  { nm:"glucose", addr:0x2A80, val:["128"],           ty:"double[1]" },
+  { nm:"fasting", addr:0x2B00, val:["TRUE"],          ty:"logical[1]" },
+  { nm:"visits",  addr:0x2B40, val:["95","128","88"], ty:"double[3]" }
+];
+function targetHTML(p){
+  return '<span class="tgt">' + p.val.map(function(v){ return '<span class="sub">'+esc(v)+'</span>'; }).join("") +
+         '<span class="ty">'+p.ty+' @'+hex(p.addr)+'</span></span>';
+}
+var lvMode = "list", lvLink;
+function drawLV(){
+  if (lvMode === "list"){
+    $("lvCode").innerHTML = codeHTML([
+      ["p <- list(\n  ", null],
+      ['id      = "P01"', "id"], [",\n  ", null],
+      ["glucose = 128", "glucose"], [",\n  ", null],
+      ["fasting = TRUE", "fasting"], [",\n  ", null],
+      ["visits  = c(95, 128, 88)", "visits"], ["\n)", null]
+    ]);
+    $("lvMem").innerHTML = dumpHTML({
+      base:LBASE, kind:"ptr", cc:"p", header:true,
+      attrib:{ val:0x4600, txt:'屬性節點 @0x4600 &nbsp;<span class="ty">TAG = names</span>', link:"attrib" },
+      title:"p · list[4] — 只有指標", sub:span(LBASE, 4, "ptr"),
+      items: PATIENT.map(function(p){
+        return { val:p.addr, link:p.nm,
+          ann:'<span class="ann"><span class="nmlab">'+p.nm+'</span> <span class="arrow">╌►</span></span> ' + targetHTML(p) };
+      })
+    });
+  } else {
+    $("lvCode").innerHTML = codeHTML([
+      ["c(", null], ['"P01"', "id"], [", ", null], ["128", "glucose"], [", ", null],
+      ["TRUE", "fasting"], [", ", null], ["c(95, 128, 88)", "visits"], [")", null],
+      ["\n# 硬塞進 atomic vector", null]
+    ]);
+    var map = [['"P01"',"id"],['"128"',"glucose"],['"TRUE"',"fasting"],['"95"',"visits"],['"128"',"visits"],['"88"',"visits"]];
+    $("lvMem").innerHTML = dumpHTML({
+      base:0x1000, kind:"ptr", cc:"p", header:true,
+      title:"結果 · character[6] — 全壓扁了", sub:span(0x1000, 6, "ptr"),
+      items: map.map(function(m,i){
+        return { val:0x7F00 + i*16, link:m[1],
+          ann:'<span class="ann"><span class="eq">['+(i+1)+']</span> <span class="arrow">╌►</span> '+esc(m[0])+'</span>' };
+      })
+    });
+  }
+  lvLink.repaint();
+}
+function lvBridge(k){
+  if (lvMode === "vec"){
+    if (k == null){
+      $("lvBr").innerHTML = '<span class="cv c">list 的四個欄位</span>'+W+'<span class="cv m">6 格 character 指標</span>' +
+        '<span class="full"><strong>兩件事同時發生了：</strong>型別全被轉成 character，而且巢狀的 c(95, 128, 88) 被攤平進同一排 —— 你再也分不出「哪三個是回診數值」。這正是 unlist() 會做的事。</span>';
+    } else {
+      var p = PATIENT.filter(function(x){ return x.nm === k; })[0], n = p.val.length;
+      $("lvBr").innerHTML = '<span class="cv c">'+p.nm+'</span>'+W+'<span class="cv m">'+n+' 列 character</span>' +
+        '<span class="full">' + (n > 1
+          ? "原本是一個獨立的 double[3] 物件，住在自己的位址；現在被攤成 "+n+" 列指標，跟其他欄位混在同一塊記憶體 —— 結構資訊沒了。"
+          : "原本的 "+p.ty+" 被轉成 character，"+(p.nm === "glucose" ? "128 變成字串 \"128\"，不能再拿去算平均。" : "值還在，型別沒了。")) + '</span>';
+    }
+    return;
+  }
+  if (k == null){
+    $("lvBr").innerHTML = '<span class="cv m">'+hex(LBASE)+' 起，4 × 8 bytes</span>'+W+'<span class="cv">四個不同的位址</span>' +
+      '<span class="full">左邊四個欄位 ╌► 右邊四列<strong>大小完全一樣</strong>的指標，所以 list 一樣能 O(1) 索引；箭頭另一端的物件愛多大有多大、愛什麼型別就什麼型別。把那串 hex 倒過來讀就是目的地位址。</span>';
+    return;
+  }
+  var p = PATIENT.filter(function(x){ return x.nm === k; })[0];
+  var idx = PATIENT.indexOf(p);
+  $("lvBr").innerHTML =
+    '<span class="cv c">p$'+p.nm+'</span>'+W+'<span class="cv m">'+hex(LBASE+idx*8)+'</span>'+W+
+    '<span class="cv">'+bytesOf(p.addr, "ptr").join(" ")+'</span>'+W+
+    '<span class="cv">= '+hex(p.addr)+'</span>'+W+'<span class="cv">'+p.ty+'</span>' +
+    '<span class="full">那 8 個 bytes 倒過來讀就是 '+hex(p.addr)+' —— 資料真正住的地方。名字 '+p.nm+' 只是 names 屬性裡的字串，真正把你帶過去的是這個位址。</span>';
+}
+$("lvMode").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  lvMode = b.dataset.m;
+  Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+  lvLink.set(null); drawLV();
+});
+lvLink = linker("p4", lvBridge, null);
+drawLV();
+
+/* ================= 06 SUBSETTING ================= */
+var SS = [
+  { code:"p[2]", mode:"box", hit:["glucose"], cls:"list", out:"$glucose\n[1] 128",
+    why:"<strong>[ ] 拿盒子。</strong>R 配置一塊<strong>新的</strong>指標記憶體，把第 2 個位址複製進去 —— 回傳的還是 list，只是長度 1。想丟進 mean() 會失敗。" },
+  { code:"p[[2]]", mode:"open", hit:["glucose"], cls:"numeric", out:"[1] 128",
+    why:"<strong>[[ ]] 打開盒子。</strong>讀出那 8 bytes 的位址，直接跳過去，把 0x2A80 那個 double 拿回來。這才是能拿去計算的東西。" },
+  { code:"p$glucose", mode:"open", hit:["glucose"], cls:"numeric", out:"[1] 128",
+    why:"<strong>$ 等同 [[\"名字\"]]。</strong>先在 names 屬性裡掃到 glucose 是第 2 個，再跟著那個位址走。只是寫起來比較短。" },
+  { code:"p[[4]][2]", mode:"open", hit:["visits"], cls:"numeric", out:"[1] 128", mark:1,
+    why:"<strong>兩段動作。</strong>先 [[4]] 跳到 0x2B40 那條 double[3]，再對<strong>那塊記憶體</strong>算 0x2B40 + 1×8 —— 第二段已經在 vector 的世界裡了。" },
+  { code:"p[c(2,4)]", mode:"box", hit:["glucose","visits"], cls:"list", out:"$glucose\n[1] 128\n\n$visits\n[1]  95 128  88",
+    why:"<strong>[ ] 可以一次拿多個位址。</strong>[[ ]] 不行 —— 因為「同時跳到兩個地方」沒辦法回傳成一個東西。" }
+];
+var ssIdx = 1;
+function drawSS(){
+  var s = SS[ssIdx];
+  var e = "";
+  SS.forEach(function(x,i){ e += '<span class="expr'+(i===ssIdx?" lit":"")+'" data-i="'+i+'" tabindex="0" role="button">'+esc(x.code)+'</span>'; });
+  $("ssPick").innerHTML = e;
+  $("ssCon").innerHTML = '<span class="pr">&gt; '+esc(s.code)+'</span>\n' + esc(s.out);
+
+  var inner = dumpHTML({
+    base:LBASE, kind:"ptr", cc:"p",
+    title:"p · list[4]", sub:span(LBASE, 4, "ptr"),
+    items: PATIENT.map(function(p){
+      var on = s.hit.indexOf(p.nm) >= 0;
+      var tgt = '<span class="tgt">' + p.val.map(function(v,j){
+        var m = (s.mark === j && p.nm === "visits");
+        return '<span class="sub"'+(m?' style="border-color:var(--data); background:var(--dataBg); color:var(--data)"':"")+'>'+esc(v)+'</span>';
+      }).join("") + '<span class="ty">'+p.ty+' @'+hex(p.addr)+'</span></span>';
+      return { val:p.addr, dim:!on, link:"x",
+        ann:'<span class="ann"><span class="nmlab">'+p.nm+'</span> <span class="arrow">╌►</span></span> ' + tgt };
+    })
+  });
+  $("ssStage").innerHTML = '<div class="boxwrap'+(s.mode === "open" ? " open" : "")+'">' +
+    '<div class="lbl">[ ] &nbsp;卡夾還在 ╌► 回傳 list</div>' + inner + '</div>';
+  $("ssBr").innerHTML =
+    '<span class="cv c">'+esc(s.code)+'</span>'+W+
+    '<span class="cv m">'+(s.mode === "open" ? "讀出位址並跳過去" : "複製位址到新的 list")+'</span>'+W+
+    '<span class="cv">class() = "'+s.cls+'"</span>' +
+    '<span class="full">'+s.why+'</span>';
+}
+$("ssPick").addEventListener("click", function(e){
+  var b = e.target.closest(".expr"); if (!b) return;
+  ssIdx = +b.dataset.i; drawSS();
+});
+$("ssPick").addEventListener("keydown", function(e){
+  if (e.key !== "Enter" && e.key !== " ") return;
+  var b = e.target.closest(".expr"); if (!b) return;
+  e.preventDefault(); ssIdx = +b.dataset.i; drawSS();
+});
+drawSS();
+
+/* ================= 07 MATRIX ================= */
+var DIVS = [1,2,3,4,6,12], mRowI = 2, mByRow = false, mLink, MBASE = 0x1000;
+function drawM(){
+  var nr = DIVS[mRowI], nc = 12 / nr;
+  $("mRowV").textContent = nr;
+  $("mCode").innerHTML = codeHTML([
+    ["v <- 1:12\nm <- matrix(v, nrow = " + nr + ", byrow = " + (mByRow ? "TRUE" : "FALSE") + ")", null]
+  ]);
+  var g = '<div class="mgrid" style="grid-template-columns:auto repeat('+nc+', 52px)">';
+  g += '<div class="mlab"></div>';
+  for (var c0 = 0; c0 < nc; c0++) g += '<div class="mlab">[,'+(c0+1)+']</div>';
+  for (var r = 0; r < nr; r++){
+    g += '<div class="mlab">['+(r+1)+',]</div>';
+    for (var c = 0; c < nc; c++){
+      var k = mByRow ? (r*nc + c) : (c*nr + r);
+      g += '<div class="mcell" data-link="'+k+'" data-rc="'+(r+1)+','+(c+1)+'" tabindex="0" role="button">'+(k+1)+'</div>';
+    }
+  }
+  $("mGridWrap").innerHTML = g + "</div>";
+
+  var rcOf = {};
+  for (var rr = 0; rr < nr; rr++) for (var cc2 = 0; cc2 < nc; cc2++){
+    rcOf[mByRow ? (rr*nc + cc2) : (cc2*nr + rr)] = "[" + (rr+1) + ", " + (cc2+1) + "]";
+  }
+  var items = [];
+  for (var i = 0; i < 12; i++){
+    items.push({ val:i+1, link:i,
+      ann:'<span class="ann"><span class="eq">v['+(i+1)+'] = '+(i+1)+'</span> <span class="arrow">╌►</span> m'+rcOf[i]+'</span>' });
+  }
+  $("mMem").innerHTML = dumpHTML({
+    base:MBASE, kind:"int", cc:"d", header:true,
+    attrib:{ val:0x4600, txt:'屬性節點 @0x4600 &nbsp;<span class="ty">TAG = dim, VALUE = c('+nr+', '+nc+')</span>', link:"attrib" },
+    title:"m · integer[12] ＋ dim", sub:span(MBASE, 12, "int") + " · dim = c(" + nr + ", " + nc + ")",
+    items:items
+  });
+  mLink.repaint();
+}
+function mBridge(k, root){
+  var nr = DIVS[mRowI], nc = 12 / nr;
+  if (k == null){
+    $("mBr").innerHTML = '<span class="cv a">attr(, "dim") = c('+nr+', '+nc+')</span>'+W+'<span class="cv m">'+hex(MBASE)+' 起的 48 bytes</span>' +
+      '<span class="full">左邊那張表是 print() 依照 dim 屬性畫出來的；右邊那 48 bytes 才是真的。點左邊任一格，看它其實住在哪個位址。</span>';
+    return;
+  }
+  var cell = root.querySelector('.mcell[data-link="'+k+'"]');
+  var rc = cell ? cell.getAttribute("data-rc") : null, i = +k;
+  $("mBr").innerHTML =
+    '<span class="cv c">m['+(rc ? rc.replace(",", ", ") : "?")+']</span>'+W+
+    '<span class="cv a">byrow = '+(mByRow?"TRUE":"FALSE")+'</span>'+W+
+    '<span class="cv m">'+hex(MBASE + i*4)+'</span>'+W+
+    '<span class="cv">'+bytesOf(i+1, "int").join(" ")+'</span>' +
+    '<span class="full">' + (mByRow
+      ? "一<strong>列</strong>一列往右填，所以 m[r, c] 對應底層第 (r−1)×"+nc+" + c 個 4-byte 整數。"
+      : "預設 column-major：一<strong>行</strong>一行往下填，所以 m[r, c] 對應底層第 (c−1)×"+nr+" + r 個 4-byte 整數。") + '</span>';
+}
+$("mRow").addEventListener("input", function(){ mRowI = +this.value; mLink.set(null); drawM(); });
+$("mBy").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  mByRow = b.dataset.b === "1";
+  Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+  mLink.set(null); drawM();
+});
+mLink = linker("p6", mBridge, null);
+drawM();
+
+/* ================= 08 FACTOR ================= */
+var FACS = [
+  { code:'blood_type <- factor(\n  c("A", "O", "AB", "A", "O")\n)',
+    raw:["A","O","AB","A","O"], levels:["A","AB","O"], ordered:false, varn:"blood_type",
+    note:'沒有指定 levels 時，R 把唯一值<strong>照字母排序</strong>當作 1、2、3 —— 注意 "AB" 排在 "O" 前面，編碼跟你輸入的順序無關。' },
+  { code:'edu <- factor(edu_raw,\n  levels = c("High School", "Bachelor",\n             "Master", "PhD"),\n  ordered = TRUE)',
+    raw:["Bachelor","Master","High School","PhD","Master"],
+    levels:["High School","Bachelor","Master","PhD"], ordered:true, varn:"edu",
+    note:"自己指定 levels 順序後，編碼就照你的順序走；ordered = TRUE 讓 R 知道這些組別<strong>有大小</strong>，可以用 &lt; 比較。" }
+];
+var fIdx = 0, fLink, FBASE = 0x1000, FLBASE = 0x4800;
+function drawF(){
+  var f = FACS[fIdx];
+  $("fCode").innerHTML = hl(f.code);
+  var line = '<span class="pr">&gt; '+f.varn+'</span>\n[1] ';
+  f.raw.forEach(function(v,i){ line += '<span class="tok" data-link="r'+i+'" tabindex="0" role="button">'+esc(v)+'</span> '; });
+  line += '\n<span class="pr">Levels:</span> ';
+  f.levels.forEach(function(v,i){
+    line += '<span class="tok" data-link="L'+i+'" tabindex="0" role="button">'+esc(v)+'</span>' + (f.ordered && i < f.levels.length-1 ? " &lt; " : " ");
+  });
+  $("fCon").innerHTML = line;
+
+  var mem = dumpHTML({
+    base:FBASE, kind:"int", cc:"d", header:true,
+    attrib:{ val:0x4600, txt:'屬性節點鏈 @0x4600 &nbsp;<span class="ty">levels ╌► NEXT ╌► class</span>', link:"attrib" },
+    title:f.varn+" · 資料本體 integer["+f.raw.length+"]", sub:span(FBASE, f.raw.length, "int") + " · 只有編碼，沒有字",
+    items: f.raw.map(function(v,i){
+      var code = f.levels.indexOf(v) + 1;
+      return { val:code, link:"r"+i,
+        ann:'<span class="ann"><span class="eq">['+(i+1)+'] = '+code+'</span> <span class="ty">印出來是 "'+esc(v)+'"</span></span>' };
+    })
+  });
+  mem += gap() + dumpHTML({
+    base:FLBASE, kind:"ptr", cc:"a",
+    title:'attr(, "levels") · character['+f.levels.length+']', sub:span(FLBASE, f.levels.length, "ptr") + (f.ordered ? " · ordered" : ""),
+    items: f.levels.map(function(v,i){
+      return { val:0x7F00 + i*16, link:"L"+i,
+        ann:'<span class="ann"><span class="eq">編碼 '+(i+1)+'</span> <span class="arrow">╌►</span> "'+esc(v)+'"</span>' };
+    })
+  });
+  $("fMem").innerHTML = mem;
+  fLink.repaint();
+}
+function fBridge(k, root){
+  var f = FACS[fIdx];
+  if (k == null){
+    var asnum = f.raw.map(function(v){ return f.levels.indexOf(v)+1; }).join(" ");
+    $("fBr").innerHTML = '<span class="cv c">as.numeric()</span>'+W+'<span class="cv m">'+asnum+'</span>' +
+      '<span class="full">'+f.note+' 滑過左邊 console 裡的任一個值，看它在右邊存成哪個整數。</span>';
+    return;
+  }
+  var isRow = k.charAt(0) === "r", idx = +k.slice(1);
+  var li = isRow ? f.levels.indexOf(f.raw[idx]) : idx;
+  var keys = isRow ? ["L"+li] : f.raw.map(function(v,i){ return v === f.levels[idx] ? "r"+i : null; }).filter(Boolean);
+  keys.forEach(function(key){
+    var els = root.querySelectorAll('[data-link="'+key+'"]');
+    for (var i = 0; i < els.length; i++) els[i].classList.add("lit");
+  });
+  if (isRow){
+    $("fBr").innerHTML =
+      '<span class="cv c">'+f.varn+'['+(idx+1)+'] = "'+esc(f.raw[idx])+'"</span>'+W+
+      '<span class="cv m">'+hex(FBASE+idx*4)+' : '+bytesOf(li+1, "int").join(" ")+'</span>'+W+
+      '<span class="cv a">levels['+(li+1)+'] @ '+hex(FLBASE+li*8)+'</span>' +
+      '<span class="full">記憶體裡只有一個 4-byte 的整數 '+(li+1)+'。你看到的字是 print() 拿這個整數去另一塊 levels 記憶體查來的。</span>';
+  } else {
+    var cnt = f.raw.filter(function(v){ return v === f.levels[idx]; }).length;
+    $("fBr").innerHTML =
+      '<span class="cv a">levels['+(idx+1)+'] = "'+esc(f.levels[idx])+'"</span>'+W+
+      '<span class="cv m">編碼 '+(idx+1)+'</span>'+W+'<span class="cv">出現 '+cnt+' 次</span>' +
+      '<span class="full">字串「'+esc(f.levels[idx])+'」在整個物件裡只存了<strong>一份</strong>，資料本體那 '+cnt+' 列全都只是 4 bytes 的整數 '+(idx+1)+'。這就是 factor 省空間的地方。</span>';
+  }
+}
+$("fSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  fIdx = +b.dataset.f;
+  Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+  fLink.set(null); drawF();
+});
+fLink = linker("p7", fBridge, null);
+drawF();
+
+/* ================= 09 DATA FRAME ================= */
+var DFBASE = 0x3C00, DFATTR = 0x4600;
+var DFCOLS = [
+  { nm:"id",         addr:0x6100, kind:"ptr",  ty:"character[3]",
+    shown:["P01","P02","P03"],      raw:[0x7F00,0x7F10,0x7F20],
+    ann:['&#8594; "P01"','&#8594; "P02"','&#8594; "P03"'] },
+  { nm:"glucose",    addr:0x6180, kind:"double", ty:"double[3]",
+    shown:["95","128","88"],        raw:[95,128,88],
+    ann:["= 95","= 128","= 88"] },
+  { nm:"blood_type", addr:0x6200, kind:"int",  ty:"factor[3]（底層 integer）",
+    shown:["A","O","AB"],           raw:[1,3,2],
+    ann:['= 1 &nbsp;印出來是 "A"','= 3 &nbsp;印出來是 "O"','= 2 &nbsp;印出來是 "AB"'] },
+  { nm:"fasting",    addr:0x6280, kind:"logical", ty:"logical[3]",
+    shown:["TRUE","TRUE","FALSE"],  raw:[1,1,0],
+    ann:["= TRUE","= TRUE","= FALSE"] }
+];
+var DFATTRS = [
+  { nm:"names",     addr:0x4A00, kind:"ptr", ty:"character[4]",
+    items:["id","glucose","blood_type","fasting"], raw:[0x7A00,0x7A10,0x7A20,0x7A30], ptr:true },
+  { nm:"row.names", addr:0x4B00, kind:"int", ty:"integer[3]",
+    items:["1","2","3"], raw:[1,2,3], ptr:false },
+  { nm:"class",     addr:0x4C00, kind:"ptr", ty:"character[1]",
+    items:["data.frame"], raw:[0x7B00], ptr:true }
+];
+(function(){
+  $("dfCode").innerHTML = codeHTML([
+    ["patients <- data.frame(\n  ", null],
+    ['id         = c("P01", "P02", "P03")', "id"], [",\n  ", null],
+    ["glucose    = c(95, 128, 88)", "glucose"], [",\n  ", null],
+    ['blood_type = factor(c("A", "O", "AB"))', "blood_type"], [",\n  ", null],
+    ["fasting    = c(TRUE, TRUE, FALSE)", "fasting"], ["\n)", null]
+  ]);
+  var t = '<table><thead><tr><th style="cursor:default"></th>';
+  DFCOLS.forEach(function(c){ t += '<th data-link="'+c.nm+'" tabindex="0" role="button">'+c.nm+'</th>'; });
+  t += "</tr></thead><tbody>";
+  for (var r = 0; r < 3; r++){
+    t += '<tr><td style="color:var(--faint); font-size:11px; cursor:default">'+(r+1)+'</td>';
+    DFCOLS.forEach(function(c){ t += '<td data-link="'+c.nm+'">'+esc(c.shown[r])+'</td>'; });
+    t += "</tr>";
+  }
+  $("dfTbl").innerHTML = t + "</tbody></table>";
+
+  /* ① 指標陣列 */
+  var mem = dumpHTML({
+    base:DFBASE, kind:"ptr", cc:"p", header:true,
+    attrib:{ val:DFATTR, txt:'屬性節點鏈 @'+hex(DFATTR), link:"attrib" },
+    title:"① patients 本體 · 就是一個 list[4]", sub:span(DFBASE, 4, "ptr") + " · 只有四個位址，沒有任何資料",
+    items: DFCOLS.map(function(c,i){
+      return { val:c.addr, link:c.nm,
+        ann:'<span class="ann"><span class="nmlab">'+c.nm+'</span> <span class="arrow">╌►</span> '+hex(c.addr)+' <span class="ty">'+c.ty+'</span></span>' };
+    })
+  });
+
+  /* ② 四塊欄位 */
+  mem += '<div class="memgap">⋮&nbsp;&nbsp;以下四塊是四條各自獨立的 vector，位址互不相鄰&nbsp;&nbsp;⋮</div>';
+  DFCOLS.forEach(function(c,i){
+    mem += dumpHTML({
+      base:c.addr, kind:c.kind, cc:(c.kind === "ptr" ? "p" : "d"),
+      title:"② " + c.nm + " @" + hex(c.addr), sub:c.ty + " · " + span(c.addr, 3, c.kind),
+      items: c.raw.map(function(v,j){
+        return { val:v, link:c.nm,
+          ann:'<span class="ann"><span class="eq">['+(j+1)+'] '+c.ann[j]+'</span></span>' };
+      })
+    });
+  });
+
+  /* ③ 屬性 */
+  mem += '<div class="memgap">⋮&nbsp;&nbsp;以下是掛在 attrib 上的三個屬性&nbsp;&nbsp;⋮</div>';
+  mem += dumpHTML({
+    base:DFATTR, kind:"ptr", cc:"a",
+    title:"③ 屬性節點鏈 @" + hex(DFATTR), sub:"三個節點，這裡只畫每個節點的 VALUE 欄位",
+    items: DFATTRS.map(function(a){
+      return { val:a.addr, link:"attrib",
+        ann:'<span class="ann"><span class="nmlab">TAG = '+a.nm+'</span> <span class="arrow">╌►</span> '+hex(a.addr)+' <span class="ty">'+a.ty+'</span></span>' };
+    })
+  });
+  DFATTRS.forEach(function(a){
+    mem += dumpHTML({
+      base:a.addr, kind:a.kind, cc:"a",
+      title:'③ attr(, "'+a.nm+'") @'+hex(a.addr), sub:a.ty + " · " + span(a.addr, a.items.length, a.kind),
+      items: a.items.map(function(v,j){
+        return { val:a.raw[j], link:"attrib",
+          ann:'<span class="ann"><span class="eq">['+(j+1)+']</span> '+(a.ptr ? '<span class="arrow">╌►</span> "'+esc(v)+'"' : '= '+esc(v))+'</span>' };
+      })
+    });
+  });
+  $("dfMem").innerHTML = mem;
+
+  linker("p8", function(k){
+    if (k == null){
+      $("dfBr").innerHTML =
+        '<span class="cv c">一列 = 一位病人</span><span style="color:var(--faint)">（print 畫出來的）</span>' + W +
+        '<span class="cv m">一欄 = 一塊獨立記憶體</span><span style="color:var(--faint)">（實際存在的）</span>' +
+        '<span class="full">右邊由上到下：① 四個位址 ② 四塊欄位資料 ③ 三個屬性。橫著讀一列，其實是跑到四個不相鄰的位址各取第 i 格 —— 記憶體裡<strong>沒有任何東西叫做「第 1 列」</strong>。點左邊任一欄看看。</span>';
+      return;
+    }
+    if (k === "attrib"){
+      $("dfBr").innerHTML =
+        '<span class="cv m">header 的 attrib</span>'+W+'<span class="cv a">'+hex(DFATTR)+'</span>'+W+
+        '<span class="cv a">names</span><span class="cv a">row.names</span><span class="cv a">class</span>' +
+        '<span class="full">三個屬性就是 data.frame 跟普通 list 唯一的差別：<code class="inline">names</code> 給欄名、<code class="inline">row.names</code> 給列名、<code class="inline">class = "data.frame"</code> 讓 print() 知道要畫成表格。把 class 拔掉 <code class="inline">unclass(patients)</code>，它立刻現出原形變回一個 list。</span>';
+      return;
+    }
+    var c = DFCOLS.filter(function(x){ return x.nm === k; })[0];
+    var idx = DFCOLS.indexOf(c), isF = c.ty.indexOf("factor") === 0;
+    $("dfBr").innerHTML =
+      '<span class="cv c">patients$'+c.nm+'</span>'+W+'<span class="cv m">'+hex(DFBASE+idx*8)+'</span>'+W+
+      '<span class="cv">'+bytesOf(c.addr, "ptr").join(" ")+'</span>'+W+
+      '<span class="cv">= '+hex(c.addr)+'</span>'+W+'<span class="cv">'+c.ty+'</span>' +
+      '<span class="full">' + (isF
+        ? '注意 ② 那塊：表格印的是 A / O / AB，'+hex(c.addr)+' 存的卻是整數 1 / 3 / 2 —— 因為這一欄是 factor，字串放在它自己的 levels 屬性裡（見上一節）。'
+        : '這一欄住在 '+hex(c.addr)+'，跟其他三欄完全不相鄰。df["'+c.nm+'"] 拿到的是含這個指標的小 data.frame，df$'+c.nm+' 才是 '+hex(c.addr)+' 那塊記憶體本身。') + '</span>';
+  }, null).repaint();
+})();
+
+/* ================= 11 QUIZ ================= */
+var QS = [
+  { q:'<code>c(TRUE, "Hello", 3)</code> 的 <code>typeof()</code> 是？',
+    o:['"logical"','"double"','"character"',"報錯，型別不合"], a:2,
+    e:'字串是階梯的終點站。只要有一個 character，整塊記憶體都會被換成 character 規格 —— 每格變成 8-byte 指標，TRUE 變成指向 "TRUE" 的位址。R 不會報錯也不會警告。' },
+  { q:'<code>x &lt;- c(1,2,3)</code>；<code>y &lt;- x</code>；<code>y[1] &lt;- 99</code>。此時 <code>x</code> 是什麼？',
+    o:["99 2 3，因為 y 和 x 指向同一塊記憶體","1 2 3，R 在修改前先複製了一份給 y","1 2 3，因為 y &lt;- x 當下就複製了一份","報錯，x 是唯讀的"], a:1,
+    e:"y &lt;- x 當下不複製，只是名字表多一列指向同一個位址。等到要改 y 時，R 發現有兩個名字指著那塊記憶體，才複製一份到新位址給 y 改 —— 這就是 copy-on-modify。tracemem(y) 會印出 [0x... -> 0x...] 的搬家紀錄。" },
+  { q:'<code>object.size(c(10, 20, 30))</code> 大約是多少？（3 個 double = 24 bytes 的資料）',
+    o:["24 bytes，就是資料本身","80 bytes，因為還有 48 bytes 的 header，而且資料會進位到 32 bytes",
+       "32 bytes，資料進位到 4 格","48 bytes，header 就是全部"], a:1,
+    e:"物件的型別、長度、attrib 指標、GC 資訊都要佔記憶體 —— 在 64 位元的 R 上這段 header 固定 48 bytes（object.size(numeric(0)) 就是 48）。加上資料：3 個 double 需要 3 格，但 R 的小向量尺寸級距是 1、2、4、6、8、16 格，只好進位到 4 格 = 32 bytes。48 + 32 = 80。" },
+  { q:'<code>x &lt;- c(10,20,30,40)</code> 是 double（每格 8 bytes），起點在 0x1000。<code>x[3]</code> 在哪個位址？',
+    o:["0x1003","0x1008","0x1010","0x1018"], a:2,
+    e:"起點 + (3−1) × 8 = 0x1000 + 16 = 0x1010。索引從 1 開始，所以要減 1 才是位移量。" },
+  { q:'<code>v &lt;- c(apple=1, banana=2, peach=3)</code>。<code>v["banana"]</code> 和 <code>v[2]</code> 都得到 2，就電腦而言差別在哪？',
+    o:["完全一樣，只是寫法不同","v[\"banana\"] 要先到 names 那塊記憶體逐格比對字串，v[2] 直接算位址",
+       "v[\"banana\"] 比較快，因為 R 對名字建了 hash table","v[2] 會先複製整個向量再取值"], a:1,
+    e:"名字存在另一塊記憶體（names 屬性，一條 character vector）。用名字索引是線性搜尋，先找出它是第幾格，才回到資料本體算位址；用位置索引則是一次乘法。R 的 named vector 沒有 hash —— 那是 Python dict 和 R 的 environment 才有的。" },
+  { q:'<code>p &lt;- list(a = 1, b = "x")</code>，請問 <code>class(p[1])</code> 是？',
+    o:['"numeric"','"list"','"integer"','"character"'], a:1,
+    e:"[ ] 只是把那個位址複製到一塊新的指標記憶體，外面的 list 還在 —— 所以回傳的仍是 list。要拿到裡面的 1，得用 p[[1]] 或 p$a。" },
+  { q:'<code>endgame[[4]]</code> 是 <code>c("Action","Adventure","Sci-Fi")</code>。那 <code>endgame[[4]][2]</code> 是？',
+    o:['"Action"','"Adventure"',"一個長度 1 的 list","NULL"], a:1,
+    e:"[[4]] 先跳到那條 character 向量所在的位址，[2] 再對那塊記憶體取第二格。第二段已經在 vector 的世界裡了，所以拿到的是 \"Adventure\"。" },
+  { q:'<code>m &lt;- matrix(1:6, nrow = 2)</code>，<code>m[2, 2]</code> 是多少？',
+    o:["2","3","4","5"], a:2,
+    e:"預設 byrow = FALSE，一行一行往下填：第 1 行放 1、2，第 2 行放 3、4，第 3 行放 5、6。所以第 2 列第 2 行是 4。" },
+  { q:"下列哪一句最準確描述 data.frame？",
+    o:["一個可以混型別的二維矩陣","等長 vector 組成的 named list","一堆 list 疊成的表格","character matrix 加上 class 屬性"], a:1,
+    e:'記憶體裡只有一排指標，每個指標指向一塊獨立的等長 vector（所以欄內必須同型別、欄間可以不同型別），再靠 class = "data.frame" 讓 print() 畫成表格。' },
+  { q:'<code>f &lt;- factor(c("B","A","C"))</code>，<code>as.numeric(f)</code> 得到？',
+    o:["1 2 3","2 1 3","3 1 2","NA NA NA"], a:1,
+    e:"沒指定 levels 時 R 照字母排序建對照表：A=1、B=2、C=3。原始資料是 B、A、C，所以編碼是 2 1 3。這是 factor 最容易出錯的地方。" },
+  { q:'<code>c(1, 2, 3, 4) + c(10, 20)</code> 的結果是？',
+    o:["11 22（後面捨去）","11 22 3 4","11 22 13 24","報錯，長度不合"], a:2,
+    e:"recycling（回收規則）：短的向量被重複使用成 10,20,10,20。因為長度剛好成整數倍，R 連警告都不會給 —— 這是實務上很常見的 bug 來源。" }
+];
+(function(){
+  var done = 0, right = 0, h = "";
+  QS.forEach(function(q,i){
+    h += '<div class="q"><div class="qh"><span class="qn">Q'+(i+1)+'</span><span class="qt">'+q.q+'</span></div><div class="opts" data-q="'+i+'">';
+    q.o.forEach(function(o,j){ h += '<button data-j="'+j+'">'+String.fromCharCode(65+j)+'. &nbsp;'+esc(o)+'</button>'; });
+    h += '</div><div class="exp" id="exp'+i+'">'+q.e+'</div></div>';
+  });
+  $("quiz").innerHTML = h;
+  $("quiz").addEventListener("click", function(e){
+    var b = e.target.closest(".opts button"); if (!b || b.disabled) return;
+    var box = b.parentNode, qi = +box.dataset.q, q = QS[qi], pick = +b.dataset.j;
+    Array.prototype.forEach.call(box.children, function(c,j){
+      c.disabled = true;
+      if (j === q.a) c.classList.add("good"); else if (j === pick) c.classList.add("bad");
+    });
+    $("exp"+qi).classList.add("show");
+    done++; if (pick === q.a) right++;
+    $("score").innerHTML = (done === QS.length ? "完成 · " : "已作答 "+done+" 題 · ") + "<b>"+right+"</b> / "+QS.length +
+      (done === QS.length ? (right === QS.length ? " &nbsp;全對，你已經把記憶體的圖畫進腦子裡了。" : " &nbsp;錯的那幾題，回去把對應那一節的位址再滑一次。") : "");
+  });
+})();
+
+})();
+</script>
+
+</body>
+</html>
