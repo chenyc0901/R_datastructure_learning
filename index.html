@@ -58,6 +58,12 @@ img{max-width:100%}
 
   /* --- focus ring: Apple's keyboardFocusIndicatorColor --- */
   --onRole:#FFFFFF;  /* light: the role fills are dark, so the label goes white */
+  /* --- page texture + illustration surfaces. Wash opacities are capped so the
+         worst case (both washes plus a grid dot under one glyph) still leaves
+         every colour that sits on the page at 4.58:1 or better. --- */
+  --grid:rgba(60,60,67,.028);
+  --washA:rgba(255,149,0,.045); --washB:rgba(0,122,255,.04);
+  --artHi:#FFFFFF; --artLo:#F4F4F8; --artCab:#E8E8EF; --artShadow:rgba(0,0,0,.16);
   --focus:#007AFF;
 
   /* --- elevation: hairline + soft ambient, the way Apple stacks cards --- */
@@ -107,6 +113,9 @@ img{max-width:100%}
     --okBg:rgba(48,209,88,.18);
     --warnBg:rgba(255,69,58,.18);
     --onRole:#000000;  /* dark: the role fills are light, so the label goes black */
+    --grid:rgba(255,255,255,.045);
+    --washA:rgba(255,159,10,.07); --washB:rgba(10,132,255,.09);
+    --artHi:#2C2C2E; --artLo:#232325; --artCab:#161618; --artShadow:rgba(0,0,0,.6);
     --focus:#0A84FF;
     --shadow:0 0 0 .5px rgba(255,255,255,.06), 0 8px 24px -8px rgba(0,0,0,.6);
     --shadowPill:0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
@@ -129,6 +138,9 @@ img{max-width:100%}
   --okBg:rgba(48,209,88,.18);
   --warnBg:rgba(255,69,58,.18);
   --onRole:#000000;  /* dark: the role fills are light, so the label goes black */
+  --grid:rgba(255,255,255,.045);
+  --washA:rgba(255,159,10,.07); --washB:rgba(10,132,255,.09);
+  --artHi:#2C2C2E; --artLo:#232325; --artCab:#161618; --artShadow:rgba(0,0,0,.6);
   --focus:#0A84FF;
   --shadow:0 0 0 .5px rgba(255,255,255,.06), 0 8px 24px -8px rgba(0,0,0,.6);
   --shadowPill:0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
@@ -138,6 +150,12 @@ img{max-width:100%}
 *{box-sizing:border-box}
 body{
   background-color:var(--bg); color:var(--text);
+  background-image:
+    radial-gradient(58rem 26rem at 12% -6%, var(--washA), transparent 70%),
+    radial-gradient(52rem 24rem at 88% -2%, var(--washB), transparent 70%),
+    radial-gradient(circle, var(--grid) 1px, transparent 1.4px);
+  background-repeat:no-repeat, no-repeat, repeat;
+  background-size:100% 720px, 100% 720px, 26px 26px;
   font-family:var(--sans); font-size:17px; line-height:1.7;   /* Body 17pt */
   margin:0; padding-block:0 80px; padding-inline:20px;
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
@@ -441,6 +459,58 @@ th.lit,td.lit{background-color:var(--dataBg); color:var(--text)}
 footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px solid var(--lineSoft); font-size:14px;
   color:var(--faint); display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between}
 
+/* ============================ illustrations ============================
+   Inline SVG: scales, follows the appearance, costs no extra request, and
+   carries a real aria-label. Every colour comes from the same three role
+   tokens as the rest of the page, so an illustration never invents a meaning. */
+figure.art{margin:30px 0 26px; max-width:var(--measureWide); overflow-x:auto}
+figure.art .art-svg{display:block; width:100%; min-width:640px; height:auto}
+figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)}
+.art-svg text{fill:var(--dim)}
+.art-svg .mono{font-family:var(--mono); font-size:13px}
+.art-svg .lbl{font-size:12.5px; font-weight:600; fill:var(--faint)}
+.art-svg .hd{font-size:13.5px; font-weight:700}
+.art-svg .hd.bad{fill:var(--warn)}  .art-svg .hd.good{fill:var(--ok)}
+.art-svg .hd.dat{fill:var(--data)}  .art-svg .hd.ptr{fill:var(--ptr)}
+.art-svg .addr{fill:var(--faint); font-size:12.5px}
+.art-svg .ann{fill:var(--dim); font-size:12.5px}
+.art-svg .code{font-size:17px; fill:var(--text)}
+.art-svg .num{fill:var(--data); font-weight:700}
+.art-svg .nm{font-size:19px; font-weight:700; fill:var(--text)}
+.art-svg .cap{font-size:13px; fill:var(--faint)}
+.art-svg .cap-c{font-family:var(--mono); font-size:12.5px; fill:var(--dim)}
+.art-svg .fill-d{fill:var(--dataBg)}
+.art-svg .by-d{fill:var(--data); font-size:12px}
+.art-svg .slot{fill:var(--artCab); stroke:var(--line)}
+.art-svg .gloss{stroke:var(--artHi); stroke-opacity:.9; stroke-width:1.5}
+.art-svg .handle{fill:var(--line)}
+.art-svg .wire{fill:none; stroke:var(--ptrFill); stroke-width:2.2; stroke-linecap:round}
+.art-svg .divider{stroke:var(--line); stroke-dasharray:3 6}
+.art-svg .cell-d{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.45}
+.art-svg .cell-p{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.45}
+.art-svg .cell-hi-d{fill:var(--dataBg); stroke:var(--text); stroke-width:2}
+.art-svg .cell-hi-p{fill:var(--ptrBg); stroke:var(--text); stroke-width:2}
+.art-svg .cellv{fill:var(--text); font-size:14px}
+.art-svg .ruler{stroke:var(--line); stroke-width:1.2}
+.art-svg .tick{fill:var(--faint); font-size:11.5px}
+.art-svg .tickhi{fill:var(--text); font-size:11.5px; font-weight:700}
+.art-svg .brk-d{fill:none; stroke:var(--data); stroke-width:1.4}
+.art-svg .brk-p{fill:none; stroke:var(--ptr); stroke-width:1.4}
+.art-svg .stride-d{fill:var(--data); font-size:12.5px; font-weight:700}
+.art-svg .stride-p{fill:var(--ptr); font-size:12.5px; font-weight:700}
+.art-svg .form{fill:var(--dim); font-size:13.5px}
+.art-svg .formhi{fill:var(--data); font-size:13.5px; font-weight:700}
+
+/* One orchestrated entrance, on the hero only; every other illustration stays
+   still (motion.md > Best practices: purposeful, brief, never the only carrier). */
+@keyframes artIn{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+@keyframes artDraw{from{stroke-dashoffset:70} to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion: no-preference){
+  .hero-art .fade,.hero-art .dw,.hero-art .bt{
+    animation:artIn .52s var(--ease) backwards; transform-box:fill-box; transform-origin:center}
+  .hero-art .wire{stroke-dasharray:70; animation:artDraw .6s var(--ease) .28s backwards}
+}
+
 ::selection{background-color:var(--ptrBg); color:var(--text)}
 @media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
 @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
@@ -460,6 +530,80 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
   <div class="kicker">大數據分析與實踐 · Lecture 2–3 補充 · 中國醫藥大學 醫技系</div>
   <h1>記憶體裡的 R 物件</h1>
   <p class="lede">R 的 vector、list、matrix、factor、data.frame 看起來像五種毫不相干的東西。從「電腦怎麼擺放 bytes」看下去，它們其實只是<strong>同一件事的五種包裝</strong>。</p>
+
+  <figure class="art">
+  <svg class="art-svg hero-art" viewBox="0 0 920 300" role="img"
+       aria-label="左邊是一行 R 程式碼 x 賦值為 c(10, 20, 30)，右邊是一櫃編了號的抽屜，每一格抽屜放著那個數字真正的 8 個 bytes，最上面那格被拉開露出裡面的內容">
+    <defs>
+      <linearGradient id="h-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <linearGradient id="h-cab" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artLo)"/><stop offset="1" stop-color="var(--artCab)"/>
+      </linearGradient>
+      <filter id="h-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="h-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/>
+      </marker>
+    </defs>
+    <g class="fade" style="animation-delay:.05s">
+      <rect x="8" y="111" width="268" height="96" rx="15" fill="url(#h-dw)" stroke="var(--line)" filter="url(#h-sh)"/>
+      <text x="30" y="141" class="lbl">程式端 · 你寫的</text>
+      <text x="30" y="177" class="mono code">x &lt;- c(<tspan class="num">10</tspan>, <tspan class="num">20</tspan>, <tspan class="num">30</tspan>)</text>
+    </g>
+    <path class="wire" d="M286 159 L 336 159" marker-end="url(#h-ar)"/>
+    <text x="348" y="30" class="lbl">電腦端 · RAM 裡編了號的抽屜</text>
+    <rect x="348" y="40" width="546" height="238" rx="18" fill="url(#h-cab)" stroke="var(--line)"/>
+      <rect x="362" y="54" width="518" height="62" rx="13" class="slot"/>
+    <g class="dw" style="animation-delay:0.15s">
+        <rect x="380" y="48" width="518" height="62" rx="13" fill="url(#h-dw)" stroke="var(--line)" stroke-width="1" filter="url(#h-sh)"/>
+        <line x1="393" y1="49.5" x2="885" y2="49.5" class="gloss"/>
+        <text x="396" y="83" class="mono addr">0x1000</text>
+        <g class="tile bt" style="animation-delay:0.45s"><rect x="456" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="472" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.49s"><rect x="493" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="509" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.54s"><rect x="530" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="546" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.58s"><rect x="567" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="583" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.63s"><rect x="604" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="620" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.68s"><rect x="641" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="657" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.72s"><rect x="678" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="694" y="83" text-anchor="middle" class="mono by-d">24</text></g>
+      <g class="tile bt" style="animation-delay:0.77s"><rect x="715" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="731" y="83" text-anchor="middle" class="mono by-d">40</text></g>
+        <text x="760" y="83" class="mono ann">x[1] = 10</text>
+        <rect x="872" y="68" width="9" height="22" rx="4.5" class="handle"/>
+      </g>
+    <g class="dw" style="animation-delay:0.25s">
+        <rect x="362" y="128" width="518" height="62" rx="13" fill="url(#h-dw)" stroke="var(--line)" stroke-width="1"/>
+        <line x1="375" y1="129.5" x2="867" y2="129.5" class="gloss"/>
+        <text x="378" y="163" class="mono addr">0x1008</text>
+        <g class="tile"><rect x="438" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="454" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="475" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="491" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="512" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="528" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="549" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="565" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="586" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="602" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="623" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="639" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="660" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="676" y="163" text-anchor="middle" class="mono by-d">34</text></g>
+      <g class="tile"><rect x="697" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="713" y="163" text-anchor="middle" class="mono by-d">40</text></g>
+        <text x="742" y="163" class="mono ann">x[2] = 20</text>
+        <rect x="854" y="148" width="9" height="22" rx="4.5" class="handle"/>
+      </g>
+    <g class="dw" style="animation-delay:0.35s">
+        <rect x="362" y="202" width="518" height="62" rx="13" fill="url(#h-dw)" stroke="var(--line)" stroke-width="1"/>
+        <line x1="375" y1="203.5" x2="867" y2="203.5" class="gloss"/>
+        <text x="378" y="237" class="mono addr">0x1010</text>
+        <g class="tile"><rect x="438" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="454" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="475" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="491" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="512" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="528" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="549" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="565" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="586" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="602" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="623" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="639" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="660" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="676" y="237" text-anchor="middle" class="mono by-d">3E</text></g>
+      <g class="tile"><rect x="697" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="713" y="237" text-anchor="middle" class="mono by-d">40</text></g>
+        <text x="742" y="237" class="mono ann">x[3] = 30</text>
+        <rect x="854" y="222" width="9" height="22" rx="4.5" class="handle"/>
+      </g>
+  </svg>
+  </figure>
 
   <div class="howto">
     <div class="h">
@@ -563,6 +707,49 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
   </ul>
   <p>所以<strong>名字不在物件裡，物件也不知道自己叫什麼</strong>。一個物件可以同時有好幾個名字，也可以一個名字都沒有。<code class="inline">&lt;-</code> 做的事情是「改寫名牌指向哪裡」，不是「把東西塞進一個固定的箱子」。</p>
 
+  <figure class="art">
+  <svg class="art-svg" viewBox="0 0 920 248" role="img"
+       aria-label="左邊是常見但錯誤的想像：變數 x 是一個箱子，10、20、30 裝在箱子裡。右邊是實際情形：x 和 y 是兩張名牌，都指向位址 0x1000 的同一塊記憶體">
+    <defs>
+      <linearGradient id="b-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <linearGradient id="b-cab" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artLo)"/><stop offset="1" stop-color="var(--artCab)"/>
+      </linearGradient>
+      <filter id="b-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="b-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/>
+      </marker>
+    </defs>
+    <text x="0" y="18" class="hd bad">✕ 常見的想像：變數是箱子</text>
+    <rect x="34" y="54" width="220" height="24" rx="8" fill="url(#b-cab)" stroke="var(--line)"/>
+    <rect x="44" y="72" width="200" height="104" rx="13" fill="url(#b-dw)" stroke="var(--line)" filter="url(#b-sh)"/>
+    <text x="62" y="100" class="mono nm">x</text>
+    <rect x="62" y="118" width="46" height="34" rx="9" class="fill-d"/><text x="85" y="140" text-anchor="middle" class="mono by-d">10</text> <rect x="114" y="118" width="46" height="34" rx="9" class="fill-d"/><text x="137" y="140" text-anchor="middle" class="mono by-d">20</text> <rect x="166" y="118" width="46" height="34" rx="9" class="fill-d"/><text x="189" y="140" text-anchor="middle" class="mono by-d">30</text>
+    <text x="36" y="205" class="cap">值就裝在名字裡面。照這個想法，</text>
+    <text x="36" y="226" class="cap">「複製一份給 y」就得把整箱東西再搬一次。</text>
+  
+    <line x1="330" y1="8" x2="330" y2="238" class="divider"/>
+  
+    <text x="380" y="18" class="hd good">✓ 實際上：變數是貼在位址上的名牌</text>
+    <rect x="390" y="62" width="68" height="36" rx="10" fill="url(#b-dw)" stroke="var(--ptrFill)" stroke-width="1.5"/>
+    <text x="424" y="86" text-anchor="middle" class="mono nm">x</text>
+    <rect x="390" y="126" width="68" height="36" rx="10" fill="url(#b-dw)" stroke="var(--ptrFill)" stroke-width="1.5"/>
+    <text x="424" y="150" text-anchor="middle" class="mono nm">y</text>
+    <path class="wire" d="M462 80 C 530 80, 560 96, 630 102" marker-end="url(#b-ar)"/>
+    <path class="wire" d="M462 144 C 530 144, 560 122, 630 112" marker-end="url(#b-ar)"/>
+    <rect x="640" y="56" width="236" height="104" rx="13" fill="url(#b-dw)" stroke="var(--line)" filter="url(#b-sh)"/>
+    <text x="660" y="84" class="mono addr">0x1000</text>
+    <rect x="660" y="100" width="46" height="34" rx="9" class="fill-d"/><text x="683" y="122" text-anchor="middle" class="mono by-d">10</text> <rect x="712" y="100" width="46" height="34" rx="9" class="fill-d"/><text x="735" y="122" text-anchor="middle" class="mono by-d">20</text> <rect x="764" y="100" width="46" height="34" rx="9" class="fill-d"/><text x="787" y="122" text-anchor="middle" class="mono by-d">30</text>
+    <text x="380" y="205" class="cap">名字住在環境表裡，只記著一個位址。</text>
+    <text x="380" y="226" class="cap">所以 <tspan class="mono cap-c">y &lt;- x</tspan> 是免費的 —— 多寫一張名牌而已，資料一格都沒動。</text>
+  </svg>
+  <figcaption>箱子模型解釋不了「為什麼 <code class="inline">y &lt;- x</code> 幾乎不花時間」；名牌模型可以 —— 也正是 copy-on-modify 的起點。</figcaption>
+  </figure>
+
   <div class="panel" id="pAS">
     <div class="panel-hd">
       <span class="t">Assignment Walkthrough</span>
@@ -611,6 +798,78 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
   <h2>Vector：一排同規格的抽屜</h2>
   <p>因為每一格<strong>大小都一樣</strong>，CPU 要找第 <em>i</em> 個元素不需要一格一格數，直接算就好：<span style="font-family:var(--mono); color:var(--data)">位址 = 起點 + (i − 1) × 每格 bytes</span></p>
   <p>切換型別時注意左邊位址欄的<strong>跨距</strong>：double 每次跳 8，integer 與 logical 每次只跳 4。</p>
+
+  <figure class="art">
+  <svg class="art-svg" viewBox="0 0 920 386" role="img"
+       aria-label="上排是 double，每格佔 8 bytes，位址每次跳 8；下排是 integer，每格只佔 4 bytes，格子畫得比較窄，位址每次只跳 4。右邊是位址公式：起點加上索引減一再乘以每格 bytes">
+    <defs>
+      <linearGradient id="s-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <linearGradient id="s-cab" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artLo)"/><stop offset="1" stop-color="var(--artCab)"/>
+      </linearGradient>
+      <filter id="s-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="s-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/>
+      </marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">double · 每格 8 bytes</text>
+    <rect x="0" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="56" y="71" text-anchor="middle" class="mono cellv">10</text>
+      <rect x="120" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="176" y="71" text-anchor="middle" class="mono cellv">20</text>
+      <rect x="240" y="40" width="112" height="50" rx="10" class="cell-hi-d"/>
+      <text x="296" y="71" text-anchor="middle" class="mono cellv">30</text>
+      <rect x="360" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="416" y="71" text-anchor="middle" class="mono cellv">40</text>
+      <rect x="480" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="536" y="71" text-anchor="middle" class="mono cellv">50</text>
+      <line x1="0" y1="106" x2="592" y2="106" class="ruler"/>
+      <line x1="0" y1="101" x2="0" y2="111" class="ruler"/>
+      <text x="0" y="128" text-anchor="start" class="mono tick">0x1000</text>
+      <line x1="120" y1="101" x2="120" y2="111" class="ruler"/>
+      <text x="120" y="128" text-anchor="middle" class="mono tick">0x1008</text>
+      <line x1="240" y1="101" x2="240" y2="111" class="ruler"/>
+      <text x="240" y="128" text-anchor="middle" class="mono tickhi">0x1010</text>
+      <line x1="360" y1="101" x2="360" y2="111" class="ruler"/>
+      <text x="360" y="128" text-anchor="middle" class="mono tick">0x1018</text>
+      <line x1="480" y1="101" x2="480" y2="111" class="ruler"/>
+      <text x="480" y="128" text-anchor="middle" class="mono tick">0x1020</text>
+      <path class="brk-d" d="M2 142 L2 149 L118 149 L118 142"/>
+      <text x="60" y="168" text-anchor="middle" class="mono stride-d">+8</text>
+    <text x="0" y="222" class="hd ptr">integer · 每格 4 bytes</text>
+    <rect x="0" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="26" y="273" text-anchor="middle" class="mono cellv">10</text>
+      <rect x="60" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="86" y="273" text-anchor="middle" class="mono cellv">20</text>
+      <rect x="120" y="242" width="52" height="50" rx="10" class="cell-hi-p"/>
+      <text x="146" y="273" text-anchor="middle" class="mono cellv">30</text>
+      <rect x="180" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="206" y="273" text-anchor="middle" class="mono cellv">40</text>
+      <rect x="240" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="266" y="273" text-anchor="middle" class="mono cellv">50</text>
+      <line x1="0" y1="308" x2="292" y2="308" class="ruler"/>
+      <line x1="0" y1="303" x2="0" y2="313" class="ruler"/>
+      <text x="0" y="330" text-anchor="start" class="mono tick">0x1000</text>
+      <line x1="60" y1="303" x2="60" y2="313" class="ruler"/>
+      <line x1="120" y1="303" x2="120" y2="313" class="ruler"/>
+      <text x="120" y="330" text-anchor="middle" class="mono tickhi">0x1008</text>
+      <line x1="180" y1="303" x2="180" y2="313" class="ruler"/>
+      <line x1="240" y1="303" x2="240" y2="313" class="ruler"/>
+      <text x="240" y="330" text-anchor="middle" class="mono tick">0x1010</text>
+      <path class="brk-p" d="M2 344 L2 351 L58 351 L58 344"/>
+      <text x="30" y="370" text-anchor="middle" class="mono stride-p">+4</text>
+    <rect x="636" y="40" width="276" height="136" rx="15" fill="url(#s-dw)" stroke="var(--line)" filter="url(#s-sh)"/>
+    <text x="658" y="70" class="lbl">CPU 不用一格一格數，直接算</text>
+    <text x="658" y="102" class="mono form">位址 = 起點 + (i−1) × 每格</text>
+    <text x="658" y="136" class="mono formhi">x[3] = 0x1000 + 2×8</text>
+    <text x="658" y="158" class="mono formhi">     = 0x1010</text>
+  </svg>
+  <figcaption>integer 的格子畫得比較窄不是美術選擇 —— 它真的只佔一半記憶體，所以位址每次只跳 4。</figcaption>
+  </figure>
 
   <div class="panel" id="p2">
     <div class="panel-hd">
