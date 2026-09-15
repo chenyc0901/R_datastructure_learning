@@ -486,6 +486,15 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
 .art-svg .handle{fill:var(--line)}
 .art-svg .wire{fill:none; stroke:var(--ptrFill); stroke-width:2.2; stroke-linecap:round}
 .art-svg .divider{stroke:var(--line); stroke-dasharray:3 6}
+.art-svg .celld{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.5}
+.art-svg .cellp{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.5}
+.art-svg .cella{fill:var(--attrBg); stroke:var(--attr); stroke-opacity:.5}
+.art-svg .cv-d{fill:var(--text); font-size:13.5px}
+.art-svg .cv-p{fill:var(--ptr); font-size:15px}
+.art-svg .cv-a{fill:var(--attr); font-size:13px; font-weight:600}
+.art-svg .sub{fill:var(--faint); font-size:12px}
+.art-svg .hd.att{fill:var(--attr)}
+.art-svg .wireA{fill:none; stroke:var(--attrFill); stroke-width:2.2; stroke-linecap:round}
 .art-svg .cell-d{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.45}
 .art-svg .cell-p{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.45}
 .art-svg .cell-hi-d{fill:var(--dataBg); stroke:var(--text); stroke-width:2}
@@ -532,7 +541,7 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <p class="lede">R 的 vector、list、matrix、factor、data.frame 看起來像五種毫不相干的東西。從「電腦怎麼擺放 bytes」看下去，它們其實只是<strong>同一件事的五種包裝</strong>。</p>
 
   <figure class="art">
-  <svg class="art-svg hero-art" viewBox="0 0 920 300" role="img"
+  <svg class="art-svg hero-art" viewBox="-6 0 932 300" role="img"
        aria-label="左邊是一行 R 程式碼 x 賦值為 c(10, 20, 30)，右邊是一櫃編了號的抽屜，每一格抽屜放著那個數字真正的 8 個 bytes，最上面那格被拉開露出裡面的內容">
     <defs>
       <linearGradient id="h-dw" x1="0" y1="0" x2="0" y2="1">
@@ -708,7 +717,7 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <p>所以<strong>名字不在物件裡，物件也不知道自己叫什麼</strong>。一個物件可以同時有好幾個名字，也可以一個名字都沒有。<code class="inline">&lt;-</code> 做的事情是「改寫名牌指向哪裡」，不是「把東西塞進一個固定的箱子」。</p>
 
   <figure class="art">
-  <svg class="art-svg" viewBox="0 0 920 248" role="img"
+  <svg class="art-svg" viewBox="-6 0 932 248" role="img"
        aria-label="左邊是常見但錯誤的想像：變數 x 是一個箱子，10、20、30 裝在箱子裡。右邊是實際情形：x 和 y 是兩張名牌，都指向位址 0x1000 的同一塊記憶體">
     <defs>
       <linearGradient id="b-dw" x1="0" y1="0" x2="0" y2="1">
@@ -800,7 +809,7 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <p>切換型別時注意左邊位址欄的<strong>跨距</strong>：double 每次跳 8，integer 與 logical 每次只跳 4。</p>
 
   <figure class="art">
-  <svg class="art-svg" viewBox="0 0 920 386" role="img"
+  <svg class="art-svg" viewBox="-6 0 932 386" role="img"
        aria-label="上排是 double，每格佔 8 bytes，位址每次跳 8；下排是 integer，每格只佔 4 bytes，格子畫得比較窄，位址每次只跳 4。右邊是位址公式：起點加上索引減一再乘以每格 bytes">
     <defs>
       <linearGradient id="s-dw" x1="0" y1="0" x2="0" y2="1">
@@ -945,6 +954,44 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <p>因為節點有 <code class="inline">NEXT</code>，屬性是可以一個接一個串下去的。後面 matrix 的 <code class="inline">dim</code>、factor 的 <code class="inline">levels</code> 與 <code class="inline">class</code>、data.frame 的 <code class="inline">names</code> / <code class="inline">row.names</code> / <code class="inline">class</code>，全都是掛在<strong>同一條鏈</strong>上的節點 —— 你在那幾節的 header 裡會看到同一個 attrib 欄位。</p>
   <p class="hint" style="margin-bottom:8px">要注意的是：① 和 ③ 之間<strong>沒有</strong>任何指標互指。名字和值是靠<strong>位置</strong>對齊的 —— names 的第 <em>i</em> 格就是資料的第 <em>i</em> 格的名字，如此而已。這也是為什麼 <code class="inline">names(v)</code> 長度必須跟 <code class="inline">v</code> 一樣，短了就會補 NA。</p>
 
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 214" role="img" aria-label="named vector：左邊是原本的 double 三格資料，中間是 attrib 屬性節點，右邊是另一條放名字的 character 向量，三塊在不同位址上用指標串起來">
+    <defs>
+      <linearGradient id="nv-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="nv-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="nv-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="nv-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">資料本體 · 一個 byte 都沒動</text>
+    <rect x="0" y="36" width="330" height="104" rx="14" fill="url(#nv-dw)" stroke="var(--line)" filter="url(#nv-sh)"/>
+    <text x="18" y="62" class="mono addr">0x1000 · double[3]</text>
+    <rect x="20" y="76" width="92" height="46" rx="9" class="celld"/><text x="66" y="104" text-anchor="middle" class="mono cv-d">10</text>
+    <rect x="120" y="76" width="92" height="46" rx="9" class="celld"/><text x="166" y="104" text-anchor="middle" class="mono cv-d">20</text>
+    <rect x="220" y="76" width="92" height="46" rx="9" class="celld"/><text x="266" y="104" text-anchor="middle" class="mono cv-d">30</text>
+    <text x="404" y="20" class="hd att">屬性節點</text>
+    <rect x="392" y="36" width="150" height="104" rx="14" fill="url(#nv-dw)" stroke="var(--line)" filter="url(#nv-sh)"/>
+    <text x="410" y="62" class="mono addr">attrib</text>
+    <rect x="410" y="76" width="114" height="46" rx="9" class="cella"/><text x="467" y="104" text-anchor="middle" class="mono cv-a" style="font-size:12px">names</text>
+    <text x="622" y="20" class="hd att">名字住在別的地方</text>
+    <rect x="610" y="36" width="310" height="104" rx="14" fill="url(#nv-dw)" stroke="var(--line)" filter="url(#nv-sh)"/>
+    <text x="628" y="62" class="mono addr">0x2A00 · character[3]</text>
+    <rect x="628" y="76" width="88" height="46" rx="9" class="cella"/><text x="672" y="104" text-anchor="middle" class="mono cv-a" style="font-size:11px">apple</text>
+    <rect x="724" y="76" width="88" height="46" rx="9" class="cella"/><text x="768" y="104" text-anchor="middle" class="mono cv-a" style="font-size:11px">banana</text>
+    <rect x="820" y="76" width="88" height="46" rx="9" class="cella"/><text x="864" y="104" text-anchor="middle" class="mono cv-a" style="font-size:11px">peach</text>
+    <path class="wireA" d="M334 88 L 388 88" marker-end="url(#nv-aa)"/>
+    <path class="wireA" d="M546 88 L 606 88" marker-end="url(#nv-aa)"/>
+    <text x="0" y="176" class="cap">names(v) 這個函式做的，就是沿著 attrib 走到右邊那條 character vector 去把名字拿回來 ——</text>
+    <text x="0" y="198" class="cap">所以 v["banana"] 要先在那一條裡逐格比對字串，v[2] 則是一次乘法。</text>
+  </svg>
+  <figcaption>取名字要多走兩跳：資料物件 → attrib → names 向量。這就是 <code class="inline">v["banana"]</code> 比 <code class="inline">v[2]</code> 慢的原因。</figcaption>
+  </figure>
+
   <div class="panel" id="pNV">
     <div class="panel-hd">
       <span class="t">names Attribute</span>
@@ -996,6 +1043,54 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <h2>List：一排地址卡</h2>
   <p>一位病人有 id（字串）、血糖（數值）、是否空腹（邏輯值）、三次回診數值（向量）。這些東西大小不一、型別不一，塞不進同一排抽屜。</p>
   <p>R 的解法很聰明：<strong>那就不要放資料，改放位址。</strong>右邊那塊記憶體每一列都是 8 bytes 的指標 —— 你可以直接把那串 hex 倒過來讀，就是箭頭另一端的位址。</p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 374" role="img" aria-label="list 的本體只有四個指標格，每一格指向一塊位址互不相鄰的記憶體，四塊的型別各自不同">
+    <defs>
+      <linearGradient id="ls-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="ls-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="ls-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="ls-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd ptr">list 本體 · 一排地址卡，沒有半個資料</text>
+    <rect x="0" y="36" width="300" height="268" rx="14" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="18" y="62" class="mono addr">0x1000 · list[4]</text>
+    <text x="20" y="102" class="mono ann">[[1]]</text>
+    <rect x="84" y="78" width="196" height="40" rx="9" class="cellp"/><text x="182" y="103" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="20" y="160" class="mono ann">[[2]]</text>
+    <rect x="84" y="136" width="196" height="40" rx="9" class="cellp"/><text x="182" y="161" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="20" y="218" class="mono ann">[[3]]</text>
+    <rect x="84" y="194" width="196" height="40" rx="9" class="cellp"/><text x="182" y="219" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="20" y="276" class="mono ann">[[4]]</text>
+    <rect x="84" y="252" width="196" height="40" rx="9" class="cellp"/><text x="182" y="277" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="556" y="20" class="hd dat">四塊互不相鄰的記憶體</text>
+    <rect x="544" y="42" width="376" height="46" rx="14" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="562" y="71" class="mono addr">0x2A00 · character[1]</text>
+    <text x="902" y="71" text-anchor="end" class="mono cv-d">"P001"</text>
+    <path class="wire" d="M286 78 C 400 78, 440 65, 538 65" marker-end="url(#ls-ar)"/>
+    <rect x="544" y="100" width="376" height="46" rx="14" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="562" y="129" class="mono addr">0x2B40 · double[1]</text>
+    <text x="902" y="129" text-anchor="end" class="mono cv-d">5.6</text>
+    <path class="wire" d="M286 136 C 400 136, 440 123, 538 123" marker-end="url(#ls-ar)"/>
+    <rect x="544" y="158" width="376" height="46" rx="14" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="562" y="187" class="mono addr">0x2C10 · logical[1]</text>
+    <text x="902" y="187" text-anchor="end" class="mono cv-d">TRUE</text>
+    <path class="wire" d="M286 194 C 400 194, 440 181, 538 181" marker-end="url(#ls-ar)"/>
+    <rect x="544" y="216" width="376" height="46" rx="14" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="562" y="245" class="mono addr">0x2D80 · double[3]</text>
+    <text x="902" y="245" text-anchor="end" class="mono cv-d">5.6  6.1  5.9</text>
+    <path class="wire" d="M286 252 C 400 252, 440 239, 538 239" marker-end="url(#ls-ar)"/>
+    <text x="0" y="336" class="cap">每一格只有 8 bytes 的位址，所以 list 可以裝任何東西、每格型別都不一樣 ——</text>
+    <text x="0" y="358" class="cap">代價是拿值要多跳一次：先讀格子裡的位址，再去那個位址取資料。</text>
+  </svg>
+  <figcaption>list 的格子裡放的是位址，不是值。這一格之差，就是它能裝任何東西的全部原因。</figcaption>
+  </figure>
 
   <div class="panel" id="p4">
     <div class="panel-hd">
@@ -1064,6 +1159,50 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <h2>Matrix ＝ vector ＋ 一句話</h2>
   <p>Matrix 不是新的資料結構。它底下仍然是<strong>一條平的 vector</strong>，R 只是多掛了一個屬性 <code class="inline">dim</code>，等於在旁邊貼了張便條：「這 12 個整數，請當成 3 列 × 4 行來讀。」</p>
 
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 352" role="img" aria-label="上面是記憶體裡一條平的六格 double 向量，加上 dim 等於 c(2,3) 這個屬性之後，同一塊記憶體被讀成兩列三行的矩陣，填的順序是一行一行往下">
+    <defs>
+      <linearGradient id="mx-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="mx-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="mx-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="mx-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">記憶體裡：一條平的 double[6]，連續 48 bytes</text>
+    <rect x="0" y="36" width="90" height="50" rx="9" class="celld"/><text x="45" y="66" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="98" y="36" width="90" height="50" rx="9" class="celld"/><text x="143" y="66" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="196" y="36" width="90" height="50" rx="9" class="celld"/><text x="241" y="66" text-anchor="middle" class="mono cv-d">3</text>
+    <rect x="294" y="36" width="90" height="50" rx="9" class="celld"/><text x="339" y="66" text-anchor="middle" class="mono cv-d">4</text>
+    <rect x="392" y="36" width="90" height="50" rx="9" class="celld"/><text x="437" y="66" text-anchor="middle" class="mono cv-d">5</text>
+    <rect x="490" y="36" width="90" height="50" rx="9" class="celld"/><text x="535" y="66" text-anchor="middle" class="mono cv-d">6</text>
+    <rect x="620" y="36" width="300" height="50" rx="14" fill="url(#mx-dw)" stroke="var(--line)" filter="url(#mx-sh)"/>
+    <text x="770" y="67" text-anchor="middle" class="mono cv-a">+ dim = c(2, 3)</text>
+    <path class="wireA" d="M45 96 L 45 184" marker-end="url(#mx-aa)"/>
+    <text x="150" y="140" class="hd att">加一個屬性，換一種讀法 —— 資料一格都沒搬</text>
+    <text x="195" y="188" text-anchor="middle" class="mono sub">[, 1]</text>
+    <text x="293" y="188" text-anchor="middle" class="mono sub">[, 2]</text>
+    <text x="391" y="188" text-anchor="middle" class="mono sub">[, 3]</text>
+    <text x="138" y="232" text-anchor="end" class="mono sub">[1, ]</text>
+    <rect x="150" y="200" width="90" height="50" rx="9" class="celld"/><text x="195" y="230" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="248" y="200" width="90" height="50" rx="9" class="celld"/><text x="293" y="230" text-anchor="middle" class="mono cv-d">3</text>
+    <rect x="346" y="200" width="90" height="50" rx="9" class="celld"/><text x="391" y="230" text-anchor="middle" class="mono cv-d">5</text>
+    <text x="138" y="290" text-anchor="end" class="mono sub">[2, ]</text>
+    <rect x="150" y="258" width="90" height="50" rx="9" class="celld"/><text x="195" y="288" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="248" y="258" width="90" height="50" rx="9" class="celld"/><text x="293" y="288" text-anchor="middle" class="mono cv-d">4</text>
+    <rect x="346" y="258" width="90" height="50" rx="9" class="celld"/><text x="391" y="288" text-anchor="middle" class="mono cv-d">6</text>
+    <text x="560" y="228" class="cap">填的順序是一「行」一「行」往下（byrow = FALSE）：</text>
+    <text x="560" y="250" class="mono cap-c">1、2 填第一行，3、4 填第二行，5、6 填第三行。</text>
+    <text x="560" y="280" class="cap">所以 m[2, 2] 是 4 —— 不是 3。</text>
+    <text x="0" y="336" class="cap">拿掉 dim，它立刻變回那條平的 vector，值與位址完全不變。</text>
+  </svg>
+  <figcaption>同一塊記憶體、同一批值，只是換了一種讀法 —— 這就是為什麼 <code class="inline">m[2, 2]</code> 是 4 而不是 3。</figcaption>
+  </figure>
+
   <div class="panel" id="p6">
     <div class="panel-hd">
       <span class="t">dim Attribute</span>
@@ -1095,6 +1234,50 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <p class="eyebrow">09 · Factor</p>
   <h2>Factor：整數向量 ＋ 一張對照表</h2>
   <p>血型、分期、性別這種「有限組別」的資料，如果用字串存，每一格都要比對字串，又慢又佔空間。Factor 的做法是：<strong>把類別換成整數編碼，再用 levels 屬性記住對照表。</strong></p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 304" role="img" aria-label="factor 底層是一條整數向量，存的是編碼二一三二；旁邊掛著 levels 對照表把編碼換成 A、B、C，再加上 class 等於 factor 讓 print 去查表">
+    <defs>
+      <linearGradient id="fc-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="fc-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="fc-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="fc-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">底層真的存的：integer[4]</text>
+    <rect x="0" y="36" width="380" height="96" rx="14" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="18" y="62" class="mono addr">0x1000 · integer[4]</text>
+    <rect x="20" y="72" width="80" height="44" rx="9" class="celld"/><text x="60" y="99" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="108" y="72" width="80" height="44" rx="9" class="celld"/><text x="148" y="99" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="196" y="72" width="80" height="44" rx="9" class="celld"/><text x="236" y="99" text-anchor="middle" class="mono cv-d">3</text>
+    <rect x="284" y="72" width="80" height="44" rx="9" class="celld"/><text x="324" y="99" text-anchor="middle" class="mono cv-d">2</text>
+    <text x="470" y="20" class="hd att">levels · 一張對照表</text>
+    <rect x="458" y="36" width="250" height="96" rx="14" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="476" y="62" class="mono addr">0x2A00 · character[3]</text>
+    <rect x="476" y="72" width="64" height="44" rx="9" class="cella"/><text x="508" y="99" text-anchor="middle" class="mono cv-a" style="font-size:12px">"A"</text>
+    <rect x="548" y="72" width="64" height="44" rx="9" class="cella"/><text x="580" y="99" text-anchor="middle" class="mono cv-a" style="font-size:12px">"B"</text>
+    <rect x="620" y="72" width="64" height="44" rx="9" class="cella"/><text x="652" y="99" text-anchor="middle" class="mono cv-a" style="font-size:12px">"C"</text>
+    <path class="wireA" d="M384 84 L 454 84" marker-end="url(#fc-aa)"/>
+    <text x="752" y="20" class="hd att">+ class</text>
+    <rect x="740" y="36" width="180" height="96" rx="14" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="830" y="80" text-anchor="middle" class="mono cv-a">"factor"</text>
+    <text x="830" y="106" text-anchor="middle" class="sub">讓 print() 查表</text>
+    <text x="0" y="176" class="hd good">你在 console 看到的</text>
+    <rect x="0" y="192" width="80" height="44" rx="9" class="cella"/><text x="40" y="219" text-anchor="middle" class="mono cv-a" style="font-size:15px">B</text>
+    <rect x="88" y="192" width="80" height="44" rx="9" class="cella"/><text x="128" y="219" text-anchor="middle" class="mono cv-a" style="font-size:15px">A</text>
+    <rect x="176" y="192" width="80" height="44" rx="9" class="cella"/><text x="216" y="219" text-anchor="middle" class="mono cv-a" style="font-size:15px">C</text>
+    <rect x="264" y="192" width="80" height="44" rx="9" class="cella"/><text x="304" y="219" text-anchor="middle" class="mono cv-a" style="font-size:15px">B</text>
+    <text x="380" y="220" class="cap">第 1 格存的是 2，查表第 2 個是 "B"。</text>
+    <text x="380" y="242" class="cap">所以 as.numeric(f) 拿到的是編碼 2 1 3 2，不是 B A C B。</text>
+    <text x="0" y="288" class="cap">沒指定 levels 時 R 照字母排序建表（A=1、B=2、C=3）—— 這是 factor 最常出錯的地方。</text>
+  </svg>
+  <figcaption>factor 底層是整數編碼，字串只存一份在 levels 裡 —— 這正是它比 character vector 省記憶體的原因。</figcaption>
+  </figure>
 
   <div class="panel" id="p7">
     <div class="panel-hd">
@@ -1132,6 +1315,64 @@ figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)
   <p>它真正的身分是一個 named list：一塊只有四個指標的記憶體，加上 <code class="inline">names</code>、<code class="inline">row.names</code> 兩個屬性，再貼上 <code class="inline">class = "data.frame"</code> 的標籤讓 <code class="inline">print()</code> 知道要畫成表格。</p>
 
   <p>右邊把每一塊都展開了，由上往下三段：<strong>①</strong> data.frame 本體 —— 只有四個位址，一個資料都沒有；<strong>②</strong> 四條各自獨立的 vector，位址互不相鄰；<strong>③</strong> 掛在 attrib 上的三個屬性（欄名、列名、class）。點左邊任一欄，右邊對應的那整塊會亮起來。</p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 490" role="img" aria-label="data.frame 本體只有四個指標，分別指向四條長度相同但型別不同的向量；另外掛著 names、row.names、class 三個屬性">
+    <defs>
+      <linearGradient id="df-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="df-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="df-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="df-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd ptr">① 本體：四個指標，一個資料都沒有</text>
+    <rect x="0" y="36" width="300" height="268" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="18" y="62" class="mono addr">0x1000 · list[4]</text>
+    <text x="20" y="102" class="mono ann">$id</text>
+    <rect x="110" y="78" width="170" height="40" rx="9" class="cellp"/><text x="195" y="103" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="20" y="160" class="mono ann">$glucose</text>
+    <rect x="110" y="136" width="170" height="40" rx="9" class="cellp"/><text x="195" y="161" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="20" y="218" class="mono ann">$fasting</text>
+    <rect x="110" y="194" width="170" height="40" rx="9" class="cellp"/><text x="195" y="219" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="20" y="276" class="mono ann">$visit</text>
+    <rect x="110" y="252" width="170" height="40" rx="9" class="cellp"/><text x="195" y="277" text-anchor="middle" class="mono cv-p">•</text>
+    <text x="556" y="20" class="hd dat">② 四條各自獨立、長度相同的 vector</text>
+    <rect x="544" y="42" width="376" height="46" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="562" y="71" class="mono addr">character[3]</text>
+    <text x="902" y="71" text-anchor="end" class="mono cv-d">"P001"  "P002"  "P003"</text>
+    <path class="wire" d="M286 78 C 400 78, 440 65, 538 65" marker-end="url(#df-ar)"/>
+    <rect x="544" y="100" width="376" height="46" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="562" y="129" class="mono addr">double[3]</text>
+    <text x="902" y="129" text-anchor="end" class="mono cv-d">5.6   7.8   6.1</text>
+    <path class="wire" d="M286 136 C 400 136, 440 123, 538 123" marker-end="url(#df-ar)"/>
+    <rect x="544" y="158" width="376" height="46" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="562" y="187" class="mono addr">logical[3]</text>
+    <text x="902" y="187" text-anchor="end" class="mono cv-d">TRUE  FALSE  TRUE</text>
+    <path class="wire" d="M286 194 C 400 194, 440 181, 538 181" marker-end="url(#df-ar)"/>
+    <rect x="544" y="216" width="376" height="46" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="562" y="245" class="mono addr">integer[3]</text>
+    <text x="902" y="245" text-anchor="end" class="mono cv-d">1   2   3</text>
+    <path class="wire" d="M286 252 C 400 252, 440 239, 538 239" marker-end="url(#df-ar)"/>
+    <text x="0" y="348" class="hd att">③ 掛在 attrib 上的三個屬性</text>
+    <rect x="0" y="364" width="292" height="56" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="18" y="384" class="mono cv-a">names</text>
+    <text x="18" y="406" class="sub">"id" "glucose" "fasting" "visit"</text>
+    <rect x="308" y="364" width="292" height="56" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="326" y="384" class="mono cv-a">row.names</text>
+    <text x="326" y="406" class="sub">1  2  3</text>
+    <rect x="616" y="364" width="292" height="56" rx="14" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="634" y="384" class="mono cv-a">class</text>
+    <text x="634" y="406" class="sub">"data.frame"</text>
+    <text x="0" y="452" class="cap">欄內必須同型別（那是一條 vector），欄間可以不同型別（那是四塊不相干的記憶體）。</text>
+    <text x="0" y="474" class="cap">新增一欄只是在指標陣列後面多 8 bytes；新增一列要把四塊記憶體全部重配一次。</text>
+  </svg>
+  <figcaption>data.frame 的本體只有四個指標；每一欄是一條獨立的等長 vector，型別各自獨立。</figcaption>
+  </figure>
 
   <div class="panel" id="p8">
     <div class="panel-hd"><span class="t">同一份資料 · 全部展開</span></div>
