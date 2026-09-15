@@ -49,6 +49,7 @@ img{max-width:100%}
   --ok:#1D7A34;    --okFill:#34C759;     /* systemGreen  4.72:1 */
   --warn:#C8000F;  --warnFill:#FF3B30;   /* systemRed    5.29:1 */
 
+  --noteBg:rgba(175,82,222,.055);   /* aside tint: a whisper, not a highlight */
   --dataBg:rgba(255,149,0,.14);
   --ptrBg:rgba(0,122,255,.12);
   --attrBg:rgba(175,82,222,.12);
@@ -66,6 +67,14 @@ img{max-width:100%}
 
   /* --- corner radii: Apple's continuous-corner scale, approximated --- */
   --r-card:14px; --r-ctl:10px; --r-sm:7px; --r-xs:5px;
+
+  /* --- one content measure, so prose and cards share a left and right edge.
+         Only the interactive panels and the diagram break out to full width
+         (layout.md > Visual hierarchy: "Align components with one another"). --- */
+  --measure:66ch; --measureTight:58ch; --measureWide:920px;
+
+  /* --- height of the floating nav; 0 when the sidebar is a real sidebar --- */
+  --navH:0px;
 
   /* --- one typeface family (typography.md > Conveying hierarchy) --- */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
@@ -91,6 +100,7 @@ img{max-width:100%}
     --attr:#DA8FFF;  --attrFill:#BF5AF2;
     --ok:#30DB5B;    --okFill:#30D158;
     --warn:#FF6961;  --warnFill:#FF453A;
+    --noteBg:rgba(191,90,242,.10);
     --dataBg:rgba(255,159,10,.18);
     --ptrBg:rgba(10,132,255,.20);
     --attrBg:rgba(191,90,242,.20);
@@ -112,6 +122,7 @@ img{max-width:100%}
   --attr:#DA8FFF;  --attrFill:#BF5AF2;
   --ok:#30DB5B;    --okFill:#30D158;
   --warn:#FF6961;  --warnFill:#FF453A;
+  --noteBg:rgba(191,90,242,.10);
   --dataBg:rgba(255,159,10,.18);
   --ptrBg:rgba(10,132,255,.20);
   --attrBg:rgba(191,90,242,.20);
@@ -152,6 +163,7 @@ body{
 .rail .railhd{font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
   color:var(--faint); padding-left:12px; margin-bottom:10px}
 @media (max-width:1040px){
+  :root{--navH:57px}
   /* Compact width: the rail becomes the floating functional layer, so this is
      the one place Liquid Glass belongs (materials.md > Liquid Glass). */
   .rail{position:sticky; top:0; z-index:40; background-color:var(--glass);
@@ -163,6 +175,10 @@ body{
   .rail ol::-webkit-scrollbar{display:none}
   .rail a{grid-template-columns:1fr; white-space:nowrap; padding:7px 14px; border-radius:999px; min-height:36px; align-items:center}
   .rail a span.ad{display:none}
+  /* Scroll edge effect: content fades under the bar instead of being cut by it
+     (layout.md > Visual hierarchy). */
+  .rail::after{content:""; position:absolute; left:0; right:0; top:100%; height:14px;
+    background:linear-gradient(var(--bg),transparent); pointer-events:none}
 }
 @media (prefers-reduced-transparency: reduce){
   @media (max-width:1040px){ .rail{background-color:var(--bg); -webkit-backdrop-filter:none; backdrop-filter:none} }
@@ -170,44 +186,45 @@ body{
 
 /* ---------- typography: Apple text styles ---------- */
 main{padding-block:32px 0; min-width:0}
-h1{font-weight:700; font-size:clamp(32px,5vw,44px); line-height:1.12; letter-spacing:-.022em; margin:0 0 20px; text-wrap:balance}
-h2{font-weight:700; font-size:clamp(24px,3vw,30px); line-height:1.25; letter-spacing:-.018em; margin:0 0 8px; text-wrap:balance}
-h3{font-weight:600; font-size:20px; line-height:1.3; letter-spacing:-.01em; margin:34px 0 10px}
-p{margin:0 0 17px; max-width:66ch}
-.lede{font-size:19px; line-height:1.6; color:var(--dim); max-width:60ch; letter-spacing:-.008em}
-.eyebrow{font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--faint); margin:0 0 8px}
+/* Negative tracking flatters SF but crowds CJK, so it stays light here. */
+h1{font-weight:700; font-size:clamp(32px,5vw,44px); line-height:1.14; letter-spacing:-.014em; margin:0 0 20px; max-width:var(--measure); text-wrap:balance}
+h2{font-weight:700; font-size:clamp(24px,3vw,30px); line-height:1.28; letter-spacing:-.011em; margin:0 0 8px; max-width:var(--measure); text-wrap:balance}
+h3{font-weight:600; font-size:20px; line-height:1.35; letter-spacing:-.006em; margin:36px 0 10px; max-width:var(--measure)}
+p{margin:0 0 17px; max-width:var(--measure); text-wrap:pretty}
+.lede{font-size:19px; line-height:1.62; color:var(--dim); max-width:var(--measureTight); letter-spacing:-.006em}
+.eyebrow{font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--faint); margin:0 0 10px}
 em{font-style:normal; color:var(--data); font-weight:600}
 strong{font-weight:600}
 .hl-attr{color:var(--attr); font-weight:600}
-ul.plain{margin:0 0 17px; padding-left:22px; max-width:66ch}
+ul.plain{margin:0 0 17px; padding-left:22px; max-width:var(--measure)}
 ul.plain li{margin-bottom:8px}
 ul.plain li::marker{color:var(--faint)}
-section{padding-block:60px; border-top:.5px solid var(--lineSoft)}
+section{padding-block:60px; border-top:.5px solid var(--lineSoft); scroll-margin-top:calc(var(--navH) + 12px)}
 section:first-of-type{border-top:none; padding-top:24px}
 a{color:var(--ptr)}
 
 /* ---------- hero ---------- */
 .hero .kicker{font-size:14px; color:var(--faint); margin-bottom:22px; letter-spacing:-.004em}
-.howto{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:30px 0 16px}
-.howto .h{padding:18px 20px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow)}
-.howto .h .tag{font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.howto{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:32px 0 18px; max-width:var(--measure)}
+.howto .h{padding:20px 22px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow)}
+.howto .h .tag{font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:8px}
 .howto .h .tag i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none}
 .howto .h p{margin:0; font-size:15px; line-height:1.55; color:var(--dim); max-width:none}
 .howto .mid{display:none}          /* the ╌╌► divider said nothing the two labels didn't */
 @media (max-width:640px){ .howto{grid-template-columns:1fr} }
-.hero-legend{display:flex; flex-wrap:wrap; gap:10px 22px; font-size:14px; color:var(--dim); margin-top:20px}
+.hero-legend{display:flex; flex-wrap:wrap; gap:12px 24px; font-size:14px; color:var(--dim); margin-top:22px; max-width:var(--measure)}
 .hero-legend span{display:inline-flex; align-items:center; gap:8px}
 .dot{width:10px; height:10px; border-radius:50%; display:inline-block; flex:none}
 
 /* ---------- cards / split panes ---------- */
 .panel{background-color:var(--surface); border-radius:var(--r-card); margin:28px 0; box-shadow:var(--shadow); overflow:hidden}
-.panel-hd{display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:14px 18px; border-bottom:.5px solid var(--lineSoft)}
+.panel-hd{display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:15px 20px; border-bottom:.5px solid var(--lineSoft)}
 .panel-hd .t{font-size:13px; font-weight:600; color:var(--dim); margin-right:auto; letter-spacing:-.004em}
 .panel-bd{padding:22px 18px}
 .split{display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)}
 .pane{padding:20px 18px; min-width:0}
 .pane + .pane{border-left:.5px solid var(--lineSoft)}
-@media (min-width:901px){ #p8 .pane:first-child{position:sticky; top:16px; align-self:start} }
+@media (min-width:901px){ #p8 .pane:first-child{position:sticky; top:calc(var(--navH) + 16px); align-self:start} }
 @media (max-width:900px){ .split{grid-template-columns:minmax(0,1fr)} .pane + .pane{border-left:none; border-top:.5px solid var(--lineSoft)} }
 .paneLbl{font-size:12px; font-weight:600; letter-spacing:.01em; color:var(--faint); margin-bottom:14px; display:flex; align-items:center; gap:8px}
 .paneLbl i{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
@@ -223,7 +240,7 @@ a{color:var(--ptr)}
 .bridge .cv.w{color:var(--warn); box-shadow:0 0 0 1px var(--warn)}
 .bridge .full{flex-basis:100%; color:var(--faint); line-height:1.6; font-family:var(--sans); font-size:13px}
 .axlab{font-size:12px; color:var(--faint); margin-bottom:9px}
-.hint{font-size:15px; line-height:1.6; color:var(--faint); margin:12px 0 0; max-width:62ch}
+.hint{font-size:15px; line-height:1.6; color:var(--faint); margin:14px 0 0; max-width:var(--measureTight)}
 
 /* ---------- controls: 44pt touch targets, Apple segmented control ---------- */
 .chips{display:flex; flex-wrap:wrap; gap:6px; padding:3px; background-color:var(--surface2); border-radius:var(--r-ctl)}
@@ -339,24 +356,24 @@ code.inline{font-family:var(--mono); font-size:.88em; background-color:var(--sur
 .sizetbl th,.sizetbl td{padding:6px 16px 6px 0; cursor:default; font-family:var(--mono)}
 .sizetbl td.hi{color:var(--data); font-weight:700}
 .calc{font-size:14px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow);
-  padding:18px 20px; margin:20px 0; max-width:62ch;
-  display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:8px 28px; align-items:baseline}
+  padding:20px 22px; margin:22px 0; max-width:var(--measure);
+  display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:9px 28px; align-items:baseline}
 .calc .k{color:var(--dim)}
 .calc .k em{color:var(--faint); font-style:normal; font-size:12.5px; font-weight:400}
 .calc .v{color:var(--text); text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
-.calc .tot{color:var(--data); font-weight:700}
+.calc .tot{color:var(--data); font-weight:700; font-size:15px}
 .calc .note2{grid-column:1/-1; color:var(--faint); font-size:12.5px; margin-top:4px}
 .calc hr{grid-column:1/-1; border:none; border-top:.5px solid var(--line); margin:4px 0; width:100%}
 
 /* ---------- lineage diagram ---------- */
 figure.dgwrap{margin:28px 0; overflow-x:auto}
-.dgm{display:block; width:100%; min-width:720px; max-width:920px; height:auto; color:var(--dim); margin:0 auto}
+.dgm{display:block; width:100%; min-width:720px; max-width:var(--measureWide); height:auto; color:var(--dim); margin:0}
 .dgm text{fill:currentColor; font-family:var(--mono); font-size:11px}
 .dgm .t{fill:var(--text); font-size:14px; font-family:var(--sans); font-weight:600}
 .dgm .s{font-size:11px; fill:var(--faint)}
 .dgm rect{fill:none; stroke:currentColor; stroke-opacity:.3}
-.dgm .boxL{stroke:var(--data); stroke-opacity:.9}
-.dgm .boxR{stroke:var(--ptr); stroke-opacity:.9}
+.dgm .boxL{stroke:var(--data); stroke-opacity:.9; stroke-width:1.5}
+.dgm .boxR{stroke:var(--ptr); stroke-opacity:.9; stroke-width:1.5}
 .dgm .cL{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.6}
 .dgm .cR{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.6}
 .dgm line{stroke-width:1.3; fill:none}
@@ -364,7 +381,7 @@ figure.dgwrap{margin:28px 0; overflow-x:auto}
 .dgm .hL{fill:var(--data)} .dgm .hR{fill:var(--ptr)}
 .dgm .lab{fill:var(--attr); font-size:11.5px}
 .dgm .mono{font-family:var(--mono)}
-figcaption{font-size:14px; color:var(--faint); text-align:center; margin-top:12px; max-width:62ch; margin-inline:auto; line-height:1.55}
+figcaption{font-size:14px; color:var(--faint); margin-top:14px; max-width:var(--measureTight); line-height:1.58}
 
 /* ---------- tables ---------- */
 .tblwrap{overflow-x:auto}
@@ -373,21 +390,26 @@ th,td{text-align:left; padding:9px 12px; border-bottom:.5px solid var(--lineSoft
 thead th{font-size:12px; color:var(--dim); font-weight:600; border-bottom:.5px solid var(--line); cursor:pointer}
 td{font-family:var(--mono); font-variant-numeric:tabular-nums; cursor:pointer}
 th.lit,td.lit{background-color:var(--dataBg); color:var(--text)}
+.reftbl{max-width:var(--measureWide)}
 .reftbl th{font-size:12px; letter-spacing:.01em; color:var(--faint); font-weight:600; cursor:default}
 .reftbl td{font-family:var(--sans); cursor:default}
 .reftbl td code{font-family:var(--mono); font-size:13px; color:var(--data)}
 
 /* ---------- callouts ---------- */
-.note{background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow);
-  padding:18px 20px; margin:24px 0; font-size:15.5px; line-height:1.65; color:var(--dim); max-width:68ch}
-.note b.h{color:var(--attr); font-size:13px; font-weight:600; letter-spacing:-.004em; display:block; margin-bottom:8px}
-.note p{margin:0 0 10px; max-width:none}
+/* An aside is tinted rather than elevated, so it reads as a different KIND of
+   thing from the white .calc / .q cards instead of the same thing twice. */
+.note{background-color:var(--noteBg); border-radius:var(--r-card); box-shadow:0 0 0 .5px var(--line);
+  padding:20px 22px; margin:26px 0; font-size:15.5px; line-height:1.68; color:var(--dim); max-width:var(--measure)}
+.note b.h{color:var(--attr); font-size:13px; font-weight:600; letter-spacing:-.004em; display:block; margin-bottom:10px}
+.note p{margin:0 0 11px; max-width:none}
 .note p:last-child{margin:0}
-.note pre{background-color:var(--surface2)}
+.note pre{background-color:var(--surface); box-shadow:0 0 0 .5px var(--lineSoft); margin-block:14px}
+.note code.inline{background-color:var(--surface); box-shadow:0 0 0 .5px var(--lineSoft)}
+.note .tblwrap{margin-block:14px}
 
 /* ---------- quiz: grouped list rows, 44pt targets ---------- */
-.quiz{display:flex; flex-direction:column; gap:16px}
-.q{border-radius:var(--r-card); background-color:var(--surface); box-shadow:var(--shadow); padding:20px}
+.quiz{display:flex; flex-direction:column; gap:16px; max-width:var(--measure)}
+.q{border-radius:var(--r-card); background-color:var(--surface); box-shadow:var(--shadow); padding:22px}
 .q .qh{display:flex; gap:12px; align-items:baseline; margin-bottom:14px}
 .q .qn{font-family:var(--mono); font-size:12px; color:var(--faint); flex:none; font-variant-numeric:tabular-nums}
 .q .qt{font-weight:600; font-size:17px; line-height:1.45; letter-spacing:-.008em}
@@ -407,8 +429,8 @@ th.lit,td.lit{background-color:var(--dataBg); color:var(--text)}
 .exp{margin-top:14px; font-size:14.5px; line-height:1.6; color:var(--dim); background-color:var(--surface2);
   border-radius:var(--r-ctl); padding:12px 14px; display:none}
 .exp.show{display:block}
-.score{font-size:15px; color:var(--dim); padding:16px 18px; background-color:var(--surface);
-  border-radius:var(--r-card); box-shadow:var(--shadow); text-align:center}
+.score{font-size:15px; color:var(--dim); padding:18px 20px; background-color:var(--surface);
+  border-radius:var(--r-card); box-shadow:var(--shadow); text-align:center; max-width:var(--measure)}
 .score b{color:var(--text); font-size:22px; font-weight:700; font-variant-numeric:tabular-nums}
 
 /* ---------- tree ---------- */
@@ -419,6 +441,8 @@ th.lit,td.lit{background-color:var(--dataBg); color:var(--text)}
 footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px solid var(--lineSoft); font-size:14px;
   color:var(--faint); display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between}
 
+::selection{background-color:var(--ptrBg); color:var(--text)}
+@media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
 @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
 </style>
 
@@ -878,27 +902,27 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
   <figure class="dgwrap">
   <svg class="dgm" viewBox="0 0 920 430" role="img" aria-label="R 的資料結構只有兩個源頭：atomic vector 加上 names、dim、levels 屬性變成 named vector、matrix、factor；list 加上 names、row.names、class 屬性變成 named list 與 data.frame">
   <defs><marker id="aL" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="hL" d="M0 0 L10 5 L0 10 z"/></marker><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="hR" d="M0 0 L10 5 L0 10 z"/></marker></defs>
-  <rect class="boxL" x="120" y="26" width="220" height="84" rx="3"/>
+  <rect class="boxL" x="120" y="26" width="220" height="84" rx="12"/>
   <text class="t" x="230" y="50" text-anchor="middle">atomic vector</text>
   <text class="s" x="230" y="66" text-anchor="middle">一排同型資料，直接放值</text>
-  <rect class="cL" x="146" y="78" width="40" height="22" rx="2"/>
+  <rect class="cL" x="146" y="78" width="40" height="22" rx="5"/>
   <text x="166" y="93" text-anchor="middle">10</text>
-  <rect class="cL" x="192" y="78" width="40" height="22" rx="2"/>
+  <rect class="cL" x="192" y="78" width="40" height="22" rx="5"/>
   <text x="212" y="93" text-anchor="middle">20</text>
-  <rect class="cL" x="238" y="78" width="40" height="22" rx="2"/>
+  <rect class="cL" x="238" y="78" width="40" height="22" rx="5"/>
   <text x="258" y="93" text-anchor="middle">30</text>
-  <rect class="cL" x="284" y="78" width="40" height="22" rx="2"/>
+  <rect class="cL" x="284" y="78" width="40" height="22" rx="5"/>
   <text x="304" y="93" text-anchor="middle">40</text>
-  <rect class="boxR" x="580" y="26" width="220" height="84" rx="3"/>
+  <rect class="boxR" x="580" y="26" width="220" height="84" rx="12"/>
   <text class="t" x="690" y="50" text-anchor="middle">list</text>
   <text class="s" x="690" y="66" text-anchor="middle">一排指標，指向別的物件</text>
-  <rect class="cR" x="606" y="78" width="40" height="22" rx="2"/>
+  <rect class="cR" x="606" y="78" width="40" height="22" rx="5"/>
   <text x="626" y="93" text-anchor="middle">&#8226;</text>
-  <rect class="cR" x="652" y="78" width="40" height="22" rx="2"/>
+  <rect class="cR" x="652" y="78" width="40" height="22" rx="5"/>
   <text x="672" y="93" text-anchor="middle">&#8226;</text>
-  <rect class="cR" x="698" y="78" width="40" height="22" rx="2"/>
+  <rect class="cR" x="698" y="78" width="40" height="22" rx="5"/>
   <text x="718" y="93" text-anchor="middle">&#8226;</text>
-  <rect class="cR" x="744" y="78" width="40" height="22" rx="2"/>
+  <rect class="cR" x="744" y="78" width="40" height="22" rx="5"/>
   <text x="764" y="93" text-anchor="middle">&#8226;</text>
   <line class="wL" x1="230" y1="110" x2="230" y2="152"/>
   <line class="wL" x1="75" y1="152" x2="385" y2="152"/>
@@ -907,33 +931,33 @@ footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px s
   <line class="wL" x1="75" y1="152" x2="75" y2="188"/>
   <text class="lab" x="75" y="211" text-anchor="middle">+ names</text>
   <line class="wL" x1="75" y1="232" x2="75" y2="286" marker-end="url(#aL)"/>
-  <rect class="boxL" x="10" y="292" width="130" height="62" rx="3"/>
+  <rect class="boxL" x="10" y="292" width="130" height="62" rx="12"/>
   <text class="t" x="75" y="317" text-anchor="middle">named vector</text>
   <text class="s" x="75" y="335" text-anchor="middle">名字在另一塊記憶體</text>
   <line class="wL" x1="230" y1="152" x2="230" y2="188"/>
   <text class="lab" x="230" y="211" text-anchor="middle">+ dim</text>
   <line class="wL" x1="230" y1="232" x2="230" y2="286" marker-end="url(#aL)"/>
-  <rect class="boxL" x="165" y="292" width="130" height="62" rx="3"/>
+  <rect class="boxL" x="165" y="292" width="130" height="62" rx="12"/>
   <text class="t" x="230" y="317" text-anchor="middle">matrix / array</text>
   <text class="s" x="230" y="335" text-anchor="middle">同一條 vector，換讀法</text>
   <line class="wL" x1="385" y1="152" x2="385" y2="188"/>
   <text class="lab" x="385" y="205" text-anchor="middle">+ levels</text>
   <text class="lab" x="385" y="220" text-anchor="middle">+ class</text>
   <line class="wL" x1="385" y1="232" x2="385" y2="286" marker-end="url(#aL)"/>
-  <rect class="boxL" x="320" y="292" width="130" height="62" rx="3"/>
+  <rect class="boxL" x="320" y="292" width="130" height="62" rx="12"/>
   <text class="t" x="385" y="317" text-anchor="middle">factor</text>
   <text class="s" x="385" y="335" text-anchor="middle">底層其實是 integer</text>
   <line class="wR" x1="565" y1="152" x2="565" y2="188"/>
   <text class="lab" x="565" y="211" text-anchor="middle">+ names</text>
   <line class="wR" x1="565" y1="232" x2="565" y2="286" marker-end="url(#aR)"/>
-  <rect class="boxR" x="495" y="292" width="140" height="62" rx="3"/>
+  <rect class="boxR" x="495" y="292" width="140" height="62" rx="12"/>
   <text class="t" x="565" y="317" text-anchor="middle">named list</text>
   <text class="s" x="565" y="335" text-anchor="middle">key–value，像 dict</text>
   <line class="wR" x1="835" y1="152" x2="835" y2="188"/>
   <text class="lab" x="835" y="205" text-anchor="middle">+ names + row.names</text>
   <text class="lab" x="835" y="220" text-anchor="middle">+ class</text>
   <line class="wR" x1="835" y1="232" x2="835" y2="286" marker-end="url(#aR)"/>
-  <rect class="boxR" x="750" y="292" width="170" height="62" rx="3"/>
+  <rect class="boxR" x="750" y="292" width="170" height="62" rx="12"/>
   <text class="t" x="835" y="317" text-anchor="middle">data.frame</text>
   <text class="s" x="835" y="335" text-anchor="middle">每格指向一條等長 vector</text>
   <text class="s" x="230" y="392" text-anchor="middle">左半邊：格子裡是「值」</text>
