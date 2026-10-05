@@ -105,6 +105,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .worldwrap{padding:46px 14px 12px}
 .world{position:relative;margin:0 auto;max-width:100%}
 .world svg.map-svg{display:block;width:100%;height:auto}
+.world svg.over{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}
+.under-badge{transform-box:fill-box;transform-origin:center;animation:gempop .35s ease-out}
 .robot{position:absolute;left:0;top:0;transition:transform var(--dur,.45s) ease-in-out;z-index:2;pointer-events:none}
 .robot.instant,.robot.instant .rb-rot{transition:none}
 .rb-rot{width:100%;height:100%;display:grid;place-items:center;transition:transform var(--dur,.45s) ease-in-out}
@@ -1107,7 +1109,8 @@ function showWorld(def){
   const maxW = Math.round(440 * def.W / def.H);
   wEl.style.width = `min(100%, ${maxW}px)`;
   wEl.innerHTML = `<svg class="map-svg" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" role="img" aria-label="${def.W} × ${def.H} 的地圖"><g>${staticLayer(def)}</g><g id="gems">${gemLayer(def.beepers || {}, def.H)}</g></svg>
-    <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>`;
+    <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>
+    <svg class="over" id="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true"></svg>`;
   const w = makeWorld(def);
   placeRobot({ x: w.x, y: w.y, rot: w.rot, dir: w.dir, picked: 0, placed: 0 }, true);
   say(L.random ? '這張地圖是隨機的！' : '準備好了！', '');
@@ -1121,7 +1124,13 @@ function placeRobot(st, instant){
   r.style.transform = `translate(${(st.x - 1) * 100}%, ${(H - st.y) * 100}%)`;
   $('#rbrot').style.transform = `rotate(${st.rot}deg)`;
   if (instant) { void r.offsetWidth; r.classList.remove('instant'); }
-  $('#wstatus').innerHTML = `<span>位置 <b>(${st.x}, ${st.y})</b></span><span>面向 <b>${DIR_ZH[st.dir]}</b></span><span>撿起 <b>${st.picked}</b></span><span>放下 <b>${st.placed}</b></span>${P.trace ? `<span>步驟 <b>${P.k + 1}/${P.trace.steps.length}</b></span>` : ''}`;
+  // the robot hides the gem in its own cell, so show what is underfoot as a badge drawn above the robot
+  const beepers = st.beepers || P.def.beepers || {}, under = beepers[`${st.x},${st.y}`] || 0;
+  const bx = (st.x - 1) * CELL + 52, by = (H - st.y) * CELL + 3, fresh = st.act === 'put' || st.act === 'pick';
+  $('#over').innerHTML = under ? `<g class="${fresh ? 'under-badge' : ''}"><rect x="${bx}" y="${by}" width="46" height="26" rx="13" fill="var(--panel)" stroke="var(--gem-edge)" stroke-width="2.5"/>
+    <polygon points="${bx + 13},${by + 5} ${bx + 21},${by + 13} ${bx + 13},${by + 21} ${bx + 5},${by + 13}" fill="var(--gem)" stroke="var(--gem-edge)" stroke-width="1.5"/>
+    <text x="${bx + 34}" y="${by + 19}" text-anchor="middle" font-size="16" font-weight="700" font-family="JetBrains Mono, monospace" fill="var(--ink)">${under}</text></g>` : '';
+  $('#wstatus').innerHTML = `<span>位置 <b>(${st.x}, ${st.y})</b></span><span>面向 <b>${DIR_ZH[st.dir]}</b></span><span>腳下寶石 <b>${under}</b></span><span>撿起 <b>${st.picked}</b></span><span>放下 <b>${st.placed}</b></span>${P.trace ? `<span>步驟 <b>${P.k + 1}/${P.trace.steps.length}</b></span>` : ''}`;
 }
 function say(text, cls){
   const b = $('#bubble'); if (!b) return;
