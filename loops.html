@@ -3,19 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="寫 R 程式指揮機器人走迷宮、撿寶石，練習 for、while、if、!、&&、break、next、ifelse 與巢狀迴圈。">
+<meta name="description" content="寫 R 程式指揮機器人走迷宮、撿寶石，練習 for、while、if、%in%、!、&&、break、next、ifelse 與巢狀迴圈。">
 <meta property="og:title" content="R 迴圈闖關">
-<meta property="og:description" content="大數據分析與實踐 · R 迴圈與條件式互動遊戲">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E">
 <title>R 迴圈闖關</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
-html{color-scheme:light}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 [hidden]{display:none!important}
+html{color-scheme:light}
 .back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:6px}
 .back:hover{color:var(--accent)}
 /* Layout: level map strip, then a Karel-style workbench — mission + world on top, R source editor + environment/console below */
@@ -48,7 +47,8 @@ body{margin:0}
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;font-variant-ligatures:none}
+textarea,svg text{font-variant-ligatures:none}
 .wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:16px}
 code,.mono{font-family:var(--f-code);font-size:.92em}
 p code,li code,.concept code,.goal code,.result code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
@@ -232,7 +232,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <a class="back" href="./">← 記憶體裡的 R 物件（資料結構）</a>
+      <a class="back" href="./">← 大數據分析與實踐 · 課程首頁</a>
       <h1><span class="r">R</span>迴圈闖關</h1>
       <p>寫 R 程式指揮機器人 R 寶走迷宮、撿寶石。用 <code>for</code>、<code>while</code>、<code>if</code> 和巢狀迴圈，讓程式越短越好。</p>
     </div>

@@ -1,0 +1,2685 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="從記憶體位址與 bytes 出發，互動解釋 R 的 variable 與 <-、vector、coercion、named vector、list、[ ] vs [[ ]]、matrix、factor 與 data.frame。">
+<meta property="og:title" content="記憶體裡的 R 物件">
+<meta property="og:description" content="大數據分析與實踐 · R 資料結構互動教材">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<style>
+:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:17px -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC",system-ui,sans-serif;background:#F2F2F7}
+img{max-width:100%}
+[hidden]{display:none!important}
+.rail li.ext{margin-top:10px; padding-top:10px; border-top:1px solid var(--lineSoft)}
+.nextcard{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 20px;
+  margin-top:40px; padding:20px 22px; border:1px solid var(--line); border-radius:var(--r-sm); background-color:var(--surface);
+  color:var(--text); text-decoration:none; transition:box-shadow .18s var(--ease)}
+.nextcard:hover{box-shadow:var(--shadowPill)}
+.nextcard b{font-size:18px}
+.nextcard span{color:var(--dim); font-size:14px}
+.nextcard .go{font-weight:600; white-space:nowrap}
+@media (max-width:1040px){ .rail li.ext{margin-top:0; padding-top:0; border-top:0} }
+/* keep R's <- and >= literal: JetBrains Mono would draw them as arrows */
+code,pre,kbd,samp,svg text,.mono{font-variant-ligatures:none}
+body{font-variant-ligatures:none}
+</style>
+</head>
+<body>
+<title>記憶體裡的 R 物件</title>
+<style>
+/* =========================================================================
+   Apple design language — light-first.
+   Tokens follow Apple's dynamic system colors (color.md > System colors):
+   grouped backgrounds for the content layer, label/secondary/tertiary for
+   foreground, and system Red/Orange/Green/Blue/Purple for the three memory
+   roles. Every role colour below is Apple's *increased-contrast* variant so
+   it clears 4.5:1 as text (accessibility.md > Vision); the vivid variant
+   lives in --*Fill and is used only for swatches and filled tiles.
+   ========================================================================= */
+:root{
+  /* --- content layer: grouped backgrounds --- */
+  --bg:#F2F2F7;            /* systemGroupedBackground          */
+  --surface:#FFFFFF;       /* secondarySystemGroupedBackground */
+  --surface2:#EFEFF4;      /* tertiary / control track         */
+  --line:#D6D6DB;          /* opaqueSeparator                  */
+  --lineSoft:#E6E6EB;      /* separator                        */
+
+  /* --- foreground labels (worst-case ratio vs any surface above) --- */
+  --text:#1D1D1F;          /* label            14.7:1 */
+  --dim:#48484A;           /* secondaryLabel    7.96:1 */
+  --faint:#65656B;         /* tertiaryLabel     5.05:1 */
+
+  /* --- the three memory roles: text tier / fill tier --- */
+  --data:#A24800;  --dataFill:#FF9500;   /* systemOrange 5.29:1 */
+  --ptr:#0040DD;   --ptrFill:#007AFF;    /* systemBlue   6.60:1 */
+  --attr:#8944AB;  --attrFill:#AF52DE;   /* systemPurple 5.27:1 */
+  --ok:#1D7A34;    --okFill:#34C759;     /* systemGreen  4.72:1 */
+  --warn:#C8000F;  --warnFill:#FF3B30;   /* systemRed    5.29:1 */
+
+  --noteBg:rgba(175,82,222,.055);   /* aside tint: a whisper, not a highlight */
+  --dataBg:rgba(255,149,0,.14);
+  --ptrBg:rgba(0,122,255,.12);
+  --attrBg:rgba(175,82,222,.12);
+  --okBg:rgba(52,199,89,.14);
+  --warnBg:rgba(255,59,48,.12);
+
+  /* --- focus ring: Apple's keyboardFocusIndicatorColor --- */
+  --onRole:#FFFFFF;  /* light: the role fills are dark, so the label goes white */
+  /* --- page texture + illustration surfaces. Wash opacities are capped so the
+         worst case (both washes plus a grid dot under one glyph) still leaves
+         every colour that sits on the page at 4.58:1 or better. --- */
+  --grid:rgba(60,60,67,.028);
+  --washA:rgba(255,149,0,.045); --washB:rgba(0,122,255,.04);
+  --artHi:#FFFFFF; --artLo:#F4F4F8; --artCab:#E8E8EF; --artShadow:rgba(0,0,0,.16);
+  --focus:#007AFF;
+
+  /* --- elevation: hairline + soft ambient, the way Apple stacks cards --- */
+  --shadow:0 0 0 .5px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.04), 0 8px 24px -8px rgba(0,0,0,.10);
+  --shadowPill:0 0 0 .5px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.10);
+  --glass:rgba(242,242,247,.72);
+
+  /* --- corner radii: Apple's continuous-corner scale, approximated --- */
+  --r-card:14px; --r-ctl:10px; --r-sm:7px; --r-xs:5px;
+
+  /* --- one content measure, so prose and cards share a left and right edge.
+         Only the interactive panels and the diagram break out to full width
+         (layout.md > Visual hierarchy: "Align components with one another"). --- */
+  --measure:66ch; --measureTight:58ch; --measureWide:920px;
+
+  /* --- height of the floating nav; 0 when the sidebar is a real sidebar --- */
+  --navH:0px;
+
+  /* --- one typeface family (typography.md > Conveying hierarchy) --- */
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,"Cascadia Mono","PingFang TC","Noto Sans TC",monospace;
+  --tech:var(--sans);
+
+  /* --- motion: Apple's standard ease --- */
+  --ease:cubic-bezier(.25,.1,.25,1);
+
+  color-scheme:light dark;
+}
+
+/* Dark appearance. No in-app switch — the system setting decides
+   (dark-mode.md > Best practices: "Avoid offering an app-specific
+   appearance setting"). data-theme exists only as an escape hatch. */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --surface:#1C1C1E; --surface2:#2C2C2E;
+    --line:#38383A; --lineSoft:#2C2C2E;
+    --text:#F5F5F7; --dim:#C7C7CC; --faint:#98989F;
+    --data:#FFB340;  --dataFill:#FF9F0A;
+    --ptr:#6BAEFF;   --ptrFill:#0A84FF;
+    --attr:#DA8FFF;  --attrFill:#BF5AF2;
+    --ok:#30DB5B;    --okFill:#30D158;
+    --warn:#FF6961;  --warnFill:#FF453A;
+    --noteBg:rgba(191,90,242,.10);
+    --dataBg:rgba(255,159,10,.18);
+    --ptrBg:rgba(10,132,255,.20);
+    --attrBg:rgba(191,90,242,.20);
+    --okBg:rgba(48,209,88,.18);
+    --warnBg:rgba(255,69,58,.18);
+    --onRole:#000000;  /* dark: the role fills are light, so the label goes black */
+    --grid:rgba(255,255,255,.045);
+    --washA:rgba(255,159,10,.07); --washB:rgba(10,132,255,.09);
+    --artHi:#2C2C2E; --artLo:#232325; --artCab:#161618; --artShadow:rgba(0,0,0,.6);
+    --focus:#0A84FF;
+    --shadow:0 0 0 .5px rgba(255,255,255,.06), 0 8px 24px -8px rgba(0,0,0,.6);
+    --shadowPill:0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
+    --glass:rgba(28,28,30,.72);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1C1C1E; --surface2:#2C2C2E;
+  --line:#38383A; --lineSoft:#2C2C2E;
+  --text:#F5F5F7; --dim:#C7C7CC; --faint:#98989F;
+  --data:#FFB340;  --dataFill:#FF9F0A;
+  --ptr:#6BAEFF;   --ptrFill:#0A84FF;
+  --attr:#DA8FFF;  --attrFill:#BF5AF2;
+  --ok:#30DB5B;    --okFill:#30D158;
+  --warn:#FF6961;  --warnFill:#FF453A;
+  --noteBg:rgba(191,90,242,.10);
+  --dataBg:rgba(255,159,10,.18);
+  --ptrBg:rgba(10,132,255,.20);
+  --attrBg:rgba(191,90,242,.20);
+  --okBg:rgba(48,209,88,.18);
+  --warnBg:rgba(255,69,58,.18);
+  --onRole:#000000;  /* dark: the role fills are light, so the label goes black */
+  --grid:rgba(255,255,255,.045);
+  --washA:rgba(255,159,10,.07); --washB:rgba(10,132,255,.09);
+  --artHi:#2C2C2E; --artLo:#232325; --artCab:#161618; --artShadow:rgba(0,0,0,.6);
+  --focus:#0A84FF;
+  --shadow:0 0 0 .5px rgba(255,255,255,.06), 0 8px 24px -8px rgba(0,0,0,.6);
+  --shadowPill:0 0 0 .5px rgba(255,255,255,.08), 0 1px 3px rgba(0,0,0,.5);
+  --glass:rgba(28,28,30,.72);
+}
+
+*{box-sizing:border-box}
+body{
+  background-color:var(--bg); color:var(--text);
+  background-image:
+    radial-gradient(58rem 26rem at 12% -6%, var(--washA), transparent 70%),
+    radial-gradient(52rem 24rem at 88% -2%, var(--washB), transparent 70%),
+    radial-gradient(circle, var(--grid) 1px, transparent 1.4px);
+  background-repeat:no-repeat, no-repeat, repeat;
+  background-size:100% 720px, 100% 720px, 26px 26px;
+  font-family:var(--sans); font-size:17px; line-height:1.7;   /* Body 17pt */
+  margin:0; padding-block:0 80px; padding-inline:20px;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  font-synthesis-weight:none;
+}
+.wrap{max-width:1340px; margin:0 auto; display:grid; grid-template-columns:238px minmax(0,1fr); gap:48px; align-items:start}
+@media (max-width:1040px){ .wrap{grid-template-columns:minmax(0,1fr); gap:0} }
+
+/* ---------- sidebar (sidebars.md: one level, quiet, never holds actions) ---------- */
+.rail{position:sticky; top:calc(env(safe-area-inset-top,0px) + 24px); padding-block:28px 0; font-size:13px}
+.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px}
+.rail a{display:grid; grid-template-columns:47px 1fr; gap:11px; align-items:baseline;
+  color:var(--dim); text-decoration:none; padding:8px 12px; border-radius:var(--r-sm);
+  min-height:32px; transition:background .18s var(--ease), color .18s var(--ease)}
+.rail a span.ad{font-family:var(--mono); font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums}
+.rail a span.nm{font-size:13px}
+.rail a:hover{color:var(--text); background-color:var(--surface2)}
+/* Selection is neutral on purpose: on this page colour means "memory role",
+   so the interactive layer speaks through fill, weight and elevation instead
+   (color.md > Best practices: "Avoid using the same color to mean different things"). */
+.rail a.on{color:var(--text); background-color:var(--surface); box-shadow:var(--shadowPill); font-weight:600}
+.rail a.on span.ad{color:var(--text)}
+.rail .railhd{font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--faint); padding-left:12px; margin-bottom:10px}
+@media (max-width:1040px){
+  :root{--navH:57px}
+  /* Compact width: the rail becomes the floating functional layer, so this is
+     the one place Liquid Glass belongs (materials.md > Liquid Glass). */
+  .rail{position:sticky; top:0; z-index:40; background-color:var(--glass);
+    -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:.5px solid var(--line); margin-inline:-20px;
+    padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px}
+  .rail .railhd{display:none}
+  .rail ol{flex-direction:row; overflow-x:auto; gap:4px; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+  .rail ol::-webkit-scrollbar{display:none}
+  .rail a{grid-template-columns:1fr; white-space:nowrap; padding:7px 14px; border-radius:999px; min-height:36px; align-items:center}
+  .rail a span.ad{display:none}
+  /* Scroll edge effect: content fades under the bar instead of being cut by it
+     (layout.md > Visual hierarchy). */
+  .rail::after{content:""; position:absolute; left:0; right:0; top:100%; height:14px;
+    background:linear-gradient(var(--bg),transparent); pointer-events:none}
+}
+@media (prefers-reduced-transparency: reduce){
+  @media (max-width:1040px){ .rail{background-color:var(--bg); -webkit-backdrop-filter:none; backdrop-filter:none} }
+}
+
+/* ---------- typography: Apple text styles ---------- */
+main{padding-block:32px 0; min-width:0}
+/* Negative tracking flatters SF but crowds CJK, so it stays light here. */
+h1{font-weight:700; font-size:clamp(32px,5vw,44px); line-height:1.14; letter-spacing:-.014em; margin:0 0 20px; max-width:var(--measure); text-wrap:balance}
+h2{font-weight:700; font-size:clamp(24px,3vw,30px); line-height:1.28; letter-spacing:-.011em; margin:0 0 8px; max-width:var(--measure); text-wrap:balance}
+h3{font-weight:600; font-size:20px; line-height:1.35; letter-spacing:-.006em; margin:36px 0 10px; max-width:var(--measure)}
+p{margin:0 0 17px; max-width:var(--measure); text-wrap:pretty}
+.lede{font-size:19px; line-height:1.62; color:var(--dim); max-width:var(--measureTight); letter-spacing:-.006em}
+.eyebrow{font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--faint); margin:0 0 10px}
+em{font-style:normal; color:var(--data); font-weight:600}
+strong{font-weight:600}
+.hl-attr{color:var(--attr); font-weight:600}
+ul.plain{margin:0 0 17px; padding-left:22px; max-width:var(--measure)}
+ul.plain li{margin-bottom:8px}
+ul.plain li::marker{color:var(--faint)}
+section{padding-block:60px; border-top:.5px solid var(--lineSoft); scroll-margin-top:calc(var(--navH) + 12px)}
+section:first-of-type{border-top:none; padding-top:24px}
+a{color:var(--ptr)}
+
+/* ---------- hero ---------- */
+.hero .kicker{font-size:14px; color:var(--faint); margin-bottom:22px; letter-spacing:-.004em}
+.howto{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:32px 0 18px; max-width:var(--measure)}
+.howto .h{padding:20px 22px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow)}
+.howto .h .tag{font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:8px}
+.howto .h .tag i{width:9px; height:9px; border-radius:50%; display:inline-block; flex:none}
+.howto .h p{margin:0; font-size:15px; line-height:1.55; color:var(--dim); max-width:none}
+.howto .mid{display:none}          /* the ╌╌► divider said nothing the two labels didn't */
+@media (max-width:640px){ .howto{grid-template-columns:1fr} }
+.hero-legend{display:flex; flex-wrap:wrap; gap:12px 24px; font-size:14px; color:var(--dim); margin-top:22px; max-width:var(--measure)}
+.hero-legend span{display:inline-flex; align-items:center; gap:8px}
+.dot{width:10px; height:10px; border-radius:50%; display:inline-block; flex:none}
+
+/* ---------- cards / split panes ---------- */
+.panel{background-color:var(--surface); border-radius:var(--r-card); margin:28px 0; box-shadow:var(--shadow); overflow:hidden}
+.panel-hd{display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:15px 20px; border-bottom:.5px solid var(--lineSoft)}
+.panel-hd .t{font-size:13px; font-weight:600; color:var(--dim); margin-right:auto; letter-spacing:-.004em}
+.panel-bd{padding:22px 18px}
+.split{display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)}
+.pane{padding:20px 18px; min-width:0}
+.pane + .pane{border-left:.5px solid var(--lineSoft)}
+@media (min-width:901px){ #p8 .pane:first-child{position:sticky; top:calc(var(--navH) + 16px); align-self:start} }
+@media (max-width:900px){ .split{grid-template-columns:minmax(0,1fr)} .pane + .pane{border-left:none; border-top:.5px solid var(--lineSoft)} }
+.paneLbl{font-size:12px; font-weight:600; letter-spacing:.01em; color:var(--faint); margin-bottom:14px; display:flex; align-items:center; gap:8px}
+.paneLbl i{width:8px; height:8px; border-radius:50%; display:inline-block; flex:none}
+.paneLbl.code i{background-color:var(--okFill)}
+.paneLbl.mem i{background-color:var(--dataFill)}
+.bridge{grid-column:1/-1; border-top:.5px solid var(--lineSoft); background-color:var(--surface2); padding:14px 18px;
+  font-family:var(--mono); font-size:13px; color:var(--dim); display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; min-height:56px}
+.bridge .wire{color:var(--ptr); letter-spacing:-1.5px; font-size:13px}
+.bridge .cv{background-color:var(--surface); border-radius:var(--r-xs); padding:3px 9px; color:var(--text); box-shadow:0 0 0 .5px var(--line)}
+.bridge .cv.c{color:var(--ok); box-shadow:0 0 0 1px var(--ok)}
+.bridge .cv.m{color:var(--data); box-shadow:0 0 0 1px var(--data)}
+.bridge .cv.a{color:var(--attr); box-shadow:0 0 0 1px var(--attr)}
+.bridge .cv.w{color:var(--warn); box-shadow:0 0 0 1px var(--warn)}
+.bridge .full{flex-basis:100%; color:var(--faint); line-height:1.6; font-family:var(--sans); font-size:13px}
+.axlab{font-size:12px; color:var(--faint); margin-bottom:9px}
+.hint{font-size:15px; line-height:1.6; color:var(--faint); margin:14px 0 0; max-width:var(--measureTight)}
+
+/* ---------- controls: 44pt touch targets, Apple segmented control ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:6px; padding:3px; background-color:var(--surface2); border-radius:var(--r-ctl)}
+button.chip{font-family:var(--sans); font-size:13px; font-weight:500; color:var(--dim); background:transparent;
+  border:none; border-radius:var(--r-sm); padding:7px 13px; min-height:30px; cursor:pointer;
+  transition:background .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease)}
+button.chip:hover:not(.on){color:var(--text)}
+button.chip.on{color:var(--text); background-color:var(--surface); box-shadow:var(--shadowPill); font-weight:600}
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:var(--r-xs)}
+.seg{display:inline-flex; padding:3px; gap:3px; background-color:var(--surface2); border-radius:var(--r-ctl)}
+.seg button{font-family:var(--sans); font-size:13px; font-weight:500; background:transparent; color:var(--dim);
+  border:none; border-radius:var(--r-sm); padding:7px 15px; min-height:30px; cursor:pointer;
+  transition:background .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease)}
+.seg button:hover:not(.on){color:var(--text)}
+.seg button.on{background-color:var(--surface); color:var(--text); box-shadow:var(--shadowPill); font-weight:600}
+label.rng{display:flex; align-items:center; gap:12px; font-size:13px; color:var(--dim); min-height:30px}
+input[type=range]{accent-color:var(--ptrFill); width:132px; height:28px}
+@media (hover:none){
+  button.chip,.seg button{min-height:38px; padding-block:9px}
+  .expr{min-height:38px}
+}
+
+/* ---------- code ---------- */
+pre{font-family:var(--mono); font-size:13.5px; line-height:2.05; background-color:var(--surface2);
+  border-radius:var(--r-ctl); padding:15px 17px; overflow-x:auto; margin:0 0 16px; color:var(--text)}
+pre .cm{color:var(--faint); font-style:italic}
+pre .st{color:var(--ok)}
+pre .kw{color:var(--attr)}
+pre .nu{color:var(--data)}
+pre .fn{color:var(--ptr)}
+pre .op{color:var(--dim)}
+code.inline{font-family:var(--mono); font-size:.88em; background-color:var(--surface2); border-radius:var(--r-xs);
+  padding:2px 6px; color:var(--text); white-space:nowrap}
+.tok{border-radius:var(--r-xs); padding:4px 5px; margin-block:-2px; cursor:pointer; transition:box-shadow .18s var(--ease), background .18s var(--ease)}
+.tok:hover{box-shadow:0 0 0 1.5px var(--faint)}
+.tok.lit{background-color:var(--data); color:var(--onRole); box-shadow:none}
+.tok.lit span{color:var(--onRole) !important}
+.console{font-family:var(--mono); font-size:13px; line-height:1.85; background-color:var(--surface2);
+  border-radius:var(--r-ctl); padding:13px 15px; overflow-x:auto; color:var(--text); white-space:pre}
+.console .pr{color:var(--faint)}
+.console .tok{padding:2px 3px; margin-block:-1px}
+
+/* ================= MEMORY DUMP — the signature element ================= */
+.region{margin-bottom:16px}
+.region:last-child{margin-bottom:0}
+.rhd{display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 14px;
+  font-size:11px; color:var(--faint); margin-bottom:7px; padding:0 4px}
+.rhd b{font-weight:600; letter-spacing:.02em}
+.rhd b.d{color:var(--data)} .rhd b.p{color:var(--ptr)} .rhd b.a{color:var(--attr)}
+.dump{font-family:var(--mono); font-size:12px; border-radius:var(--r-ctl);
+  background-color:var(--surface2); overflow-x:auto; line-height:1.4}
+.drow{display:grid; grid-template-columns:62px var(--bw,max-content) minmax(140px,1fr); gap:0 14px;
+  align-items:center; padding:0 12px; min-height:32px; border-bottom:.5px solid var(--lineSoft);
+  transition:background .18s var(--ease)}
+.drow:last-child{border-bottom:none}
+.drow.hd{min-height:26px; background-color:var(--bg); border-bottom:.5px solid var(--line);
+  font-size:11px; letter-spacing:.02em; color:var(--faint)}
+.drow.sys{color:var(--faint)}
+.ga{color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums}
+.gb{display:flex; gap:3px}
+.gc{color:var(--dim); min-width:0}
+.by{display:inline-block; min-width:22px; text-align:center; padding:5px 0; border-radius:var(--r-xs);
+  color:var(--dim); font-variant-numeric:tabular-nums; transition:background .18s var(--ease), color .18s var(--ease)}
+.by.hd{color:var(--faint); padding:3px 0}
+.by.zz{opacity:.4}
+.drow.d .by{background-color:var(--dataBg); color:var(--text)}
+.drow.p .by{background-color:var(--ptrBg); color:var(--ptr)}
+.drow.a .by{background-color:var(--attrBg); color:var(--attr)}
+.drow.sys .by{background:transparent; color:var(--faint); opacity:.65}
+.drow.lit{background-color:var(--surface); box-shadow:inset 3px 0 0 var(--ptrFill)}
+.drow.sys.lit .by{background-color:var(--attrBg); color:var(--attr); opacity:1}
+.drow.sys.lit .gc{color:var(--text)}
+.drow.d.lit .by{background-color:var(--data); color:var(--onRole)}
+.drow.p.lit .by{background-color:var(--ptr); color:var(--onRole)}
+.drow.a.lit .by{background-color:var(--attr); color:var(--onRole)}
+.drow[data-link]{cursor:pointer}
+.drow.dim{opacity:.32}
+.ann{white-space:nowrap}
+.ann .eq{color:var(--text)}
+.ann .ty{color:var(--faint)}
+.memgap{font-size:11px; color:var(--faint); text-align:center; padding:9px 0; letter-spacing:.06em}
+.tgt{display:inline-flex; flex-wrap:wrap; gap:5px; align-items:center;
+  background-color:var(--dataBg); border-radius:var(--r-sm); padding:4px 9px; font-size:12px; color:var(--text);
+  box-shadow:0 0 0 1px var(--data)}
+.tgt .sub{background-color:var(--surface); border-radius:var(--r-xs); padding:1px 6px; box-shadow:0 0 0 .5px var(--line)}
+.tgt .ty{font-size:11px; color:var(--dim); letter-spacing:.02em}
+.gc .arrow{color:var(--ptr); letter-spacing:-1.5px; margin:0 6px}
+.gc .nmlab{color:var(--text)}
+.boxwrap{border:2px dashed var(--ptrFill); border-radius:var(--r-card); padding:13px; background-color:var(--ptrBg); transition:.35s var(--ease)}
+.boxwrap.open{border-color:transparent; background:transparent; padding:0}
+.boxwrap .lbl{font-size:12px; color:var(--ptr); margin-bottom:9px; transition:opacity .3s var(--ease)}
+.boxwrap.open .lbl{opacity:0; height:0; margin:0; overflow:hidden}
+
+/* ---------- expressions ---------- */
+.exprs{display:flex; flex-wrap:wrap; gap:6px}
+.expr{font-family:var(--mono); font-size:13px; background-color:var(--surface2); color:var(--dim);
+  border:none; border-radius:var(--r-sm); padding:7px 12px; min-height:32px; cursor:pointer;
+  transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease)}
+.expr:hover{color:var(--text); background-color:var(--lineSoft)}
+.expr.lit{background-color:var(--dataBg); color:var(--data); font-weight:600; box-shadow:0 0 0 1px var(--data)}
+.expr.off{opacity:.5}
+
+/* ---------- matrix ---------- */
+.mgrid{display:inline-grid; gap:5px; font-family:var(--mono)}
+.mcell{background-color:var(--dataBg); border-radius:var(--r-sm); width:54px; padding:11px 0; color:var(--text);
+  text-align:center; font-size:14px; cursor:pointer; box-shadow:0 0 0 1px var(--data);
+  transition:transform .2s var(--ease), box-shadow .2s var(--ease)}
+.mcell.lit{box-shadow:0 0 0 2px var(--text); transform:translateY(-3px)}
+.mlab{font-size:11px; color:var(--faint); text-align:center; align-self:center; padding:0 8px; font-family:var(--mono)}
+
+/* ---------- size table / calc card ---------- */
+.sizetbl{font-family:var(--mono); font-size:13px; width:auto; min-width:0}
+.sizetbl th,.sizetbl td{padding:6px 16px 6px 0; cursor:default; font-family:var(--mono)}
+.sizetbl td.hi{color:var(--data); font-weight:700}
+.calc{font-size:14px; background-color:var(--surface); border-radius:var(--r-card); box-shadow:var(--shadow);
+  padding:20px 22px; margin:22px 0; max-width:var(--measure);
+  display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:9px 28px; align-items:baseline}
+.calc .k{color:var(--dim)}
+.calc .k em{color:var(--faint); font-style:normal; font-size:12.5px; font-weight:400}
+.calc .v{color:var(--text); text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.calc .tot{color:var(--data); font-weight:700; font-size:15px}
+.calc .note2{grid-column:1/-1; color:var(--faint); font-size:12.5px; margin-top:4px}
+.calc hr{grid-column:1/-1; border:none; border-top:.5px solid var(--line); margin:4px 0; width:100%}
+
+/* ---------- lineage diagram ---------- */
+figure.dgwrap{margin:28px 0; overflow-x:auto}
+.dgm{display:block; width:100%; min-width:720px; max-width:var(--measureWide); height:auto; color:var(--dim); margin:0}
+.dgm text{fill:currentColor; font-family:var(--mono); font-size:11px}
+.dgm .t{fill:var(--text); font-size:14px; font-family:var(--sans); font-weight:600}
+.dgm .s{font-size:11px; fill:var(--faint)}
+.dgm rect{fill:none; stroke:currentColor; stroke-opacity:.3}
+.dgm .boxL{stroke:var(--data); stroke-opacity:.9; stroke-width:1.5}
+.dgm .boxR{stroke:var(--ptr); stroke-opacity:.9; stroke-width:1.5}
+.dgm .cL{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.6}
+.dgm .cR{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.6}
+.dgm line{stroke-width:1.3; fill:none}
+.dgm .wL{stroke:var(--data)} .dgm .wR{stroke:var(--ptr)}
+.dgm .hL{fill:var(--data)} .dgm .hR{fill:var(--ptr)}
+.dgm .lab{fill:var(--attr); font-size:11.5px}
+.dgm .mono{font-family:var(--mono)}
+figcaption{font-size:14px; color:var(--faint); margin-top:14px; max-width:var(--measureTight); line-height:1.58}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse; font-size:14px; width:100%; min-width:360px}
+th,td{text-align:left; padding:9px 12px; border-bottom:.5px solid var(--lineSoft); transition:background .15s var(--ease)}
+thead th{font-size:12px; color:var(--dim); font-weight:600; border-bottom:.5px solid var(--line); cursor:pointer}
+td{font-family:var(--mono); font-variant-numeric:tabular-nums; cursor:pointer}
+th.lit,td.lit{background-color:var(--dataBg); color:var(--text)}
+.reftbl{max-width:var(--measureWide)}
+.reftbl th{font-size:12px; letter-spacing:.01em; color:var(--faint); font-weight:600; cursor:default}
+.reftbl td{font-family:var(--sans); cursor:default}
+.reftbl td code{font-family:var(--mono); font-size:13px; color:var(--data)}
+
+/* ---------- callouts ---------- */
+/* An aside is tinted rather than elevated, so it reads as a different KIND of
+   thing from the white .calc / .q cards instead of the same thing twice. */
+.note{background-color:var(--noteBg); border-radius:var(--r-card); box-shadow:0 0 0 .5px var(--line);
+  padding:20px 22px; margin:26px 0; font-size:15.5px; line-height:1.68; color:var(--dim); max-width:var(--measure)}
+.note b.h{color:var(--attr); font-size:13px; font-weight:600; letter-spacing:-.004em; display:block; margin-bottom:10px}
+.note p{margin:0 0 11px; max-width:none}
+.note p:last-child{margin:0}
+.note pre{background-color:var(--surface); box-shadow:0 0 0 .5px var(--lineSoft); margin-block:14px}
+.note code.inline{background-color:var(--surface); box-shadow:0 0 0 .5px var(--lineSoft)}
+.note .tblwrap{margin-block:14px}
+
+/* ---------- quiz: grouped list rows, 44pt targets ---------- */
+.quiz{display:flex; flex-direction:column; gap:16px; max-width:var(--measure)}
+.q{border-radius:var(--r-card); background-color:var(--surface); box-shadow:var(--shadow); padding:22px}
+.q .qh{display:flex; gap:12px; align-items:baseline; margin-bottom:14px}
+.q .qn{font-family:var(--mono); font-size:12px; color:var(--faint); flex:none; font-variant-numeric:tabular-nums}
+.q .qt{font-weight:600; font-size:17px; line-height:1.45; letter-spacing:-.008em}
+.q .qt code{font-family:var(--mono); font-size:14px; font-weight:400; color:var(--data); background-color:var(--surface2); padding:2px 6px; border-radius:var(--r-xs)}
+.opts{display:flex; flex-direction:column; gap:7px}
+.opts button{text-align:left; font-family:var(--mono); font-size:14px; line-height:1.5; color:var(--dim); background-color:var(--surface2);
+  border:none; border-radius:var(--r-ctl); padding:12px 15px; min-height:44px; cursor:pointer;
+  transition:background .18s var(--ease), color .18s var(--ease), box-shadow .18s var(--ease)}
+.opts button:hover:not(:disabled){color:var(--text); background-color:var(--lineSoft)}
+.opts button:disabled{cursor:default}
+/* state carries a glyph as well as a colour (accessibility.md > Vision:
+   "Convey information with more than color alone") */
+.opts button.good{color:var(--ok); background-color:var(--okBg); box-shadow:0 0 0 1.5px var(--ok); font-weight:600}
+.opts button.bad{color:var(--warn); background-color:var(--warnBg); box-shadow:0 0 0 1.5px var(--warn); font-weight:600}
+.opts button.good::before{content:"✓ "; font-weight:700}
+.opts button.bad::before{content:"✕ "; font-weight:700}
+.exp{margin-top:14px; font-size:14.5px; line-height:1.6; color:var(--dim); background-color:var(--surface2);
+  border-radius:var(--r-ctl); padding:12px 14px; display:none}
+.exp.show{display:block}
+.score{font-size:15px; color:var(--dim); padding:18px 20px; background-color:var(--surface);
+  border-radius:var(--r-card); box-shadow:var(--shadow); text-align:center; max-width:var(--measure)}
+.score b{color:var(--text); font-size:22px; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* ---------- tree ---------- */
+.tree{font-family:var(--mono); font-size:13px; line-height:1.95; color:var(--dim); overflow-x:auto; padding:6px 0}
+.tree b{color:var(--text); font-weight:600}
+.tree .c1{color:var(--data)} .tree .c2{color:var(--ptr)} .tree .c3{color:var(--attr)}
+
+footer{max-width:1320px; margin:64px auto 0; padding-top:28px; border-top:.5px solid var(--lineSoft); font-size:14px;
+  color:var(--faint); display:flex; flex-wrap:wrap; gap:8px 24px; justify-content:space-between}
+
+/* ============================ illustrations ============================
+   Inline SVG: scales, follows the appearance, costs no extra request, and
+   carries a real aria-label. Every colour comes from the same three role
+   tokens as the rest of the page, so an illustration never invents a meaning. */
+figure.art{margin:30px 0 26px; max-width:var(--measureWide); overflow-x:auto}
+figure.art .art-svg{display:block; width:100%; min-width:640px; height:auto}
+figure.art figcaption{margin-top:12px; text-align:left; max-width:var(--measure)}
+.art-svg text{fill:var(--dim)}
+.art-svg .mono{font-family:var(--mono); font-size:13px}
+.art-svg .lbl{font-size:12.5px; font-weight:600; fill:var(--faint)}
+.art-svg .hd{font-size:13.5px; font-weight:700}
+.art-svg .hd.bad{fill:var(--warn)}  .art-svg .hd.good{fill:var(--ok)}
+.art-svg .hd.dat{fill:var(--data)}  .art-svg .hd.ptr{fill:var(--ptr)}
+.art-svg .addr{fill:var(--faint); font-size:12.5px}
+.art-svg .ann{fill:var(--dim); font-size:12.5px}
+.art-svg .code{font-size:17px; fill:var(--text)}
+.art-svg .num{fill:var(--data); font-weight:700}
+.art-svg .nm{font-size:19px; font-weight:700; fill:var(--text)}
+.art-svg .cap{font-size:13px; fill:var(--faint)}
+.art-svg .cap-c{font-family:var(--mono); font-size:12.5px; fill:var(--dim)}
+.art-svg .fill-d{fill:var(--dataBg)}
+.art-svg .by-d{fill:var(--data); font-size:12px}
+.art-svg .slot{fill:var(--artCab); stroke:var(--line)}
+.art-svg .gloss{stroke:var(--artHi); stroke-opacity:.9; stroke-width:1.5}
+.art-svg .handle{fill:var(--line)}
+.art-svg .wire{fill:none; stroke:var(--ptrFill); stroke-width:2.2; stroke-linecap:round}
+.art-svg .divider{stroke:var(--line); stroke-dasharray:3 6}
+.art-svg .celld{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.5}
+.art-svg .cellp{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.5}
+.art-svg .cella{fill:var(--attrBg); stroke:var(--attr); stroke-opacity:.5}
+.art-svg .cv-d{fill:var(--text); font-size:13.5px}
+.art-svg .cv-p{fill:var(--ptr); font-size:15px}
+.art-svg .cv-a{fill:var(--attr); font-size:13px; font-weight:600}
+.art-svg .sub{fill:var(--faint); font-size:12px}
+.art-svg .hdrband{fill:var(--artCab); stroke:var(--line); stroke-dasharray:4 4}
+.art-svg .bytes{fill:var(--ptr); font-size:12px; letter-spacing:.02em}
+.art-svg .stepdot{fill:var(--ptrFill)}
+.art-svg .stepnum{fill:#fff; font-size:12px; font-weight:700; font-family:var(--sans)}
+.art-svg .stepinline{fill:var(--ptr); font-weight:700}
+.art-svg .picked{fill:none; stroke:var(--text); stroke-width:2.5}
+.art-svg .nobox{fill:none; stroke:var(--faint); stroke-width:1.5; stroke-dasharray:6 6}
+.art-svg .hd.att{fill:var(--attr)}
+.art-svg .wireA{fill:none; stroke:var(--attrFill); stroke-width:2.2; stroke-linecap:round}
+.art-svg .cell-d{fill:var(--dataBg); stroke:var(--data); stroke-opacity:.45}
+.art-svg .cell-p{fill:var(--ptrBg); stroke:var(--ptr); stroke-opacity:.45}
+.art-svg .cell-hi-d{fill:var(--dataBg); stroke:var(--text); stroke-width:2}
+.art-svg .cell-hi-p{fill:var(--ptrBg); stroke:var(--text); stroke-width:2}
+.art-svg .cellv{fill:var(--text); font-size:14px}
+.art-svg .ruler{stroke:var(--line); stroke-width:1.2}
+.art-svg .tick{fill:var(--faint); font-size:11.5px}
+.art-svg .tickhi{fill:var(--text); font-size:11.5px; font-weight:700}
+.art-svg .brk-d{fill:none; stroke:var(--data); stroke-width:1.4}
+.art-svg .brk-p{fill:none; stroke:var(--ptr); stroke-width:1.4}
+.art-svg .stride-d{fill:var(--data); font-size:12.5px; font-weight:700}
+.art-svg .stride-p{fill:var(--ptr); font-size:12.5px; font-weight:700}
+.art-svg .form{fill:var(--dim); font-size:13.5px}
+.art-svg .formhi{fill:var(--data); font-size:13.5px; font-weight:700}
+
+/* One orchestrated entrance, on the hero only; every other illustration stays
+   still (motion.md > Best practices: purposeful, brief, never the only carrier). */
+@keyframes artIn{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+@keyframes artDraw{from{stroke-dashoffset:70} to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion: no-preference){
+  .hero-art .fade,.hero-art .dw,.hero-art .bt{
+    animation:artIn .52s var(--ease) backwards; transform-box:fill-box; transform-origin:center}
+  .hero-art .wire{stroke-dasharray:70; animation:artDraw .6s var(--ease) .28s backwards}
+}
+
+::selection{background-color:var(--ptrBg); color:var(--text)}
+@media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
+</style>
+
+<div class="wrap">
+
+<nav class="rail" aria-label="章節">
+  <div class="railhd">Memory Map</div>
+  <ol id="rail"></ol>
+</nav>
+
+<main>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="s0">
+  <div class="kicker">大數據分析與實踐 · Lecture 2–3 補充 · 中國醫藥大學 醫技系</div>
+  <h1>記憶體裡的 R 物件</h1>
+  <p class="lede">R 的 vector、list、matrix、factor、data.frame 看起來像五種毫不相干的東西。從「電腦怎麼擺放 bytes」看下去，它們其實只是<strong>同一件事的五種包裝</strong>。</p>
+
+  <figure class="art">
+  <svg class="art-svg hero-art" viewBox="-6 0 932 300" role="img"
+       aria-label="左邊是一行 R 程式碼 x 賦值為 c(10, 20, 30)，右邊是一櫃編了號的抽屜，每一格抽屜放著那個數字真正的 8 個 bytes，最上面那格被拉開露出裡面的內容">
+    <defs>
+      <linearGradient id="h-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <linearGradient id="h-cab" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artLo)"/><stop offset="1" stop-color="var(--artCab)"/>
+      </linearGradient>
+      <filter id="h-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="h-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/>
+      </marker>
+    </defs>
+    <g class="fade" style="animation-delay:.05s">
+      <rect x="8" y="111" width="268" height="96" rx="15" fill="url(#h-dw)" stroke="var(--line)" filter="url(#h-sh)"/>
+      <text x="30" y="141" class="lbl">程式端 · 你寫的</text>
+      <text x="30" y="177" class="mono code">x &lt;- c(<tspan class="num">10</tspan>, <tspan class="num">20</tspan>, <tspan class="num">30</tspan>)</text>
+    </g>
+    <path class="wire" d="M286 159 L 336 159" marker-end="url(#h-ar)"/>
+    <text x="348" y="30" class="lbl">電腦端 · RAM 裡編了號的抽屜</text>
+    <rect x="348" y="40" width="546" height="238" rx="18" fill="url(#h-cab)" stroke="var(--line)"/>
+      <rect x="362" y="54" width="518" height="62" rx="13" class="slot"/>
+    <g class="dw" style="animation-delay:0.15s">
+        <rect x="380" y="48" width="518" height="62" rx="13" fill="url(#h-dw)" stroke="var(--line)" stroke-width="1" filter="url(#h-sh)"/>
+        <line x1="393" y1="49.5" x2="885" y2="49.5" class="gloss"/>
+        <text x="396" y="83" class="mono addr">0x1000</text>
+        <g class="tile bt" style="animation-delay:0.45s"><rect x="456" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="472" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.49s"><rect x="493" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="509" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.54s"><rect x="530" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="546" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.58s"><rect x="567" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="583" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.63s"><rect x="604" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="620" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.68s"><rect x="641" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="657" y="83" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile bt" style="animation-delay:0.72s"><rect x="678" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="694" y="83" text-anchor="middle" class="mono by-d">24</text></g>
+      <g class="tile bt" style="animation-delay:0.77s"><rect x="715" y="64" width="32" height="30" rx="7" class="fill-d"/><text x="731" y="83" text-anchor="middle" class="mono by-d">40</text></g>
+        <text x="760" y="83" class="mono ann">x[1] = 10</text>
+        <rect x="872" y="68" width="9" height="22" rx="4.5" class="handle"/>
+      </g>
+    <g class="dw" style="animation-delay:0.25s">
+        <rect x="362" y="128" width="518" height="62" rx="13" fill="url(#h-dw)" stroke="var(--line)" stroke-width="1"/>
+        <line x1="375" y1="129.5" x2="867" y2="129.5" class="gloss"/>
+        <text x="378" y="163" class="mono addr">0x1008</text>
+        <g class="tile"><rect x="438" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="454" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="475" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="491" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="512" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="528" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="549" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="565" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="586" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="602" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="623" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="639" y="163" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="660" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="676" y="163" text-anchor="middle" class="mono by-d">34</text></g>
+      <g class="tile"><rect x="697" y="144" width="32" height="30" rx="7" class="fill-d"/><text x="713" y="163" text-anchor="middle" class="mono by-d">40</text></g>
+        <text x="742" y="163" class="mono ann">x[2] = 20</text>
+        <rect x="854" y="148" width="9" height="22" rx="4.5" class="handle"/>
+      </g>
+    <g class="dw" style="animation-delay:0.35s">
+        <rect x="362" y="202" width="518" height="62" rx="13" fill="url(#h-dw)" stroke="var(--line)" stroke-width="1"/>
+        <line x1="375" y1="203.5" x2="867" y2="203.5" class="gloss"/>
+        <text x="378" y="237" class="mono addr">0x1010</text>
+        <g class="tile"><rect x="438" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="454" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="475" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="491" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="512" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="528" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="549" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="565" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="586" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="602" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="623" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="639" y="237" text-anchor="middle" class="mono by-d">00</text></g>
+      <g class="tile"><rect x="660" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="676" y="237" text-anchor="middle" class="mono by-d">3E</text></g>
+      <g class="tile"><rect x="697" y="218" width="32" height="30" rx="7" class="fill-d"/><text x="713" y="237" text-anchor="middle" class="mono by-d">40</text></g>
+        <text x="742" y="237" class="mono ann">x[3] = 30</text>
+        <rect x="854" y="222" width="9" height="22" rx="4.5" class="handle"/>
+      </g>
+  </svg>
+  </figure>
+
+  <div class="howto">
+    <div class="h">
+      <div class="tag" style="color:var(--ok)"><i style="background:var(--okFill)"></i>左邊 · 程式端</div>
+      <p>你寫的那一行 R 程式碼，以及 console 印出來給你看的樣子。</p>
+    </div>
+    <div class="mid">╌╌╌╌►<br>◄╌╌╌╌</div>
+    <div class="h">
+      <div class="tag" style="color:var(--data)"><i style="background:var(--dataFill)"></i>右邊 · 電腦端</div>
+      <p>同一時刻的記憶體傾印：位址、真正的 bytes、指標、屬性。</p>
+    </div>
+  </div>
+  <p class="hint" style="margin-top:12px">每個面板都是左右對照的。<strong>把滑鼠移到任何一邊（手機用點的），另一邊會同步亮起來</strong>，最下面的連結列會告訴你這兩件事怎麼對上。右邊的十六進位數字不是裝飾 —— 是照 IEEE 754 與 little-endian 真的算出來的。</p>
+
+  <div class="hero-legend">
+    <span><i class="dot" style="background:var(--dataFill)"></i>資料本體 &nbsp;直接躺在記憶體裡</span>
+    <span><i class="dot" style="background:var(--ptrFill)"></i>指標 pointer &nbsp;告訴你去哪裡找</span>
+    <span><i class="dot" style="background:var(--attrFill)"></i>屬性 attributes &nbsp;怎麼解讀這堆 bytes</span>
+  </div>
+</section>
+
+<!-- ===================== 01 RAM ===================== -->
+<section id="s1">
+  <p class="eyebrow">01 · The Machine</p>
+  <h2>CPU 只看得到位址與 bytes</h2>
+  <p>RAM 就是一長排編了號的抽屜。CPU 不認得 <code class="inline">glucose</code>、<code class="inline">patient_id</code> 這些名字，它只會接到一種命令：<span style="font-family:var(--mono); color:var(--data)">「去位址 0x1000，把接下來 8 個 bytes 拿出來。」</span></p>
+  <p>右邊那張表就是<strong>記憶體傾印（hex dump）</strong>的樣子：最左是位址，中間是那幾個 byte 真正的值（十六進位），最右是 R 對它的解讀。注意<strong>資料上面還有六列</strong> —— 那是 R 為了管理這個物件而放的 header，它跟資料一樣要佔記憶體。</p>
+
+  <div class="panel" id="p1">
+    <div class="panel-hd"><span class="t">SEXP · 一行程式碼的兩面</span></div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 你寫的</div>
+        <pre id="p1code"></pre>
+        <div class="console" id="p1con"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 記憶體傾印</div>
+        <div id="p1mem"></div>
+      </div>
+      <div class="bridge" id="p1br"></div>
+    </div>
+  </div>
+
+  <h3>所以一個 3 個數字的向量，到底佔多少記憶體？</h3>
+  <p><strong>絕對不只 24 bytes</strong> —— 型別、長度、屬性指標、GC 資訊全都要佔位置，而且它們就<strong>緊貼在資料前面</strong>。上面那張傾印已經把 header 的六個欄位一格一格拆給你看了：</p>
+
+  <div class="calc">
+    <span class="k">sxpinfo <em>型別 double ＋ GC 標記</em></span><span class="v">8</span>
+    <span class="k">attrib <em>屬性清單的位址，這裡是 NULL</em></span><span class="v">8</span>
+    <span class="k">gengc_next / gengc_prev <em>GC 串列</em></span><span class="v">16</span>
+    <span class="k">length <em>= 3</em></span><span class="v">8</span>
+    <span class="k">truelength</span><span class="v">8</span>
+    <hr>
+    <span class="k">header 小計</span><span class="v">48</span>
+    <span class="k">資料 <em>3 × 8</em></span><span class="v">24</span>
+    <hr>
+    <span class="k tot">合計</span><span class="v tot">72 bytes</span>
+    <span class="note2">…但 R 實際配置 80 bytes。差在哪？見下。</span>
+  </div>
+
+  <div class="note">
+    <b class="h">實測：為什麼是 80 而不是 72</b>
+    <p>在 R 4.3.3（64 位元）裡實際量一下：</p>
+    <pre style="margin:10px 0"><span class="fn">object.size</span>(<span class="fn">numeric</span>(<span class="nu">0</span>))       <span class="cm"># 48 bytes ← 這就是純 header</span>
+<span class="fn">object.size</span>(<span class="fn">c</span>(<span class="nu">10</span>, <span class="nu">20</span>, <span class="nu">30</span>))  <span class="cm"># 80 bytes</span></pre>
+    <p>差的那 8 bytes 是因為 R <strong>不會剛好只配 24 bytes</strong>：小向量是從固定的「尺寸級距」裡拿的，以 8 bytes 為一格，級距是 1、2、4、6、8、16 格。3 個 double 需要 3 格，只好進位到 <strong>4 格 = 32 bytes</strong>，所以 48 + 32 = 80。</p>
+    <div class="tblwrap">
+      <table class="sizetbl">
+        <thead><tr><th>物件</th><th>object.size</th><th>＝ header</th><th>＋ 實際配置的資料</th></tr></thead>
+        <tbody>
+          <tr><td>numeric(0)</td><td>48</td><td>48</td><td>0</td></tr>
+          <tr><td>numeric(1)</td><td>56</td><td>48</td><td>8（1 格）</td></tr>
+          <tr><td>numeric(2)</td><td>64</td><td>48</td><td>16（2 格）</td></tr>
+          <tr><td class="hi">numeric(3)</td><td class="hi">80</td><td>48</td><td class="hi">32（進位到 4 格）</td></tr>
+          <tr><td>numeric(4)</td><td>80</td><td>48</td><td>32（4 格）</td></tr>
+          <tr><td>numeric(5)</td><td>96</td><td>48</td><td>48（進位到 6 格）</td></tr>
+          <tr><td>numeric(9…16)</td><td>176</td><td>48</td><td>128（16 格）</td></tr>
+          <tr><td>numeric(17)</td><td>184</td><td>48</td><td>136（超過 16 格就照實配）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>兩個推論值得記住：<strong>小物件的 header 比資料還貴</strong>（3 個數字：48 bytes 的管理費 vs 24 bytes 的資料），所以 R 裡「一百萬個長度 1 的向量」會比「一個長度一百萬的向量」貴非常多；而長度一大，48 bytes 就可以忽略不計了（<code class="inline">numeric(100)</code> 是 848 bytes，幾乎全是資料）。</p>
+  </div>
+
+  <div class="note">
+    <b class="h">那串 00 00 00 00 00 00 24 40 是什麼</b>
+    <p>數字 10 在 R 裡是雙精度浮點數，照 <strong>IEEE 754 binary64</strong> 編碼是 <code class="inline">0x4024000000000000</code>。x86 與 Apple silicon 都是 <strong>little-endian</strong>（低位組在前），所以寫進記憶體時順序整個反過來，變成 <code class="inline">00 00 00 00 00 00 24 40</code>。</p>
+    <p>同一堆 bytes，說明書寫 double 就是 10，說明書寫 character 就會變成一段無意義的指標。<strong>型別不是資料的一部分，是解讀方式。</strong></p>
+  </div>
+</section>
+
+<!-- ===================== 02 ASSIGNMENT ===================== -->
+<section id="s2">
+  <p class="eyebrow">02 · Variable &amp; Assignment</p>
+  <h2>變數不是箱子，是貼在位址上的名牌</h2>
+  <p>課堂上我們說 <code class="inline">&lt;-</code> 是「裝箱」。那是很好的第一印象，但電腦裡發生的其實是<strong>分開的兩件事</strong>：</p>
+  <ul class="plain">
+    <li>R 先在記憶體某處<strong>造出一個物件</strong>（一段 header ＋ 資料），這個物件有自己的位址。</li>
+    <li>R 再到目前的 <span class="hl-attr">environment</span>（一張「名字 → 位址」的對照表）裡登記：<code class="inline">x</code> 這個名字，指向那個位址。</li>
+  </ul>
+  <p>所以<strong>名字不在物件裡，物件也不知道自己叫什麼</strong>。一個物件可以同時有好幾個名字，也可以一個名字都沒有。<code class="inline">&lt;-</code> 做的事情是「改寫名牌指向哪裡」，不是「把東西塞進一個固定的箱子」。</p>
+
+  <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 248" role="img"
+       aria-label="左邊是常見但錯誤的想像：變數 x 是一個箱子，10、20、30 裝在箱子裡。右邊是實際情形：x 和 y 是兩張名牌，都指向位址 0x1000 的同一塊記憶體">
+    <defs>
+      <linearGradient id="b-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <linearGradient id="b-cab" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artLo)"/><stop offset="1" stop-color="var(--artCab)"/>
+      </linearGradient>
+      <filter id="b-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="b-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/>
+      </marker>
+    </defs>
+    <text x="0" y="18" class="hd bad">✕ 常見的想像：變數是箱子</text>
+    <rect x="34" y="54" width="220" height="24" rx="8" fill="url(#b-cab)" stroke="var(--line)"/>
+    <rect x="44" y="72" width="200" height="104" rx="13" fill="url(#b-dw)" stroke="var(--line)" filter="url(#b-sh)"/>
+    <text x="62" y="100" class="mono nm">x</text>
+    <rect x="62" y="118" width="46" height="34" rx="9" class="fill-d"/><text x="85" y="140" text-anchor="middle" class="mono by-d">10</text> <rect x="114" y="118" width="46" height="34" rx="9" class="fill-d"/><text x="137" y="140" text-anchor="middle" class="mono by-d">20</text> <rect x="166" y="118" width="46" height="34" rx="9" class="fill-d"/><text x="189" y="140" text-anchor="middle" class="mono by-d">30</text>
+    <text x="36" y="205" class="cap">值就裝在名字裡面。照這個想法，</text>
+    <text x="36" y="226" class="cap">「複製一份給 y」就得把整箱東西再搬一次。</text>
+  
+    <line x1="330" y1="8" x2="330" y2="238" class="divider"/>
+  
+    <text x="380" y="18" class="hd good">✓ 實際上：變數是貼在位址上的名牌</text>
+    <rect x="390" y="62" width="68" height="36" rx="10" fill="url(#b-dw)" stroke="var(--ptrFill)" stroke-width="1.5"/>
+    <text x="424" y="86" text-anchor="middle" class="mono nm">x</text>
+    <rect x="390" y="126" width="68" height="36" rx="10" fill="url(#b-dw)" stroke="var(--ptrFill)" stroke-width="1.5"/>
+    <text x="424" y="150" text-anchor="middle" class="mono nm">y</text>
+    <path class="wire" d="M462 80 C 530 80, 560 96, 630 102" marker-end="url(#b-ar)"/>
+    <path class="wire" d="M462 144 C 530 144, 560 122, 630 112" marker-end="url(#b-ar)"/>
+    <rect x="640" y="56" width="236" height="104" rx="13" fill="url(#b-dw)" stroke="var(--line)" filter="url(#b-sh)"/>
+    <text x="660" y="84" class="mono addr">0x1000</text>
+    <rect x="660" y="100" width="46" height="34" rx="9" class="fill-d"/><text x="683" y="122" text-anchor="middle" class="mono by-d">10</text> <rect x="712" y="100" width="46" height="34" rx="9" class="fill-d"/><text x="735" y="122" text-anchor="middle" class="mono by-d">20</text> <rect x="764" y="100" width="46" height="34" rx="9" class="fill-d"/><text x="787" y="122" text-anchor="middle" class="mono by-d">30</text>
+    <text x="380" y="205" class="cap">名字住在環境表裡，只記著一個位址。</text>
+    <text x="380" y="226" class="cap">所以 <tspan class="mono cap-c">y &lt;- x</tspan> 是免費的 —— 多寫一張名牌而已，資料一格都沒動。</text>
+  </svg>
+  <figcaption>箱子模型解釋不了「為什麼 <code class="inline">y &lt;- x</code> 幾乎不花時間」；名牌模型可以 —— 也正是 copy-on-modify 的起點。</figcaption>
+  </figure>
+
+  <div class="panel" id="pAS">
+    <div class="panel-hd">
+      <span class="t">Assignment Walkthrough</span>
+      <div class="chips" id="asStep"></div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 一行一行往下跑</div>
+        <pre id="asCode"></pre>
+        <div class="axlab">console</div>
+        <div class="console" id="asCon"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 名字表 ＋ 物件</div>
+        <div id="asMem"></div>
+      </div>
+      <div class="bridge" id="asBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">為什麼 y &lt;- x 不會讓記憶體變兩倍</b>
+    <p>第 2 步只是在名字表裡多寫一列，指向<strong>同一個位址</strong>。所以把一個 500 MB 的 data.frame 指派給另一個變數是免費的 —— 直到你去改它為止。</p>
+    <p>第 3 步才是重點：R 發現有<strong>兩個</strong>名字指著那塊記憶體，於是複製一份到新位址再改，好讓 <code class="inline">x</code> 看到的東西不變。這就是 <strong>copy-on-modify</strong>，也是 <code class="inline">tracemem()</code> 在幫你監看的事。</p>
+  </div>
+
+  <h3>幾個順帶釐清的小地方</h3>
+  <ul class="plain">
+    <li><strong>名字表是雜湊的。</strong>environment 是 R 裡少數真的用 hash table 的結構，所以用變數名字找東西很快。等一下你會看到，<code class="inline">v["banana"]</code> 那種「用名字索引向量」完全是另一回事 —— 那是線性搜尋。</li>
+    <li><strong><code class="inline">=</code> 與 <code class="inline">&lt;-</code> 不完全一樣。</strong>在最外層兩者都能賦值，但在函式呼叫的括號裡，<code class="inline">f(x = 3)</code> 的 <code class="inline">=</code> 是「指定參數」，不會在你的環境裡留下 <code class="inline">x</code>。寫 <code class="inline">&lt;-</code> 可以避免這種混淆（RStudio 快捷鍵 <code class="inline">Alt</code> + <code class="inline">-</code>）。</li>
+    <li><strong>沒有名字指著的物件會被回收</strong>（見下面的 GC）。第 4 步之後，原本那塊 double[3] 沒有任何名牌指向它。</li>
+  </ul>
+
+  <div class="note">
+    <b class="h">GC 是什麼</b>
+    <p><strong>GC = garbage collection，垃圾回收。</strong>「垃圾」有明確定義：<strong>從名字表出發，再也走不到的物件</strong>。R 會不定時從所有 environment 的名字開始往外走，走得到的標記為「還活著」，剩下沒被走到的，那段記憶體就釋放掉給下一個物件用。</p>
+    <p>所以第 4 步裡 0x1000 那塊之所以是垃圾，不是因為「x 變了」，而是因為<strong>現在沒有任何名字能走到它</strong>。只要還有一個名字指著（例如你先做過 <code class="inline">z &lt;- x</code>），它就會繼續活著。</p>
+    <p>這是 R、Python、Java 這類語言跟 C 最大的差別之一：<strong>你不用、也不能自己釋放記憶體</strong>。C 要自己 <code class="inline">malloc</code> / <code class="inline">free</code>，忘了 free 就記憶體洩漏、free 兩次就當機；R 幫你處理掉了，代價是 GC 執行的那個瞬間程式會稍微停一下。<code class="inline">gc()</code> 可以手動叫它跑一次，但幾乎沒有必要 —— R 自己會在需要記憶體時觸發。</p>
+    <p>常見誤會：<code class="inline">rm(x)</code> <strong>不是</strong>刪除資料，它只是把名字表裡 x 那一列拿掉。資料要等到 GC 發現沒人指著它，才真的消失。</p>
+  </div>
+</section>
+
+<!-- ===================== 03 VECTOR ===================== -->
+<section id="s3">
+  <p class="eyebrow">03 · Atomic Vector</p>
+  <h2>Vector：一排同規格的抽屜</h2>
+  <p>因為每一格<strong>大小都一樣</strong>，CPU 要找第 <em>i</em> 個元素不需要一格一格數，直接算就好：<span style="font-family:var(--mono); color:var(--data)">位址 = 起點 + (i − 1) × 每格 bytes</span></p>
+  <p>切換型別時注意左邊位址欄的<strong>跨距</strong>：double 每次跳 8，integer 與 logical 每次只跳 4。</p>
+
+  <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 386" role="img"
+       aria-label="上排是 double，每格佔 8 bytes，位址每次跳 8；下排是 integer，每格只佔 4 bytes，格子畫得比較窄，位址每次只跳 4。右邊是位址公式：起點加上索引減一再乘以每格 bytes">
+    <defs>
+      <linearGradient id="s-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <linearGradient id="s-cab" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artLo)"/><stop offset="1" stop-color="var(--artCab)"/>
+      </linearGradient>
+      <filter id="s-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="s-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/>
+      </marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">double · 每格 8 bytes</text>
+    <rect x="0" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="56" y="71" text-anchor="middle" class="mono cellv">10</text>
+      <rect x="120" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="176" y="71" text-anchor="middle" class="mono cellv">20</text>
+      <rect x="240" y="40" width="112" height="50" rx="10" class="cell-hi-d"/>
+      <text x="296" y="71" text-anchor="middle" class="mono cellv">30</text>
+      <rect x="360" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="416" y="71" text-anchor="middle" class="mono cellv">40</text>
+      <rect x="480" y="40" width="112" height="50" rx="10" class="cell-d"/>
+      <text x="536" y="71" text-anchor="middle" class="mono cellv">50</text>
+      <line x1="0" y1="106" x2="592" y2="106" class="ruler"/>
+      <line x1="0" y1="101" x2="0" y2="111" class="ruler"/>
+      <text x="0" y="128" text-anchor="start" class="mono tick">0x1000</text>
+      <line x1="120" y1="101" x2="120" y2="111" class="ruler"/>
+      <text x="120" y="128" text-anchor="middle" class="mono tick">0x1008</text>
+      <line x1="240" y1="101" x2="240" y2="111" class="ruler"/>
+      <text x="240" y="128" text-anchor="middle" class="mono tickhi">0x1010</text>
+      <line x1="360" y1="101" x2="360" y2="111" class="ruler"/>
+      <text x="360" y="128" text-anchor="middle" class="mono tick">0x1018</text>
+      <line x1="480" y1="101" x2="480" y2="111" class="ruler"/>
+      <text x="480" y="128" text-anchor="middle" class="mono tick">0x1020</text>
+      <path class="brk-d" d="M2 142 L2 149 L118 149 L118 142"/>
+      <text x="60" y="168" text-anchor="middle" class="mono stride-d">+8</text>
+    <text x="0" y="222" class="hd ptr">integer · 每格 4 bytes</text>
+    <rect x="0" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="26" y="273" text-anchor="middle" class="mono cellv">10</text>
+      <rect x="60" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="86" y="273" text-anchor="middle" class="mono cellv">20</text>
+      <rect x="120" y="242" width="52" height="50" rx="10" class="cell-hi-p"/>
+      <text x="146" y="273" text-anchor="middle" class="mono cellv">30</text>
+      <rect x="180" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="206" y="273" text-anchor="middle" class="mono cellv">40</text>
+      <rect x="240" y="242" width="52" height="50" rx="10" class="cell-p"/>
+      <text x="266" y="273" text-anchor="middle" class="mono cellv">50</text>
+      <line x1="0" y1="308" x2="292" y2="308" class="ruler"/>
+      <line x1="0" y1="303" x2="0" y2="313" class="ruler"/>
+      <text x="0" y="330" text-anchor="start" class="mono tick">0x1000</text>
+      <line x1="60" y1="303" x2="60" y2="313" class="ruler"/>
+      <line x1="120" y1="303" x2="120" y2="313" class="ruler"/>
+      <text x="120" y="330" text-anchor="middle" class="mono tickhi">0x1008</text>
+      <line x1="180" y1="303" x2="180" y2="313" class="ruler"/>
+      <line x1="240" y1="303" x2="240" y2="313" class="ruler"/>
+      <text x="240" y="330" text-anchor="middle" class="mono tick">0x1010</text>
+      <path class="brk-p" d="M2 344 L2 351 L58 351 L58 344"/>
+      <text x="30" y="370" text-anchor="middle" class="mono stride-p">+4</text>
+    <rect x="636" y="40" width="276" height="136" rx="15" fill="url(#s-dw)" stroke="var(--line)" filter="url(#s-sh)"/>
+    <text x="658" y="70" class="lbl">CPU 不用一格一格數，直接算</text>
+    <text x="658" y="102" class="mono form">位址 = 起點 + (i−1) × 每格</text>
+    <text x="658" y="136" class="mono formhi">x[3] = 0x1000 + 2×8</text>
+    <text x="658" y="158" class="mono formhi">     = 0x1010</text>
+  </svg>
+  <figcaption>integer 的格子畫得比較窄不是美術選擇 —— 它真的只佔一半記憶體，所以位址每次只跳 4。</figcaption>
+  </figure>
+
+  <div class="panel" id="p2">
+    <div class="panel-hd">
+      <span class="t">Memory Inspector</span>
+      <div class="chips" id="vecPick"></div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <pre id="vecCode"></pre>
+        <div class="axlab">點一個索引運算式，看它落在哪一列</div>
+        <div class="exprs" id="vecExpr"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端</div>
+        <div id="vecMem"></div>
+      </div>
+      <div class="bridge" id="vecBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">character vector 為什麼是指標</b>
+    <p>字串長度不一，塞不進固定大小的格子。所以 character vector 每一格放的是<strong>指向 R 全域字串池（CHARSXP cache）的 8-byte 指標</strong>，字串本體住在別的地方。切到 character 那一頁，右邊的 bytes 就是那些位址本身。</p>
+    <p>這也是為什麼同一個字串重複出現一萬次，記憶體不會漲一萬倍 —— 一萬格指標指向同一份字串。</p>
+  </div>
+</section>
+
+<!-- ===================== 03 COERCION ===================== -->
+<section id="s4">
+  <p class="eyebrow">04 · Coercion</p>
+  <h2>混裝的下場：往「比較包容」的型別硬轉</h2>
+  <p>既然一排抽屜只能有一套解讀方式，<code class="inline">c(TRUE, 1, "a")</code> 就不可能真的混裝。R 的選擇是：<strong>全部轉成能裝下所有人的那一種</strong>。</p>
+  <p style="font-family:var(--mono); font-size:13.5px; color:var(--dim)">logical &nbsp;→&nbsp; integer &nbsp;→&nbsp; double &nbsp;→&nbsp; character &nbsp;&nbsp;<span style="color:var(--faint)">（愈右愈包容，字串是終點站）</span></p>
+
+  <div class="panel" id="p3">
+    <div class="panel-hd">
+      <span class="t">Coercion Lab</span>
+      <div class="chips" id="coPick"></div>
+      <button class="chip" id="coClear">清空</button>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 你打算放進去的</div>
+        <pre id="coCall"></pre>
+        <div class="axlab">型別階梯 · 亮起來的是最後的共同型別</div>
+        <div id="coLadder" style="display:flex; font-family:var(--mono); font-size:11.5px"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 實際存進去的 bytes</div>
+        <div id="coMem"></div>
+      </div>
+      <div class="bridge" id="coBr"></div>
+    </div>
+  </div>
+
+  <p>注意看 bytes 怎麼變：<code class="inline">TRUE</code> 在 logical 是 <code class="inline">01 00 00 00</code>，被推到 double 就變成 <code class="inline">00 00 00 00 00 00 F0 3F</code>（也就是 1.0），再被推到 character 就只剩一個指向 <code class="inline">"TRUE"</code> 的指標。同一個概念，三種完全不同的 bytes。</p>
+</section>
+
+<!-- ===================== 04 NAMED VECTOR ===================== -->
+<section id="s5">
+  <p class="eyebrow">05 · Named Vector</p>
+  <h2>Named vector：資料一格沒動，旁邊多掛一條名牌</h2>
+  <p>向量可以有名字，但名字<strong>不住在抽屜裡</strong>。R 把它放在一條<span class="hl-attr">完全獨立的 character vector</span>，掛在 <code class="inline">attr(, "names")</code> 上 —— 右邊你會看到三塊位址差很遠的記憶體。</p>
+  <h3>那兩塊記憶體是怎麼連起來的？</h3>
+  <p>靠的是物件 header 裡的 <code class="inline">attrib</code> 欄位 —— 每個 R 物件的 header 都有一格專門放「屬性清單的位址」。沒有屬性時它是 NULL；一旦你設了 names，R 會做三件事：</p>
+  <ul class="plain">
+    <li>另外配置一條 character vector 存名字（右邊第 ③ 塊）。</li>
+    <li>建一個<strong>屬性節點</strong>（pairlist，右邊第 ② 塊）：<code class="inline">TAG</code> 記著「這個屬性叫 names」，<code class="inline">VALUE</code> 記著那條 vector 的位址，<code class="inline">NEXT</code> 指向下一個屬性。</li>
+    <li>把資料物件 header 的 <code class="inline">attrib</code> 欄位指向這個節點。</li>
+  </ul>
+  <p>所以整條鏈是：<span style="font-family:var(--mono); font-size:13.5px">資料物件 → <span class="hl-attr">attrib</span> → 屬性節點 → names 向量</span>。<code class="inline">names(v)</code> 這個函式做的就是走完這條鏈。右邊面板裡滑過 <code class="inline">attrib</code> 那一列可以看到整條路徑。</p>
+  <p>因為節點有 <code class="inline">NEXT</code>，屬性是可以一個接一個串下去的。後面 matrix 的 <code class="inline">dim</code>、factor 的 <code class="inline">levels</code> 與 <code class="inline">class</code>、data.frame 的 <code class="inline">names</code> / <code class="inline">row.names</code> / <code class="inline">class</code>，全都是掛在<strong>同一條鏈</strong>上的節點 —— 你在那幾節的 header 裡會看到同一個 attrib 欄位。</p>
+  <p class="hint" style="margin-bottom:8px">要注意的是：① 和 ③ 之間<strong>沒有</strong>任何指標互指。名字和值是靠<strong>位置</strong>對齊的 —— names 的第 <em>i</em> 格就是資料的第 <em>i</em> 格的名字，如此而已。這也是為什麼 <code class="inline">names(v)</code> 長度必須跟 <code class="inline">v</code> 一樣，短了就會補 NA。</p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 260" role="img" aria-label="named vector：左邊是原本 1、2、3 三格 double 資料，它 header 裡的 attrib 欄位指向 0x4600 的屬性節點，節點的 TAG 是 names、VALUE 指向 0x4800 另一條放 apple、banana、peach 的 character 向量">
+    <defs>
+      <linearGradient id="nv-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="nv-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="nv-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="nv-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">① 資料本體 · 一個 byte 都沒動</text>
+    <rect x="0" y="36" width="330" height="150" rx="13" fill="url(#nv-dw)" stroke="var(--line)" filter="url(#nv-sh)"/>
+    <text x="18" y="62" class="mono addr">0x1000 · double[3]</text>
+    <rect x="18" y="66" width="294" height="26" rx="9" class="cella"/><text x="165" y="84" text-anchor="middle" class="mono cv-a" style="font-size:12px">attrib → 0x4600</text>
+    <rect x="18" y="104" width="92" height="46" rx="9" class="celld"/><text x="64" y="132" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="116" y="104" width="92" height="46" rx="9" class="celld"/><text x="162" y="132" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="214" y="104" width="92" height="46" rx="9" class="celld"/><text x="260" y="132" text-anchor="middle" class="mono cv-d">3</text>
+    <path class="wireA" d="M334 79 L 388 79" marker-end="url(#nv-aa)"/>
+    <text x="404" y="20" class="hd att">② 屬性節點</text>
+    <rect x="392" y="36" width="150" height="150" rx="13" fill="url(#nv-dw)" stroke="var(--line)" filter="url(#nv-sh)"/>
+    <text x="410" y="62" class="mono addr">0x4600</text>
+    <text x="410" y="86" class="sub">TAG = names</text>
+    <rect x="410" y="104" width="114" height="46" rx="9" class="cella"/><text x="467" y="132" text-anchor="middle" class="mono cv-a" style="font-size:12px">VALUE</text>
+    <text x="467" y="172" text-anchor="middle" class="sub">NEXT = NULL</text>
+    <path class="wireA" d="M546 127 L 606 127" marker-end="url(#nv-aa)"/>
+    <text x="622" y="20" class="hd att">③ 名字住在別的地方</text>
+    <rect x="610" y="36" width="310" height="150" rx="13" fill="url(#nv-dw)" stroke="var(--line)" filter="url(#nv-sh)"/>
+    <text x="628" y="62" class="mono addr">0x4800 · character[3]</text>
+    <rect x="628" y="104" width="80" height="46" rx="9" class="cella"/><text x="668" y="132" text-anchor="middle" class="mono cv-a" style="font-size:11px">"apple"</text>
+    <rect x="716" y="104" width="80" height="46" rx="9" class="cella"/><text x="756" y="132" text-anchor="middle" class="mono cv-a" style="font-size:11px">"banana"</text>
+    <rect x="804" y="104" width="80" height="46" rx="9" class="cella"/><text x="844" y="132" text-anchor="middle" class="mono cv-a" style="font-size:11px">"peach"</text>
+    <text x="628" y="86" class="sub">每格是指向字串池的位址</text>
+    <text x="0" y="222" class="cap">names(v) 這個函式做的，就是沿著 ① 的 attrib 欄位 → ② → ③ 走一趟把名字拿回來 ——</text>
+    <text x="0" y="244" class="cap">所以 v["banana"] 要先在 ③ 裡逐格比對字串，v[2] 則是一次乘法。①③ 之間沒有指標互指，靠的是位置對齊。</text>
+  </svg>
+  <figcaption>跟右邊面板是同一個 <code class="inline">v</code>、同一組位址。取名字要多走兩跳：資料物件 → attrib → names 向量，這就是 <code class="inline">v["banana"]</code> 比 <code class="inline">v[2]</code> 慢的原因。</figcaption>
+  </figure>
+
+  <div class="panel" id="pNV">
+    <div class="panel-hd">
+      <span class="t">names Attribute</span>
+      <div class="chips" id="nvBuild"></div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <pre id="nvCode"></pre>
+        <div class="console" id="nvCon"></div>
+        <div class="axlab" style="margin-top:14px">用位置找</div>
+        <div class="exprs" id="nvExprPos"></div>
+        <div class="axlab" style="margin-top:12px">用名字找</div>
+        <div class="exprs" id="nvExprName"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 三塊不相鄰的記憶體，用 attrib 串起來</div>
+        <div id="nvMem"></div>
+      </div>
+      <div class="bridge" id="nvBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">用名字找東西不是免費的</b>
+    <p><code class="inline">v[2]</code> 是一次乘法就到位。<code class="inline">v["banana"]</code> 則要先在 names 那條 character vector 裡<strong>逐格比對字串</strong>，找到是第幾格，才回頭去算資料本體的位址 —— 這是線性搜尋（O(n)），不是雜湊。</p>
+    <p>所以 R 的 named vector 跟 Python 的 <code class="inline">dict</code> 並不一樣：dict 背後是 hash table，查名字接近 O(1)；R 的 named vector 與 list 用名字查找都是從頭掃到尾。資料量小時無感，但在迴圈裡用名字反覆索引十萬筆就會很有感。（R 裡真正用雜湊的是 <code class="inline">environment</code>。）</p>
+  </div>
+
+  <div class="note">
+    <b class="h">實測：名字比資料貴得多</b>
+    <pre style="margin:10px 0"><span class="fn">object.size</span>(<span class="fn">c</span>(<span class="nu">1</span>, <span class="nu">2</span>, <span class="nu">3</span>))                       <span class="cm"># 80 bytes</span>
+<span class="fn">object.size</span>(<span class="fn">c</span>(apple = <span class="nu">1</span>, banana = <span class="nu">2</span>, peach = <span class="nu">3</span>)) <span class="cm"># 440 bytes</span></pre>
+    <p>多出來的 360 bytes 就是右邊 ② ③ 兩塊：屬性節點（56）、names 那條 character vector（它自己也有 48 bytes 的 header，共 80）、字串池裡三個 CHARSXP（每個字串本身又是一個完整的 R 物件，各 56），再加上「names」這個屬性名稱本身也是一個 symbol 物件（56）。56 ＋ 80 ＋ 168 ＋ 56 ＝ 360。三個名字比三個數字貴了四倍。</p>
+    <p>（小提醒：<code class="inline">object.size()</code> 會把字串池裡共用的 CHARSXP 也算進來，所以對 character 資料它傾向高估；R 4.3.3 實測。）</p>
+  </div>
+
+  <h3>三件跟著就懂的事</h3>
+  <ul class="plain">
+    <li><code class="inline">names(v)[2] &lt;- "lemon"</code> 只改寫右邊那條 character vector，<strong>資料本體那塊記憶體完全沒被碰到</strong>。</li>
+    <li><code class="inline">names(v) &lt;- NULL</code>（或 <code class="inline">unname(v)</code>）把屬性拔掉，整塊 names 記憶體被回收，物件退回最單純的 atomic vector —— 上面第四個按鈕就是在演這件事。</li>
+    <li>名字<strong>可以重複</strong>，R 不會阻止你；用名字索引時只會回傳<strong>第一個</strong>對到的。這是資料清理時很容易中招的地方。</li>
+  </ul>
+</section>
+
+<!-- ===================== 05 LIST ===================== -->
+<section id="s6">
+  <p class="eyebrow">06 · List</p>
+  <h2>List：一排地址卡</h2>
+  <p>一位病人有 id（字串）、血糖（數值）、是否空腹（邏輯值）、三次回診數值（向量）。這些東西大小不一、型別不一，塞不進同一排抽屜。</p>
+  <p>R 的解法很聰明：<strong>那就不要放資料，改放位址。</strong>右邊那塊記憶體每一列都是 8 bytes 的指標 —— 你可以直接把那串 hex 倒過來讀，就是箭頭另一端的位址。</p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 722" role="img" aria-label="list 本體位於 0x5000，header 裡的 attrib 欄位指向 0x4600 的屬性節點，再指向 0x4800 放名字的 character 向量；本體的四個位址格分別指向 0x2A10 的 P01、0x2A80 的 128、0x2B00 的 TRUE 與 0x2B40 的三個回診數值">
+    <defs>
+      <linearGradient id="ls-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="ls-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="ls-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="ls-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="60" y="20" class="hd ptr">① list 本體 · 一排位址，沒有資料、也沒有名字</text>
+    <rect x="60" y="36" width="470" height="356" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <rect x="76" y="56" width="438" height="80" rx="10" class="hdrband"/>
+    <text x="90" y="76" class="mono sub">0x5000 – 0x502F　header 48 bytes</text>
+    <text x="90" y="96" class="mono sub">type = VECSXP（list）　length = 4</text>
+    <rect x="76" y="104" width="228" height="26" rx="9" class="cella"/><text x="190" y="122" text-anchor="middle" class="mono cv-a" style="font-size:12px">attrib → 0x4600</text>
+    <text x="316" y="122" class="mono sub">← 屬性清單的位址</text>
+    <text x="76" y="181" class="mono ann">[[1]]</text>
+    <rect x="150" y="152" width="282" height="46" rx="9" class="cellp"/>
+    <text x="291" y="172" text-anchor="middle" class="mono bytes">10 2A 00 00 00 00 00 00</text>
+    <text x="291" y="189" text-anchor="middle" class="mono sub">0x5030 這一格的 8 bytes</text>
+    <text x="444" y="181" class="mono cv-p">→ 0x2A10</text>
+    <text x="76" y="235" class="mono ann">[[2]]</text>
+    <rect x="150" y="206" width="282" height="46" rx="9" class="cellp"/>
+    <text x="291" y="226" text-anchor="middle" class="mono bytes">80 2A 00 00 00 00 00 00</text>
+    <text x="291" y="243" text-anchor="middle" class="mono sub">0x5038 這一格的 8 bytes</text>
+    <text x="444" y="235" class="mono cv-p">→ 0x2A80</text>
+    <text x="76" y="289" class="mono ann">[[3]]</text>
+    <rect x="150" y="260" width="282" height="46" rx="9" class="cellp"/>
+    <text x="291" y="280" text-anchor="middle" class="mono bytes">00 2B 00 00 00 00 00 00</text>
+    <text x="291" y="297" text-anchor="middle" class="mono sub">0x5040 這一格的 8 bytes</text>
+    <text x="444" y="289" class="mono cv-p">→ 0x2B00</text>
+    <text x="76" y="343" class="mono ann">[[4]]</text>
+    <rect x="150" y="314" width="282" height="46" rx="9" class="cellp"/>
+    <text x="291" y="334" text-anchor="middle" class="mono bytes">40 2B 00 00 00 00 00 00</text>
+    <text x="291" y="351" text-anchor="middle" class="mono sub">0x5048 這一格的 8 bytes</text>
+    <text x="444" y="343" class="mono cv-p">→ 0x2B40</text>
+    <text x="596" y="20" class="hd dat">② 四塊互不相鄰的記憶體</text>
+    <rect x="596" y="36" width="324" height="62" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="614" y="61" class="mono addr">0x2A10 · character[1]</text>
+    <text x="902" y="61" text-anchor="end" class="mono cv-d">"P01"</text>
+    <text x="614" y="82" class="mono sub">自己還要一份 header 48 bytes</text>
+    <path class="wire" d="M532 175 C 552 175, 566 67, 590 67" marker-end="url(#ls-ar)"/>
+    <rect x="596" y="108" width="324" height="62" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="614" y="133" class="mono addr">0x2A80 · double[1]</text>
+    <text x="902" y="133" text-anchor="end" class="mono cv-d">128</text>
+    <text x="614" y="154" class="mono sub">自己還要一份 header 48 bytes</text>
+    <path class="wire" d="M532 229 C 552 229, 566 139, 590 139" marker-end="url(#ls-ar)"/>
+    <rect x="596" y="180" width="324" height="62" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="614" y="205" class="mono addr">0x2B00 · logical[1]</text>
+    <text x="902" y="205" text-anchor="end" class="mono cv-d">TRUE</text>
+    <text x="614" y="226" class="mono sub">自己還要一份 header 48 bytes</text>
+    <path class="wire" d="M532 283 C 552 283, 566 211, 590 211" marker-end="url(#ls-ar)"/>
+    <rect x="596" y="252" width="324" height="62" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="614" y="277" class="mono addr">0x2B40 · double[3]</text>
+    <text x="902" y="277" text-anchor="end" class="mono cv-d">95  128  88</text>
+    <text x="614" y="298" class="mono sub">自己還要一份 header 48 bytes</text>
+    <path class="wire" d="M532 337 C 552 337, 566 283, 590 283" marker-end="url(#ls-ar)"/>
+    <text x="60" y="418" class="cap">本體大小 = header 48 ＋ 4 × 8 = <tspan class="mono cap-c">80 bytes</tspan>，跟裡面裝什麼完全無關。</text>
+    <path class="wireA" d="M76 117 C 40 117, 26 136, 26 170 L 26 452 C 26 482, 40 496, 66 496" marker-end="url(#ls-aa)"/>
+    <text x="266" y="452" class="hd att">③ 名字不在格子裡 —— 跟 named vector 一樣掛在 attrib 上</text>
+    <rect x="76" y="470" width="150" height="116" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="94" y="496" class="mono addr">0x4600</text>
+    <text x="94" y="516" class="sub">TAG = names</text>
+    <rect x="94" y="528" width="114" height="34" rx="9" class="cella"/><text x="151" y="550" text-anchor="middle" class="mono cv-a" style="font-size:12px">VALUE</text>
+    <path class="wireA" d="M230 545 L 262 545" marker-end="url(#ls-aa)"/>
+    <rect x="272" y="470" width="648" height="116" rx="13" fill="url(#ls-dw)" stroke="var(--line)" filter="url(#ls-sh)"/>
+    <text x="290" y="496" class="mono addr">0x4800 · character[4]</text>
+    <text x="902" y="496" text-anchor="end" class="sub">名字住在這條 vector 裡</text>
+    <text x="359" y="510" text-anchor="middle" class="mono sub">[[1]]</text>
+    <rect x="290" y="518" width="138" height="44" rx="9" class="cella"/><text x="359" y="545" text-anchor="middle" class="mono cv-a" style="font-size:13px">"id"</text>
+    <text x="515" y="510" text-anchor="middle" class="mono sub">[[2]]</text>
+    <rect x="446" y="518" width="138" height="44" rx="9" class="cella"/><text x="515" y="545" text-anchor="middle" class="mono cv-a" style="font-size:13px">"glucose"</text>
+    <text x="671" y="510" text-anchor="middle" class="mono sub">[[3]]</text>
+    <rect x="602" y="518" width="138" height="44" rx="9" class="cella"/><text x="671" y="545" text-anchor="middle" class="mono cv-a" style="font-size:13px">"fasting"</text>
+    <text x="827" y="510" text-anchor="middle" class="mono sub">[[4]]</text>
+    <rect x="758" y="518" width="138" height="44" rx="9" class="cella"/><text x="827" y="545" text-anchor="middle" class="mono cv-a" style="font-size:13px">"visits"</text>
+    <text x="0" y="628" class="hd att">三件事值得記住</text>
+    <text x="0" y="656" class="cap"><tspan class="stepinline">①</tspan> 格子裡那 8 個 bytes 就是位址本身。讀出來、little-endian 還原，才知道要跳去哪裡 —— 所以 list 取值一定比 vector 多一跳。</text>
+    <text x="0" y="680" class="cap"><tspan class="stepinline">②</tspan> 本體 80 bytes，四塊還各自要一份 48 bytes 的 header。四個小東西總共五份 header —— 這就是「一堆長度 1 的小物件」特別貴的原因。</text>
+    <text x="0" y="704" class="cap"><tspan class="stepinline">③</tspan> <tspan class="mono cap-c">p$glucose</tspan> 不是直接讀第 2 格，而是先沿著 attrib 走到 names 那條 vector 逐格比對字串，找出它排第幾，才回頭算位址。</text>
+  </svg>
+  <figcaption>跟右邊面板是同一個 <code class="inline">p</code>、同一組位址。格子裡那 8 個 bytes 就是位址本身，跟 §01 的 <code class="inline">00 00 00 00 00 00 24 40</code> 用同一套 little-endian 讀法。注意第 ③ 段：<strong>名字從來不在格子裡</strong>，它掛在 attrib 上 —— 跟 §05 的 named vector 是同一條鏈。</figcaption>
+  </figure>
+
+  <div class="panel" id="p4">
+    <div class="panel-hd">
+      <span class="t">Pointer View</span>
+      <div class="seg" id="lvMode">
+        <button class="on" data-m="list">list()</button>
+        <button data-m="vec">改用 c() 會怎樣</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <pre id="lvCode"></pre>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端</div>
+        <div id="lvMem"></div>
+      </div>
+      <div class="bridge" id="lvBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">這張圖是理解 R 最重要的一張圖</b>
+    <p>Vector 的格子裡是<span style="color:var(--data)">貨</span>；list 的格子裡是<span style="color:var(--ptr)">地址</span>。之後 <code class="inline">[[ ]]</code>、<code class="inline">$</code>、data.frame、甚至 <code class="inline">unlist()</code> 為什麼會把結構壓扁，全部都從這張圖推得出來。</p>
+  </div>
+</section>
+
+<!-- ===================== 06 SUBSETTING ===================== -->
+<section id="s7">
+  <p class="eyebrow">07 · Subsetting</p>
+  <h2><code class="inline">[ ]</code> 拿盒子，<code class="inline">[[ ]]</code> 打開盒子</h2>
+  <p>很多人死背這兩個符號的差別。有了地址卡的圖就不用背了：</p>
+  <ul class="plain">
+    <li><code class="inline">[ ]</code> —— 把那幾張<strong>地址卡連同卡夾</strong>抽出來 → 拿到的還是一個 list。</li>
+    <li><code class="inline">[[ ]]</code> —— <strong>沿著地址走過去</strong>，把真正指到的東西拿回來 → 拿到的是那個物件本身。</li>
+    <li><code class="inline">$</code> —— 用名字找到地址卡，然後跟著走。等同 <code class="inline">[["名字"]]</code>。</li>
+  </ul>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 554" role="img" aria-label="對同一個 list p 選第二格：p 中括號 2 會新配一個只有一格的 list，那一格存著同樣的位址 0x2A80，連 names 也複製一份；p 雙中括號 2 不配置任何記憶體，直接把 0x2A80 交給你。兩條路都落在同一塊放著 128 的 double 上">
+    <defs>
+      <linearGradient id="sb-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="sb-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="sb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="sb-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="250" y="20" class="hd ptr">原本的 list（跟上一張圖同一個 p）</text>
+    <rect x="250" y="30" width="420" height="90" rx="13" fill="url(#sb-dw)" stroke="var(--line)" filter="url(#sb-sh)"/>
+    <text x="268" y="56" class="mono addr">p · 0x5000 · list[4]</text>
+    <rect x="268" y="68" width="88" height="38" rx="9" class="cellp"/><text x="312" y="92" text-anchor="middle" class="mono cv-p" style="font-size:13px">1</text>
+    <rect x="364" y="68" width="88" height="38" rx="9" class="cellp"/><text x="408" y="92" text-anchor="middle" class="mono cv-p" style="font-size:13px">2</text>
+    <rect x="460" y="68" width="88" height="38" rx="9" class="cellp"/><text x="504" y="92" text-anchor="middle" class="mono cv-p" style="font-size:13px">3</text>
+    <rect x="556" y="68" width="88" height="38" rx="9" class="cellp"/><text x="600" y="92" text-anchor="middle" class="mono cv-p" style="font-size:13px">4</text>
+    <rect x="364" y="68" width="88" height="38" rx="9" class="picked"/>
+    <text x="408" y="136" text-anchor="middle" class="sub">選第 2 格 · 裡面存著 0x2A80</text>
+    <path class="wire" d="M394 146 C 330 156, 230 158, 196 176" marker-end="url(#sb-ar)"/>
+    <path class="wire" d="M424 146 C 520 156, 660 158, 704 176" marker-end="url(#sb-ar)"/>
+    <text x="0" y="200" class="mono hd ptr">p[2]　拿盒子</text>
+    <rect x="0" y="214" width="430" height="118" rx="13" fill="url(#sb-dw)" stroke="var(--line)" filter="url(#sb-sh)"/>
+    <text x="18" y="240" class="mono addr">0x3A00 · list[1] ← R 新配的物件</text>
+    <rect x="18" y="252" width="268" height="46" rx="9" class="cellp"/>
+    <text x="152" y="272" text-anchor="middle" class="mono bytes">80 2A 00 00 00 00 00 00</text>
+    <text x="152" y="289" text-anchor="middle" class="mono sub">唯一那一格的 8 bytes</text>
+    <text x="298" y="281" class="mono cv-p">→ 0x2A80</text>
+    <text x="18" y="322" class="sub">連 names 也複製了一份（所以印出來有 $glucose）</text>
+    <text x="490" y="200" class="mono hd dat">p[[2]]　打開盒子</text>
+    <rect x="490" y="214" width="430" height="118" rx="13" class="nobox"/>
+    <text x="705" y="262" text-anchor="middle" class="cap">不配置任何新記憶體</text>
+    <text x="705" y="292" text-anchor="middle" class="mono cv-d">直接把 0x2A80 交給你</text>
+    <rect x="290" y="350" width="340" height="64" rx="13" fill="url(#sb-dw)" stroke="var(--line)" filter="url(#sb-sh)"/>
+    <text x="308" y="376" class="mono addr">0x2A80 · double[1]</text>
+    <text x="612" y="376" text-anchor="end" class="mono cv-d">128</text>
+    <path class="wire" d="M196 332 C 240 344, 300 344, 344 348" marker-end="url(#sb-ar)"/>
+    <path class="wire" d="M705 332 C 660 344, 620 344, 576 348" marker-end="url(#sb-ar)"/>
+    <text x="0" y="446" class="cap">新配一個 list[1]（本體 56 bytes）＋ 它自己的 names 屬性。</text>
+    <text x="0" y="468" class="cap">外面那層 list 還在，所以 <tspan class="mono cap-c">class(p[2])</tspan> 是 <tspan class="mono cap-c">"list"</tspan>。</text>
+    <text x="490" y="446" class="cap">0 bytes。盒子被拆掉，拿到的就是裡面那條 vector，</text>
+    <text x="490" y="468" class="cap">所以 <tspan class="mono cap-c">class(p[[2]])</tspan> 是 <tspan class="mono cap-c">"numeric"</tspan>。</text>
+    <text x="0" y="514" class="cap">兩條路最後都落在同一塊 <tspan class="mono cap-c">0x2A80</tspan> —— 資料一份都沒有被複製。</text>
+    <text x="0" y="536" class="cap">差別只有一個：<tspan class="mono cap-c">[ ]</tspan> 把外面那層盒子留著還給你，<tspan class="mono cap-c">[[ ]]</tspan> 把盒子拆掉。</text>
+  </svg>
+  <figcaption><code class="inline">[ ]</code> 一定回傳跟原本同一種容器，<code class="inline">[[ ]]</code> 回傳容器裡的東西 —— 這條規則對 vector、list、data.frame 都成立，也是 <code class="inline">df[2]</code> 與 <code class="inline">df[[2]]</code> 差在哪的答案。</figcaption>
+  </figure>
+
+  <div class="panel" id="p5">
+    <div class="panel-hd"><span class="t">Subsetting Sandbox · 左邊換運算式，右邊看它走到哪</span></div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端</div>
+        <div class="exprs" id="ssPick" style="margin-bottom:14px"></div>
+        <div class="axlab">console 輸出</div>
+        <div class="console" id="ssCon"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 這一次動到的位址</div>
+        <div id="ssStage"></div>
+      </div>
+      <div class="bridge" id="ssBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">臨床資料上真的會踩到</b>
+    <p><code class="inline">df["glucose"]</code> 回傳的是只有一欄的 data.frame，<code class="inline">df[["glucose"]]</code> 與 <code class="inline">df$glucose</code> 回傳的才是數值向量。把前者丟進 <code class="inline">mean()</code> <strong>不會報錯</strong> —— 它只給你一個警告，然後回傳 <code class="inline">NA</code>。這比報錯更危險：你遞給它的是一個盒子而不是裡面的數字，而 R 只是小聲抱怨一下就把 NA 交出去了。</p>
+  </div>
+</section>
+
+<!-- ===================== 07 MATRIX ===================== -->
+<section id="s8">
+  <p class="eyebrow">08 · Matrix &amp; Array</p>
+  <h2>Matrix ＝ vector ＋ 一句話</h2>
+  <p>Matrix 不是新的資料結構。它底下仍然是<strong>一條平的 vector</strong>，R 只是多掛了一個屬性 <code class="inline">dim</code>，等於在旁邊貼了張便條：「這 12 個整數，請當成 3 列 × 4 行來讀。」</p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 352" role="img" aria-label="matrix(1:6, nrow = 2) 在記憶體裡是一條平的六格 integer 向量，加上 dim 等於 c(2,3) 這個屬性之後，同一塊記憶體被讀成兩列三行，填的順序是一行一行往下">
+    <defs>
+      <linearGradient id="mx-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="mx-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="mx-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="mx-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">記憶體裡：matrix(1:6, nrow = 2) 底下是一條平的 integer[6]，資料 24 bytes</text>
+    <rect x="0" y="36" width="90" height="50" rx="9" class="celld"/><text x="45" y="66" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="98" y="36" width="90" height="50" rx="9" class="celld"/><text x="143" y="66" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="196" y="36" width="90" height="50" rx="9" class="celld"/><text x="241" y="66" text-anchor="middle" class="mono cv-d">3</text>
+    <rect x="294" y="36" width="90" height="50" rx="9" class="celld"/><text x="339" y="66" text-anchor="middle" class="mono cv-d">4</text>
+    <rect x="392" y="36" width="90" height="50" rx="9" class="celld"/><text x="437" y="66" text-anchor="middle" class="mono cv-d">5</text>
+    <rect x="490" y="36" width="90" height="50" rx="9" class="celld"/><text x="535" y="66" text-anchor="middle" class="mono cv-d">6</text>
+    <rect x="620" y="36" width="300" height="50" rx="13" fill="url(#mx-dw)" stroke="var(--line)" filter="url(#mx-sh)"/>
+    <text x="770" y="67" text-anchor="middle" class="mono cv-a">+ dim = c(2, 3)</text>
+    <path class="wireA" d="M45 96 L 45 184" marker-end="url(#mx-aa)"/>
+    <text x="150" y="140" class="hd att">加一個屬性，換一種讀法 —— 資料一格都沒搬</text>
+    <text x="195" y="188" text-anchor="middle" class="mono sub">[, 1]</text>
+    <text x="293" y="188" text-anchor="middle" class="mono sub">[, 2]</text>
+    <text x="391" y="188" text-anchor="middle" class="mono sub">[, 3]</text>
+    <text x="138" y="232" text-anchor="end" class="mono sub">[1, ]</text>
+    <rect x="150" y="200" width="90" height="50" rx="9" class="celld"/><text x="195" y="230" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="248" y="200" width="90" height="50" rx="9" class="celld"/><text x="293" y="230" text-anchor="middle" class="mono cv-d">3</text>
+    <rect x="346" y="200" width="90" height="50" rx="9" class="celld"/><text x="391" y="230" text-anchor="middle" class="mono cv-d">5</text>
+    <text x="138" y="290" text-anchor="end" class="mono sub">[2, ]</text>
+    <rect x="150" y="258" width="90" height="50" rx="9" class="celld"/><text x="195" y="288" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="248" y="258" width="90" height="50" rx="9" class="celld"/><text x="293" y="288" text-anchor="middle" class="mono cv-d">4</text>
+    <rect x="346" y="258" width="90" height="50" rx="9" class="celld"/><text x="391" y="288" text-anchor="middle" class="mono cv-d">6</text>
+    <text x="560" y="228" class="cap">填的順序是一「行」一「行」往下（byrow = FALSE）：</text>
+    <text x="560" y="250" class="mono cap-c">1、2 填第一行，3、4 填第二行，5、6 填第三行。</text>
+    <text x="560" y="280" class="cap">所以 m[2, 2] 是 4 —— 不是 3。</text>
+    <text x="0" y="336" class="cap">拿掉 dim，它立刻變回那條平的 vector，值與位址完全不變。上面的面板用的是 1:12、3 × 4，道理一樣。</text>
+  </svg>
+  <figcaption>同一塊記憶體、同一批值，只是換了一種讀法 —— 這就是為什麼 <code class="inline">m[2, 2]</code> 是 4 而不是 3。</figcaption>
+  </figure>
+
+  <div class="panel" id="p6">
+    <div class="panel-hd">
+      <span class="t">dim Attribute</span>
+      <label class="rng">nrow <input type="range" id="mRow" min="0" max="5" step="1" value="2"><b id="mRowV" style="color:var(--ptr)">3</b></label>
+      <div class="seg" id="mBy">
+        <button class="on" data-b="0">byrow = FALSE</button>
+        <button data-b="1">TRUE</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · 你寫的與你看到的</div>
+        <pre id="mCode"></pre>
+        <div class="axlab">print(m) —— 點任何一格</div>
+        <div style="overflow-x:auto; padding-bottom:4px"><div id="mGridWrap"></div></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 48 bytes，從頭到尾沒動過</div>
+        <div id="mMem"></div>
+      </div>
+      <div class="bridge" id="mBr"></div>
+    </div>
+  </div>
+  <p class="hint">拉動 nrow 時盯著右邊：<strong>位址欄與 bytes 一個字都沒變</strong>，變的只有 dim 屬性，也就是「怎麼讀」。</p>
+</section>
+
+<!-- ===================== 08 FACTOR ===================== -->
+<section id="s9">
+  <p class="eyebrow">09 · Factor</p>
+  <h2>Factor：整數向量 ＋ 一張對照表</h2>
+  <p>血型、分期、性別這種「有限組別」的資料，如果用字串存，每一格都要比對字串，又慢又佔空間。Factor 的做法是：<strong>把類別換成整數編碼，再用 levels 屬性記住對照表。</strong></p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 376" role="img" aria-label="blood_type 這個 factor 的資料本體是一條整數向量，存的編碼是 1 3 2 1 3；header 的 attrib 欄位指向 0x4600 的屬性節點，節點同時掛著 0x4800 的 levels 對照表 A、AB、O 與 class 等於 factor，print 沿著這條鏈查表才印出 A O AB A O">
+    <defs>
+      <linearGradient id="fc-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="fc-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="fc-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="fc-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="0" y="20" class="hd dat">底層真的存的：一條 integer</text>
+    <rect x="0" y="36" width="330" height="124" rx="13" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="18" y="62" class="mono addr">0x1000 · integer[5]</text>
+    <rect x="18" y="66" width="294" height="26" rx="9" class="cella"/><text x="165" y="84" text-anchor="middle" class="mono cv-a" style="font-size:12px">attrib → 0x4600</text>
+    <rect x="18" y="104" width="52" height="44" rx="9" class="celld"/><text x="44" y="131" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="78" y="104" width="52" height="44" rx="9" class="celld"/><text x="104" y="131" text-anchor="middle" class="mono cv-d">3</text>
+    <rect x="138" y="104" width="52" height="44" rx="9" class="celld"/><text x="164" y="131" text-anchor="middle" class="mono cv-d">2</text>
+    <rect x="198" y="104" width="52" height="44" rx="9" class="celld"/><text x="224" y="131" text-anchor="middle" class="mono cv-d">1</text>
+    <rect x="258" y="104" width="52" height="44" rx="9" class="celld"/><text x="284" y="131" text-anchor="middle" class="mono cv-d">3</text>
+    <path class="wireA" d="M334 79 L 388 79" marker-end="url(#fc-aa)"/>
+    <text x="404" y="20" class="hd att">attrib · 屬性串在這裡</text>
+    <rect x="392" y="36" width="150" height="124" rx="13" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="410" y="62" class="mono addr">0x4600</text>
+    <rect x="410" y="72" width="114" height="28" rx="9" class="cella"/><text x="467" y="91" text-anchor="middle" class="mono cv-a" style="font-size:12px">levels</text>
+    <rect x="410" y="108" width="114" height="28" rx="9" class="cella"/><text x="467" y="127" text-anchor="middle" class="mono cv-a" style="font-size:12px">class</text>
+    <path class="wireA" d="M528 86 C 552 86, 552 56, 578 56" marker-end="url(#fc-aa)"/>
+    <path class="wireA" d="M528 122 C 552 122, 552 168, 578 168" marker-end="url(#fc-aa)"/>
+    <text x="596" y="20" class="hd att">levels · 一張對照表（照字母排序）</text>
+    <rect x="584" y="28" width="336" height="84" rx="13" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="602" y="54" class="mono addr">0x4800 · character[3]</text>
+    <rect x="602" y="62" width="96" height="36" rx="9" class="cella"/><text x="650" y="85" text-anchor="middle" class="mono cv-a" style="font-size:13px">"A"</text>
+    <rect x="708" y="62" width="96" height="36" rx="9" class="cella"/><text x="756" y="85" text-anchor="middle" class="mono cv-a" style="font-size:13px">"AB"</text>
+    <rect x="814" y="62" width="96" height="36" rx="9" class="cella"/><text x="862" y="85" text-anchor="middle" class="mono cv-a" style="font-size:13px">"O"</text>
+    <rect x="584" y="142" width="336" height="54" rx="13" fill="url(#fc-dw)" stroke="var(--line)" filter="url(#fc-sh)"/>
+    <text x="602" y="173" class="mono cv-a">class = "factor"</text>
+    <text x="902" y="173" text-anchor="end" class="sub">讓 print() 去查表</text>
+    <text x="0" y="232" class="hd good">你在 console 看到的</text>
+    <rect x="0" y="248" width="52" height="44" rx="9" class="cella"/><text x="26" y="275" text-anchor="middle" class="mono cv-a" style="font-size:14px">A</text>
+    <rect x="60" y="248" width="52" height="44" rx="9" class="cella"/><text x="86" y="275" text-anchor="middle" class="mono cv-a" style="font-size:14px">O</text>
+    <rect x="120" y="248" width="52" height="44" rx="9" class="cella"/><text x="146" y="275" text-anchor="middle" class="mono cv-a" style="font-size:14px">AB</text>
+    <rect x="180" y="248" width="52" height="44" rx="9" class="cella"/><text x="206" y="275" text-anchor="middle" class="mono cv-a" style="font-size:14px">A</text>
+    <rect x="240" y="248" width="52" height="44" rx="9" class="cella"/><text x="266" y="275" text-anchor="middle" class="mono cv-a" style="font-size:14px">O</text>
+    <text x="330" y="268" class="cap">第 2 格存的是 <tspan class="mono cap-c">3</tspan>，沿著 attrib 走到 levels 查第 3 個 —— 是 "O"。</text>
+    <text x="330" y="290" class="cap">as.numeric(blood_type) 拿到的是編碼 1 3 2 1 3，不是血型。</text>
+    <text x="0" y="338" class="cap">沒指定 levels 時 R 照字母排序建表：注意 "AB" 排在 "O" 前面，所以 O 的編碼是 3 不是 2 —— 編碼跟你輸入的順序無關。</text>
+    <text x="0" y="360" class="cap">字串只存一份在 levels 裡，資料本體是 4 bytes 一格的 integer —— 這就是 factor 比 character vector 省的地方。</text>
+  </svg>
+  <figcaption>就是右邊面板的 <code class="inline">blood_type</code>。levels 與 class 都掛在同一個 <code class="inline">attrib</code> 節點上 —— 跟 named vector 的 <code class="inline">names</code> 走的是同一條鏈。factor 沒有新機制，只是屬性換了兩個。</figcaption>
+  </figure>
+
+  <div class="panel" id="p7">
+    <div class="panel-hd">
+      <span class="t">factor() 的兩層構造</span>
+      <div class="seg" id="fSeg">
+        <button class="on" data-f="0">blood_type</button>
+        <button data-f="1">education（ordered）</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · print 出來的樣子</div>
+        <pre id="fCode"></pre>
+        <div class="console" id="fCon"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · integer ＋ levels</div>
+        <div id="fMem"></div>
+      </div>
+      <div class="bridge" id="fBr"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b class="h">為什麼「最後分析階段再轉 factor」</b>
+    <p>因為 <code class="inline">as.numeric(f)</code> 拿到的是<strong>編碼</strong>，不是原本的數字。<code class="inline">factor(c(28, 34, 30))</code> 轉回數值會得到 1、3、2，不是 28、34、30。要拿回原值必須繞一圈：<code class="inline">as.numeric(as.character(f))</code>。</p>
+  </div>
+</section>
+
+<!-- ===================== 09 DATA FRAME ===================== -->
+<section id="s10">
+  <p class="eyebrow">10 · data.frame</p>
+  <h2>data.frame ＝ 等長 vector 組成的 named list</h2>
+  <p>這是整堂課的收斂點。data.frame 印出來像一張表格，但它<strong>不是矩陣</strong> —— 矩陣要求整張表同型別，而檢驗報告裡 id 是字串、血糖是數值、空腹是邏輯值。</p>
+  <p>它真正的身分是一個 named list：一塊只有四個指標的記憶體，加上 <code class="inline">names</code>、<code class="inline">row.names</code> 兩個屬性，再貼上 <code class="inline">class = "data.frame"</code> 的標籤讓 <code class="inline">print()</code> 知道要畫成表格。</p>
+
+  <p>右邊把每一塊都展開了，由上往下三段：<strong>①</strong> data.frame 本體 —— 只有四個位址，一個資料都沒有；<strong>②</strong> 四條各自獨立的 vector，位址互不相鄰；<strong>③</strong> 掛在 attrib 上的三個屬性（欄名、列名、class）。點左邊任一欄，右邊對應的那整塊會亮起來。</p>
+
+    <figure class="art">
+  <svg class="art-svg" viewBox="-6 0 932 678" role="img" aria-label="patients 這個 data.frame 的本體位於 0x3C00，只有四個位址格，分別指向 id、glucose、blood_type、fasting 四條長度相同但型別不同的向量；header 的 attrib 欄位指向 0x4600 的屬性節點，names、class、row.names 三個屬性都掛在那裡">
+    <defs>
+      <linearGradient id="df-dw" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--artHi)"/><stop offset="1" stop-color="var(--artLo)"/>
+      </linearGradient>
+      <filter id="df-sh" x="-20%" y="-30%" width="140%" height="180%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="var(--artShadow)" flood-opacity="1"/>
+      </filter>
+      <marker id="df-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--ptrFill)"/></marker>
+      <marker id="df-aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--attrFill)"/></marker>
+    </defs>
+    <text x="60" y="20" class="hd ptr">① 本體：四個位址，一個資料都沒有</text>
+    <rect x="60" y="36" width="300" height="310" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="78" y="62" class="mono addr">0x3C00 · list[4]</text>
+    <rect x="76" y="78" width="268" height="28" rx="9" class="cella"/><text x="210" y="97" text-anchor="middle" class="mono cv-a" style="font-size:12px">attrib → 0x4600</text>
+    <text x="76" y="124" class="sub">← 屬性清單的位址（header 欄位）</text>
+    <text x="80" y="170" class="mono ann">[[1]]</text>
+    <rect x="170" y="146" width="170" height="40" rx="9" class="cellp"/><text x="255" y="171" text-anchor="middle" class="mono cv-p" style="font-size:12px">→ 0x6100</text>
+    <text x="80" y="222" class="mono ann">[[2]]</text>
+    <rect x="170" y="198" width="170" height="40" rx="9" class="cellp"/><text x="255" y="223" text-anchor="middle" class="mono cv-p" style="font-size:12px">→ 0x6180</text>
+    <text x="80" y="274" class="mono ann">[[3]]</text>
+    <rect x="170" y="250" width="170" height="40" rx="9" class="cellp"/><text x="255" y="275" text-anchor="middle" class="mono cv-p" style="font-size:12px">→ 0x6200</text>
+    <text x="80" y="326" class="mono ann">[[4]]</text>
+    <rect x="170" y="302" width="170" height="40" rx="9" class="cellp"/><text x="255" y="327" text-anchor="middle" class="mono cv-p" style="font-size:12px">→ 0x6280</text>
+    <text x="596" y="92" class="hd dat">② 四條各自獨立、長度相同的 vector</text>
+    <rect x="596" y="108" width="324" height="46" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="614" y="137" class="mono addr">0x6100 · character[3]</text>
+    <text x="902" y="137" text-anchor="end" class="mono cv-d" style="font-size:12px">"P01"  "P02"  "P03"</text>
+    <path class="wire" d="M346 166 C 450 166, 480 131, 590 131" marker-end="url(#df-ar)"/>
+    <rect x="596" y="166" width="324" height="46" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="614" y="195" class="mono addr">0x6180 · double[3]</text>
+    <text x="902" y="195" text-anchor="end" class="mono cv-d" style="font-size:12px">95   128   88</text>
+    <path class="wire" d="M346 218 C 450 218, 480 189, 590 189" marker-end="url(#df-ar)"/>
+    <rect x="596" y="224" width="324" height="46" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="614" y="253" class="mono addr">0x6200 · integer[3]</text>
+    <text x="902" y="253" text-anchor="end" class="mono cv-d" style="font-size:12px">1 3 2 → A O AB</text>
+    <path class="wire" d="M346 270 C 450 270, 480 247, 590 247" marker-end="url(#df-ar)"/>
+    <rect x="596" y="282" width="324" height="46" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="614" y="311" class="mono addr">0x6280 · logical[3]</text>
+    <text x="902" y="311" text-anchor="end" class="mono cv-d" style="font-size:12px">TRUE  TRUE  FALSE</text>
+    <path class="wire" d="M346 322 C 450 322, 480 305, 590 305" marker-end="url(#df-ar)"/>
+    <path class="wireA" d="M76 92 C 40 92, 26 110, 26 150 L 26 404 C 26 428, 40 440, 68 440 L 370 440" marker-end="url(#df-aa)"/>
+    <text x="380" y="392" class="hd att">③ 三個屬性，全部掛在同一個 attrib 節點上</text>
+    <rect x="360" y="408" width="210" height="64" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="378" y="434" class="mono addr">0x4600</text>
+    <text x="465" y="456" text-anchor="middle" class="sub">names → class → row.names</text>
+    <rect x="0" y="516" width="292" height="62" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="18" y="540" class="mono cv-a">names</text>
+    <text x="274" y="540" text-anchor="end" class="mono addr">0x4A00</text>
+    <text x="18" y="562" class="sub">"id" "glucose" "blood_type" "fasting"</text>
+    <path class="wireA" d="M485 474 C 485 492, 146 492, 146 510" marker-end="url(#df-aa)"/>
+    <rect x="308" y="516" width="292" height="62" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="326" y="540" class="mono cv-a">class</text>
+    <text x="582" y="540" text-anchor="end" class="mono addr">0x4C00</text>
+    <text x="326" y="562" class="sub">"data.frame"</text>
+    <path class="wireA" d="M485 474 C 485 492, 454 492, 454 510" marker-end="url(#df-aa)"/>
+    <rect x="616" y="516" width="292" height="62" rx="13" fill="url(#df-dw)" stroke="var(--line)" filter="url(#df-sh)"/>
+    <text x="634" y="540" class="mono cv-a">row.names</text>
+    <text x="890" y="540" text-anchor="end" class="mono addr">0x4B00</text>
+    <text x="634" y="562" class="sub">1  2  3</text>
+    <path class="wireA" d="M485 474 C 485 492, 762 492, 762 510" marker-end="url(#df-aa)"/>
+    <text x="0" y="612" class="cap">欄名跟 list 一樣不在格子裡 —— <tspan class="mono cap-c">patients$glucose</tspan> 是先沿著 attrib 走到 names 那條 vector 比對字串，才知道要取第 2 格。</text>
+    <text x="0" y="636" class="cap">欄內必須同型別（那是一條 vector），欄間可以不同型別（那是四塊不相干的記憶體）；blood_type 那一欄自己還掛著 levels。</text>
+    <text x="0" y="660" class="cap">新增一欄只是重新配一排指標（5 × 8 bytes），四條欄位 vector 原封不動；新增一列要把四條全部重配。</text>
+  </svg>
+  <figcaption>就是右邊面板的 <code class="inline">patients</code>。把 §06 的 named list 再加上 <code class="inline">class</code> 與 <code class="inline">row.names</code> 兩個屬性，就是 data.frame —— 沒有第三種東西。</figcaption>
+  </figure>
+
+  <div class="panel" id="p8">
+    <div class="panel-hd"><span class="t">同一份資料 · 全部展開</span></div>
+    <div class="split">
+      <div class="pane">
+        <div class="paneLbl code"><i></i>程式端 · print(patients)</div>
+        <pre id="dfCode"></pre>
+        <div class="tblwrap" id="dfTbl"></div>
+      </div>
+      <div class="pane">
+        <div class="paneLbl mem"><i></i>電腦端 · 全部攤開：① 指標 ② 四塊欄位 ③ 三個屬性</div>
+        <div id="dfMem"></div>
+      </div>
+      <div class="bridge" id="dfBr"></div>
+    </div>
+  </div>
+
+  <p>看懂右邊之後，幾件事就變得理所當然：一欄之內必須同型別（因為那是一條 vector），不同欄可以不同型別（因為那是四塊不相干的記憶體），而<strong>新增一欄</strong>（<code class="inline">df$gender &lt;- ...</code>）比<strong>新增一列</strong>（<code class="inline">rbind()</code>）便宜得多 —— 前者只是重新配一排指標（5 × 8 bytes），四條欄位 vector 原封不動；後者要把四條 vector 全部重新配置一次。</p>
+</section>
+
+<!-- ===================== 10 MAP ===================== -->
+<section id="s11">
+  <p class="eyebrow">11 · The Whole Map</p>
+  <h2>一條線串起來</h2>
+  <p>把前面十段接起來，R 的資料結構其實只有兩個源頭，其餘都是「加屬性」加出來的：</p>
+
+  <figure class="dgwrap">
+  <svg class="dgm" viewBox="0 0 920 430" role="img" aria-label="R 的資料結構只有兩個源頭：atomic vector 加上 names、dim、levels 屬性變成 named vector、matrix、factor；list 加上 names、row.names、class 屬性變成 named list 與 data.frame">
+  <defs><marker id="aL" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="hL" d="M0 0 L10 5 L0 10 z"/></marker><marker id="aR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="hR" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+  <rect class="boxL" x="120" y="26" width="220" height="84" rx="12"/>
+  <text class="t" x="230" y="50" text-anchor="middle">atomic vector</text>
+  <text class="s" x="230" y="66" text-anchor="middle">一排同型資料，直接放值</text>
+  <rect class="cL" x="146" y="78" width="40" height="22" rx="5"/>
+  <text x="166" y="93" text-anchor="middle">10</text>
+  <rect class="cL" x="192" y="78" width="40" height="22" rx="5"/>
+  <text x="212" y="93" text-anchor="middle">20</text>
+  <rect class="cL" x="238" y="78" width="40" height="22" rx="5"/>
+  <text x="258" y="93" text-anchor="middle">30</text>
+  <rect class="cL" x="284" y="78" width="40" height="22" rx="5"/>
+  <text x="304" y="93" text-anchor="middle">40</text>
+  <rect class="boxR" x="580" y="26" width="220" height="84" rx="12"/>
+  <text class="t" x="690" y="50" text-anchor="middle">list</text>
+  <text class="s" x="690" y="66" text-anchor="middle">一排指標，指向別的物件</text>
+  <rect class="cR" x="606" y="78" width="40" height="22" rx="5"/>
+  <text x="626" y="93" text-anchor="middle">&#8226;</text>
+  <rect class="cR" x="652" y="78" width="40" height="22" rx="5"/>
+  <text x="672" y="93" text-anchor="middle">&#8226;</text>
+  <rect class="cR" x="698" y="78" width="40" height="22" rx="5"/>
+  <text x="718" y="93" text-anchor="middle">&#8226;</text>
+  <rect class="cR" x="744" y="78" width="40" height="22" rx="5"/>
+  <text x="764" y="93" text-anchor="middle">&#8226;</text>
+  <line class="wL" x1="230" y1="110" x2="230" y2="152"/>
+  <line class="wL" x1="75" y1="152" x2="385" y2="152"/>
+  <line class="wR" x1="690" y1="110" x2="690" y2="152"/>
+  <line class="wR" x1="565" y1="152" x2="835" y2="152"/>
+  <line class="wL" x1="75" y1="152" x2="75" y2="188"/>
+  <text class="lab" x="75" y="211" text-anchor="middle">+ names</text>
+  <line class="wL" x1="75" y1="232" x2="75" y2="286" marker-end="url(#aL)"/>
+  <rect class="boxL" x="10" y="292" width="130" height="62" rx="12"/>
+  <text class="t" x="75" y="317" text-anchor="middle">named vector</text>
+  <text class="s" x="75" y="335" text-anchor="middle">名字在另一塊記憶體</text>
+  <line class="wL" x1="230" y1="152" x2="230" y2="188"/>
+  <text class="lab" x="230" y="211" text-anchor="middle">+ dim</text>
+  <line class="wL" x1="230" y1="232" x2="230" y2="286" marker-end="url(#aL)"/>
+  <rect class="boxL" x="165" y="292" width="130" height="62" rx="12"/>
+  <text class="t" x="230" y="317" text-anchor="middle">matrix / array</text>
+  <text class="s" x="230" y="335" text-anchor="middle">同一條 vector，換讀法</text>
+  <line class="wL" x1="385" y1="152" x2="385" y2="188"/>
+  <text class="lab" x="385" y="205" text-anchor="middle">+ levels</text>
+  <text class="lab" x="385" y="220" text-anchor="middle">+ class</text>
+  <line class="wL" x1="385" y1="232" x2="385" y2="286" marker-end="url(#aL)"/>
+  <rect class="boxL" x="320" y="292" width="130" height="62" rx="12"/>
+  <text class="t" x="385" y="317" text-anchor="middle">factor</text>
+  <text class="s" x="385" y="335" text-anchor="middle">底層其實是 integer</text>
+  <line class="wR" x1="565" y1="152" x2="565" y2="188"/>
+  <text class="lab" x="565" y="211" text-anchor="middle">+ names</text>
+  <line class="wR" x1="565" y1="232" x2="565" y2="286" marker-end="url(#aR)"/>
+  <rect class="boxR" x="495" y="292" width="140" height="62" rx="12"/>
+  <text class="t" x="565" y="317" text-anchor="middle">named list</text>
+  <text class="s" x="565" y="335" text-anchor="middle">key–value，像 dict</text>
+  <line class="wR" x1="835" y1="152" x2="835" y2="188"/>
+  <text class="lab" x="835" y="205" text-anchor="middle">+ names + row.names</text>
+  <text class="lab" x="835" y="220" text-anchor="middle">+ class</text>
+  <line class="wR" x1="835" y1="232" x2="835" y2="286" marker-end="url(#aR)"/>
+  <rect class="boxR" x="750" y="292" width="170" height="62" rx="12"/>
+  <text class="t" x="835" y="317" text-anchor="middle">data.frame</text>
+  <text class="s" x="835" y="335" text-anchor="middle">每格指向一條等長 vector</text>
+  <text class="s" x="230" y="392" text-anchor="middle">左半邊：格子裡是「值」</text>
+  <text class="s" x="690" y="392" text-anchor="middle">右半邊：格子裡是「位址」</text>
+  <line x1="460" y1="20" x2="460" y2="370" stroke-dasharray="4 6" stroke-opacity=".25"/>
+  </svg>
+  <figcaption>紫色標的就是「加了什麼屬性」—— 五種結構全都是這兩個源頭加屬性長出來的，沒有第三種東西。</figcaption>
+  </figure>
+
+  <div class="tblwrap" style="margin:16px 0">
+    <table class="reftbl">
+      <thead><tr><th>結構</th><th>記憶體裡放什麼</th><th>同型別？</th><th>什麼時候用</th></tr></thead>
+      <tbody>
+        <tr><td><code>vector</code></td><td>資料本體</td><td>必須</td><td>一串同性質的值</td></tr>
+        <tr><td><code>named vector</code></td><td>資料本體 ＋ names 那塊</td><td>必須</td><td>查表、對照碼、小型 key–value</td></tr>
+        <tr><td><code>matrix / array</code></td><td>資料本體 ＋ dim</td><td>必須</td><td>矩陣運算、影像、格狀數據</td></tr>
+        <tr><td><code>factor</code></td><td>整數編碼 ＋ levels</td><td>必須</td><td>血型、分期、性別等有限組別</td></tr>
+        <tr><td><code>list</code></td><td>一排指標</td><td>不必</td><td>什麼都能裝的收納箱</td></tr>
+        <tr><td><code>data.frame</code></td><td>一排指標（各指向一條等長 vector）</td><td>欄內必須</td><td>真實資料表：一列一筆、一欄一變數</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>最後補一個常被誤解的觀念：copy-on-modify</h3>
+  <p>課堂上常說「R 的向量不可改變，一改就搬家」。用 <code class="inline">tracemem()</code> 看的確常常如此，但更精確的說法是 <strong>copy-on-modify</strong>：R 會數有幾個名字指著同一塊記憶體，</p>
+  <ul class="plain">
+    <li>如果<strong>只有一個名字</strong>指著它，R 會<strong>就地修改</strong>，位址不變（R 4.0 起改用 reference counting 來數名字，比舊的 NAMED 機制準確，該就地改的時候才真的不搬家）；</li>
+    <li>如果<strong>有兩個以上</strong>（例如你先做過 <code class="inline">y &lt;- x</code>），修改時才複製一份到新位址，好讓另一個名字看到的東西不變。</li>
+  </ul>
+  <p>這解釋了一個很實際的現象：在迴圈裡用 <code class="inline">df$new[i] &lt;- ...</code> 逐格塞值有時飛快、有時慢到不可思議 —— 差別就在當下有幾個名字指著那塊記憶體。</p>
+</section>
+
+<!-- ===================== 11 QUIZ ===================== -->
+<section id="s12">
+  <p class="eyebrow">12 · Self-check</p>
+  <h2>隨堂測驗</h2>
+  <p>十題。每題選完會立刻給解釋，答錯不扣分，但請先自己在腦中畫一次「左邊程式碼 ↔ 右邊記憶體」的對照再選。</p>
+  <div class="quiz" id="quiz"></div>
+  <div class="score" id="score" style="margin-top:16px">尚未作答 · <b>0</b> / 10</div>
+</section>
+
+<a class="nextcard" href="loops.html">
+  <div><span>下一站 · 迴圈與條件式</span><br><b>R 迴圈闖關</b><br><span>寫 R 程式指揮機器人：for、while、if、!、&amp;&amp;、break、next、ifelse、巢狀迴圈</span></div>
+  <span class="go">開始玩 →</span>
+</a>
+
+<footer>
+  <span>記憶體裡的 R 物件 · 大數據分析與實踐 W2–W3 補充教材</span>
+  <span>陳育辰 · 中國醫藥大學 醫技系</span>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var esc = function(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+var hex = function(n){ return "0x" + n.toString(16).toUpperCase().padStart(4,"0"); };
+var W = '<span class="wire">╌╌►</span>';
+function sp(n){ var s = ""; while (n-- > 0) s += " "; return s; }
+
+/* ---------- real bytes ---------- */
+var _buf = new ArrayBuffer(8), _dv = new DataView(_buf);
+function sizeOf(kind){ return (kind === "double" || kind === "ptr") ? 8 : 4; }
+function bytesOf(val, kind){
+  var n = sizeOf(kind), i;
+  for (i = 0; i < 8; i++) _dv.setUint8(i, 0);
+  if (kind === "double") _dv.setFloat64(0, val, true);
+  else if (kind === "ptr") _dv.setUint32(0, val >>> 0, true);
+  else _dv.setInt32(0, kind === "logical" ? (val ? 1 : 0) : val, true);
+  var out = [];
+  for (i = 0; i < n; i++) out.push(_dv.getUint8(i).toString(16).toUpperCase().padStart(2, "0"));
+  return out;
+}
+
+/* ---------- dump renderer ----------
+   o = { base, kind, cc, items:[{val, ann, link}], title, sub, header } */
+function dumpHTML(o){
+  var size = sizeOf(o.kind), cc = o.cc || "d", h = "", i;
+  h += '<div class="region">';
+  if (o.title){
+    h += '<div class="rhd"><b class="'+cc+'">'+o.title+'</b><span>'+(o.sub || "") +
+         ((o.header || o.hdrFull) ? ' <span style="color:var(--data)">＋ header 48 bytes</span>' : "") + '</span></div>';
+  }
+  var nb = Math.max(size, o.attrib ? 8 : 0);
+  h += '<div class="dump" style="--bw:'+(nb*23-3)+'px"><div class="drow hd"><span class="ga">ADDR</span><span class="gb">';
+  for (i = 0; i < size; i++) h += '<span class="by hd">+'+i+'</span>';
+  h += '</span><span class="gc">解讀</span></div>';
+  function sysRow(addr, bytes, txt, link){
+    var r = '<div class="drow sys"'+(link ? ' data-link="'+link+'"' : "")+'><span class="ga">'+hex(addr)+'</span><span class="gb">';
+    if (bytes) bytes.forEach(function(b){ r += '<span class="by">'+b+'</span>'; });
+    else for (var j = 0; j < 8; j++) r += '<span class="by zz">··</span>';
+    return r + '</span><span class="gc">'+txt+'</span></div>';
+  }
+  if (o.hdrFull){
+    h += sysRow(o.base-48, null, 'sxpinfo &nbsp;<span class="ty">型別（'+(o.hdrType||"double")+'）、GC 標記</span>');
+    h += sysRow(o.base-40, bytesOf(o.attrib ? o.attrib.val : 0, "ptr"),
+         '<span class="ann"><span class="nmlab">attrib</span> <span class="arrow">╌►</span> '+(o.attrib ? o.attrib.txt : '<span style="color:var(--faint)">NULL（沒有屬性）</span>')+'</span>',
+         o.attrib ? (o.attrib.link || "attr") : null);
+    h += sysRow(o.base-32, null, 'gengc_next &nbsp;<span class="ty">GC 用的雙向串列</span>');
+    h += sysRow(o.base-24, null, 'gengc_prev &nbsp;<span class="ty">GC 用的雙向串列</span>');
+    h += sysRow(o.base-16, bytesOf(o.hdrLen || 0, "ptr"), '<span class="ann"><span class="eq">length = '+(o.hdrLen||0)+'</span></span>');
+    h += sysRow(o.base-8,  null, 'truelength &nbsp;<span class="ty">R 內部用</span>');
+    h += '<div class="drow sys" style="background:var(--bg)"><span class="ga"></span><span class="gb"></span>' +
+         '<span class="gc"><b style="color:var(--text)">header 小計 48 bytes</b>　↓ 以下才是你的資料</span></div>';
+  } else if (o.header){
+    h += sysRow(o.base-48, null, 'SEXP header 48 bytes &nbsp;<span class="ty">sxpinfo / attrib / GC / length / truelength（§01 有完整拆解）</span>');
+    if (o.attrib){
+      h += sysRow(o.base-40, bytesOf(o.attrib.val, "ptr"),
+           '<span class="ann"><span class="nmlab">attrib</span> <span class="arrow">╌►</span> '+o.attrib.txt+'</span>',
+           o.attrib.link || "attr");
+    }
+  } else if (o.attrib){
+    h += sysRow(o.base-40, bytesOf(o.attrib.val, "ptr"),
+         '<span class="ann"><span class="nmlab">attrib</span> <span class="arrow">╌►</span> '+o.attrib.txt+'</span>',
+         o.attrib.link || "attr");
+  }
+  o.items.forEach(function(it, idx){
+    h += '<div class="drow '+cc+(it.dim ? " dim" : "")+'" data-link="'+it.link+'" tabindex="0" role="button">' +
+         '<span class="ga">'+hex(o.base + idx*size)+'</span><span class="gb">';
+    bytesOf(it.val, o.kind).forEach(function(b){ h += '<span class="by">'+b+'</span>'; });
+    h += '</span><span class="gc">'+it.ann+'</span></div>';
+  });
+  return h + '</div></div>';
+}
+function span(base, n, kind){ return hex(base) + "–" + hex(base + n*sizeOf(kind) - 1) + " · " + (n*sizeOf(kind)) + " bytes"; }
+function gap(txt){ return '<div class="memgap">⋮&nbsp;&nbsp;'+(txt || "其他物件、其他程式的記憶體")+'&nbsp;&nbsp;⋮</div>'; }
+
+/* ---------- R highlighter ---------- */
+var RX = /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(TRUE|FALSE|NA|NULL|Inf|NaN|function|if|else|for|while|return)\b|\b(\d+\.?\d*L?)\b|([A-Za-z._][A-Za-z0-9._]*)(?=\s*\()|(<-|%in%|%%|%\/%|%\*%|[+\-*\/^<>=!&|$@~])/g;
+function hl(code){
+  var out = "", last = 0, m; RX.lastIndex = 0;
+  while ((m = RX.exec(code)) !== null){
+    out += esc(code.slice(last, m.index));
+    var cls = m[1] ? "cm" : m[2] ? "st" : m[3] ? "kw" : m[4] ? "nu" : m[5] ? "fn" : "op";
+    out += '<span class="'+cls+'">' + esc(m[0]) + "</span>";
+    last = m.index + m[0].length;
+  }
+  return out + esc(code.slice(last));
+}
+function codeHTML(parts){
+  return parts.map(function(p){
+    var h = hl(p[0]);
+    return (p[1] == null) ? h : '<span class="tok" data-link="'+p[1]+'" tabindex="0" role="button">'+h+'</span>';
+  }).join("");
+}
+
+/* ---------- two-way linker ---------- */
+function linker(rootId, onPick, initial){
+  var root = $(rootId), pinned = (initial === undefined ? null : initial);
+  function paint(k){
+    var all = root.querySelectorAll("[data-link]");
+    for (var i = 0; i < all.length; i++){
+      all[i].classList.toggle("lit", k != null && all[i].getAttribute("data-link") === String(k));
+    }
+    if (onPick) onPick(k, root);
+  }
+  root.addEventListener("mouseover", function(e){
+    var t = e.target.closest("[data-link]"); if (t) paint(t.getAttribute("data-link"));
+  });
+  root.addEventListener("mouseleave", function(){ paint(pinned); });
+  root.addEventListener("click", function(e){
+    var t = e.target.closest("[data-link]"); if (!t) return;
+    pinned = t.getAttribute("data-link"); paint(pinned);
+  });
+  root.addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var t = e.target.closest("[data-link]"); if (!t) return;
+    e.preventDefault(); pinned = t.getAttribute("data-link"); paint(pinned);
+  });
+  return { repaint:function(){ paint(pinned); }, set:function(k){ pinned = (k==null?null:String(k)); paint(pinned); } };
+}
+
+/* ================= RAIL ================= */
+var SECTIONS = [["s0","封面"],["s1","RAM 的真相"],["s2","變數與 <-"],["s3","Vector"],["s4","Coercion"],
+  ["s5","Named vector"],["s6","List"],["s7","[ ] vs [[ ]]"],["s8","Matrix"],["s9","Factor"],
+  ["s10","data.frame"],["s11","全圖"],["s12","隨堂測驗"]];
+(function(){
+  var ol = $("rail"), html = "";
+  SECTIONS.forEach(function(s,i){
+    html += '<li><a href="#'+s[0]+'" data-t="'+s[0]+'"><span class="ad">'+hex(0x1000+i*8)+'</span><span class="nm">'+s[1]+'</span></a></li>';
+  });
+  ol.innerHTML = html;
+  var links = Array.prototype.slice.call(ol.querySelectorAll("a"));
+  links[0].classList.add("on");
+  if ("IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if (e.isIntersecting) links.forEach(function(a){ a.classList.toggle("on", a.dataset.t === e.target.id); });
+      });
+    }, { rootMargin:"-25% 0px -60% 0px" });
+    SECTIONS.forEach(function(s){ var el = $(s[0]); if (el) io.observe(el); });
+  }
+  ol.insertAdjacentHTML("beforeend", '<li class="ext"><a href="loops.html"><span class="ad">next</span><span class="nm">迴圈闖關 →</span></a></li><li><a href="./"><span class="ad">home</span><span class="nm">← 課程首頁</span></a></li>');
+})();
+
+/* ================= 01 SEXP ================= */
+(function(){
+  var vals = [10,20,30];
+  $("p1code").innerHTML = codeHTML([
+    ["x <- c(", null], ["10", 0], [", ", null], ["20", 1], [", ", null], ["30", 2], [")", null]
+  ]);
+  $("p1con").innerHTML = '<span class="pr">&gt; typeof(x)</span>\n[1] "double"\n<span class="pr">&gt; length(x)</span>\n[1] 3';
+  $("p1mem").innerHTML = dumpHTML({
+    base:0x1000, kind:"double", cc:"d", hdrFull:true, hdrLen:3, hdrType:"double",
+    title:"x · double[3]", sub:"資料 " + span(0x1000, 3, "double"),
+    items: vals.map(function(v,i){
+      return { val:v, link:i, ann:'<span class="ann"><span class="eq">x['+(i+1)+'] = '+v+'</span> <span class="ty">double</span></span>' };
+    })
+  });
+  linker("p1", function(k){
+    if (k == null){
+      $("p1br").innerHTML = '<span class="full">左邊那一行字，在右邊變成「48 bytes 的說明書」＋「3 × 8 bytes 的資料」。滑過任一個數字，看它落在哪個位址。</span>';
+      return;
+    }
+    var i = +k, b = bytesOf(vals[i], "double").join(" ");
+    $("p1br").innerHTML =
+      '<span class="cv c">c() 裡第 '+(i+1)+' 個數字 '+vals[i]+'</span>'+W+
+      '<span class="cv m">'+hex(0x1000+i*8)+'</span>'+W+'<span class="cv">'+b+'</span>' +
+      '<span class="full">IEEE 754 雙精度、little-endian。這 8 個 bytes 本身沒有「我是數字」的資訊 —— 是前面那段 header 說它是 double，R 才這樣讀。</span>';
+  }, null).repaint();
+})();
+
+/* ================= 02 ASSIGNMENT ================= */
+var AS_LINES = ['x <- c(10, 20, 30)', 'y <- x', 'y[1] <- 99', 'x <- "hello"'];
+var OBJ = {
+  A:{ addr:0x1000, kind:"double", vals:[10,20,30], ty:"double[3]" },
+  B:{ addr:0x2600, kind:"double", vals:[99,20,30], ty:"double[3]" },
+  C:{ addr:0x3300, kind:"ptr",    vals:[0x7F00],   ty:"character[1]", strs:['"hello"'] }
+};
+var AS_STEPS = [
+  { env:[["x","A"]], live:["A"], refs:{A:1},
+    con:'<span class="pr">&gt; x</span>\n[1] 10 20 30\n<span class="pr">&gt; tracemem(x)</span>\n[1] "&lt;0x1000&gt;"',
+    br:'<span class="cv c">x &lt;- c(10, 20, 30)</span>'+'<span class="wire">╌╌►</span>'+
+       '<span class="cv m">造出物件 @0x1000</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv a">名字表登記 x → 0x1000</span>'+
+       '<span class="full">兩個動作，先後發生。物件本身不知道自己叫 x —— 名字只存在左邊那張表裡。</span>' },
+  { env:[["x","A"],["y","A"]], live:["A"], refs:{A:2},
+    con:'<span class="pr">&gt; y &lt;- x</span>\n<span class="pr">&gt; tracemem(y)</span>\n[1] "&lt;0x1000&gt;"   <span class="pr"># 跟 x 同一個位址</span>',
+    br:'<span class="cv c">y &lt;- x</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv a">名字表多一列 y → 0x1000</span>'+
+       '<span class="wire">╌╌►</span>'+'<span class="cv m">資料一個 byte 都沒複製</span>'+
+       '<span class="full">兩張名牌指向同一塊記憶體，refs 變成 2。這一步不管向量多大都是常數時間。</span>' },
+  { env:[["x","A"],["y","B"]], live:["A","B"], refs:{A:1,B:1}, hot:"B",
+    con:'<span class="pr">&gt; y[1] &lt;- 99</span>\ntracemem[0x1000 -&gt; 0x2600]:\n<span class="pr">&gt; x</span>\n[1] 10 20 30   <span class="pr"># x 沒被動到</span>',
+    br:'<span class="cv c">y[1] &lt;- 99</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv m">refs = 2，必須先複製</span>'+
+       '<span class="wire">╌╌►</span>'+'<span class="cv m">新物件 @0x2600</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv a">y 改指 0x2600</span>'+
+       '<span class="full"><strong>copy-on-modify。</strong>如果當時只有 y 一個名字指著 0x1000，R 會就地改、位址不變；因為 x 也指著它，只好複製一份再改。tracemem 印出的箭頭就是這件事。</span>' },
+  { env:[["x","C"],["y","B"]], live:["B","C"], dead:["A"], refs:{B:1,C:1}, hot:"C",
+    con:'<span class="pr">&gt; x &lt;- "hello"</span>\n<span class="pr">&gt; x</span>\n[1] "hello"',
+    br:'<span class="cv c">x &lt;- "hello"</span>'+'<span class="wire">╌╌►</span>'+'<span class="cv m">造出 character 物件 @0x3300</span>'+
+       '<span class="wire">╌╌►</span>'+'<span class="cv a">x 改指 0x3300</span>'+'<span class="wire">╌╌►</span>'+
+       '<span class="cv w">0x1000 成為垃圾</span>'+
+       '<span class="full">變數沒有固定型別 —— 換的是名牌指向哪裡，不是把字串塞進原本那個 double 的箱子。原本 0x1000 那塊沒有任何名字指著了，交給 GC 回收。</span>' }
+];
+var asIdx = 0, asLink;
+function drawAS(){
+  var s = AS_STEPS[asIdx];
+  $("asCode").innerHTML = AS_LINES.map(function(l,i){
+    return i === asIdx ? '<span class="tok lit">'+hl(l)+'</span>'
+         : '<span style="opacity:'+(i < asIdx ? ".55" : ".25")+'">'+hl(l)+'</span>';
+  }).join("\n");
+  $("asCon").innerHTML = s.con;
+
+  var envRows = s.env.map(function(e){
+    var o = OBJ[e[1]];
+    return { val:o.addr, link:e[1],
+      ann:'<span class="ann"><span class="nmlab">'+e[0]+'</span> <span class="arrow">╌►</span> '+hex(o.addr)+' <span class="ty">'+o.ty+'</span></span>' };
+  });
+  var mem = dumpHTML({
+    base:0x9000, kind:"ptr", cc:"a",
+    title:"Global environment · 名字表", sub:"名字 → 位址（hash table）",
+    items: envRows
+  });
+  s.live.forEach(function(id){
+    var o = OBJ[id];
+    mem += gap() + dumpHTML({
+      base:o.addr, kind:o.kind, cc:(o.kind === "ptr" ? "p" : "d"), header:true,
+      title:(id === s.hot ? "◆ 剛造出來 · " : "") + o.ty + " @" + hex(o.addr),
+      sub:"refs = " + s.refs[id] + "（有 " + s.refs[id] + " 個名字指著它）",
+      items: o.vals.map(function(v,i){
+        return { val:v, link:id, ann:'<span class="ann"><span class="eq">['+(i+1)+'] = '+
+          (o.kind === "ptr" ? o.strs[i] : v)+'</span></span>' };
+      })
+    });
+  });
+  (s.dead || []).forEach(function(id){
+    var o = OBJ[id];
+    mem += gap() + '<div class="region"><div class="rhd"><b class="d" style="color:var(--warn)">' +
+      o.ty + " @" + hex(o.addr) + '</b><span style="color:var(--warn)">refs = 0 · 沒有名字指著它 → 等待 GC 回收</span></div>' +
+      '<div class="dump" style="opacity:.4"><div class="drow d"><span class="ga">'+hex(o.addr)+'</span><span class="gb">' +
+      bytesOf(o.vals[0], o.kind).map(function(b){ return '<span class="by">'+b+'</span>'; }).join("") +
+      '</span><span class="gc">已成為垃圾</span></div></div></div>';
+  });
+  $("asMem").innerHTML = mem;
+  $("asBr").innerHTML = s.br;
+  asLink.repaint();
+  Array.prototype.forEach.call($("asStep").children, function(c,i){ c.classList.toggle("on", i === asIdx); });
+}
+(function(){
+  var h = "";
+  AS_LINES.forEach(function(l,i){ h += '<button class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+(i+1)+'. '+esc(l)+'</button>'; });
+  $("asStep").innerHTML = h;
+  $("asStep").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    asIdx = +b.dataset.i; asLink.set(null); drawAS();
+  });
+  asLink = linker("pAS", function(){}, null);
+  drawAS();
+})();
+
+/* ================= 03 VECTOR ================= */
+var VECS = [
+  { type:"double", kind:"double", lits:["10","20","30","40","50"], vals:[10,20,30,40,50] },
+  { type:"integer", kind:"int", lits:["1L","2L","3L","4L"], vals:[1,2,3,4] },
+  { type:"logical", kind:"logical", lits:["TRUE","FALSE","TRUE"], vals:[1,0,1] },
+  { type:"character", kind:"ptr", lits:['"A"','"O"','"AB"'], vals:[0x7F20,0x7F28,0x7F40], strs:["A","O","AB"] }
+];
+var vIdx = 0, VBASE = 0x1000, vLink;
+function drawVec(){
+  var v = VECS[vIdx], n = v.lits.length, size = sizeOf(v.kind);
+  var parts = [["x <- c(", null]];
+  v.lits.forEach(function(l,i){ if (i) parts.push([", ", null]); parts.push([l, i]); });
+  parts.push([")", null]);
+  $("vecCode").innerHTML = codeHTML(parts);
+  var e = "";
+  for (var i = 0; i < n; i++) e += '<span class="expr" data-link="'+i+'" tabindex="0" role="button">x['+(i+1)+']</span>';
+  $("vecExpr").innerHTML = e;
+
+  var mem = dumpHTML({
+    base:VBASE, kind:v.kind, cc:(v.kind === "ptr" ? "p" : "d"), header:true,
+    attrib:{ val:0, txt:'<span style="color:var(--faint)">NULL（沒有任何屬性）</span>', link:"attrib" },
+    title:"x · "+v.type+"["+n+"]", sub:span(VBASE, n, v.kind) + " · 每格 " + size + " bytes",
+    items: v.lits.map(function(l,i){
+      var ann = v.kind === "ptr"
+        ? '<span class="ann"><span class="eq">x['+(i+1)+']</span> <span class="arrow">╌►</span> '+hex(v.vals[i])+' <span class="ty">字串池</span></span>'
+        : '<span class="ann"><span class="eq">x['+(i+1)+'] = '+esc(l)+'</span> <span class="ty">'+v.type+'</span></span>';
+      return { val:v.vals[i], link:i, ann:ann };
+    })
+  });
+  if (v.kind === "ptr"){
+    mem += gap("R 全域字串池 CHARSXP cache") + dumpHTML({
+      base:0x7F20, kind:"ptr", cc:"a", title:'字串本體（示意）', sub:"長度不一，不住在 x 這排抽屜裡",
+      items: v.strs.map(function(s,i){
+        return { val:v.vals[i], link:i, ann:'<span class="ann">'+hex(v.vals[i])+' : <span class="eq">"'+esc(s)+'"</span></span>' };
+      })
+    });
+  }
+  $("vecMem").innerHTML = mem;
+  vLink.repaint();
+}
+function vecBridge(k){
+  var v = VECS[vIdx], size = sizeOf(v.kind);
+  if (k == null){
+    $("vecBr").innerHTML = '<span class="cv m">'+v.type+'['+v.lits.length+']</span><span style="color:var(--faint)">每格 '+size+' bytes，位址每次跳 '+size+'</span>' +
+      '<span class="full">滑過左邊的 x[i] 或右邊任一列，看它們怎麼對上。</span>';
+    return;
+  }
+  if (k === "attrib"){
+    $("vecBr").innerHTML = '<span class="cv a">attrib</span>'+W+'<span class="cv">00 00 00 00 00 00 00 00</span>'+W+'<span class="cv">NULL</span>' +
+      '<span class="full">這條 vector 沒有掛任何屬性 —— 沒有 names、沒有 dim、沒有 class，attrib 欄位就是 NULL。§05 開始你會看到這一格被填上位址之後發生什麼事。</span>';
+    return;
+  }
+  var i = +k, addr = VBASE + i*size;
+  if (!(i >= 0 && i < v.vals.length)){ vecBridge(null); return; }   // stale link after a type switch
+  $("vecBr").innerHTML =
+    '<span class="cv c">x['+(i+1)+']</span>'+W+
+    '<span class="cv">'+hex(VBASE)+' + '+i+' × '+size+'</span>'+W+
+    '<span class="cv m">'+hex(addr)+'</span>'+W+
+    '<span class="cv">'+bytesOf(v.vals[i], v.kind).join(" ")+'</span>' +
+    '<span class="full">' + (v.kind === "ptr"
+      ? '這 8 bytes 倒過來讀就是 '+hex(v.vals[i])+' —— 一個位址。R 還得再跑一趟才拿得到字串 '+esc(v.lits[i])+'。'
+      : '一次乘法一次加法就到了，這就是 O(1) 索引。') + '</span>';
+}
+(function(){
+  var h = "";
+  VECS.forEach(function(v,i){ h += '<button class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+v.type+'</button>'; });
+  $("vecPick").innerHTML = h;
+  $("vecPick").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    vIdx = +b.dataset.i;
+    Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+    vLink.set(null); drawVec();
+  });
+  vLink = linker("p2", vecBridge, null);
+  drawVec();
+})();
+
+/* ================= 03 COERCION ================= */
+var LADDER = ["logical","integer","double","character"];
+var KINDS = ["logical","int","double","ptr"];
+var TOKENS = [
+  { lit:"TRUE",    rank:0, disp:{0:"TRUE",1:"1L",2:"1",3:'"TRUE"'},   num:{0:1,1:1,2:1} },
+  { lit:"FALSE",   rank:0, disp:{0:"FALSE",1:"0L",2:"0",3:'"FALSE"'}, num:{0:0,1:0,2:0} },
+  { lit:"3L",      rank:1, disp:{1:"3L",2:"3",3:'"3"'},               num:{1:3,2:3} },
+  { lit:"2.5",     rank:2, disp:{2:"2.5",3:'"2.5"'},                  num:{2:2.5} },
+  { lit:'"Hello"', rank:3, disp:{3:'"Hello"'},                        num:{} }
+];
+var coSel = [0,2,4], coLink, coMax = 0;
+function drawCo(){
+  coMax = coSel.length ? Math.max.apply(null, coSel.map(function(i){ return TOKENS[i].rank; })) : -1;
+  var lh = "";
+  LADDER.forEach(function(name,i){
+    var on = i === coMax, passed = coMax >= 0 && i < coMax;
+    lh += '<div style="flex:1; text-align:center; padding:7px 4px; border:1px solid '+(on?"var(--data)":"var(--line)")+
+          '; border-right:none; background:'+(on?"var(--dataBg)":"transparent")+
+          '; color:'+(on?"var(--data)":(passed?"var(--dim)":"var(--faint)"))+';">'+name+'</div>';
+  });
+  $("coLadder").innerHTML = lh + '<div style="width:1px; background:var(--line)"></div>';
+
+  if (!coSel.length){
+    $("coCall").innerHTML = hl("c()   # 先從上面挑幾個元素");
+    $("coMem").innerHTML = '<div class="dump"><div class="drow"><span class="ga">—</span><span class="gb"></span><span class="gc">還沒有東西</span></div></div>';
+    $("coBr").innerHTML = '<span class="full">試試把 TRUE 跟 "Hello" 放在一起 —— 你的邏輯值會變成字串 "TRUE"。</span>';
+    return;
+  }
+  var parts = [["c(", null]];
+  coSel.forEach(function(ti,i){ if (i) parts.push([", ", null]); parts.push([TOKENS[ti].lit, i]); });
+  parts.push([")", null]);
+  $("coCall").innerHTML = codeHTML(parts);
+
+  var ty = LADDER[coMax], kind = KINDS[coMax];
+  $("coMem").innerHTML = dumpHTML({
+    base:0x1000, kind:kind, cc:(coMax === 3 ? "p" : "d"), header:true,
+    title:"結果 · "+ty+"["+coSel.length+"]", sub:span(0x1000, coSel.length, kind),
+    items: coSel.map(function(ti,i){
+      var t = TOKENS[ti], shown = t.disp[coMax], changed = shown !== t.lit;
+      var val = (coMax === 3) ? (0x7F00 + i*16) : t.num[coMax];
+      var ann = coMax === 3
+        ? '<span class="ann"><span class="eq">['+(i+1)+']</span> <span class="arrow">╌►</span> '+hex(val)+' <span class="ty">'+esc(shown)+'</span></span>'
+        : '<span class="ann"><span class="eq">['+(i+1)+'] = '+esc(shown)+'</span> '+(changed
+            ? '<span class="ty" style="color:var(--warn)">原本 '+esc(t.lit)+'</span>'
+            : '<span class="ty">原樣</span>')+'</span>';
+      return { val:val, link:i, ann:ann };
+    })
+  });
+  coLink.repaint();
+}
+function coBridge(k){
+  if (!coSel.length) return;
+  var ty = LADDER[coMax], kind = KINDS[coMax];
+  if (k == null){
+    var n = coSel.filter(function(ti){ return TOKENS[ti].disp[coMax] !== TOKENS[ti].lit; }).length;
+    $("coBr").innerHTML = n
+      ? '<span class="cv c">你寫的 '+coSel.length+' 個元素</span>'+W+'<span class="cv m">'+n+' 個被硬轉成 '+ty+'</span>' +
+        '<span class="full">R 不會報錯也不會警告，它只是安靜地把整塊記憶體換成同一種規格。檢查方式：typeof() 看底層型別，class() 看物件類別，str() 看整體結構。</span>'
+      : '<span class="full">全部本來就是 '+ty+'，不需要轉型。加一個字串進去看看整塊記憶體會怎麼變。</span>';
+    return;
+  }
+  var i = +k, t = TOKENS[coSel[i]], shown = t.disp[coMax], changed = shown !== t.lit;
+  var val = (coMax === 3) ? (0x7F00 + i*16) : t.num[coMax];
+  $("coBr").innerHTML =
+    '<span class="cv c">'+esc(t.lit)+'</span><span style="color:var(--faint)">'+LADDER[t.rank]+'</span>'+W+
+    '<span class="cv m">'+bytesOf(val, kind).join(" ")+'</span><span style="color:var(--faint)">'+ty+'</span>' +
+    '<span class="full">' + (changed
+      ? '這個元素<strong>被改寫了</strong>：整排抽屜必須同規格，它只好從 '+LADDER[t.rank]+' 被推到共同型別 '+ty+
+        (coMax === 3 ? '，最後連值都不在這裡了 —— 剩下的只是一個指向字串池的位址。' : '，連 bytes 都換了一套。')
+      : '它本來就是 '+ty+'，原樣寫進去。') + '</span>';
+}
+(function(){
+  var h = "";
+  TOKENS.forEach(function(t,i){ h += '<button class="chip" data-i="'+i+'">+ '+esc(t.lit)+'</button>'; });
+  $("coPick").innerHTML = h;
+  $("coPick").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    if (coSel.length >= 6) coSel.shift();
+    coSel.push(+b.dataset.i); coLink.set(null); drawCo();
+  });
+  $("coClear").addEventListener("click", function(){ coSel = []; coLink.set(null); drawCo(); });
+  coLink = linker("p3", coBridge, null);
+  drawCo();
+})();
+
+/* ================= 04 NAMED VECTOR ================= */
+var NV = { vals:[1,2,3], nms:["apple","banana","peach"], base:0x1000, abase:0x4600, nbase:0x4800, sbase:0x7F00, sym:0x0A40 };
+var NVB = [
+  { btn:"c(apple = 1, ...)", named:true, parts:[
+    ["v <- c(", null], ["apple = 1", 0], [", ", null], ["banana = 2", 1], [", ", null], ["peach = 3", 2], [")", null]] },
+  { btn:"names(v) <- ...", named:true, parts:[
+    ["v <- c(", null], ["1", 0], [", ", null], ["2", 1], [", ", null], ["3", 2], [")\nnames(v) <- c(", null],
+    ['"apple"', 0], [", ", null], ['"banana"', 1], [", ", null], ['"peach"', 2], [")", null]] },
+  { btn:"setNames()", named:true, parts:[
+    ["v <- setNames(\n  c(", null], ["1", 0], [", ", null], ["2", 1], [", ", null], ["3", 2], ["),\n  c(", null],
+    ['"apple"', 0], [", ", null], ['"banana"', 1], [", ", null], ['"peach"', 2], [")\n)", null]] },
+  { btn:"names(v) <- NULL", named:false, parts:[
+    ["v <- c(apple = 1, banana = 2, peach = 3)\nnames(v) <- NULL    # 或 unname(v)", null]] }
+];
+var nvIdx = 0, nvMode = "pos", nvLink;
+function drawNV(){
+  var b = NVB[nvIdx], n = NV.vals.length;
+  $("nvCode").innerHTML = codeHTML(b.parts);
+
+  var con = '<span class="pr">&gt; v</span>\n';
+  if (b.named){
+    var l1 = "", l2 = "";
+    for (var i = 0; i < n; i++){
+      var nm = NV.nms[i], vl = String(NV.vals[i]), w = Math.max(nm.length, vl.length) + 2;
+      l1 += sp(w - nm.length) + '<span class="tok" data-link="'+i+'" tabindex="0" role="button">'+nm+'</span>';
+      l2 += sp(w - vl.length) + '<span class="tok" data-link="'+i+'" tabindex="0" role="button">'+vl+'</span>';
+    }
+    con += l1 + "\n" + l2;
+  } else {
+    con += "[1] " + NV.vals.map(function(v,i){
+      return '<span class="tok" data-link="'+i+'" tabindex="0" role="button">'+v+'</span>';
+    }).join(" ");
+  }
+  $("nvCon").innerHTML = con;
+
+  var ep = "", en = "";
+  for (var j = 0; j < n; j++){
+    ep += '<span class="expr" data-link="'+j+'" tabindex="0" role="button">v['+(j+1)+']</span>';
+    en += '<span class="expr'+(b.named?"":" off")+'" data-link="'+j+'" tabindex="0" role="button">v[&quot;'+NV.nms[j]+'&quot;]</span>';
+  }
+  $("nvExprPos").innerHTML = ep;
+  $("nvExprName").innerHTML = en;
+
+  var mem = dumpHTML({
+    base:NV.base, kind:"double", cc:"d", header:true,
+    attrib: b.named
+      ? { val:NV.abase, txt:'屬性節點 @'+hex(NV.abase), link:"attr" }
+      : { val:0, txt:'<span style="color:var(--faint)">NULL（沒有任何屬性）</span>', link:"attr" },
+    title:"① v · 資料本體 double[3]", sub:span(NV.base, n, "double"),
+    items: NV.vals.map(function(v,i){
+      return { val:v, link:i, ann:'<span class="ann"><span class="eq">v['+(i+1)+'] = '+v+'</span> <span class="ty">double</span></span>' };
+    })
+  });
+  if (b.named){
+    mem += gap() + dumpHTML({
+      base:NV.abase, kind:"ptr", cc:"a",
+      title:"② 屬性節點 · pairlist", sub:"一個節點 = 三個 8-byte 指標",
+      items: [
+        { val:NV.sym, link:"attr", ann:'<span class="ann"><span class="nmlab">TAG</span> <span class="arrow">╌►</span> symbol <b>names</b></span>' },
+        { val:NV.nbase, link:"attr", ann:'<span class="ann"><span class="nmlab">VALUE</span> <span class="arrow">╌►</span> '+hex(NV.nbase)+' <span class="ty">名字那條 vector</span></span>' },
+        { val:0, link:"attr", ann:'<span class="ann"><span class="nmlab">NEXT</span> <span class="arrow">╌►</span> NULL <span class="ty">沒有其他屬性了</span></span>' }
+      ]
+    });
+    mem += gap() + dumpHTML({
+      base:NV.nbase, kind:"ptr", cc:"a",
+      title:'③ names 的內容 · character[3]', sub:span(NV.nbase, n, "ptr") + " · 第三塊記憶體",
+      items: NV.nms.map(function(s,i){
+        return { val:NV.sbase + i*16, link:i,
+          ann:'<span class="ann"><span class="eq">names['+(i+1)+']</span> <span class="arrow">╌►</span> "'+s+'"</span>' };
+      })
+    });
+  } else {
+    mem += '<div class="memgap" style="color:var(--warn)">attrib 改回 NULL，屬性節點與 names 向量都成為垃圾，被 GC 回收</div>';
+  }
+  $("nvMem").innerHTML = mem;
+  nvLink.repaint();
+}
+function nvBridge(k){
+  var b = NVB[nvIdx];
+  if (k == null){
+    $("nvBr").innerHTML = b.named
+      ? '<span class="cv m">① 資料 '+hex(NV.base)+'</span>'+W+'<span class="cv a">② 屬性節點 '+hex(NV.abase)+'</span>'+W+'<span class="cv a">③ names '+hex(NV.nbase)+'</span>' +
+        '<span class="full">三塊各自獨立的記憶體，用 header 裡的 <strong>attrib 指標</strong>串起來（滑過那一列看整條鏈）。①③ 之間沒有指標，是靠<strong>位置</strong>對應：names 的第 i 列就是資料第 i 列的名字。</span>'
+      : '<span class="cv m">double[3] '+hex(NV.base)+'</span>'+W+'<span class="cv">attributes = NULL</span>' +
+        '<span class="full">名字拿掉了，但三列 bytes 一個字都沒變 —— 這就是「屬性掛在旁邊」最直接的證據。點下面的名稱索引看看會拿到什麼。</span>';
+    return;
+  }
+  if (k === "attr"){
+    $("nvBr").innerHTML = b.named
+      ? '<span class="cv m">v 的 header</span>'+W+'<span class="cv">attrib = '+hex(NV.abase)+'</span>'+W+
+        '<span class="cv a">節點 TAG = names</span>'+W+'<span class="cv a">VALUE = '+hex(NV.nbase)+'</span>' +
+        '<span class="full">這就是兩塊記憶體<strong>唯一</strong>的連結：資料物件 header 裡的 attrib 欄位 ╌► 屬性節點 ╌► names 那條 vector。<code class="inline">names(v)</code> 這個函式做的就是走完這條鏈。節點還有 NEXT 欄位，所以可以再串 dim、class…… 想掛幾個屬性都行。</span>'
+      : '<span class="cv m">v 的 header</span>'+W+'<span class="cv">attrib = NULL</span>' +
+        '<span class="full">attrib 欄位是 NULL，這個物件沒有掛任何屬性 —— 最單純的 atomic vector。切到別的按鈕看看這一格會變成什麼。</span>';
+    return;
+  }
+  var i = +k, addr = hex(NV.base + i*8);
+  if (nvMode === "name"){
+    if (!b.named){
+      $("nvBr").innerHTML =
+        '<span class="cv c">v["'+NV.nms[i]+'"]</span>'+W+
+        '<span class="cv w">names 是 NULL，無從比對</span>'+W+'<span class="cv">NA</span>' +
+        '<span class="full">沒有 names 屬性，R 找不到任何字串可以對，回傳 NA（而且不會報錯）。名字是屬性，不是資料的一部分。</span>';
+      return;
+    }
+    var scan = NV.nms.slice(0, i+1).map(function(s,j){
+      return (j === i ? '<span style="color:var(--ok)">'+s+' ✓</span>' : s + " ✗");
+    }).join(" → ");
+    $("nvBr").innerHTML =
+      '<span class="cv c">v["'+NV.nms[i]+'"]</span>'+W+
+      '<span class="cv a">掃 '+hex(NV.nbase)+' 那塊：'+scan+'</span>'+W+
+      '<span class="cv">第 '+(i+1)+' 格</span>'+W+'<span class="cv m">'+addr+'</span>' +
+      '<span class="full">比對了 '+(i+1)+' 次字串才知道要去第 '+(i+1)+' 格 —— 名字是<strong>標籤</strong>，不是捷徑。找到位置之後，剩下的動作跟 v['+(i+1)+'] 一模一樣。</span>';
+  } else {
+    $("nvBr").innerHTML =
+      '<span class="cv c">v['+(i+1)+']</span>'+W+'<span class="cv">'+hex(NV.base)+' + '+i+' × 8</span>'+W+
+      '<span class="cv m">'+addr+'</span>'+W+'<span class="cv">'+bytesOf(NV.vals[i], "double").join(" ")+'</span>' +
+      '<span class="full">一次乘法一次加法就到了，'+(b.named ? hex(NV.nbase)+' 那塊記憶體從頭到尾沒被碰過。' : "這是最單純的 atomic vector 索引。")+'</span>';
+  }
+}
+(function(){
+  var h = "";
+  NVB.forEach(function(b,i){ h += '<button class="chip'+(i===0?" on":"")+'" data-i="'+i+'">'+esc(b.btn)+'</button>'; });
+  $("nvBuild").innerHTML = h;
+  $("nvBuild").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    nvIdx = +b.dataset.i;
+    Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+    nvLink.set(null); drawNV();
+  });
+  function mode(id, m){
+    ["mouseover","click","focusin"].forEach(function(ev){ $(id).addEventListener(ev, function(){ nvMode = m; }); });
+  }
+  mode("nvExprPos", "pos"); mode("nvExprName", "name");
+  ["mouseover","click","focusin"].forEach(function(ev){
+    $("nvMem").addEventListener(ev, function(e){
+      var r = e.target.closest(".drow"); if (r) nvMode = r.classList.contains("a") ? "name" : "pos";
+    });
+  });
+  nvLink = linker("pNV", nvBridge, null);
+  drawNV();
+})();
+
+/* ================= 05 LIST ================= */
+var LBASE = 0x5000;
+var PATIENT = [
+  { nm:"id",      addr:0x2A10, val:['"P01"'],         ty:"character[1]" },
+  { nm:"glucose", addr:0x2A80, val:["128"],           ty:"double[1]" },
+  { nm:"fasting", addr:0x2B00, val:["TRUE"],          ty:"logical[1]" },
+  { nm:"visits",  addr:0x2B40, val:["95","128","88"], ty:"double[3]" }
+];
+function targetHTML(p){
+  return '<span class="tgt">' + p.val.map(function(v){ return '<span class="sub">'+esc(v)+'</span>'; }).join("") +
+         '<span class="ty">'+p.ty+' @'+hex(p.addr)+'</span></span>';
+}
+var lvMode = "list", lvLink;
+function drawLV(){
+  if (lvMode === "list"){
+    $("lvCode").innerHTML = codeHTML([
+      ["p <- list(\n  ", null],
+      ['id      = "P01"', "id"], [",\n  ", null],
+      ["glucose = 128", "glucose"], [",\n  ", null],
+      ["fasting = TRUE", "fasting"], [",\n  ", null],
+      ["visits  = c(95, 128, 88)", "visits"], ["\n)", null]
+    ]);
+    $("lvMem").innerHTML = dumpHTML({
+      base:LBASE, kind:"ptr", cc:"p", header:true,
+      attrib:{ val:0x4600, txt:'屬性節點 @0x4600 &nbsp;<span class="ty">TAG = names</span>', link:"attrib" },
+      title:"p · list[4] — 只有指標", sub:span(LBASE, 4, "ptr"),
+      items: PATIENT.map(function(p){
+        return { val:p.addr, link:p.nm,
+          ann:'<span class="ann"><span class="nmlab">'+p.nm+'</span> <span class="arrow">╌►</span></span> ' + targetHTML(p) };
+      })
+    });
+  } else {
+    $("lvCode").innerHTML = codeHTML([
+      ["c(", null], ['"P01"', "id"], [", ", null], ["128", "glucose"], [", ", null],
+      ["TRUE", "fasting"], [", ", null], ["c(95, 128, 88)", "visits"], [")", null],
+      ["\n# 硬塞進 atomic vector", null]
+    ]);
+    var map = [['"P01"',"id"],['"128"',"glucose"],['"TRUE"',"fasting"],['"95"',"visits"],['"128"',"visits"],['"88"',"visits"]];
+    $("lvMem").innerHTML = dumpHTML({
+      base:0x1000, kind:"ptr", cc:"p", header:true,
+      title:"結果 · character[6] — 全壓扁了", sub:span(0x1000, 6, "ptr"),
+      items: map.map(function(m,i){
+        return { val:0x7F00 + i*16, link:m[1],
+          ann:'<span class="ann"><span class="eq">['+(i+1)+']</span> <span class="arrow">╌►</span> '+esc(m[0])+'</span>' };
+      })
+    });
+  }
+  lvLink.repaint();
+}
+function lvBridge(k){
+  if (lvMode === "vec"){
+    if (k == null){
+      $("lvBr").innerHTML = '<span class="cv c">list 的四個欄位</span>'+W+'<span class="cv m">6 格 character 指標</span>' +
+        '<span class="full"><strong>兩件事同時發生了：</strong>型別全被轉成 character，而且巢狀的 c(95, 128, 88) 被攤平進同一排 —— 你再也分不出「哪三個是回診數值」。這正是 unlist() 會做的事。</span>';
+    } else {
+      var p = PATIENT.filter(function(x){ return x.nm === k; })[0];
+      if (!p){ lvBridge(null); return; }
+      var n = p.val.length;
+      $("lvBr").innerHTML = '<span class="cv c">'+p.nm+'</span>'+W+'<span class="cv m">'+n+' 列 character</span>' +
+        '<span class="full">' + (n > 1
+          ? "原本是一個獨立的 double[3] 物件，住在自己的位址；現在被攤成 "+n+" 列指標，跟其他欄位混在同一塊記憶體 —— 結構資訊沒了。"
+          : "原本的 "+p.ty+" 被轉成 character，"+(p.nm === "glucose" ? "128 變成字串 \"128\"，不能再拿去算平均。" : "值還在，型別沒了。")) + '</span>';
+    }
+    return;
+  }
+  if (k == null){
+    $("lvBr").innerHTML = '<span class="cv m">'+hex(LBASE)+' 起，4 × 8 bytes</span>'+W+'<span class="cv">四個不同的位址</span>' +
+      '<span class="full">左邊四個欄位 ╌► 右邊四列<strong>大小完全一樣</strong>的指標，所以 list 一樣能 O(1) 索引；箭頭另一端的物件愛多大有多大、愛什麼型別就什麼型別。把那串 hex 倒過來讀就是目的地位址。</span>';
+    return;
+  }
+  if (k === "attrib"){
+    $("lvBr").innerHTML = '<span class="cv a">attrib</span>'+W+'<span class="cv">'+bytesOf(0x4600, "ptr").join(" ")+'</span>'+W+
+      '<span class="cv a">屬性節點 @0x4600</span>'+W+'<span class="cv a">TAG = names</span>'+W+'<span class="cv">names 向量</span>' +
+      '<span class="full">四個欄位的名字 id / glucose / fasting / visits <strong>不在上面那四格裡</strong>。它們住在另一條 character[4]，靠這個 attrib 欄位 → 屬性節點 → names 向量串起來 —— 跟 §05 named vector 完全同一條鏈。p$glucose 就是先來這裡比對字串，找到是第 2 個，再回去讀第 2 格的位址。</span>';
+    return;
+  }
+  var p = PATIENT.filter(function(x){ return x.nm === k; })[0];
+  if (!p){ lvBridge(null); return; }
+  var idx = PATIENT.indexOf(p);
+  $("lvBr").innerHTML =
+    '<span class="cv c">p$'+p.nm+'</span>'+W+'<span class="cv m">'+hex(LBASE+idx*8)+'</span>'+W+
+    '<span class="cv">'+bytesOf(p.addr, "ptr").join(" ")+'</span>'+W+
+    '<span class="cv">= '+hex(p.addr)+'</span>'+W+'<span class="cv">'+p.ty+'</span>' +
+    '<span class="full">那 8 個 bytes 倒過來讀就是 '+hex(p.addr)+' —— 資料真正住的地方。名字 '+p.nm+' 只是 names 屬性裡的字串，真正把你帶過去的是這個位址。</span>';
+}
+$("lvMode").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  lvMode = b.dataset.m;
+  Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+  lvLink.set(null); drawLV();
+});
+lvLink = linker("p4", lvBridge, null);
+drawLV();
+
+/* ================= 06 SUBSETTING ================= */
+var SS = [
+  { code:"p[2]", mode:"box", hit:["glucose"], cls:"list", out:"$glucose\n[1] 128",
+    why:"<strong>[ ] 拿盒子。</strong>R 配置一塊<strong>新的</strong>指標記憶體，把第 2 個位址複製進去 —— 回傳的還是 list，只是長度 1。想丟進 mean() 會失敗。" },
+  { code:"p[[2]]", mode:"open", hit:["glucose"], cls:"numeric", out:"[1] 128",
+    why:"<strong>[[ ]] 打開盒子。</strong>讀出那 8 bytes 的位址，直接跳過去，把 0x2A80 那個 double 拿回來。這才是能拿去計算的東西。" },
+  { code:"p$glucose", mode:"open", hit:["glucose"], cls:"numeric", out:"[1] 128",
+    why:"<strong>$ 等同 [[\"名字\"]]。</strong>先在 names 屬性裡掃到 glucose 是第 2 個，再跟著那個位址走。只是寫起來比較短。" },
+  { code:"p[[4]][2]", mode:"open", hit:["visits"], cls:"numeric", out:"[1] 128", mark:1,
+    why:"<strong>兩段動作。</strong>先 [[4]] 跳到 0x2B40 那條 double[3]，再對<strong>那塊記憶體</strong>算 0x2B40 + 1×8 —— 第二段已經在 vector 的世界裡了。" },
+  { code:"p[c(2,4)]", mode:"box", hit:["glucose","visits"], cls:"list", out:"$glucose\n[1] 128\n\n$visits\n[1]  95 128  88",
+    why:"<strong>[ ] 可以一次拿多個位址。</strong>[[ ]] 不行 —— 因為「同時跳到兩個地方」沒辦法回傳成一個東西。" }
+];
+var ssIdx = 1;
+function drawSS(){
+  var s = SS[ssIdx];
+  var e = "";
+  SS.forEach(function(x,i){ e += '<span class="expr'+(i===ssIdx?" lit":"")+'" data-i="'+i+'" tabindex="0" role="button">'+esc(x.code)+'</span>'; });
+  $("ssPick").innerHTML = e;
+  $("ssCon").innerHTML = '<span class="pr">&gt; '+esc(s.code)+'</span>\n' + esc(s.out);
+
+  var inner = dumpHTML({
+    base:LBASE, kind:"ptr", cc:"p",
+    title:"p · list[4]", sub:span(LBASE, 4, "ptr"),
+    items: PATIENT.map(function(p){
+      var on = s.hit.indexOf(p.nm) >= 0;
+      var tgt = '<span class="tgt">' + p.val.map(function(v,j){
+        var m = (s.mark === j && p.nm === "visits");
+        return '<span class="sub"'+(m?' style="box-shadow:0 0 0 1px var(--data); background:var(--dataBg); color:var(--data)"':"")+'>'+esc(v)+'</span>';
+      }).join("") + '<span class="ty">'+p.ty+' @'+hex(p.addr)+'</span></span>';
+      return { val:p.addr, dim:!on, link:"x",
+        ann:'<span class="ann"><span class="nmlab">'+p.nm+'</span> <span class="arrow">╌►</span></span> ' + tgt };
+    })
+  });
+  $("ssStage").innerHTML = '<div class="boxwrap'+(s.mode === "open" ? " open" : "")+'">' +
+    '<div class="lbl">[ ] &nbsp;卡夾還在 ╌► 回傳 list</div>' + inner + '</div>';
+  $("ssBr").innerHTML =
+    '<span class="cv c">'+esc(s.code)+'</span>'+W+
+    '<span class="cv m">'+(s.mode === "open" ? "讀出位址並跳過去" : "複製位址到新的 list")+'</span>'+W+
+    '<span class="cv">class() = "'+s.cls+'"</span>' +
+    '<span class="full">'+s.why+'</span>';
+}
+$("ssPick").addEventListener("click", function(e){
+  var b = e.target.closest(".expr"); if (!b) return;
+  ssIdx = +b.dataset.i; drawSS();
+});
+$("ssPick").addEventListener("keydown", function(e){
+  if (e.key !== "Enter" && e.key !== " ") return;
+  var b = e.target.closest(".expr"); if (!b) return;
+  e.preventDefault(); ssIdx = +b.dataset.i; drawSS();
+});
+drawSS();
+
+/* ================= 07 MATRIX ================= */
+var DIVS = [1,2,3,4,6,12], mRowI = 2, mByRow = false, mLink, MBASE = 0x1000;
+function drawM(){
+  var nr = DIVS[mRowI], nc = 12 / nr;
+  $("mRowV").textContent = nr;
+  $("mCode").innerHTML = codeHTML([
+    ["v <- 1:12\nm <- matrix(v, nrow = " + nr + ", byrow = " + (mByRow ? "TRUE" : "FALSE") + ")", null]
+  ]);
+  var g = '<div class="mgrid" style="grid-template-columns:auto repeat('+nc+', 52px)">';
+  g += '<div class="mlab"></div>';
+  for (var c0 = 0; c0 < nc; c0++) g += '<div class="mlab">[,'+(c0+1)+']</div>';
+  for (var r = 0; r < nr; r++){
+    g += '<div class="mlab">['+(r+1)+',]</div>';
+    for (var c = 0; c < nc; c++){
+      var k = mByRow ? (r*nc + c) : (c*nr + r);
+      g += '<div class="mcell" data-link="'+k+'" data-rc="'+(r+1)+','+(c+1)+'" tabindex="0" role="button">'+(k+1)+'</div>';
+    }
+  }
+  $("mGridWrap").innerHTML = g + "</div>";
+
+  var rcOf = {};
+  for (var rr = 0; rr < nr; rr++) for (var cc2 = 0; cc2 < nc; cc2++){
+    rcOf[mByRow ? (rr*nc + cc2) : (cc2*nr + rr)] = "[" + (rr+1) + ", " + (cc2+1) + "]";
+  }
+  var items = [];
+  for (var i = 0; i < 12; i++){
+    items.push({ val:i+1, link:i,
+      ann:'<span class="ann"><span class="eq">v['+(i+1)+'] = '+(i+1)+'</span> <span class="arrow">╌►</span> m'+rcOf[i]+'</span>' });
+  }
+  $("mMem").innerHTML = dumpHTML({
+    base:MBASE, kind:"int", cc:"d", header:true,
+    attrib:{ val:0x4600, txt:'屬性節點 @0x4600 &nbsp;<span class="ty">TAG = dim, VALUE = c('+nr+', '+nc+')</span>', link:"attrib" },
+    title:"m · integer[12] ＋ dim", sub:span(MBASE, 12, "int") + " · dim = c(" + nr + ", " + nc + ")",
+    items:items
+  });
+  mLink.repaint();
+}
+function mBridge(k, root){
+  var nr = DIVS[mRowI], nc = 12 / nr;
+  if (k == null){
+    $("mBr").innerHTML = '<span class="cv a">attr(, "dim") = c('+nr+', '+nc+')</span>'+W+'<span class="cv m">'+hex(MBASE)+' 起的 48 bytes</span>' +
+      '<span class="full">左邊那張表是 print() 依照 dim 屬性畫出來的；右邊那 48 bytes 才是真的。點左邊任一格，看它其實住在哪個位址。</span>';
+    return;
+  }
+  var cell = root.querySelector('.mcell[data-link="'+k+'"]');
+  var rc = cell ? cell.getAttribute("data-rc") : null, i = +k;
+  $("mBr").innerHTML =
+    '<span class="cv c">m['+(rc ? rc.replace(",", ", ") : "?")+']</span>'+W+
+    '<span class="cv a">byrow = '+(mByRow?"TRUE":"FALSE")+'</span>'+W+
+    '<span class="cv m">'+hex(MBASE + i*4)+'</span>'+W+
+    '<span class="cv">'+bytesOf(i+1, "int").join(" ")+'</span>' +
+    '<span class="full">' + (mByRow
+      ? "一<strong>列</strong>一列往右填，所以 m[r, c] 對應底層第 (r−1)×"+nc+" + c 個 4-byte 整數。"
+      : "預設 column-major：一<strong>行</strong>一行往下填，所以 m[r, c] 對應底層第 (c−1)×"+nr+" + r 個 4-byte 整數。") + '</span>';
+}
+$("mRow").addEventListener("input", function(){ mRowI = +this.value; mLink.set(null); drawM(); });
+$("mBy").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  mByRow = b.dataset.b === "1";
+  Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+  mLink.set(null); drawM();
+});
+mLink = linker("p6", mBridge, null);
+drawM();
+
+/* ================= 08 FACTOR ================= */
+var FACS = [
+  { code:'blood_type <- factor(\n  c("A", "O", "AB", "A", "O")\n)',
+    raw:["A","O","AB","A","O"], levels:["A","AB","O"], ordered:false, varn:"blood_type",
+    note:'沒有指定 levels 時，R 把唯一值<strong>照字母排序</strong>當作 1、2、3 —— 注意 "AB" 排在 "O" 前面，編碼跟你輸入的順序無關。' },
+  { code:'edu <- factor(edu_raw,\n  levels = c("High School", "Bachelor",\n             "Master", "PhD"),\n  ordered = TRUE)',
+    raw:["Bachelor","Master","High School","PhD","Master"],
+    levels:["High School","Bachelor","Master","PhD"], ordered:true, varn:"edu",
+    note:"自己指定 levels 順序後，編碼就照你的順序走；ordered = TRUE 讓 R 知道這些組別<strong>有大小</strong>，可以用 &lt; 比較。" }
+];
+var fIdx = 0, fLink, FBASE = 0x1000, FLBASE = 0x4800;
+function drawF(){
+  var f = FACS[fIdx];
+  $("fCode").innerHTML = hl(f.code);
+  var line = '<span class="pr">&gt; '+f.varn+'</span>\n[1] ';
+  f.raw.forEach(function(v,i){ line += '<span class="tok" data-link="r'+i+'" tabindex="0" role="button">'+esc(v)+'</span> '; });
+  line += '\n<span class="pr">Levels:</span> ';
+  f.levels.forEach(function(v,i){
+    line += '<span class="tok" data-link="L'+i+'" tabindex="0" role="button">'+esc(v)+'</span>' + (f.ordered && i < f.levels.length-1 ? " &lt; " : " ");
+  });
+  $("fCon").innerHTML = line;
+
+  var mem = dumpHTML({
+    base:FBASE, kind:"int", cc:"d", header:true,
+    attrib:{ val:0x4600, txt:'屬性節點鏈 @0x4600 &nbsp;<span class="ty">levels ╌► NEXT ╌► class</span>', link:"attrib" },
+    title:f.varn+" · 資料本體 integer["+f.raw.length+"]", sub:span(FBASE, f.raw.length, "int") + " · 只有編碼，沒有字",
+    items: f.raw.map(function(v,i){
+      var code = f.levels.indexOf(v) + 1;
+      return { val:code, link:"r"+i,
+        ann:'<span class="ann"><span class="eq">['+(i+1)+'] = '+code+'</span> <span class="ty">印出來是 "'+esc(v)+'"</span></span>' };
+    })
+  });
+  mem += gap() + dumpHTML({
+    base:FLBASE, kind:"ptr", cc:"a",
+    title:'attr(, "levels") · character['+f.levels.length+']', sub:span(FLBASE, f.levels.length, "ptr") + (f.ordered ? " · ordered" : ""),
+    items: f.levels.map(function(v,i){
+      return { val:0x7F00 + i*16, link:"L"+i,
+        ann:'<span class="ann"><span class="eq">編碼 '+(i+1)+'</span> <span class="arrow">╌►</span> "'+esc(v)+'"</span>' };
+    })
+  });
+  $("fMem").innerHTML = mem;
+  fLink.repaint();
+}
+function fBridge(k, root){
+  var f = FACS[fIdx];
+  if (k == null){
+    var asnum = f.raw.map(function(v){ return f.levels.indexOf(v)+1; }).join(" ");
+    $("fBr").innerHTML = '<span class="cv c">as.numeric()</span>'+W+'<span class="cv m">'+asnum+'</span>' +
+      '<span class="full">'+f.note+' 滑過左邊 console 裡的任一個值，看它在右邊存成哪個整數。</span>';
+    return;
+  }
+  var isRow = k.charAt(0) === "r", idx = +k.slice(1);
+  var li = isRow ? f.levels.indexOf(f.raw[idx]) : idx;
+  var keys = isRow ? ["L"+li] : f.raw.map(function(v,i){ return v === f.levels[idx] ? "r"+i : null; }).filter(Boolean);
+  keys.forEach(function(key){
+    var els = root.querySelectorAll('[data-link="'+key+'"]');
+    for (var i = 0; i < els.length; i++) els[i].classList.add("lit");
+  });
+  if (isRow){
+    $("fBr").innerHTML =
+      '<span class="cv c">'+f.varn+'['+(idx+1)+'] = "'+esc(f.raw[idx])+'"</span>'+W+
+      '<span class="cv m">'+hex(FBASE+idx*4)+' : '+bytesOf(li+1, "int").join(" ")+'</span>'+W+
+      '<span class="cv a">levels['+(li+1)+'] @ '+hex(FLBASE+li*8)+'</span>' +
+      '<span class="full">記憶體裡只有一個 4-byte 的整數 '+(li+1)+'。你看到的字是 print() 拿這個整數去另一塊 levels 記憶體查來的。</span>';
+  } else {
+    var cnt = f.raw.filter(function(v){ return v === f.levels[idx]; }).length;
+    $("fBr").innerHTML =
+      '<span class="cv a">levels['+(idx+1)+'] = "'+esc(f.levels[idx])+'"</span>'+W+
+      '<span class="cv m">編碼 '+(idx+1)+'</span>'+W+'<span class="cv">出現 '+cnt+' 次</span>' +
+      '<span class="full">字串「'+esc(f.levels[idx])+'」在整個物件裡只存了<strong>一份</strong>，資料本體那 '+cnt+' 列全都只是 4 bytes 的整數 '+(idx+1)+'。這就是 factor 省空間的地方。</span>';
+  }
+}
+$("fSeg").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if (!b) return;
+  fIdx = +b.dataset.f;
+  Array.prototype.forEach.call(this.children, function(c){ c.classList.toggle("on", c === b); });
+  fLink.set(null); drawF();
+});
+fLink = linker("p7", fBridge, null);
+drawF();
+
+/* ================= 09 DATA FRAME ================= */
+var DFBASE = 0x3C00, DFATTR = 0x4600;
+var DFCOLS = [
+  { nm:"id",         addr:0x6100, kind:"ptr",  ty:"character[3]",
+    shown:["P01","P02","P03"],      raw:[0x7F00,0x7F10,0x7F20],
+    ann:['&#8594; "P01"','&#8594; "P02"','&#8594; "P03"'] },
+  { nm:"glucose",    addr:0x6180, kind:"double", ty:"double[3]",
+    shown:["95","128","88"],        raw:[95,128,88],
+    ann:["= 95","= 128","= 88"] },
+  { nm:"blood_type", addr:0x6200, kind:"int",  ty:"factor[3]（底層 integer）",
+    shown:["A","O","AB"],           raw:[1,3,2],
+    ann:['= 1 &nbsp;印出來是 "A"','= 3 &nbsp;印出來是 "O"','= 2 &nbsp;印出來是 "AB"'] },
+  { nm:"fasting",    addr:0x6280, kind:"logical", ty:"logical[3]",
+    shown:["TRUE","TRUE","FALSE"],  raw:[1,1,0],
+    ann:["= TRUE","= TRUE","= FALSE"] }
+];
+var DFATTRS = [
+  { nm:"names",     addr:0x4A00, kind:"ptr", ty:"character[4]",
+    items:["id","glucose","blood_type","fasting"], raw:[0x7A00,0x7A10,0x7A20,0x7A30], ptr:true },
+  { nm:"row.names", addr:0x4B00, kind:"int", ty:"integer[3]",
+    items:["1","2","3"], raw:[1,2,3], ptr:false },
+  { nm:"class",     addr:0x4C00, kind:"ptr", ty:"character[1]",
+    items:["data.frame"], raw:[0x7B00], ptr:true }
+];
+(function(){
+  $("dfCode").innerHTML = codeHTML([
+    ["patients <- data.frame(\n  ", null],
+    ['id         = c("P01", "P02", "P03")', "id"], [",\n  ", null],
+    ["glucose    = c(95, 128, 88)", "glucose"], [",\n  ", null],
+    ['blood_type = factor(c("A", "O", "AB"))', "blood_type"], [",\n  ", null],
+    ["fasting    = c(TRUE, TRUE, FALSE)", "fasting"], ["\n)", null]
+  ]);
+  var t = '<table><thead><tr><th style="cursor:default"></th>';
+  DFCOLS.forEach(function(c){ t += '<th data-link="'+c.nm+'" tabindex="0" role="button">'+c.nm+'</th>'; });
+  t += "</tr></thead><tbody>";
+  for (var r = 0; r < 3; r++){
+    t += '<tr><td style="color:var(--faint); font-size:11px; cursor:default">'+(r+1)+'</td>';
+    DFCOLS.forEach(function(c){ t += '<td data-link="'+c.nm+'">'+esc(c.shown[r])+'</td>'; });
+    t += "</tr>";
+  }
+  $("dfTbl").innerHTML = t + "</tbody></table>";
+
+  /* ① 指標陣列 */
+  var mem = dumpHTML({
+    base:DFBASE, kind:"ptr", cc:"p", header:true,
+    attrib:{ val:DFATTR, txt:'屬性節點鏈 @'+hex(DFATTR), link:"attrib" },
+    title:"① patients 本體 · 就是一個 list[4]", sub:span(DFBASE, 4, "ptr") + " · 只有四個位址，沒有任何資料",
+    items: DFCOLS.map(function(c,i){
+      return { val:c.addr, link:c.nm,
+        ann:'<span class="ann"><span class="nmlab">'+c.nm+'</span> <span class="arrow">╌►</span> '+hex(c.addr)+' <span class="ty">'+c.ty+'</span></span>' };
+    })
+  });
+
+  /* ② 四塊欄位 */
+  mem += '<div class="memgap">⋮&nbsp;&nbsp;以下四塊是四條各自獨立的 vector，位址互不相鄰&nbsp;&nbsp;⋮</div>';
+  DFCOLS.forEach(function(c,i){
+    mem += dumpHTML({
+      base:c.addr, kind:c.kind, cc:(c.kind === "ptr" ? "p" : "d"),
+      title:"② " + c.nm + " @" + hex(c.addr), sub:c.ty + " · " + span(c.addr, 3, c.kind),
+      items: c.raw.map(function(v,j){
+        return { val:v, link:c.nm,
+          ann:'<span class="ann"><span class="eq">['+(j+1)+'] '+c.ann[j]+'</span></span>' };
+      })
+    });
+  });
+
+  /* ③ 屬性 */
+  mem += '<div class="memgap">⋮&nbsp;&nbsp;以下是掛在 attrib 上的三個屬性&nbsp;&nbsp;⋮</div>';
+  mem += dumpHTML({
+    base:DFATTR, kind:"ptr", cc:"a",
+    title:"③ 屬性節點鏈 @" + hex(DFATTR), sub:"三個節點，這裡只畫每個節點的 VALUE 欄位",
+    items: DFATTRS.map(function(a){
+      return { val:a.addr, link:"attrib",
+        ann:'<span class="ann"><span class="nmlab">TAG = '+a.nm+'</span> <span class="arrow">╌►</span> '+hex(a.addr)+' <span class="ty">'+a.ty+'</span></span>' };
+    })
+  });
+  DFATTRS.forEach(function(a){
+    mem += dumpHTML({
+      base:a.addr, kind:a.kind, cc:"a",
+      title:'③ attr(, "'+a.nm+'") @'+hex(a.addr), sub:a.ty + " · " + span(a.addr, a.items.length, a.kind),
+      items: a.items.map(function(v,j){
+        return { val:a.raw[j], link:"attrib",
+          ann:'<span class="ann"><span class="eq">['+(j+1)+']</span> '+(a.ptr ? '<span class="arrow">╌►</span> "'+esc(v)+'"' : '= '+esc(v))+'</span>' };
+      })
+    });
+  });
+  $("dfMem").innerHTML = mem;
+
+  linker("p8", function(k){
+    if (k == null){
+      $("dfBr").innerHTML =
+        '<span class="cv c">一列 = 一位病人</span><span style="color:var(--faint)">（print 畫出來的）</span>' + W +
+        '<span class="cv m">一欄 = 一塊獨立記憶體</span><span style="color:var(--faint)">（實際存在的）</span>' +
+        '<span class="full">右邊由上到下：① 四個位址 ② 四塊欄位資料 ③ 三個屬性。橫著讀一列，其實是跑到四個不相鄰的位址各取第 i 格 —— 記憶體裡<strong>沒有任何東西叫做「第 1 列」</strong>。點左邊任一欄看看。</span>';
+      return;
+    }
+    if (k === "attrib"){
+      $("dfBr").innerHTML =
+        '<span class="cv m">header 的 attrib</span>'+W+'<span class="cv a">'+hex(DFATTR)+'</span>'+W+
+        '<span class="cv a">names</span><span class="cv a">row.names</span><span class="cv a">class</span>' +
+        '<span class="full">三個屬性就是 data.frame 跟普通 list 唯一的差別：<code class="inline">names</code> 給欄名、<code class="inline">row.names</code> 給列名、<code class="inline">class = "data.frame"</code> 讓 print() 知道要畫成表格。把 class 拔掉 <code class="inline">unclass(patients)</code>，它立刻現出原形變回一個 list。</span>';
+      return;
+    }
+    var c = DFCOLS.filter(function(x){ return x.nm === k; })[0];
+    var idx = DFCOLS.indexOf(c), isF = c.ty.indexOf("factor") === 0;
+    $("dfBr").innerHTML =
+      '<span class="cv c">patients$'+c.nm+'</span>'+W+'<span class="cv m">'+hex(DFBASE+idx*8)+'</span>'+W+
+      '<span class="cv">'+bytesOf(c.addr, "ptr").join(" ")+'</span>'+W+
+      '<span class="cv">= '+hex(c.addr)+'</span>'+W+'<span class="cv">'+c.ty+'</span>' +
+      '<span class="full">' + (isF
+        ? '注意 ② 那塊：表格印的是 A / O / AB，'+hex(c.addr)+' 存的卻是整數 1 / 3 / 2 —— 因為這一欄是 factor，字串放在它自己的 levels 屬性裡（見上一節）。'
+        : '這一欄住在 '+hex(c.addr)+'，跟其他三欄完全不相鄰。df["'+c.nm+'"] 拿到的是含這個指標的小 data.frame，df$'+c.nm+' 才是 '+hex(c.addr)+' 那塊記憶體本身。') + '</span>';
+  }, null).repaint();
+})();
+
+/* ================= 11 QUIZ ================= */
+var QS = [
+  { q:'<code>c(TRUE, "Hello", 3)</code> 的 <code>typeof()</code> 是？',
+    o:['"logical"','"double"','"character"',"報錯，型別不合"], a:2,
+    e:'字串是階梯的終點站。只要有一個 character，整塊記憶體都會被換成 character 規格 —— 每格變成 8-byte 指標，TRUE 變成指向 "TRUE" 的位址。R 不會報錯也不會警告。' },
+  { q:'<code>x &lt;- c(1,2,3)</code>；<code>y &lt;- x</code>；<code>y[1] &lt;- 99</code>。此時 <code>x</code> 是什麼？',
+    o:["99 2 3，因為 y 和 x 指向同一塊記憶體","1 2 3，R 在修改前先複製了一份給 y","1 2 3，因為 y &lt;- x 當下就複製了一份","報錯，x 是唯讀的"], a:1,
+    e:"y &lt;- x 當下不複製，只是名字表多一列指向同一個位址。等到要改 y 時，R 發現有兩個名字指著那塊記憶體，才複製一份到新位址給 y 改 —— 這就是 copy-on-modify。tracemem(y) 會印出 [0x... -> 0x...] 的搬家紀錄。" },
+  { q:'<code>object.size(c(10, 20, 30))</code> 大約是多少？（3 個 double = 24 bytes 的資料）',
+    o:["24 bytes，就是資料本身","80 bytes，因為還有 48 bytes 的 header，而且資料會進位到 32 bytes",
+       "32 bytes，資料進位到 4 格","48 bytes，header 就是全部"], a:1,
+    e:"物件的型別、長度、attrib 指標、GC 資訊都要佔記憶體 —— 在 64 位元的 R 上這段 header 固定 48 bytes（object.size(numeric(0)) 就是 48）。加上資料：3 個 double 需要 3 格，但 R 的小向量尺寸級距是 1、2、4、6、8、16 格，只好進位到 4 格 = 32 bytes。48 + 32 = 80。" },
+  { q:'<code>v &lt;- c(apple=1, banana=2, peach=3)</code>。<code>v["banana"]</code> 和 <code>v[2]</code> 都得到 2，就電腦而言差別在哪？',
+    o:["完全一樣，只是寫法不同","v[\"banana\"] 要先到 names 那塊記憶體逐格比對字串，v[2] 直接算位址",
+       "v[\"banana\"] 比較快，因為 R 對名字建了 hash table","v[2] 會先複製整個向量再取值"], a:1,
+    e:"名字存在另一塊記憶體（names 屬性，一條 character vector）。用名字索引是線性搜尋，先找出它是第幾格，才回到資料本體算位址；用位置索引則是一次乘法。R 的 named vector 沒有 hash —— 那是 Python dict 和 R 的 environment 才有的。" },
+  { q:'<code>p &lt;- list(a = 1, b = "x")</code>，請問 <code>class(p[1])</code> 是？',
+    o:['"numeric"','"list"','"integer"','"character"'], a:1,
+    e:"[ ] 只是把那個位址複製到一塊新的指標記憶體，外面的 list 還在 —— 所以回傳的仍是 list。要拿到裡面的 1，得用 p[[1]] 或 p$a。" },
+  { q:'<code>endgame[[4]]</code> 是 <code>c("Action","Adventure","Sci-Fi")</code>。那 <code>endgame[[4]][2]</code> 是？',
+    o:['"Action"','"Adventure"',"一個長度 1 的 list","NULL"], a:1,
+    e:"[[4]] 先跳到那條 character 向量所在的位址，[2] 再對那塊記憶體取第二格。第二段已經在 vector 的世界裡了，所以拿到的是 \"Adventure\"。" },
+  { q:'<code>m &lt;- matrix(1:6, nrow = 2)</code>，<code>m[2, 2]</code> 是多少？',
+    o:["2","3","4","5"], a:2,
+    e:"預設 byrow = FALSE，一行一行往下填：第 1 行放 1、2，第 2 行放 3、4，第 3 行放 5、6。所以第 2 列第 2 行是 4。" },
+  { q:"下列哪一句最準確描述 data.frame？",
+    o:["一個可以混型別的二維矩陣","等長 vector 組成的 named list","一堆 list 疊成的表格","character matrix 加上 class 屬性"], a:1,
+    e:'記憶體裡只有一排指標，每個指標指向一塊獨立的等長 vector（所以欄內必須同型別、欄間可以不同型別），再靠 class = "data.frame" 讓 print() 畫成表格。' },
+  { q:'<code>f &lt;- factor(c("B","A","C"))</code>，<code>as.numeric(f)</code> 得到？',
+    o:["1 2 3","2 1 3","3 1 2","NA NA NA"], a:1,
+    e:"沒指定 levels 時 R 照字母排序建對照表：A=1、B=2、C=3。原始資料是 B、A、C，所以編碼是 2 1 3。這是 factor 最容易出錯的地方。" },
+  { q:'<code>c(1, 2, 3, 4) + c(10, 20)</code> 的結果是？',
+    o:["11 22（後面捨去）","11 22 3 4","11 22 13 24","報錯，長度不合"], a:2,
+    e:"recycling（回收規則）：短的向量被重複使用成 10,20,10,20。因為長度剛好成整數倍，R 連警告都不會給 —— 這是實務上很常見的 bug 來源。" }
+];
+(function(){
+  var done = 0, right = 0, h = "";
+  QS.forEach(function(q,i){
+    h += '<div class="q"><div class="qh"><span class="qn">Q'+(i+1)+'</span><span class="qt">'+q.q+'</span></div><div class="opts" data-q="'+i+'">';
+    q.o.forEach(function(o,j){ h += '<button data-j="'+j+'">'+String.fromCharCode(65+j)+'. &nbsp;'+esc(o)+'</button>'; });
+    h += '</div><div class="exp" id="exp'+i+'">'+q.e+'</div></div>';
+  });
+  $("quiz").innerHTML = h;
+  $("quiz").addEventListener("click", function(e){
+    var b = e.target.closest(".opts button"); if (!b || b.disabled) return;
+    var box = b.parentNode, qi = +box.dataset.q, q = QS[qi], pick = +b.dataset.j;
+    Array.prototype.forEach.call(box.children, function(c,j){
+      c.disabled = true;
+      if (j === q.a) c.classList.add("good"); else if (j === pick) c.classList.add("bad");
+    });
+    $("exp"+qi).classList.add("show");
+    done++; if (pick === q.a) right++;
+    $("score").innerHTML = (done === QS.length ? "完成 · " : "已作答 "+done+" 題 · ") + "<b>"+right+"</b> / "+QS.length +
+      (done === QS.length ? (right === QS.length ? " &nbsp;全對，你已經把記憶體的圖畫進腦子裡了。" : " &nbsp;錯的那幾題，回去把對應那一節的位址再滑一次。") : "");
+  });
+})();
+
+})();
+</script>
+
+</body>
+</html>

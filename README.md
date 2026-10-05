@@ -1,8 +1,18 @@
-# 記憶體裡的 R 物件
+# 大數據分析與實踐 · R 互動教材
+
+**課程首頁：** https://chenyc0901.github.io/R_datastructure_learning/
+
+| 單元 | 頁面 |
+|---|---|
+| 封面 | `index.html` |
+| 01 記憶體裡的 R 物件 | `memory.html` |
+| 02 R 迴圈闖關 | `loops.html` |
+
+## 第一部分：記憶體裡的 R 物件（`memory.html`）
 
 R 資料結構的互動式教材 —— 從「電腦怎麼擺放 bytes」的角度解釋 vector、list、matrix、factor、data.frame。
 
-**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/memory.html
 
 ## 這是什麼
 
@@ -61,7 +71,7 @@ Karel 風格的程式遊戲：寫 R 程式指揮機器人「R 寶」走迷宮、
 
 ## 使用
 
-兩個 HTML 檔（`index.html`、`loops.html`），沒有建置步驟、沒有相依套件。直接開 `index.html` 即可，或用任何靜態伺服器托管。
+三個 HTML 檔（`index.html` 封面、`memory.html`、`loops.html`），沒有建置步驟、沒有相依套件。直接開 `index.html` 即可，或用任何靜態伺服器托管。
 
 字型從 Google Fonts 載入（Noto Sans TC / JetBrains Mono / Chakra Petch），離線時會退回系統字型。
 
