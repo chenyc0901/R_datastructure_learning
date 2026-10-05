@@ -34,9 +34,32 @@ R 資料結構的互動式教材 —— 從「電腦怎麼擺放 bytes」的角�
 | 11 | 全圖 | 兩個源頭加屬性長出五種結構 |
 | 12 | 隨堂測驗 | 十一題，附解釋 |
 
+## 第二部分：R 迴圈闖關（`loops.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/loops.html
+
+Karel 風格的程式遊戲：寫 R 程式指揮機器人「R 寶」走迷宮、撿寶石。程式會逐行執行，同時顯示目前執行的那一行、Environment 裡的變數和 Console 輸出。
+
+| # | 主題 | 重點 |
+|---|---|---|
+| 1 | 順序 | 一行一行執行、函式呼叫要加 `()` |
+| 2–3 | `for` | `1:n` 序列、柵欄問題、`1:0` 陷阱與 `seq_len()` |
+| 4 | `while` | 不知道次數時用條件控制、無限迴圈 |
+| 5 | `!` | 把 TRUE 變 FALSE |
+| 6–7 | `if` | 比較運算子、`%%` 取餘數、while + if |
+| 8 | `&&` / `\|\|` | 而且／或者 |
+| 9 | `break` | 提早結束整個迴圈、`while (TRUE)`、`repeat` |
+| 10 | `next` | 跳過這一圈（其他語言的 continue） |
+| 11–12 | 巢狀迴圈 | 外層 × 內層、內層次數依賴外層變數 |
+| 13 | `ifelse()` | 向量化判斷，對比 `if` 的 `the condition has length > 1` |
+| 14 | 迷宮 | `while` + `if … else if … else` 右手扶牆法 |
+| ★ | 預測挑戰 | 讀程式碼、預測輸出 |
+
+會隨機產生地圖的關卡，過關後會再用其他幾張地圖測試，寫死步數的程式會被抓出來。進度存在瀏覽器的 localStorage。
+
 ## 使用
 
-單一 HTML 檔，沒有建置步驟、沒有相依套件。直接開 `index.html` 即可，或用任何靜態伺服器托管。
+兩個 HTML 檔（`index.html`、`loops.html`），沒有建置步驟、沒有相依套件。直接開 `index.html` 即可，或用任何靜態伺服器托管。
 
 字型從 Google Fonts 載入（Noto Sans TC / JetBrains Mono / Chakra Petch），離線時會退回系統字型。
 

@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="寫 R 程式指揮機器人走迷宮、撿寶石，練習 for、while、if、!、&&、break、next、ifelse 與巢狀迴圈。">
+<meta property="og:title" content="R 迴圈闖關">
+<meta property="og:description" content="大數據分析與實踐 · R 迴圈與條件式互動遊戲">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E">
+<title>R 迴圈闖關</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+html{color-scheme:light}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+.back:hover{color:var(--accent)}
+/* Layout: level map strip, then a Karel-style workbench — mission + world on top, R source editor + environment/console below */
+:root{
+  --bg:#e9edf1; --panel:#fbfcfd; --sunk:#f1f4f7; --ink:#16202b; --muted:#5a6776; --line:#d3dae2;
+  --accent:#1d5fae; --accent-ink:#ffffff; --accent-soft:#dde9f7;
+  --amber:#e0a422; --amber-soft:#fdf1cf; --ok:#1d8656; --ok-soft:#dcf2e6; --bad:#c0392b; --bad-soft:#fbe3e0;
+  --tile:#f4f1e8; --tile2:#ece8dc; --dot:#b9b2a0; --wall:#3a3f4a; --gem:#2fb3a6; --gem-edge:#14776e; --target:#8d97a3;
+  --t-kw:#8b2fc9; --t-str:#1d7a3a; --t-num:#b4530a; --t-com:#7f8a96; --t-fn:#1d5fae; --t-op:#a3324b;
+  --f-display:"Huninn","Noto Sans TC","PingFang TC",system-ui,sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC",system-ui,-apple-system,sans-serif;
+  --f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Noto Sans TC",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+    --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+    --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+    --tile:#1d252f; --tile2:#19212a; --dot:#3b4756; --wall:#c9d3df; --gem:#45d1c2; --gem-edge:#a6f0e7; --target:#6f7d8d;
+    --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+  --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+  --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+  --tile:#1d252f; --tile2:#19212a; --dot:#3b4756; --wall:#c9d3df; --gem:#45d1c2; --gem-edge:#a6f0e7; --target:#6f7d8d;
+  --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:16px}
+code,.mono{font-family:var(--f-code);font-size:.92em}
+p code,li code,.concept code,.goal code,.result code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px}
+.brand h1{font-family:var(--f-display);font-size:clamp(28px,4.6vw,42px);line-height:1.1;margin:0;letter-spacing:.02em;text-wrap:balance}
+.brand h1 .r{display:inline-grid;place-items:center;width:1.15em;height:1.15em;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-family:var(--f-code);font-weight:600;font-size:.82em;margin-right:.18em;vertical-align:.06em}
+.brand p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.stats{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lv{font-family:var(--f-display);font-size:20px}
+.xpbar{width:160px;max-width:40vw;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.xptxt{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.chipbtn{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:3px 12px;font-size:13px}
+
+/* level map */
+.mapwrap{overflow-x:auto;padding-bottom:4px}
+.map{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+.node{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;border:1px solid var(--line);background:var(--panel);border-radius:10px;transition:border-color .15s,background .15s}
+.node:hover{border-color:var(--accent)}
+.node .num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-code);font-size:13px;font-weight:600;background:var(--sunk);border:1px solid var(--line);color:var(--muted)}
+.node .tag{font-size:12px;font-weight:600;line-height:1.3;white-space:nowrap}
+.node .stars{font-size:11px;letter-spacing:1px;color:var(--line);line-height:1}
+.node .stars .on{color:var(--amber)}
+.node[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.node[aria-current="true"] .num{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.node.done .num{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+
+/* workbench */
+.bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"mission world" "code world" "code env";gap:16px;align-items:start}
+.a-mission{grid-area:mission}.a-world{grid-area:world}.a-code{grid-area:code}.a-env{grid-area:env}
+@media (max-width:920px){.bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"mission" "world" "code" "env"}}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--accent);font-weight:700}
+.mission h2{font-family:var(--f-display);font-size:28px;margin:2px 0 6px;line-height:1.2;text-wrap:balance}
+.goal{margin:0 0 10px;font-weight:500;max-width:62ch}
+.concept{border:1px dashed var(--line);border-radius:8px;padding:10px 12px;background:var(--sunk);font-size:14px}
+.concept p{margin:0 0 6px;max-width:65ch}
+.concept p:last-child{margin-bottom:0}
+.hint{margin-top:10px;padding:8px 12px;border-radius:8px;background:var(--amber-soft);font-size:14px}
+
+.pane{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden;min-width:0}
+.pane-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--sunk);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);letter-spacing:.04em;flex-wrap:wrap}
+.pane-h b{color:var(--ink);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
+.pane-h .acts{display:flex;gap:6px}
+.pane-h .acts button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px;font-size:12px}
+.pane-h .acts button:disabled{opacity:.4;cursor:default}
+
+/* world */
+.worldpane{overflow:visible}
+.worldwrap{padding:46px 14px 12px}
+.world{position:relative;margin:0 auto;max-width:100%}
+.world svg.map-svg{display:block;width:100%;height:auto}
+.robot{position:absolute;left:0;top:0;transition:transform var(--dur,.45s) ease-in-out;z-index:2;pointer-events:none}
+.robot.instant,.robot.instant .rb-rot{transition:none}
+.rb-rot{width:100%;height:100%;display:grid;place-items:center;transition:transform var(--dur,.45s) ease-in-out}
+.rb-svg{width:82%;height:82%;overflow:visible}
+.rb-body{fill:var(--accent)}
+.rb-face{fill:var(--panel)}
+.rb-eye{fill:var(--ink)}
+.rb-ant{fill:var(--amber)}
+.rb-foot{fill:var(--wall)}
+.rb-svg .ft{transform-box:fill-box;transform-origin:center}
+.robot.walking .f1{animation:foot calc(var(--dur,.45s)/2) ease-in-out infinite alternate}
+.robot.walking .f2{animation:foot calc(var(--dur,.45s)/2) ease-in-out infinite alternate-reverse}
+@keyframes foot{from{transform:translateX(-7px)}to{transform:translateX(7px)}}
+.rb-eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+@keyframes blink{0%,93%,100%{transform:scaleX(1)}96%{transform:scaleX(.15)}}
+.robot.bonk .rb-svg{animation:bonk .4s ease-out}
+@keyframes bonk{25%{transform:translateX(10%)}50%{transform:translateX(-6%)}75%{transform:translateX(4%)}}
+.robot.hop .rb-svg{animation:hop .5s ease-out}
+@keyframes hop{40%{transform:scale(1.28)}70%{transform:scale(.95)}}
+.robot.party .rb-svg{animation:spin 1s ease-in-out}
+@keyframes spin{50%{transform:scale(1.3) rotate(180deg)}100%{transform:scale(1) rotate(360deg)}}
+.robot.sad .rb-body{fill:var(--bad)}
+.bubble{position:absolute;bottom:88%;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--panel);color:var(--ink);border:1.5px solid var(--ink);border-radius:9px;padding:1px 8px;font-family:var(--f-code);font-size:12px;line-height:1.6;box-shadow:0 2px 0 var(--ink);opacity:0;transition:opacity .15s;z-index:3}
+.bubble.show{opacity:1}
+.bubble.l{left:0;transform:none}.bubble.r{left:auto;right:0;transform:none}
+.bubble.t{border-color:var(--ok);box-shadow:0 2px 0 var(--ok)}
+.bubble.f{border-color:var(--bad);box-shadow:0 2px 0 var(--bad)}
+.gem-pop{transform-box:fill-box;transform-origin:center;animation:gempop .35s ease-out}
+@keyframes gempop{from{transform:scale(0)}70%{transform:scale(1.25)}to{transform:scale(1)}}
+.gem-poof{transform-box:fill-box;transform-origin:center;animation:poof .45s ease-out forwards}
+@keyframes poof{to{transform:translateY(-30px) scale(.4);opacity:0}}
+.wstatus{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wstatus b{color:var(--ink);font-family:var(--f-code);font-weight:600}
+
+/* editor */
+.editor{display:grid;grid-template-columns:44px minmax(0,1fr);font-family:var(--f-code);font-size:14px;line-height:1.7;background:var(--panel)}
+.gutter{padding:10px 10px 10px 0;text-align:right;color:var(--t-com);font-size:12px;line-height:1.7*14px;user-select:none;background:var(--sunk);border-right:1px solid var(--line);white-space:pre}
+.gutter{line-height:23.8px}
+#ed{width:100%;min-height:200px;resize:none;border:0;outline:none;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:23.8px;padding:10px 12px;white-space:pre;overflow-x:auto;overflow-y:hidden;tab-size:2}
+#ed:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--accent-soft)}
+.codeview{font-family:var(--f-code);font-size:14px;line-height:23.8px;padding-block:10px;overflow-x:auto;cursor:text}
+.ln{display:grid;grid-template-columns:44px max-content;white-space:pre;min-width:max-content}
+.ln .no{text-align:right;padding-right:10px;color:var(--t-com);font-size:12px;user-select:none}
+.ln code{font-size:inherit;padding:0 16px 0 12px}
+.ln.cur{background:var(--amber-soft);box-shadow:inset 3px 0 0 var(--amber)}
+.ln.errl{background:var(--bad-soft);box-shadow:inset 3px 0 0 var(--bad)}
+.ln.cur .no::before{content:"▶ ";color:var(--ok);font-size:10px}
+.t-kw{color:var(--t-kw);font-weight:600}.t-str{color:var(--t-str)}.t-num{color:var(--t-num)}.t-com{color:var(--t-com);font-style:italic}.t-fn{color:var(--t-fn)}.t-op{color:var(--t-op)}
+.snips{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;border-top:1px solid var(--line);background:var(--sunk)}
+.snips span{font-size:11px;color:var(--muted);align-self:center;margin-right:2px}
+.snip{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 7px;font-family:var(--f-code);font-size:12px}
+.snip:hover{border-color:var(--accent)}
+.snip.ctl{color:var(--t-kw)}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px;font-size:14px;line-height:1.4;transition:background .12s,border-color .12s}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.go{background:var(--ok);border-color:var(--ok);color:var(--panel);font-weight:600;padding-inline:18px}
+.speed{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-left:auto}
+.speed input{width:90px;accent-color:var(--accent)}
+.result{border-radius:8px;padding:10px 12px;font-size:14px}
+.result.no{background:var(--bad-soft)}
+.result.ok{background:var(--ok-soft)}
+.result .btn{margin-top:8px}
+
+.env{width:100%;border-collapse:collapse;font-size:13px}
+.env th{text-align:left;font-weight:500;color:var(--muted);font-size:12px;padding:4px 10px;border-bottom:1px solid var(--line)}
+.env td{padding:4px 10px;border-bottom:1px solid var(--line);font-family:var(--f-code);font-variant-numeric:tabular-nums}
+.env tr:last-child td{border-bottom:0}
+.env .empty{color:var(--muted);font-family:var(--f-body)}
+.console{margin:0;padding:10px 12px;font-family:var(--f-code);font-size:13px;line-height:1.6;min-height:70px;max-height:180px;overflow:auto;white-space:pre-wrap;background:var(--sunk)}
+.console .prompt{color:var(--accent)}
+.console .err{color:var(--bad)}
+.console .good{color:var(--ok)}
+
+/* modal */
+.modal{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;z-index:20;padding:16px}
+.card{background:var(--panel);border-radius:16px;padding:24px;max-width:420px;width:100%;text-align:center;border:1px solid var(--line);animation:rise .3s ease-out}
+.card h3{font-family:var(--f-display);font-size:34px;margin:0}
+.bigstars{display:flex;justify-content:center;gap:10px;margin:14px 0 6px}
+.bigstars div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);width:96px}
+.bigstars i{font-style:normal;font-size:40px;line-height:1;color:var(--line)}
+.bigstars .on i{color:var(--amber);animation:starin .5s ease-out backwards}
+.bigstars div:nth-child(2) i{animation-delay:.15s}.bigstars div:nth-child(3) i{animation-delay:.3s}
+@keyframes starin{from{transform:scale(0) rotate(-90deg)}70%{transform:scale(1.3)}}
+.card .controls{justify-content:center;margin-top:14px}
+
+/* quiz (boss) */
+.boss{max-width:760px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px}
+.boss h3{font-family:var(--f-display);font-size:24px;margin:0 0 4px}
+.boss .bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:14px;color:var(--muted)}
+.hearts{color:var(--bad);letter-spacing:2px;font-size:18px}
+.hearts .lost{color:var(--line)}
+.q{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.q .qt{font-weight:500}
+.codeblk{margin:0;font-family:var(--f-code);font-size:13px;line-height:1.6;background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:pre}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 10px;font-family:var(--f-code);font-size:13px;white-space:pre-wrap}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.why{font-size:14px;padding:8px 10px;border-radius:8px;background:var(--sunk)}
+.why.ok{background:var(--ok-soft)}.why.no{background:var(--bad-soft)}
+.big{font-family:var(--f-display);font-size:52px;line-height:1;margin:6px 0}
+.rank{font-family:var(--f-display);font-size:24px;color:var(--accent)}
+.rules{margin:0;padding-left:1.2em}
+
+.foot{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;padding:0;font-size:13px}
+.linkbtn.armed{color:var(--bad)}
+.toasts{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;z-index:30;pointer-events:none}
+.toast{background:var(--ink);color:var(--panel);padding:7px 14px;border-radius:99px;font-size:14px;font-weight:500;animation:rise .3s ease-out}
+.toast.gold{background:var(--amber);color:#1c1405}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.confetti{position:fixed;width:8px;height:12px;z-index:40;pointer-events:none;border-radius:2px;animation:conf 1.1s cubic-bezier(.2,.6,.4,1) forwards}
+@keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <a class="back" href="./">← 記憶體裡的 R 物件（資料結構）</a>
+      <h1><span class="r">R</span>迴圈闖關</h1>
+      <p>寫 R 程式指揮機器人 R 寶走迷宮、撿寶石。用 <code>for</code>、<code>while</code>、<code>if</code> 和巢狀迴圈，讓程式越短越好。</p>
+    </div>
+    <div class="stats" aria-live="polite">
+      <span class="lv" id="lv">Lv.1</span>
+      <div class="xpbar" aria-hidden="true"><i id="xpfill" style="width:0"></i></div>
+      <span class="xptxt" id="xptxt">0 XP</span>
+      <button class="chipbtn" id="soundBtn" type="button">音效：開</button>
+    </div>
+  </header>
+  <nav class="mapwrap" aria-label="關卡"><ol class="map" id="map"></ol></nav>
+  <main id="stage"></main>
+  <footer class="foot">
+    <span>快捷鍵：在程式碼裡按 <code>Ctrl</code>/<code>⌘</code> + <code>Enter</code> 執行。進度只存在這台瀏覽器。</span>
+    <button class="linkbtn" id="resetAll" type="button">清除所有進度</button>
+  </footer>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+/* ================= R-subset interpreter + Karel world (pure logic) ================= */
+const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]];   // E N W S
+const DIR_ZH = ['東 →', '北 ↑', '西 ←', '南 ↓'];
+const MAX_STEPS = 3000;
+class RErr extends Error { constructor(msg, line, kind){ super(msg); this.line = line; this.kind = kind; } }
+class BreakSig { constructor(l){ this.line = l; } }
+class NextSig { constructor(l){ this.line = l; } }
+const KWS = new Set(['if','else','for','while','repeat','in','break','next','TRUE','FALSE','NULL','function']);
+const FULLWIDTH = {'（':'(', '）':')', '，':',', '｛':'{', '｝':'}', '；':';', '＝':'=', '＜':'<', '＞':'>', '“':'"', '”':'"', '：':':'};
+
+function tokenize(src){
+  const toks = []; let i = 0, line = 1; const n = src.length;
+  while (i < n) {
+    const c = src[i];
+    if (c === '\n') { toks.push({ t: 'nl', line, s: i, e: i + 1 }); line++; i++; continue; }
+    if (c === ' ' || c === '\t' || c === '\r' || c === '　') { i++; continue; }
+    if (c === '#') { while (i < n && src[i] !== '\n') i++; continue; }
+    if (src.startsWith('___', i)) throw new RErr('把 ___ 換成你的答案再執行', line);
+    if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(src[i + 1] || ''))) {
+      let j = i; while (j < n && /[0-9.]/.test(src[j])) j++;
+      const v = parseFloat(src.slice(i, j)); if (src[j] === 'L') j++;
+      toks.push({ t: 'num', v, line, s: i, e: j }); i = j; continue;
+    }
+    if (/[A-Za-z_.]/.test(c)) {
+      let j = i; while (j < n && /[A-Za-z0-9_.]/.test(src[j])) j++;
+      const w = src.slice(i, j);
+      toks.push({ t: KWS.has(w) ? w : 'id', v: w, line, s: i, e: j }); i = j; continue;
+    }
+    if (c === '"' || c === "'") {
+      let j = i + 1, s = '';
+      while (j < n && src[j] !== c && src[j] !== '\n') {
+        if (src[j] === '\\' && j + 1 < n) { const m = src[j + 1]; s += m === 'n' ? '\n' : m === 't' ? '\t' : m; j += 2; }
+        else s += src[j++];
+      }
+      if (src[j] !== c) throw new RErr('字串少了結尾的引號', line);
+      toks.push({ t: 'str', v: s, line, s: i, e: j + 1 }); i = j + 1; continue;
+    }
+    if (FULLWIDTH[c]) throw new RErr(`這裡用了全形符號「${c}」，請改成半形的「${FULLWIDTH[c]}」`, line);
+    let op = ['<-', '<=', '>=', '==', '!=', '&&', '||', '%%'].find(o => src.startsWith(o, i));
+    if (!op && '+-*/^<>!&|=(){}[],:;'.includes(c)) op = c;
+    if (!op) throw new RErr(`unexpected input「${c}」`, line);
+    toks.push({ t: op, line, s: i, e: i + op.length }); i += op.length;
+  }
+  toks.push({ t: 'eof', line, s: n, e: n });
+  return toks;
+}
+
+function parse(src){
+  const toks = tokenize(src); let p = 0;
+  const peek = (o = 0) => toks[p + o], next = () => toks[p++];
+  const show = t => t.t === 'nl' ? '換行' : t.t === 'eof' ? '程式結尾' : t.v !== undefined ? String(t.v) : t.t;
+  const err = (t, msg) => new RErr(msg || `unexpected '${show(t)}'`, t.line);
+  const skipNL = () => { while (peek().t === 'nl' || peek().t === ';') p++; };
+  const skipNLonly = () => { while (peek().t === 'nl') p++; };
+  const expect = (t, msg) => { if (peek().t !== t) throw err(peek(), msg); return next(); };
+  function stmts(end){
+    const body = []; skipNL();
+    while (peek().t !== end) {
+      if (peek().t === 'eof') throw err(peek(), '少了結尾的 }');
+      body.push(statement());
+      const t = peek().t;
+      if (!(t === 'nl' || t === ';' || t === 'eof' || t === '}')) throw err(peek(), `unexpected '${show(peek())}'：一行只能寫一個指令（或用換行分開）`);
+      skipNL();
+    }
+    return body;
+  }
+  const body = () => { skipNLonly(); return statement(); };
+  function condExpr(kw){
+    expect('(', `${kw} 後面要接 (`); skipNLonly();
+    const s0 = peek().s; const e = expr(); const e0 = toks[p - 1].e; skipNLonly();
+    expect(')', `${kw} 的條件少了 )`);
+    return { e, text: src.slice(s0, e0) };
+  }
+  function statement(){
+    const t = peek();
+    switch (t.t) {
+      case 'if': {
+        next(); const c = condExpr('if'); const then = body();
+        const save = p; skipNLonly(); let els = null;
+        if (peek().t === 'else') { next(); els = body(); } else p = save;
+        return { k: 'if', cond: c.e, text: c.text, then, els, line: t.line };
+      }
+      case 'for': {
+        next(); expect('(', 'for 後面要接 (');
+        const v = expect('id', 'for 的括號裡先寫變數名稱，例如 for (i in 1:5)').v;
+        expect('in', '少了 in，例如 for (i in 1:5)');
+        const s0 = peek().s; const seq = expr(); const text = src.slice(s0, toks[p - 1].e);
+        expect(')', 'for 的括號少了 )');
+        return { k: 'for', v, seq, text, body: body(), line: t.line };
+      }
+      case 'while': { next(); const c = condExpr('while'); return { k: 'while', cond: c.e, text: c.text, body: body(), line: t.line }; }
+      case 'repeat': next(); return { k: 'repeat', body: body(), line: t.line };
+      case 'break': case 'next': next(); return { k: t.t, line: t.line };
+      case '{': { next(); const b = stmts('}'); next(); return { k: 'block', body: b, line: t.line }; }
+      case 'else': throw err(t, "unexpected 'else'：else 要緊接在 if 區塊的 } 後面");
+      case 'function': throw err(t, '這個遊戲還不支援自訂函式');
+    }
+    return { k: 'expr', e: expr(), line: t.line };
+  }
+  const bin = (sub, ops) => () => {
+    let a = sub();
+    while (ops.includes(peek().t)) { const op = next(); skipNLonly(); a = { k: 'bin', op: op.t, a, b: sub(), line: op.line }; }
+    return a;
+  };
+  function expr(){ return assign(); }
+  function assign(){
+    const left = orE();
+    if (peek().t === '<-' || peek().t === '=') {
+      const op = next();
+      if (left.k !== 'var') throw err(op, '只能把值存進變數，例如 x <- 3');
+      skipNLonly();
+      return { k: 'assign', name: left.name, val: assign(), line: op.line };
+    }
+    return left;
+  }
+  const orE = bin(() => andE(), ['||', '|']);
+  const andE = bin(() => notE(), ['&&', '&']);
+  function notE(){ if (peek().t === '!') { const op = next(); return { k: 'un', op: '!', a: notE(), line: op.line }; } return cmpE(); }
+  const cmpE = bin(() => addE(), ['==', '!=', '<', '>', '<=', '>=']);
+  const addE = bin(() => mulE(), ['+', '-']);
+  const mulE = bin(() => spE(), ['*', '/']);
+  const spE = bin(() => seqE(), ['%%']);
+  const seqE = bin(() => unE(), [':']);
+  function unE(){ if (peek().t === '-' || peek().t === '+') { const op = next(); return { k: 'un', op: op.t, a: unE(), line: op.line }; } return powE(); }
+  function powE(){ const a = postfix(); if (peek().t === '^') { const op = next(); return { k: 'bin', op: '^', a, b: unE(), line: op.line }; } return a; }
+  function postfix(){
+    let a = primary();
+    for (;;) {
+      if (peek().t === '(') {
+        if (a.k !== 'var') throw err(peek());
+        next(); const args = []; skipNLonly();
+        if (peek().t !== ')') for (;;) {
+          skipNLonly(); let name = null;
+          if ((peek().t === 'id') && peek(1).t === '=') { name = next().v; next(); }
+          args.push({ name, e: expr() }); skipNLonly();
+          if (peek().t === ',') { next(); continue; }
+          break;
+        }
+        expect(')', `${a.name}( 少了 )`);
+        a = { k: 'call', name: a.name, args, line: a.line };
+      } else if (peek().t === '[') {
+        next(); const i = expr(); expect(']', '少了 ]');
+        a = { k: 'index', a, i, line: a.line };
+      } else break;
+    }
+    return a;
+  }
+  function primary(){
+    const t = next();
+    switch (t.t) {
+      case 'num': case 'str': return { k: 'lit', v: t.v };
+      case 'TRUE': return { k: 'lit', v: true };
+      case 'FALSE': return { k: 'lit', v: false };
+      case 'NULL': return { k: 'lit', v: null };
+      case 'id': return { k: 'var', name: t.v, line: t.line };
+      case '(': { skipNLonly(); const e = expr(); skipNLonly(); expect(')', '少了 )'); return e; }
+    }
+    throw err(t);
+  }
+  const prog = stmts('eof');
+  return prog;
+}
+
+/* values: scalars are JS values, vectors are arrays */
+const asVec = v => Array.isArray(v) ? v : v === null ? [] : [v];
+const norm = r => r.length === 1 ? r[0] : r;
+const fmtNum = x => Number.isInteger(x) ? String(x) : String(Number(x.toPrecision(7)));
+const fmtEl = x => typeof x === 'string' ? `"${x}"` : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : x === null || x === undefined ? 'NA' : fmtNum(x);
+const fmtCat = x => typeof x === 'string' ? x : fmtEl(x);
+const fmtPrint = v => { if (v === null) return 'NULL'; const V = asVec(v); if (!V.length) return 'numeric(0)'; return '[1] ' + V.map(fmtEl).join(' '); };
+const fmtShort = v => { const V = asVec(v); if (v === null) return 'NULL'; if (V.length === 1) return fmtEl(V[0]); const s = V.slice(0, 8).map(fmtEl).join(' '); return V.length > 8 ? s + ' …' : s; };
+
+function makeWorld(def){
+  const walls = new Set(), D = { E: 0, N: 1, W: 2, S: 3 };
+  for (const [x, y, s] of def.walls || []) {
+    const d = D[s], [dx, dy] = DIRS[d];
+    walls.add(`${x},${y},${d}`); walls.add(`${x + dx},${y + dy},${(d + 2) % 4}`);
+  }
+  const [x, y, dir] = def.robot;
+  return { W: def.W, H: def.H, x, y, dir, rot: -dir * 90, beepers: { ...(def.beepers || {}) }, walls, picked: 0, placed: 0 };
+}
+function isBlocked(w, x, y, d){
+  const [dx, dy] = DIRS[d], nx = x + dx, ny = y + dy;
+  if (nx < 1 || ny < 1 || nx > w.W || ny > w.H) return true;
+  return w.walls.has(`${x},${y},${d}`);
+}
+
+function execute(src, def){
+  const w = makeWorld(def), steps = [], vars = new Map();
+  const snap = (line, act, extra) => {
+    if (steps.length >= MAX_STEPS) throw new RErr(`已經執行超過 ${MAX_STEPS} 步，可能是無限迴圈！`, line, 'inf');
+    steps.push({ line, act, x: w.x, y: w.y, dir: w.dir, rot: w.rot, beepers: { ...w.beepers }, picked: w.picked, placed: w.placed,
+      vars: [...vars].map(([k, v]) => [k, fmtShort(v)]), ...extra });
+  };
+  const blocked = d => isBlocked(w, w.x, w.y, d);
+  const here = () => w.beepers[`${w.x},${w.y}`] || 0;
+  const ROBOT = {
+    move(n){
+      if (blocked(w.dir)) { snap(n.line, 'bonk', { say: '撞！' }); throw new RErr('撞牆了！前面被擋住，不能 move()。先用 front_is_clear() 檢查看看。', n.line, 'bonk'); }
+      const [dx, dy] = DIRS[w.dir]; w.x += dx; w.y += dy; snap(n.line, 'move');
+    },
+    turn_left(n){ w.dir = (w.dir + 1) % 4; w.rot -= 90; snap(n.line, 'turn'); },
+    turn_right(n){ w.dir = (w.dir + 3) % 4; w.rot += 90; snap(n.line, 'turn'); },
+    pick_beeper(n){
+      const k = `${w.x},${w.y}`;
+      if (!w.beepers[k]) { snap(n.line, 'oops', { say: '這裡沒有寶石…' }); throw new RErr('這一格沒有寶石可以撿。可以先用 if (beepers_present()) 檢查。', n.line); }
+      w.beepers[k]--; if (!w.beepers[k]) delete w.beepers[k]; w.picked++;
+      snap(n.line, 'pick', { say: '撿到了！' });
+    },
+    put_beeper(n){ const k = `${w.x},${w.y}`; w.beepers[k] = (w.beepers[k] || 0) + 1; w.placed++; snap(n.line, 'put'); },
+  };
+  const SENSE = {
+    front_is_clear: () => !blocked(w.dir), front_is_blocked: () => blocked(w.dir),
+    left_is_clear: () => !blocked((w.dir + 1) % 4), left_is_blocked: () => blocked((w.dir + 1) % 4),
+    right_is_clear: () => !blocked((w.dir + 3) % 4), right_is_blocked: () => blocked((w.dir + 3) % 4),
+    beepers_present: () => here() > 0, no_beepers_present: () => here() === 0,
+    facing_east: () => w.dir === 0, facing_north: () => w.dir === 1, facing_west: () => w.dir === 2, facing_south: () => w.dir === 3,
+  };
+  const num = (x, line) => {
+    if (Array.isArray(x)) x = x[0];
+    if (typeof x === 'string') throw new RErr('non-numeric argument：這裡需要數字，不是文字', line);
+    if (x === null || x === undefined) throw new RErr('這裡需要一個數字', line);
+    return +x;
+  };
+  const condV = (v, line) => {
+    const V = asVec(v);
+    if (!V.length) throw new RErr('argument is of length zero：條件是空的', line);
+    if (V.length > 1) throw new RErr('the condition has length > 1：if / while 的條件只能是一個 TRUE 或 FALSE', line);
+    if (typeof V[0] === 'string') throw new RErr('argument is not interpretable as logical：條件要是 TRUE 或 FALSE', line);
+    return !!V[0];
+  };
+  const output = (line, text) => snap(line, 'out', { out: text, say: text.trim().slice(0, 18) });
+  function bin1(op, x, y, line){
+    if (['==', '!=', '<', '>', '<=', '>='].includes(op)) {
+      if (typeof x === 'string' || typeof y === 'string') { x = fmtCat(x); y = fmtCat(y); } else { x = +x; y = +y; }
+      switch (op) { case '==': return x === y; case '!=': return x !== y; case '<': return x < y; case '>': return x > y; case '<=': return x <= y; default: return x >= y; }
+    }
+    if (op === '&') return condV(x, line) && condV(y, line);
+    if (op === '|') return condV(x, line) || condV(y, line);
+    if (typeof x === 'string' || typeof y === 'string') throw new RErr('non-numeric argument to binary operator：文字不能做數學運算', line);
+    x = +x; y = +y;
+    switch (op) { case '+': return x + y; case '-': return x - y; case '*': return x * y; case '/': return x / y; case '^': return Math.pow(x, y); default: return ((x % y) + y) % y; }
+  }
+  function call(n){
+    if (ROBOT[n.name]) { if (n.args.length) throw new RErr(`${n.name}() 不需要參數：unused argument`, n.line); ROBOT[n.name](n); return null; }
+    if (SENSE[n.name]) { if (n.args.length) throw new RErr(`${n.name}() 不需要參數：unused argument`, n.line); return SENSE[n.name](); }
+    const args = n.args.map(a => ({ name: a.name, v: ev(a.e) }));
+    const pos = args.filter(a => !a.name).map(a => a.v);
+    const named = Object.fromEntries(args.filter(a => a.name).map(a => [a.name, a.v]));
+    const flat = () => norm(pos.flatMap(asVec));
+    switch (n.name) {
+      case 'c': return pos.length ? flat() : null;
+      case 'seq': {
+        const from = num(named.from ?? pos[0] ?? 1, n.line), to = num(named.to ?? pos[1] ?? 1, n.line);
+        let by = named.by ?? pos[2]; by = by === undefined ? (from <= to ? 1 : -1) : num(by, n.line);
+        if (by === 0 || (to - from) * by < 0) throw new RErr("wrong sign in 'by' argument：by 的方向不對", n.line);
+        const r = []; for (let x = from; by > 0 ? x <= to + 1e-9 : x >= to - 1e-9; x += by) r.push(Number(x.toPrecision(12)));
+        return norm(r);
+      }
+      case 'seq_len': { const k = num(pos[0], n.line); return k > 0 ? norm(Array.from({ length: k }, (_, i) => i + 1)) : []; }
+      case 'seq_along': { const V = asVec(pos[0]); return V.length ? norm(V.map((_, i) => i + 1)) : []; }
+      case 'length': return asVec(pos[0]).length;
+      case 'sum': return pos.flatMap(asVec).reduce((s, x) => s + num(x, n.line), 0);
+      case 'max': return Math.max(...pos.flatMap(asVec).map(x => num(x, n.line)));
+      case 'min': return Math.min(...pos.flatMap(asVec).map(x => num(x, n.line)));
+      case 'abs': return norm(asVec(pos[0]).map(x => Math.abs(num(x, n.line))));
+      case 'sqrt': return norm(asVec(pos[0]).map(x => Math.sqrt(num(x, n.line))));
+      case 'round': return norm(asVec(pos[0]).map(x => Math.round(num(x, n.line))));
+      case 'rev': return norm([...asVec(pos[0])].reverse());
+      case 'print': { output(n.line, fmtPrint(pos[0]) + '\n'); return pos[0]; }
+      case 'cat': { output(n.line, pos.flatMap(asVec).map(fmtCat).join(named.sep ?? ' ')); return null; }
+      case 'paste': return pos.flatMap(asVec).map(fmtCat).join(named.sep ?? ' ');
+      case 'paste0': return pos.flatMap(asVec).map(fmtCat).join('');
+      case 'ifelse': {
+        const T = asVec(pos[0]), Y = asVec(pos[1]), N = asVec(pos[2]);
+        if (!Y.length || !N.length) throw new RErr('ifelse() 需要三個參數：ifelse(條件, 是, 否)', n.line);
+        return norm(T.map((t, i) => condV(t, n.line) ? Y[i % Y.length] : N[i % N.length]));
+      }
+      case 'continue': throw new RErr('R 沒有 continue，要跳過這一圈請用 next', n.line);
+    }
+    if (vars.has(n.name)) throw new RErr(`attempt to apply non-function：${n.name} 是變數，不是函式`, n.line);
+    throw new RErr(`could not find function "${n.name}"：沒有這個函式，檢查一下拼字`, n.line);
+  }
+  function ev(n){
+    switch (n.k) {
+      case 'lit': return n.v;
+      case 'var':
+        if (!vars.has(n.name)) {
+          if (n.name === 'continue') throw new RErr("object 'continue' not found：R 沒有 continue，要跳過這一圈請用 next", n.line);
+          if (ROBOT[n.name] || SENSE[n.name]) throw new RErr(`呼叫函式要加括號：${n.name}()`, n.line);
+          throw new RErr(`object '${n.name}' not found：還沒有這個變數`, n.line);
+        }
+        return vars.get(n.name);
+      case 'assign': { const v = ev(n.val); vars.set(n.name, v); snap(n.line, 'assign', { say: `${n.name} = ${fmtShort(v)}` }); return v; }
+      case 'call': return call(n);
+      case 'un': {
+        const a = ev(n.a);
+        if (n.op === '!') return norm(asVec(a).map(x => !condV(x, n.line)));
+        if (n.op === '-') return norm(asVec(a).map(x => -num(x, n.line)));
+        return a;
+      }
+      case 'bin': {
+        if (n.op === '&&' || n.op === '||') {
+          const a = condV(ev(n.a), n.line);
+          if (n.op === '&&' && !a) return false;
+          if (n.op === '||' && a) return true;
+          return condV(ev(n.b), n.line);
+        }
+        const a = ev(n.a), b = ev(n.b);
+        if (n.op === ':') {
+          const f = num(a, n.line), t = num(b, n.line), r = [];
+          if (f <= t) for (let x = f; x <= t + 1e-9; x++) r.push(x); else for (let x = f; x >= t - 1e-9; x--) r.push(x);
+          return norm(r);
+        }
+        const A = asVec(a), B = asVec(b);
+        if (!A.length || !B.length) return [];
+        const L = Math.max(A.length, B.length), r = [];
+        for (let k = 0; k < L; k++) r.push(bin1(n.op, A[k % A.length], B[k % B.length], n.line));
+        return norm(r);
+      }
+      case 'index': { const A = asVec(ev(n.a)); const v = A[num(ev(n.i), n.line) - 1]; return v === undefined ? null : v; }
+    }
+  }
+  const loopBody = b => { try { run(b); } catch (e) { if (e instanceof NextSig) return 'next'; if (e instanceof BreakSig) return 'break'; throw e; } };
+  function run(n){
+    switch (n.k) {
+      case 'block': for (const s of n.body) run(s); return;
+      case 'expr': ev(n.e); return;
+      case 'if': {
+        const c = condV(ev(n.cond), n.line);
+        snap(n.line, 'check', { say: `${n.text} → ${c ? 'TRUE' : 'FALSE'}`, ok: c });
+        if (c) run(n.then); else if (n.els) run(n.els);
+        return;
+      }
+      case 'for': {
+        const seq = asVec(ev(n.seq));
+        if (!seq.length) snap(n.line, 'check', { say: `${n.text} 是空的，跳過`, ok: false });
+        for (const v of seq) {
+          vars.set(n.v, v); snap(n.line, 'assign', { say: `${n.v} = ${fmtEl(v)}` });
+          if (loopBody(n.body) === 'break') break;
+        }
+        return;
+      }
+      case 'while':
+        for (;;) {
+          const c = condV(ev(n.cond), n.line);
+          snap(n.line, 'check', { say: `${n.text} → ${c ? 'TRUE' : 'FALSE'}`, ok: c });
+          if (!c || loopBody(n.body) === 'break') break;
+        }
+        return;
+      case 'repeat':
+        for (;;) { snap(n.line, 'check', { say: 'repeat' }); if (loopBody(n.body) === 'break') break; }
+        return;
+      case 'break': snap(n.line, 'check', { say: 'break！', ok: false }); throw new BreakSig(n.line);
+      case 'next': snap(n.line, 'check', { say: 'next！', ok: false }); throw new NextSig(n.line);
+    }
+  }
+  let error = null;
+  try {
+    const prog = parse(src);
+    for (const s of prog) {
+      if (s.k === 'expr' && s.e.k !== 'assign' && !(s.e.k === 'call' && (ROBOT[s.e.name] || s.e.name === 'print' || s.e.name === 'cat'))) {
+        output(s.line, fmtPrint(ev(s.e)) + '\n');   // console auto-print, like typing in RStudio
+      } else run(s);
+    }
+  } catch (e) {
+    if (e instanceof BreakSig || e instanceof NextSig) error = new RErr('break / next 只能寫在迴圈裡面', e.line);
+    else if (e instanceof RErr) error = e;
+    else error = new RErr('程式出錯：' + e.message, null);
+  }
+  return { steps, world: w, error };
+}
+
+/* ================= levels ================= */
+const corridor = (W, beepers = {}, extra = {}) => ({ W, H: 1, robot: [1, 1, 0], beepers, walls: [], ...extra });
+const gemsAt = xs => Object.fromEntries(xs.map(x => [`${x},1`, 1]));
+const left = w => Object.values(w.beepers).reduce((a, b) => a + b, 0);
+const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function mazeWalls(W, H, pass){
+  const P = new Set(pass.map(([a, b, c, d]) => `${a},${b}-${c},${d}`));
+  const ws = [];
+  for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) {
+    if (x < W && !P.has(`${x},${y}-${x + 1},${y}`)) ws.push([x, y, 'E']);
+    if (y < H && !P.has(`${x},${y}-${x},${y + 1}`)) ws.push([x, y, 'N']);
+  }
+  return ws;
+}
+const MAZE = mazeWalls(5, 5, [
+  [1,1,2,1],[2,1,3,1],[3,1,4,1],[4,1,5,1],[5,1,5,2],
+  [4,2,5,2],[3,2,4,2],[2,2,3,2],[1,2,2,2],[1,2,1,3],[2,2,2,3],
+  [2,3,3,3],[3,3,4,3],[4,3,5,3],[5,3,5,4],
+  [4,4,5,4],[3,4,4,4],[2,4,3,4],[1,4,2,4],[1,4,1,5],
+  [1,5,2,5],[2,5,3,5],[3,5,4,5],[4,5,5,5],
+]);
+
+const LEVELS = [
+  { id: 'seq', tag: '順序', title: '第一步',
+    goal: 'R 寶要走到寶石那一格，把寶石撿起來。',
+    concept: `<p>程式由上往下，一行一行執行。每個指令都是一個<b>函式呼叫</b>，名稱後面一定要加括號，例如 <code>move()</code>。</p>
+      <p>R 寶看得懂：<code>move()</code> 往前一格、<code>turn_left()</code> 左轉、<code>turn_right()</code> 右轉、<code>pick_beeper()</code> 撿寶石、<code>put_beeper()</code> 放寶石。</p>`,
+    starter: '# 每一行是一個指令，R 會由上往下執行\nmove()\nmove()\n',
+    hint: '寶石在第 4 格，R 寶在第 1 格，要走 3 步。走到之後再用 <code>pick_beeper()</code> 撿起來。',
+    solution: 'move()\nmove()\nmove()\npick_beeper()\n', par: 4, req: [],
+    def: () => corridor(5, gemsAt([4])),
+    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '寶石還在地上，記得用 pick_beeper() 撿起來。' } },
+
+  { id: 'for', tag: 'for', title: '長長的走廊',
+    goal: '寶石在走廊盡頭（第 9 格）。用 for 迴圈走過去，不要寫 8 次 move()。',
+    concept: `<p><code>for (i in 1:8)</code> 會把大括號裡的程式重複 8 次。<code>1:8</code> 會產生向量 <code>c(1, 2, …, 8)</code>，每一圈 <code>i</code> 依序取出其中一個值，看右邊的 Environment 就能看到 i 在變。</p>
+      <p>序列也可以倒數：<code>3:1</code> 就是 <code>c(3, 2, 1)</code>；或跳著數：<code>seq(1, 9, by = 2)</code> 是 <code>c(1, 3, 5, 7, 9)</code>。</p>`,
+    starter: 'for (i in 1:___) {\n  move()\n}\npick_beeper()\n',
+    hint: '從第 1 格走到第 9 格，要走 9 − 1 = 8 步。',
+    solution: 'for (i in 1:8) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['for', 1]],
+    def: () => corridor(9, gemsAt([9])),
+    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: `R 寶停在第 ${w.x} 格，寶石在第 9 格。` } },
+
+  { id: 'fence', tag: 'for', title: '種一排寶石',
+    goal: '在 7 個格子上各放 1 顆寶石（虛線是要放的位置）。',
+    concept: `<p>7 個格子要放 7 顆寶石，但只需要走 6 步。迴圈次數和格子數差一，這叫「柵欄問題」（fencepost problem），是寫迴圈最常見的錯誤之一。</p>
+      <p>另一個陷阱：<code>1:0</code> 不是空的，而是 <code>c(1, 0)</code>。次數可能是 0 時，改用 <code>seq_len(n)</code>。</p>`,
+    starter: 'for (i in 1:6) {\n  put_beeper()\n  move()\n}\n',
+    hint: '先執行一次看看，最後一格是不是空的？迴圈結束後，再補一行 <code>put_beeper()</code>。',
+    solution: 'for (i in 1:6) {\n  put_beeper()\n  move()\n}\nput_beeper()\n', par: 4, req: [['for', 1]],
+    def: () => corridor(7, {}, { targets: [1, 2, 3, 4, 5, 6, 7].map(x => [x, 1, 1]) }),
+    check: w => {
+      for (let x = 1; x <= 7; x++) {
+        const n = w.beepers[`${x},1`] || 0;
+        if (n === 0) return { ok: false, msg: x === 7 ? '第 7 格還是空的！7 個格子只需要走 6 步，最後一格要在迴圈外另外放。' : `第 ${x} 格還是空的。` };
+        if (n > 1) return { ok: false, msg: `第 ${x} 格放了 ${n} 顆，每格只要 1 顆。` };
+      }
+      return { ok: true };
+    } },
+
+  { id: 'while', tag: 'while', title: '看不見盡頭',
+    goal: '走廊長度每次都不一樣。走到盡頭，撿起寶石。按「換地圖」可以換一張試試。',
+    concept: `<p>不知道要跑幾次時，用 <code>while (條件)</code>。每一圈開始前先檢查條件：<code>TRUE</code> 就再跑一圈，<code>FALSE</code> 就停下來。</p>
+      <p><code>front_is_clear()</code> 會回答「前面有沒有路」，正好拿來當條件。如果條件永遠不會變成 FALSE，就會變成停不下來的無限迴圈。</p>`,
+    starter: 'while (front_is_clear()) {\n  \n}\npick_beeper()\n',
+    hint: '大括號裡只需要一行：前面有路，就往前走。',
+    solution: 'while (front_is_clear()) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['while', 1]],
+    random: true, def: () => { const L = randInt(4, 10); return corridor(L, gemsAt([L])); },
+    tests: [4, 7, 10].map(L => corridor(L, gemsAt([L]))),
+    describe: d => `長度 ${d.W} 的走廊`,
+    check: (w, d) => w.picked >= 1 ? { ok: true } : { ok: false, msg: `R 寶停在第 ${w.x} 格，寶石在第 ${d.W} 格。` } },
+
+  { id: 'not', tag: '! 反轉', title: '找到寶石為止',
+    goal: '寶石藏在走廊的某一格（每次不同）。一直往前走，直到腳下有寶石，再撿起來。',
+    concept: `<p><code>!</code> 是「不是」（NOT），會把 <code>TRUE</code> 變成 <code>FALSE</code>、<code>FALSE</code> 變成 <code>TRUE</code>。</p>
+      <p><code>beepers_present()</code> 回答「腳下有寶石嗎」；前面加上 <code>!</code>，<code>!beepers_present()</code> 就變成「腳下<b>沒有</b>寶石」。我們要在「沒有寶石」的時候繼續走。</p>
+      <p>例如 <code>!TRUE</code> 是 <code>FALSE</code>；<code>!(3 &gt; 5)</code> 是 <code>TRUE</code>。</p>`,
+    starter: '# ! 會把 TRUE 變成 FALSE，FALSE 變成 TRUE\nwhile (___) {\n  move()\n}\npick_beeper()\n',
+    hint: '條件寫 <code>!beepers_present()</code>：腳下沒有寶石，就繼續走。',
+    solution: 'while (!beepers_present()) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['while', 1], ['!', 1, '!']],
+    random: true, def: () => corridor(10, gemsAt([randInt(2, 10)])),
+    tests: [2, 6, 10].map(x => corridor(10, gemsAt([x]))),
+    describe: d => `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格`,
+    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
+
+  { id: 'if', tag: 'if', title: '有寶石才撿',
+    goal: '走到最右邊，沿路把所有寶石撿起來。寶石的位置每次都不同。',
+    concept: `<p><code>if (條件)</code> 只在條件為 <code>TRUE</code> 時才執行後面的程式。<code>beepers_present()</code> 會回答「這一格有沒有寶石」。</p>
+      <p>大括號裡只有一行時，可以寫成一行：<code>if (beepers_present()) pick_beeper()</code></p>
+      <p>常用的比較：<code>==</code> 等於、<code>!=</code> 不等於、<code>&gt;</code>、<code>&lt;=</code>……還有 <code>%%</code> 取餘數：<code>7 %% 2</code> 是 1，所以 <code>i %% 2 == 0</code> 可以判斷 i 是不是偶數。</p>`,
+    starter: 'for (i in 1:7) {\n  move()\n  # 這一格有寶石才撿，沒有就不撿\n  \n}\n',
+    hint: '在空白那行寫：如果 <code>beepers_present()</code>，就 <code>pick_beeper()</code>。',
+    solution: 'for (i in 1:7) {\n  move()\n  if (beepers_present()) pick_beeper()\n}\n', par: 3, req: [['for', 1], ['if', 1]],
+    random: true, def: () => { let xs; do { xs = [2, 3, 4, 5, 6, 7, 8].filter(() => Math.random() < .5); } while (!xs.length); return corridor(8, gemsAt(xs)); },
+    tests: [[2, 3, 4, 5, 6, 7, 8], [8], [2, 5]].map(xs => corridor(8, gemsAt(xs))),
+    describe: d => `寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格`,
+    check: w => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿。` } : w.x !== 8 ? { ok: false, msg: '寶石撿完了，但還沒走到最右邊。' } : { ok: true } },
+
+  { id: 'sweep', tag: 'while+if', title: '清掃走廊',
+    goal: '長度和寶石位置都不固定。走到牆邊，把每一格（包括第一格和最後一格）的寶石都撿起來。',
+    concept: `<p>把 while 和 if 組合起來：一路往前走，每到一格就檢查要不要撿。</p>
+      <p>小心柵欄問題：while 結束時，R 寶站在最後一格，但那一格還沒檢查過。</p>`,
+    starter: 'while (front_is_clear()) {\n  \n}\n',
+    hint: '迴圈裡：先檢查腳下有沒有寶石，再 <code>move()</code>。迴圈結束後，最後一格要再檢查一次。',
+    solution: 'while (front_is_clear()) {\n  if (beepers_present()) pick_beeper()\n  move()\n}\nif (beepers_present()) pick_beeper()\n', par: 4, req: [['while', 1], ['if', 1]],
+    random: true, def: () => { const L = randInt(5, 10); let xs; do { xs = Array.from({ length: L }, (_, i) => i + 1).filter(() => Math.random() < .45); } while (!xs.length); return corridor(L, gemsAt(xs)); },
+    tests: [[5, [1, 5]], [8, [1, 2, 3, 4, 5, 6, 7, 8]], [6, [6]], [9, [3]]].map(([L, xs]) => corridor(L, gemsAt(xs))),
+    describe: d => `長度 ${d.W}、寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格`,
+    check: (w, d) => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿${w.beepers[`${d.W},1`] ? '（最後一格的還在！）' : w.beepers['1,1'] ? '（第一格的還在！）' : ''}。` } : w.x !== d.W ? { ok: false, msg: '還沒走到牆邊。' } : { ok: true } },
+
+  { id: 'and', tag: '&& 而且', title: '先到先停',
+    goal: '走廊上「可能」有一顆寶石，也可能沒有。往前走，碰到寶石或碰到牆就停；有寶石就撿起來。',
+    concept: `<p><code>A &amp;&amp; B</code>（而且）：兩個條件<b>都是</b> TRUE，結果才是 TRUE。<code>A || B</code>（或者）：<b>只要一個</b>是 TRUE，結果就是 TRUE。</p>
+      <p>這關要「前面有路<b>而且</b>腳下沒有寶石」才繼續走，所以寫成 <code>front_is_clear() &amp;&amp; !beepers_present()</code>。任何一個變成 FALSE，迴圈就停。</p>
+      <p>例如 <code>TRUE &amp;&amp; FALSE</code> 是 FALSE；<code>TRUE || FALSE</code> 是 TRUE；<code>x %% 3 == 0 &amp;&amp; x %% 5 == 0</code> 判斷 x 是不是 15 的倍數。</p>`,
+    starter: '# 前面有路「而且」腳下沒有寶石，才繼續走\nwhile (front_is_clear() ___ !beepers_present()) {\n  move()\n}\nif (beepers_present()) pick_beeper()\n',
+    hint: '把 ___ 換成「而且」的符號 <code>&amp;&amp;</code>。',
+    solution: 'while (front_is_clear() && !beepers_present()) {\n  move()\n}\nif (beepers_present()) pick_beeper()\n', par: 3, req: [['while', 1], ['&&', 1, '&&']],
+    random: true, def: () => { const L = randInt(5, 10); return corridor(L, Math.random() < .65 ? gemsAt([randInt(2, L)]) : {}); },
+    tests: [[6, [3]], [7, []], [5, [5]], [9, [2]]].map(([L, xs]) => corridor(L, gemsAt(xs))),
+    describe: d => `長度 ${d.W}、${Object.keys(d.beepers).length ? `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格` : '沒有寶石'}`,
+    check: (w, d) => {
+      const g = Object.keys(d.beepers)[0];
+      if (g) { const gx = Number(g.split(',')[0]); return w.picked < 1 ? { ok: false, msg: `寶石在第 ${gx} 格，還沒撿到。` } : w.x !== gx ? { ok: false, msg: '撿到寶石後就要停下來。' } : { ok: true }; }
+      return w.x !== d.W ? { ok: false, msg: '這張地圖沒有寶石，要一路走到牆邊才停。' } : { ok: true };
+    } },
+
+  { id: 'break', tag: 'break', title: '找到就收工',
+    goal: '寶石藏在某一格。用 for 迴圈往前走，一找到寶石就用 break 提早離開迴圈，然後撿起來。',
+    concept: `<p><code>break</code> 會<b>立刻結束整個迴圈</b>，剩下的圈數都不跑了，直接跳到迴圈後面的程式。</p>
+      <p>寫在巢狀迴圈裡時，break 只跳出離它最近的那一層。另外 <code>while (TRUE)</code> 和 <code>repeat { }</code> 的條件永遠成立，一定要靠 break 才能離開。</p>`,
+    starter: 'for (i in 1:9) {\n  move()\n  if (beepers_present()) {\n    # 找到了！提早離開迴圈\n    \n  }\n}\npick_beeper()\n',
+    hint: '在空白那行寫 <code>break</code>。執行時注意看 Environment 裡的 i：break 之後 i 就不再增加。',
+    solution: 'for (i in 1:9) {\n  move()\n  if (beepers_present()) {\n    break\n  }\n}\npick_beeper()\n', par: 5, req: [['for', 1], ['break', 1]],
+    random: true, def: () => corridor(10, gemsAt([randInt(2, 9)])),
+    tests: [2, 5, 10].map(x => corridor(10, gemsAt([x]))),
+    describe: d => `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格`,
+    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
+
+  { id: 'next', tag: 'next', title: '補滿空格',
+    goal: '第 2 到第 8 格裡，有些已經有寶石了。把空的格子補上一顆，已經有的就跳過。',
+    concept: `<p><code>next</code> 會<b>跳過這一圈剩下的程式</b>，直接進入下一圈。迴圈不會結束，只是這一圈提早收工。</p>
+      <p>Python、C、Java 裡叫做 <code>continue</code>，R 裡叫做 <code>next</code>。（R 沒有 continue，寫了會出錯。）</p>
+      <p>比較：<code>break</code> 是整個迴圈結束；<code>next</code> 只跳過這一圈。</p>`,
+    starter: 'for (i in 1:7) {\n  move()\n  # 已經有寶石，就跳過這一圈\n  if (beepers_present()) ___\n  put_beeper()\n}\n',
+    hint: '把 ___ 換成 <code>next</code>：有寶石就不要執行下面的 <code>put_beeper()</code>。',
+    solution: 'for (i in 1:7) {\n  move()\n  if (beepers_present()) next\n  put_beeper()\n}\n', par: 4, req: [['for', 1], ['next', 1]],
+    random: true, def: () => corridor(8, gemsAt([2, 3, 4, 5, 6, 7, 8].filter(() => Math.random() < .45)), { targets: [2, 3, 4, 5, 6, 7, 8].map(x => [x, 1, 1]) }),
+    tests: [[], [2, 3, 4, 5, 6, 7, 8], [3, 5, 8]].map(xs => corridor(8, gemsAt(xs))),
+    describe: d => Object.keys(d.beepers).length ? `原本寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格` : '一開始沒有寶石',
+    check: w => {
+      for (let x = 1; x <= 8; x++) {
+        const n = w.beepers[`${x},1`] || 0, want = x === 1 ? 0 : 1;
+        if (n !== want) return { ok: false, msg: `第 ${x} 格應該有 ${want} 顆，現在有 ${n} 顆${n > 1 ? '（已經有寶石的格子要用 next 跳過）' : ''}。` };
+      }
+      return { ok: true };
+    } },
+
+  { id: 'square', tag: '巢狀', title: '繞場一圈',
+    goal: '沿著場地邊緣走一整圈，撿起三個角落的寶石，最後回到起點。',
+    concept: `<p>迴圈裡面再放一個迴圈，就是巢狀迴圈。外層跑 4 次（4 個邊），外層每跑一次，內層就從頭完整跑一遍（每邊走好幾步）。</p>
+      <p>內層的 <code>move()</code> 總共會執行「外層次數 × 內層次數」次。</p>`,
+    starter: 'for (side in 1:4) {\n  for (step in 1:___) {\n    move()\n  }\n  if (beepers_present()) pick_beeper()\n  turn_left()\n}\n',
+    hint: '場地是 5 × 5，從一個角走到下一個角要幾步？',
+    solution: 'for (side in 1:4) {\n  for (step in 1:4) {\n    move()\n  }\n  if (beepers_present()) pick_beeper()\n  turn_left()\n}\n', par: 5, req: [['for', 2, '巢狀的 for（for 裡面再放 for）']],
+    def: () => ({ W: 5, H: 5, robot: [1, 1, 0], beepers: { '5,1': 1, '5,5': 1, '1,5': 1 }, walls: [[2, 2, 'N'], [3, 2, 'N'], [4, 2, 'N'], [2, 4, 'E'], [3, 3, 'E'], [2, 2, 'E']] }),
+    check: w => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿。` } : (w.x !== 1 || w.y !== 1) ? { ok: false, msg: '寶石撿完了，但 R 寶沒有回到起點。' } : { ok: true } },
+
+  { id: 'pyramid', tag: '巢狀', title: '寶石金字塔',
+    goal: '第 1 格放 1 顆、第 2 格放 2 顆……第 5 格放 5 顆。',
+    concept: `<p>內層的次數可以用外層的變數！寫成 <code>for (k in 1:i)</code>：外層 i = 1 時內層跑 1 次，i = 2 時跑 2 次……</p>
+      <p>這樣的巢狀迴圈常用來畫三角形、處理「上三角矩陣」。</p>`,
+    starter: 'for (i in 1:5) {\n  # 在這一格放 i 顆寶石\n  for (k in 1:___) {\n    put_beeper()\n  }\n  move()\n}\n',
+    hint: '內層要跑的次數不是固定的數字，而是外層變數 <code>i</code>。',
+    solution: 'for (i in 1:5) {\n  for (k in 1:i) {\n    put_beeper()\n  }\n  move()\n}\n', par: 4, req: [['for', 2, '巢狀的 for（for 裡面再放 for）']],
+    def: () => corridor(6, {}, { targets: [1, 2, 3, 4, 5].map(x => [x, 1, x]) }),
+    check: w => {
+      for (let x = 1; x <= 6; x++) {
+        const n = w.beepers[`${x},1`] || 0, want = x <= 5 ? x : 0;
+        if (n !== want) return { ok: false, msg: `第 ${x} 格應該有 ${want} 顆，現在有 ${n} 顆。` };
+      }
+      return { ok: true };
+    } },
+
+  { id: 'ifelse', tag: 'ifelse', title: '照著地圖放',
+    goal: '向量 heights 是 5 格的高度。高度大於 5 的格子放 2 顆寶石，其他格子放 1 顆。',
+    concept: `<p><code>if</code> 一次只能判斷<b>一個</b>值。寫 <code>if (heights &gt; 5)</code> 會出錯：<code>the condition has length &gt; 1</code>，因為 heights 有 5 個值。</p>
+      <p><code>ifelse(條件, 是的話, 不是的話)</code> 會對向量的<b>每一個元素</b>分別判斷，回傳一樣長的向量：</p>
+      <p><code>ifelse(c(3, 8, 1) &gt; 5, "高", "低")</code> → <code>[1] "低" "高" "低"</code></p>
+      <p><code>n[i]</code> 會取出向量 n 的第 i 個值（R 從 1 開始數）。</p>`,
+    starter: 'heights <- c(3, 8, 1, 9, 4)\n# 高度大於 5 放 2 顆，否則放 1 顆\nn <- ifelse(___, 2, 1)\nprint(n)\nfor (i in 1:5) {\n  for (k in 1:n[i]) {\n    put_beeper()\n  }\n  move()\n}\n',
+    hint: '條件是 <code>heights &gt; 5</code>。執行後看 Console 印出的 n，再看 Environment。',
+    solution: 'heights <- c(3, 8, 1, 9, 4)\nn <- ifelse(heights > 5, 2, 1)\nfor (i in 1:5) {\n  for (k in 1:n[i]) {\n    put_beeper()\n  }\n  move()\n}\n', par: 7, req: [['ifelse', 1, 'ifelse()']],
+    def: () => corridor(6, {}, { targets: [[1, 1, 1], [2, 1, 2], [3, 1, 1], [4, 1, 2], [5, 1, 1]] }),
+    check: w => {
+      const want = [1, 2, 1, 2, 1, 0];
+      for (let x = 1; x <= 6; x++) {
+        const n = w.beepers[`${x},1`] || 0;
+        if (n !== want[x - 1]) return { ok: false, msg: `第 ${x} 格應該有 ${want[x - 1]} 顆，現在有 ${n} 顆。` };
+      }
+      return { ok: true };
+    } },
+
+  { id: 'maze', tag: '綜合', title: '迷宮',
+    goal: '找到迷宮裡的寶石並撿起來。',
+    concept: `<p><b>右手扶牆法</b>：右邊有路就右轉走過去；不然前面有路就直走；兩邊都不通就左轉。用 while 一直重複，直到腳下有寶石為止。</p>
+      <p><code>if … else if … else</code> 由上往下檢查，只會執行第一個成立的分支。<code>no_beepers_present()</code> 和 <code>!beepers_present()</code> 意思一樣。</p>`,
+    starter: '# 右手扶牆法：一直走，直到腳下有寶石\nwhile (no_beepers_present()) {\n  if (right_is_clear()) {\n    turn_right()\n    move()\n  } else if (___) {\n    move()\n  } else {\n    turn_left()\n  }\n}\npick_beeper()\n',
+    hint: 'else if 要檢查的是「前面有沒有路」。',
+    solution: 'while (no_beepers_present()) {\n  if (right_is_clear()) {\n    turn_right()\n    move()\n  } else if (front_is_clear()) {\n    move()\n  } else {\n    turn_left()\n  }\n}\npick_beeper()\n', par: 9, req: [['while', 1], ['if', 1]],
+    def: () => ({ W: 5, H: 5, robot: [1, 1, 0], beepers: { '5,5': 1 }, walls: MAZE }),
+    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
+];
+LEVELS.forEach((l, i) => l.n = i + 1);
+</script>
+
+<script>
+/* ================= UI ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const HL_KW = /^(for|while|if|else|in|next|break|repeat|function|TRUE|FALSE|NULL)$/;
+function hl(src){
+  const re = /(#.*$)|("[^"]*")|(\b\d+(?:\.\d+)?\b)|(<-|%%|==|<=|>=|!=|&&|\|\|)|([A-Za-z_.][\w.]*)/g;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const t = esc(m[0]);
+    if (m[1]) out += `<span class="t-com">${t}</span>`;
+    else if (m[2]) out += `<span class="t-str">${t}</span>`;
+    else if (m[3]) out += `<span class="t-num">${t}</span>`;
+    else if (m[4]) out += `<span class="t-op">${t}</span>`;
+    else if (HL_KW.test(m[0])) out += `<span class="t-kw">${t}</span>`;
+    else if (src[re.lastIndex] === '(') out += `<span class="t-fn">${t}</span>`;
+    else out += t;
+    last = re.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+
+/* ---------- progress ---------- */
+const KEY = 'r-loop-karel-v2';
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const S = Object.assign({ xp: 0, stars: {}, codes: {}, fails: {}, cur: 'seq', sound: true, bossBest: 0, awarded: {} }, load());
+
+/* ---------- sound + fx ---------- */
+let AC = null;
+function tone(f, d = .08, type = 'sine', vol = .05, when = 0){
+  if (!S.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .02);
+  } catch (e) {}
+}
+const SFX = {
+  move: () => tone(420 + Math.random() * 60, .05, 'triangle', .035),
+  turn: () => tone(700, .06, 'sine', .03),
+  check: () => tone(880, .03, 'sine', .015),
+  pick: () => { tone(880, .08, 'triangle', .05); tone(1320, .12, 'triangle', .05, .07); },
+  put: () => tone(330, .09, 'triangle', .05),
+  bonk: () => tone(120, .25, 'sawtooth', .05),
+  fail: () => { tone(300, .15, 'square', .03); tone(200, .25, 'square', .03, .14); },
+  win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', .05, i * .11)),
+};
+function confetti(el, n = 36){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const cs = getComputedStyle(document.documentElement);
+  const cols = ['--accent', '--amber', '--ok', '--gem', '--bad'].map(v => cs.getPropertyValue(v));
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('i'); s.className = 'confetti';
+    const a = Math.random() * Math.PI * 2, d = 80 + Math.random() * 160;
+    s.style.cssText = `left:${cx}px;top:${cy}px;background:${cols[i % cols.length]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d + 80}px;--r:${Math.random() * 720 - 360}deg`;
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1200);
+  }
+}
+function toast(msg, gold){
+  const t = document.createElement('div'); t.className = 'toast' + (gold ? ' gold' : ''); t.textContent = msg;
+  $('#toasts').appendChild(t); setTimeout(() => t.remove(), 2400);
+}
+function gain(amt, label, gold){ S.xp += amt; save(); toast(`+${amt} XP · ${label}`, gold); renderHeader(); }
+
+/* ---------- header + map ---------- */
+const NODES = [...LEVELS.map(l => ({ id: l.id, n: l.n, tag: l.tag })), { id: 'quiz', tag: '預測挑戰' }];
+const starCount = id => (S.stars[id] || []).filter(Boolean).length;
+function renderHeader(){
+  $('#lv').textContent = `Lv.${Math.floor(S.xp / 100) + 1}`;
+  $('#xpfill').style.width = `${S.xp % 100}%`;
+  $('#xptxt').textContent = `${S.xp} XP`;
+  $('#soundBtn').textContent = `音效：${S.sound ? '開' : '關'}`;
+  $('#map').innerHTML = NODES.map(n => {
+    const st = S.stars[n.id] || [], done = n.id === 'quiz' ? S.bossBest >= 6 : !!st[0];
+    const stars = n.id === 'quiz' ? `<span class="stars">${S.bossBest ? `最佳 ${S.bossBest}/8` : '&nbsp;'}</span>`
+      : `<span class="stars">${[0, 1, 2].map(i => `<span class="${st[i] ? 'on' : ''}">★</span>`).join('')}</span>`;
+    return `<li><button type="button" class="node ${done ? 'done' : ''}" data-id="${n.id}" aria-current="${String(S.cur) === String(n.id)}">
+      <span class="num">${done ? '✓' : n.id === 'quiz' ? '?' : n.n}</span><span class="tag">${n.tag}</span>${stars}</button></li>`;
+  }).join('');
+}
+$('#map').addEventListener('click', e => { const b = e.target.closest('.node'); if (b) go(b.dataset.id); });
+$('#soundBtn').onclick = () => { S.sound = !S.sound; save(); renderHeader(); if (S.sound) SFX.pick(); };
+
+/* ---------- world rendering ---------- */
+const CELL = 100;
+const gemShape = (cx, cy, s, cls = '') => `<polygon class="${cls}" points="${cx},${cy - s} ${cx + s * .82},${cy} ${cx},${cy + s} ${cx - s * .82},${cy}" fill="var(--gem)" stroke="var(--gem-edge)" stroke-width="4" stroke-linejoin="round"/>`;
+const ROBOT_SVG = `<svg class="rb-svg" viewBox="-50 -50 100 100" aria-hidden="true">
+  <g><ellipse class="ft f1 rb-foot" cx="-4" cy="-31" rx="14" ry="8"/><ellipse class="ft f2 rb-foot" cx="-4" cy="31" rx="14" ry="8"/></g>
+  <rect class="rb-body" x="-33" y="-30" width="64" height="60" rx="20"/>
+  <circle class="rb-ant" cx="-20" cy="0" r="7"/>
+  <rect class="rb-face" x="2" y="-22" width="24" height="44" rx="11"/>
+  <g class="rb-eyes"><circle class="rb-eye" cx="15" cy="-10" r="5.5"/><circle class="rb-eye" cx="15" cy="10" r="5.5"/></g>
+</svg>`;
+function staticLayer(def){
+  const { W, H } = def; let s = '';
+  for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) {
+    const px = (x - 1) * CELL, py = (H - y) * CELL;
+    s += `<rect x="${px}" y="${py}" width="${CELL}" height="${CELL}" fill="${(x + y) % 2 ? 'var(--tile)' : 'var(--tile2)'}"/>`;
+    s += `<circle cx="${px + 50}" cy="${py + 50}" r="4" fill="var(--dot)"/>`;
+  }
+  for (const [x, y, n] of def.targets || []) {
+    const cx = (x - 1) * CELL + 50, cy = (H - y) * CELL + 50;
+    s += `<polygon points="${cx},${cy - 24} ${cx + 20},${cy} ${cx},${cy + 24} ${cx - 20},${cy}" fill="none" stroke="var(--target)" stroke-width="3" stroke-dasharray="6 5"/>`;
+    s += `<text x="${cx}" y="${cy + 42}" text-anchor="middle" font-size="16" font-family="JetBrains Mono, monospace" fill="var(--target)">×${n}</text>`;
+  }
+  for (const [x, y, side] of def.walls || []) {
+    const px = (x - 1) * CELL, py = (H - y) * CELL;
+    s += side === 'E' ? `<line x1="${px + CELL}" y1="${py}" x2="${px + CELL}" y2="${py + CELL}" stroke="var(--wall)" stroke-width="9" stroke-linecap="round"/>`
+                      : `<line x1="${px}" y1="${py}" x2="${px + CELL}" y2="${py}" stroke="var(--wall)" stroke-width="9" stroke-linecap="round"/>`;
+  }
+  s += `<rect x="3" y="3" width="${W * CELL - 6}" height="${H * CELL - 6}" fill="none" stroke="var(--wall)" stroke-width="7" rx="4"/>`;
+  return s;
+}
+function gemLayer(beepers, H, st){
+  let s = '';
+  for (const [k, n] of Object.entries(beepers)) {
+    const [x, y] = k.split(',').map(Number), cx = (x - 1) * CELL + 50, cy = (H - y) * CELL + 50;
+    const pop = st && st.act === 'put' && st.x === x && st.y === y;
+    s += `<g>${gemShape(cx, cy, 20, pop ? 'gem-pop' : '')}`;
+    if (n > 1) s += `<circle cx="${cx + 22}" cy="${cy - 22}" r="13" fill="var(--ink)"/><text x="${cx + 22}" y="${cy - 17}" text-anchor="middle" font-size="15" font-weight="700" font-family="JetBrains Mono, monospace" fill="var(--panel)">${n}</text>`;
+    s += '</g>';
+  }
+  if (st && st.act === 'pick') s += gemShape((st.x - 1) * CELL + 50, (H - st.y) * CELL + 50, 20, 'gem-poof');
+  return s;
+}
+
+/* ---------- level page ---------- */
+let L = null;      // current level
+const P = { def: null, trace: null, k: -1, timer: null, playing: false, mode: 'edit', out: '' };
+
+function go(id){
+  stopPlay();
+  S.cur = id; save(); renderHeader();
+  if (id === 'quiz') { L = null; return renderBossIntro(); }
+  L = LEVELS.find(l => l.id === id) || LEVELS[0];
+  const code = S.codes[L.id] ?? L.starter;
+  $('#stage').innerHTML = `
+  <div class="bench">
+    <section class="a-mission mission">
+      <div class="eyebrow">第 ${L.n} 關 · ${L.tag}</div>
+      <h2>${L.title}</h2>
+      <p class="goal">${L.goal}</p>
+      <div class="concept">${L.concept}</div>
+      <div class="hint" id="hint" hidden><b>提示：</b>${L.hint}</div>
+    </section>
+    <section class="a-world pane worldpane">
+      <div class="pane-h"><b>World</b><span class="acts">${L.random ? '<button type="button" id="bReroll">換地圖</button>' : ''}<button type="button" id="bResetWorld">重設地圖</button></span></div>
+      <div class="worldwrap"><div class="world" id="world"></div></div>
+      <div class="wstatus" id="wstatus"></div>
+    </section>
+    <section class="a-code col">
+      <div class="pane">
+        <div class="pane-h"><b>Source</b><span>level${L.n}.R · 目標 ${L.par} 行以內</span>
+          <span class="acts"><button type="button" id="bHint">提示</button><button type="button" id="bSol" ${(S.fails[L.id] || 0) >= 2 ? '' : 'disabled title="失敗兩次後可以看解答"'}>看解答</button><button type="button" id="bStarter">還原</button></span></div>
+        <div class="editor" id="editorBox"><div class="gutter" id="gutter">1</div><textarea id="ed" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="R 程式碼"></textarea></div>
+        <div class="codeview" id="codeview" hidden title="點一下回到編輯"></div>
+        <div class="snips" id="snips"><span>插入</span>
+          ${['move()', 'turn_left()', 'turn_right()', 'pick_beeper()', 'put_beeper()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
+          ${[['for', 'for (i in 1:3) {\n  \n}'], ['while', 'while (front_is_clear()) {\n  \n}'], ['if', 'if (beepers_present()) {\n  \n}'], ['else', ' else {\n  \n}']].map(([l, s]) => `<button type="button" class="snip ctl" data-s="${esc(s)}">${l}</button>`).join('')}
+          ${['front_is_clear()', 'right_is_clear()', 'beepers_present()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn go" id="bRun" type="button">▶ 執行</button>
+        <button class="btn" id="bStep" type="button">一步一步</button>
+        <button class="btn" id="bPause" type="button" disabled>⏸ 暫停</button>
+        <button class="btn" id="bEdit" type="button" hidden>✎ 回到編輯</button>
+        <label class="speed" for="speed">速度 <input type="range" id="speed" min="1" max="10" value="${S.speed || 5}"></label>
+      </div>
+      <div id="result" hidden></div>
+    </section>
+    <section class="a-env col">
+      <div class="pane"><div class="pane-h"><b>Environment</b><span>變數</span></div>
+        <table class="env"><thead><tr><th>變數</th><th>值</th></tr></thead><tbody id="env"></tbody></table></div>
+      <div class="pane"><div class="pane-h"><b>Console</b><span>R 4.4</span></div><pre class="console" id="console"></pre></div>
+    </section>
+  </div>`;
+  const ed = $('#ed'); ed.value = code; syncEditor();
+  ed.addEventListener('input', () => { syncEditor(); S.codes[L.id] = ed.value; save(); });
+  ed.addEventListener('keydown', edKeys);
+  $('#snips').onclick = e => { const b = e.target.closest('.snip'); if (b) insertSnippet(b.dataset.s); };
+  $('#bRun').onclick = () => startRun(false);
+  $('#bStep').onclick = () => stepOnce();
+  $('#bPause').onclick = () => P.playing ? pausePlay() : resumePlay();
+  $('#bEdit').onclick = () => toEdit();
+  $('#codeview').onclick = () => toEdit();
+  $('#speed').oninput = e => { S.speed = Number(e.target.value); save(); };
+  $('#bHint').onclick = () => { $('#hint').hidden = !$('#hint').hidden; };
+  $('#bStarter').onclick = () => { ed.value = L.starter; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit(); };
+  $('#bSol').onclick = () => {
+    const b = $('#bSol');
+    if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = '確定看解答？'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = '看解答'; } }, 3000); return; }
+    ed.value = L.solution; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit();
+    b.textContent = '看解答'; delete b.dataset.armed;
+  };
+  $('#bResetWorld').onclick = () => { stopPlay(); toEdit(); showWorld(P.def); };
+  if ($('#bReroll')) $('#bReroll').onclick = () => { stopPlay(); toEdit(); showWorld(L.def()); };
+  showWorld(L.def());
+}
+
+function syncEditor(){
+  const ed = $('#ed'); const n = ed.value.split('\n').length;
+  $('#gutter').textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
+  ed.style.height = 'auto'; ed.style.height = Math.max(200, ed.scrollHeight) + 'px';
+}
+function edKeys(e){
+  const ed = e.target;
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); startRun(false); return; }
+  if (e.key === 'Tab') { e.preventDefault(); insertAtCursor('  '); return; }
+  if (e.key === 'Enter') {
+    const before = ed.value.slice(0, ed.selectionStart), lineStart = before.lastIndexOf('\n') + 1, cur = before.slice(lineStart);
+    let ind = cur.match(/^\s*/)[0]; if (/\{\s*$/.test(cur)) ind += '  ';
+    e.preventDefault(); insertAtCursor('\n' + ind);
+  }
+}
+function insertAtCursor(text){
+  const ed = $('#ed'); ed.focus();
+  const a = ed.selectionStart, b = ed.selectionEnd;
+  ed.setRangeText(text, a, b, 'end');
+  ed.dispatchEvent(new Event('input'));
+}
+function insertSnippet(s){
+  toEdit();
+  const ed = $('#ed'); const before = ed.value.slice(0, ed.selectionStart);
+  const ind = before.slice(before.lastIndexOf('\n') + 1).match(/^\s*/)[0];
+  const lineHasText = before.slice(before.lastIndexOf('\n') + 1).trim().length > 0;
+  let text = s.replace(/\n/g, '\n' + ind);
+  if (lineHasText && !s.startsWith(' else') && !s.endsWith(')')) text = '\n' + ind + text;
+  else if (lineHasText && s.endsWith(')') && !/[(\s]$/.test(before)) text = '\n' + ind + text;
+  insertAtCursor(text);
+  // put the cursor on the empty line inside a new block
+  const pos = ed.value.lastIndexOf('{\n', ed.selectionStart);
+  if (s.includes('{\n') && pos > -1) { const p2 = ed.value.indexOf('\n', pos + 2); const target = ed.value.indexOf('\n', pos) + 1; const lineEnd = ed.value.indexOf('\n', target); ed.selectionStart = ed.selectionEnd = lineEnd === -1 ? ed.value.length : lineEnd; void p2; }
+}
+
+function showWorld(def){
+  P.def = def; P.trace = null; P.k = -1;
+  const wEl = $('#world');
+  const maxW = Math.round(440 * def.W / def.H);
+  wEl.style.width = `min(100%, ${maxW}px)`;
+  wEl.innerHTML = `<svg class="map-svg" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" role="img" aria-label="${def.W} × ${def.H} 的地圖"><g>${staticLayer(def)}</g><g id="gems">${gemLayer(def.beepers || {}, def.H)}</g></svg>
+    <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>`;
+  const w = makeWorld(def);
+  placeRobot({ x: w.x, y: w.y, rot: w.rot, dir: w.dir, picked: 0, placed: 0 }, true);
+  say(L.random ? '這張地圖是隨機的！' : '準備好了！', '');
+  $('#env').innerHTML = `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
+  $('#console').innerHTML = '<span class="prompt">&gt;</span> ';
+  $('#result').hidden = true;
+}
+function placeRobot(st, instant){
+  const r = $('#robot'), H = P.def.H;
+  if (instant) r.classList.add('instant');
+  r.style.transform = `translate(${(st.x - 1) * 100}%, ${(H - st.y) * 100}%)`;
+  $('#rbrot').style.transform = `rotate(${st.rot}deg)`;
+  if (instant) { void r.offsetWidth; r.classList.remove('instant'); }
+  $('#wstatus').innerHTML = `<span>位置 <b>(${st.x}, ${st.y})</b></span><span>面向 <b>${DIR_ZH[st.dir]}</b></span><span>撿起 <b>${st.picked}</b></span><span>放下 <b>${st.placed}</b></span>${P.trace ? `<span>步驟 <b>${P.k + 1}/${P.trace.steps.length}</b></span>` : ''}`;
+}
+function say(text, cls){
+  const b = $('#bubble'); if (!b) return;
+  if (!text) { b.classList.remove('show'); return; }
+  b.textContent = text;
+  const x = P.trace && P.k >= 0 ? P.trace.steps[P.k].x : makeWorld(P.def).x;
+  b.className = 'bubble show ' + (cls || '') + (x <= 1 ? ' l' : x >= P.def.W ? ' r' : '');
+}
+function flash(cls, ms = 520){ const r = $('#robot'); r.classList.remove(cls); void r.offsetWidth; r.classList.add(cls); setTimeout(() => r.classList.remove(cls), ms); }
+
+/* ---------- running ---------- */
+const baseDur = () => 820 - (S.speed || 5) * 74;
+function toEdit(){
+  stopPlay(); P.mode = 'edit';
+  $('#editorBox').hidden = false; $('#codeview').hidden = true; $('#bEdit').hidden = true;
+}
+function toView(){
+  P.mode = 'run';
+  $('#editorBox').hidden = true; $('#codeview').hidden = false; $('#bEdit').hidden = false;
+  renderCode(-1);
+}
+function renderCode(cur, errLine){
+  const hits = {}; if (P.trace) for (let x = 0; x <= P.k; x++) { const l = P.trace.steps[x].line; hits[l] = (hits[l] || 0) + 1; }
+  $('#codeview').innerHTML = $('#ed').value.split('\n').map((l, i) =>
+    `<div class="ln${i + 1 === cur ? ' cur' : ''}${i + 1 === errLine ? ' errl' : ''}"><span class="no">${i + 1}</span><code>${hl(l) || ' '}</code></div>`).join('');
+  const c = $('#codeview .cur, #codeview .errl'); if (c) c.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+function prepare(){
+  stopPlay();
+  if (P.trace && P.k >= 0) showWorld(P.def);      // replay on a fresh copy of the same map
+  const code = $('#ed').value; S.codes[L.id] = code; save();
+  P.trace = execute(code, P.def); P.k = -1; P.out = ''; P.done = false;
+  if (P.trace.error && P.trace.error.kind === 'inf') P.trace.steps = P.trace.steps.slice(0, 36);   // show a few laps, not 3000 steps
+  $('#result').hidden = true;
+  $('#console').innerHTML = '<span class="prompt">&gt; source("level' + L.n + '.R")</span>\n';
+  toView();
+  if (!P.trace.steps.length) { finish(); return false; }
+  return true;
+}
+function startRun(){ if (prepare()) resumePlay(); }
+function stepOnce(){
+  if (!P.trace || P.done || P.mode !== 'run') { if (!prepare()) return; }
+  pausePlay();
+  if (P.k < P.trace.steps.length - 1) advance(); else finish();
+}
+function resumePlay(){
+  if (!P.trace || P.done) return;
+  P.playing = true; $('#bPause').disabled = false; $('#bPause').textContent = '⏸ 暫停'; tick();
+}
+function pausePlay(){ P.playing = false; clearTimeout(P.timer); if ($('#bPause')) { $('#bPause').textContent = '▶ 繼續'; $('#bPause').disabled = !P.trace || P.done; } }
+function stopPlay(){ P.playing = false; clearTimeout(P.timer); if ($('#bPause')) { $('#bPause').disabled = true; $('#bPause').textContent = '⏸ 暫停'; } }
+function tick(){
+  if (!P.playing) return;
+  if (P.k >= P.trace.steps.length - 1) { finish(); return; }
+  const st = advance();
+  const robotAct = ['move', 'turn', 'pick', 'put', 'bonk', 'oops'].includes(st.act);
+  P.timer = setTimeout(tick, robotAct ? baseDur() : baseDur() * .5);
+}
+function advance(){
+  P.k++;
+  const st = P.trace.steps[P.k], d = baseDur();
+  $('#world').style.setProperty('--dur', `${Math.max(80, d * .85)}ms`);
+  placeRobot(st, false);
+  $('#gems').innerHTML = gemLayer(st.beepers, P.def.H, st);
+  const r = $('#robot');
+  if (st.act === 'move') { r.classList.add('walking'); clearTimeout(r._w); r._w = setTimeout(() => r.classList.remove('walking'), d * .85); }
+  if (st.act === 'bonk') flash('bonk', 420);
+  if (st.act === 'pick' || st.act === 'put') flash('hop', 500);
+  if (st.say) say(st.say, st.ok === true ? 't' : st.ok === false ? 'f' : ''); else if (st.act === 'move') say('');
+  (SFX[st.act] || (() => {}))();
+  if (st.out) { P.out += st.out; }
+  $('#console').innerHTML = '<span class="prompt">&gt; source("level' + L.n + '.R")</span>\n' + esc(P.out);
+  $('#env').innerHTML = st.vars.length ? st.vars.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
+  renderCode(st.line);
+  return st;
+}
+
+function finish(){
+  stopPlay(); P.done = true;
+  const tr = P.trace, con = $('#console');
+  if (P.k < tr.steps.length - 1 && tr.steps.length) { while (P.k < tr.steps.length - 1) { P.k++; } const st = tr.steps[P.k]; placeRobot(st, true); $('#gems').innerHTML = gemLayer(st.beepers, P.def.H); }
+  const res = $('#result');
+  const fail = (html, bubble, extraBtn) => {
+    S.fails[L.id] = (S.fails[L.id] || 0) + 1; save();
+    if (S.fails[L.id] >= 2) { const b = $('#bSol'); if (b) { b.disabled = false; b.title = ''; } }
+    res.hidden = false; res.className = 'result no'; res.innerHTML = html + (extraBtn || '');
+    say(bubble, 'f'); $('#robot').classList.add('sad'); setTimeout(() => $('#robot') && $('#robot').classList.remove('sad'), 1400);
+    SFX.fail();
+  };
+  if (tr.error) {
+    const e = tr.error;
+    con.innerHTML += `<span class="err">Error${e.line ? `（第 ${e.line} 行）` : ''}: ${esc(e.message)}</span>\n`;
+    renderCode(-1, e.line);
+    fail(`<b>${e.kind === 'bonk' ? '撞牆了！' : e.kind === 'inf' ? '停不下來！' : '程式出錯了'}</b>　${esc(e.message)}`, e.kind === 'bonk' ? '好痛…' : e.kind === 'inf' ? '頭好暈…' : '我看不懂…');
+    return;
+  }
+  const r = L.check(tr.world, P.def);
+  if (!r.ok) { con.innerHTML += `<span class="err">✗ ${esc(r.msg)}</span>\n`; fail(`<b>還沒完成</b>　${esc(r.msg)}`, '還沒完成…'); return; }
+  const code = $('#ed').value;
+  let toks = []; try { toks = tokenize(code); } catch (e) {}
+  for (const [kw, n, label] of L.req) {
+    if (toks.filter(t => t.t === kw || (t.t === 'id' && t.v === kw)).length < n) {
+      fail(`<b>結果對了，但……</b>　這一關要練習用 <code>${esc(label || kw)}</code> 完成喔。`, `要用 ${kw} 喔！`); return;
+    }
+  }
+  for (const def of L.tests || []) {
+    const t = execute(code, def);
+    const c = t.error ? { ok: false, msg: t.error.message } : L.check(t.world, def);
+    if (!c.ok) {
+      con.innerHTML += `<span class="err">✗ 換一張地圖（${esc(L.describe(def))}）就失敗了</span>\n`;
+      fail(`<b>這張地圖過關了，但換成另一張地圖就失敗了。</b><br>${esc(L.describe(def))}：${esc(c.msg)}<br>好的程式要在每一張地圖都能用。`, '換地圖就不行…',
+        `<br><button class="btn" type="button" id="bShowFail">在那張地圖上執行看看</button>`);
+      $('#bShowFail').onclick = () => { toEdit(); showWorld(def); startRun(); };
+      return;
+    }
+  }
+  con.innerHTML += `<span class="good">✓ 任務完成！</span>\n`;
+  success(code);
+}
+
+function success(code){
+  const lines = code.split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#') && !/^[{}]+$/.test(s)).length;
+  const now = [true, lines <= L.par, !(S.fails[L.id] > 0)];
+  const prev = S.stars[L.id] || [false, false, false];
+  const merged = prev.map((v, i) => v || now[i]);
+  let xp = 0; if (!prev[0]) xp += 50;
+  merged.forEach((v, i) => { if (v && !prev[i]) xp += 10; });
+  S.stars[L.id] = merged; save();
+  if (xp) gain(xp, `第 ${L.n} 關`, true);
+  renderHeader();
+  say('任務完成！', 't'); flash('party', 1000); SFX.win(); confetti($('#robot'), 46);
+  const res = $('#result'); res.hidden = false; res.className = 'result ok';
+  res.innerHTML = `<b>過關！</b>　你用了 ${lines} 行程式（目標 ${L.par} 行以內）。`;
+  const nextL = LEVELS[L.n];
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="card" role="dialog" aria-modal="true" aria-labelledby="mt">
+    <h3 id="mt">過關！</h3><p style="margin:4px 0 0;color:var(--muted)">第 ${L.n} 關：${L.title}</p>
+    <div class="bigstars">
+      <div class="${now[0] ? 'on' : ''}"><i>★</i>完成任務</div>
+      <div class="${now[1] ? 'on' : ''}"><i>★</i>${lines} 行（目標 ≤ ${L.par}）</div>
+      <div class="${now[2] ? 'on' : ''}"><i>★</i>一次就成功</div>
+    </div>
+    ${!now[1] ? '<p style="font-size:14px;margin:6px 0 0">試試看用迴圈把程式寫得更短，可以拿到第二顆星。</p>' : ''}
+    <div class="controls">
+      <button class="btn" type="button" id="mStay">留在這關</button>
+      <button class="btn primary" type="button" id="mNext">${nextL ? `下一關：${nextL.title} →` : '去預測挑戰 →'}</button>
+    </div></div>`;
+  document.body.appendChild(m);
+  const close = () => { m.remove(); document.removeEventListener('keydown', onEsc); };
+  const onEsc = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onEsc);
+  m.onclick = e => { if (e.target === m) close(); };
+  $('#mStay').onclick = close;
+  $('#mNext').onclick = () => { close(); go(nextL ? nextL.id : 'quiz'); };
+  $('#mNext').focus();
+}
+
+/* ---------- prediction quiz ---------- */
+const BOSS = [
+  { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) next', '  x <- x + i', '}', 'x'], opts: ['[1] 7', '[1] 10', '[1] 3', '[1] 6'], why: 'next（其他語言叫 continue）跳過 i = 3 這一圈剩下的程式，但迴圈繼續：1 + 2 + 4 = 7。' },
+  { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) break', '  x <- x + i', '}', 'x'], opts: ['[1] 3', '[1] 7', '[1] 6', '[1] 10'], why: 'i = 3 時 break 直接結束迴圈：1 + 2 = 3。' },
+  { code: ['n <- 1', 'count <- 0', 'while (n < 20) {', '  n <- n * 3', '  count <- count + 1', '}', 'count'], opts: ['[1] 3', '[1] 2', '[1] 4', '[1] 27'], why: 'n 依序 1 → 3 → 9 → 27，乘了 3 次。' },
+  { code: ['for (ch in c("R", "真", "好")) {', '  cat(ch)', '}'], opts: ['R真好', '好真R', 'R 真 好', '[1] "R" "真" "好"'], why: 'for 不只能走訪數字，也能走訪文字向量：ch 依序是 "R"、"真"、"好"。cat() 只給一個參數時不會加空格，所以三次連在一起印成 R真好。' },
+  { code: ['x <- 4', 'if (!(x > 5)) {', '  print("小")', '} else {', '  print("大")', '}'], opts: ['[1] "小"', '[1] "大"', 'Error', '什麼都不印'], why: 'x > 5 是 FALSE，前面加上 ! 反轉成 TRUE，所以執行第一個區塊。' },
+  { code: ['x <- 0', 'if (x > 5 || x == 0) {', '  print("A")', '} else {', '  print("B")', '}'], opts: ['[1] "A"', '[1] "B"', 'Error', '[1] "A" "B"'], why: '|| 是「或者」：x > 5 是 FALSE，但 x == 0 是 TRUE，只要一個成立就是 TRUE。' },
+  { code: ['for (i in 3:1) cat(i, "")'], opts: ['3 2 1', '1 2 3', '3', '什麼都不印'], why: '3:1 會產生倒數的向量 c(3, 2, 1)，所以 i 依序是 3、2、1（不是 1、2、3）。每一圈 cat(i, "") 印出 i 和一個空字串；cat 會在兩個參數之間加一個空格，所以結果是「3 2 1 」，每個數字後面都跟著一個空格。' },
+  { code: ['x <- 15', 'if (x %% 3 == 0 && x %% 5 == 0) {', '  "FizzBuzz"', '} else if (x %% 3 == 0) {', '  "Fizz"', '} else {', '  x', '}'], opts: ['[1] "FizzBuzz"', '[1] "Fizz"', '[1] 15', '[1] "Fizz" "FizzBuzz"'], why: '15 同時是 3 和 5 的倍數，第一個條件就成立，後面不再檢查。' },
+  { code: ['total <- 0', 'for (i in 1:3) {', '  for (j in 1:i) {', '    total <- total + 1', '  }', '}', 'total'], opts: ['[1] 6', '[1] 9', '[1] 3', '[1] 4'], why: '內層的長度跟著 i 變：1 + 2 + 3 = 6 次。' },
+  { code: ['v <- c(3, 8, 1, 9, 4)', 'm <- v[1]', 'for (x in v) {', '  if (x > m) m <- x', '}', 'm'], opts: ['[1] 9', '[1] 4', '[1] 3', '[1] 8'], why: '這是自己寫的 max()：遇到比目前 m 大的值就更新。' },
+  { code: ['n <- 0', 'for (i in 1:n) print(i)'], opts: ['[1] 1\n[1] 0', '什麼都不印', '[1] 0', 'Error'], why: '陷阱題！1:0 是 c(1, 0)，迴圈會跑兩圈。要安全處理 n = 0，用 seq_len(n)。' },
+  { code: ['x <- 5', 'while (TRUE) {', '  x <- x - 2', '  if (x < 0) break', '}', 'x'], opts: ['[1] -1', '[1] 1', '[1] 0', '無限迴圈'], why: 'while (TRUE) 要靠 break 離開。x 依序 3 → 1 → -1，-1 < 0 時 break。' },
+  { code: ['y <- ifelse(c(1, 6, 3) > 2, "大", "小")', 'y'], opts: ['[1] "小" "大" "大"', '[1] "小"', '[1] "大" "大" "小"', 'Error: the condition has length > 1'], why: 'ifelse() 是向量化的，會對每個元素分別判斷，跟 if 不同。' },
+  { code: ['count <- 0', 'for (i in 1:5) {', '  if (i %% 2 == 1) count <- count + i', '}', 'count'], opts: ['[1] 9', '[1] 6', '[1] 15', '[1] 3'], why: '只加奇數：1 + 3 + 5 = 9。' },
+  { q: '哪一段程式會印出 1 到 10 之間的偶數？', code: null,
+    opts: ['for (i in 1:10) if (i %% 2 == 0) print(i)', 'for (i in 1:10) if (i / 2 == 0) print(i)', 'for (i in 1:10) if (i %% 2 == 1) print(i)', 'i <- 1\nwhile (i <= 10) print(i)'], why: '%% 取餘數，餘數 0 代表整除。i / 2 是除法，結果不會等於 0。' },
+  { code: ['i <- 0', 'repeat {', '  i <- i + 2', '  if (i > 5) break', '}', 'i'], opts: ['[1] 6', '[1] 4', '[1] 5', '無限迴圈'], why: 'repeat 是沒有條件的迴圈，只能靠 break 離開。i 依序 2 → 4 → 6，6 > 5 時停。' },
+];
+let B = null;
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const codeBlock = lines => `<pre class="codeblk">${lines.map(hl).join('\n')}</pre>`;
+function renderBossIntro(){
+  $('#stage').innerHTML = `<section class="boss"><div class="pane"><div class="pane-b" style="padding:18px">
+    <h3>預測挑戰：R 會印出什麼？</h3>
+    <p>這次沒有機器人，只有程式碼。在腦中一行一行執行，選出 R 的輸出。</p>
+    <ul class="rules"><li>隨機抽 8 題，你有 3 條命。</li><li>每答對一題 +15 XP，連續答對 3 題以上每題再 +5。</li><li>答對 6 題以上算通關。</li></ul>
+    <p class="xptxt">最佳紀錄：${S.bossBest} / 8</p>
+    <button class="btn primary" type="button" id="bStart">開始挑戰</button></div></div></section>`;
+  $('#bStart').onclick = startBoss;
+}
+function startBoss(){
+  B = { qs: shuffle(BOSS).slice(0, 8).map(q => ({ ...q, order: shuffle(q.opts.map((t, i) => ({ t, ok: i === 0 }))) })), i: 0, lives: 3, right: 0, streak: 0, answered: false };
+  renderBossQ();
+}
+function renderBossQ(){
+  const q = B.qs[B.i];
+  $('#stage').innerHTML = `<section class="boss">
+    <div class="bar"><span>第 <b>${B.i + 1}</b> / ${B.qs.length} 題</span><span class="hearts" aria-label="剩下 ${B.lives} 條命">${'♥'.repeat(B.lives)}<span class="lost">${'♥'.repeat(3 - B.lives)}</span></span><span>答對 ${B.right} 題</span>${B.streak >= 2 ? `<span>連對 ${B.streak} 題</span>` : ''}</div>
+    <div class="q"><div class="qt">${q.q || '這段程式會輸出什麼？'}</div>${q.code ? codeBlock(q.code) : ''}
+      <div class="opts">${q.order.map((o, j) => `<button type="button" class="opt" data-j="${j}">${esc(o.t)}</button>`).join('')}</div>
+      <div class="why" hidden id="bwhy"></div><div><button class="btn primary" type="button" id="bNextQ" hidden>下一題 →</button></div></div></section>`;
+  $('.opts').onclick = e => {
+    const b = e.target.closest('.opt'); if (!b || B.answered) return;
+    B.answered = true;
+    const pick = q.order[Number(b.dataset.j)];
+    document.querySelectorAll('.opt').forEach((el, j) => { el.disabled = true; if (q.order[j].ok) el.classList.add('right'); });
+    const why = $('#bwhy'); why.hidden = false;
+    if (pick.ok) { B.right++; B.streak++; gain(15 + (B.streak >= 3 ? 5 : 0), B.streak >= 3 ? `連對 ${B.streak} 題` : '答對'); SFX.pick(); confetti(b, 16); why.className = 'why ok'; why.innerHTML = '答對了！' + esc(q.why); }
+    else { b.classList.add('wrong'); B.lives--; B.streak = 0; SFX.fail(); why.className = 'why no'; why.innerHTML = '扣一條命。' + esc(q.why); }
+    const last = B.lives === 0 || B.i === B.qs.length - 1;
+    const nx = $('#bNextQ'); nx.hidden = false; nx.textContent = last ? '看結果' : '下一題 →'; nx.focus();
+    nx.onclick = () => { B.answered = false; if (last) renderBossEnd(); else { B.i++; renderBossQ(); } };
+  };
+}
+function renderBossEnd(){
+  const r = B.right, best = r > S.bossBest;
+  if (best) { S.bossBest = r; save(); }
+  if (r >= 6 && !S.awarded.boss) { S.awarded.boss = 1; gain(50, '預測挑戰通關', true); }
+  renderHeader();
+  const rank = r >= 8 ? 'R 迴圈大師' : r >= 6 ? '迴圈高手' : r >= 4 ? '穩定進步中' : '迴圈見習生';
+  $('#stage').innerHTML = `<section class="boss"><div class="pane"><div class="pane-b" style="padding:18px">
+    <h3>${B.lives === 0 ? '命用完了' : '挑戰完成'}</h3>
+    <div class="big" id="bigscore">${r} <span style="font-size:.4em;color:var(--muted)">/ ${B.qs.length}</span></div>
+    <div class="rank">${rank}</div>
+    <p>${best ? '新的最佳紀錄！' : `最佳紀錄：${S.bossBest} / 8`}</p>
+    <div class="controls"><button class="btn primary" type="button" id="bAgain">再挑戰一次</button><button class="btn" type="button" id="bBack">回到第 1 關</button></div>
+  </div></div></section>`;
+  if (r >= 6) { SFX.win(); confetti($('#bigscore'), 50); }
+  $('#bAgain').onclick = startBoss; $('#bBack').onclick = () => go('seq');
+}
+
+/* ---------- global ---------- */
+const resetBtn = $('#resetAll');
+resetBtn.onclick = () => {
+  if (!resetBtn.classList.contains('armed')) {
+    resetBtn.classList.add('armed'); resetBtn.textContent = '再按一次確認清除';
+    setTimeout(() => { resetBtn.classList.remove('armed'); resetBtn.textContent = '清除所有進度'; }, 3000);
+    return;
+  }
+  Object.assign(S, { xp: 0, stars: {}, codes: {}, fails: {}, cur: 1, bossBest: 0, awarded: {} });
+  save(); resetBtn.classList.remove('armed'); resetBtn.textContent = '清除所有進度';
+  toast('進度已清除'); go('seq');
+};
+go(S.cur === 'quiz' ? 'quiz' : (LEVELS.some(l => l.id === S.cur) ? S.cur : 'seq'));
+</script>
+
+</body>
+</html>
