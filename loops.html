@@ -291,7 +291,7 @@ function tokenize(src){
       toks.push({ t: 'str', v: s, line, s: i, e: j + 1 }); i = j + 1; continue;
     }
     if (FULLWIDTH[c]) throw new RErr(`這裡用了全形符號「${c}」，請改成半形的「${FULLWIDTH[c]}」`, line);
-    let op = ['<-', '<=', '>=', '==', '!=', '&&', '||', '%%'].find(o => src.startsWith(o, i));
+    let op = ['%in%', '<-', '<=', '>=', '==', '!=', '&&', '||', '%%'].find(o => src.startsWith(o, i));
     if (!op && '+-*/^<>!&|=(){}[],:;'.includes(c)) op = c;
     if (!op) throw new RErr(`unexpected input「${c}」`, line);
     toks.push({ t: op, line, s: i, e: i + op.length }); i += op.length;
@@ -374,7 +374,7 @@ function parse(src){
   const cmpE = bin(() => addE(), ['==', '!=', '<', '>', '<=', '>=']);
   const addE = bin(() => mulE(), ['+', '-']);
   const mulE = bin(() => spE(), ['*', '/']);
-  const spE = bin(() => seqE(), ['%%']);
+  const spE = bin(() => seqE(), ['%%', '%in%']);
   const seqE = bin(() => unE(), [':']);
   function unE(){ if (peek().t === '-' || peek().t === '+') { const op = next(); return { k: 'un', op: op.t, a: unE(), line: op.line }; } return powE(); }
   function powE(){ const a = postfix(); if (peek().t === '^') { const op = next(); return { k: 'bin', op: '^', a, b: unE(), line: op.line }; } return a; }
@@ -568,6 +568,7 @@ function execute(src, def){
           return norm(r);
         }
         const A = asVec(a), B = asVec(b);
+        if (n.op === '%in%') return A.length ? norm(A.map(x => B.some(y => fmtCat(x) === fmtCat(y)))) : [];
         if (!A.length || !B.length) return [];
         const L = Math.max(A.length, B.length), r = [];
         for (let k = 0; k < L; k++) r.push(bin1(n.op, A[k % A.length], B[k % B.length], n.line));
@@ -724,6 +725,24 @@ const LEVELS = [
     describe: d => `寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格`,
     check: w => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿。` } : w.x !== 8 ? { ok: false, msg: '寶石撿完了，但還沒走到最右邊。' } : { ok: true } },
 
+  { id: 'in', tag: '%in%', title: '只放在指定的格子',
+    goal: '向量 spots 列出要放寶石的格子編號。從第 2 格走到第 8 格，編號在 spots 裡的格子才放一顆寶石。',
+    concept: `<p><code>x %in% v</code> 問的是「x 有沒有出現在向量 v 裡面」，回答 <code>TRUE</code> 或 <code>FALSE</code>：</p>
+      <p><code>5 %in% c(2, 5, 7)</code> → <code>TRUE</code>　　<code>4 %in% c(2, 5, 7)</code> → <code>FALSE</code></p>
+      <p>別跟 for 的 <code>in</code> 搞混：<code>for (i in 2:8)</code> 的 <code>in</code> 是「讓 i 依序取出每個值」；<code>%in%</code> 前後有百分號，是「是否屬於」的判斷，常放在 for 迴圈裡的 <code>if</code> 條件中。</p>
+      <p>左邊放向量也可以，會逐一判斷：<code>c(1, 5) %in% c(2, 5, 7)</code> → <code>[1] FALSE  TRUE</code>。要問「不在裡面」就寫 <code>!(i %in% spots)</code>。</p>`,
+    starter: 'spots <- c(2, 5, 7)\nfor (i in 2:8) {\n  move()          # 現在 R 寶站在第 i 格\n  # i 在 spots 裡面，才放寶石\n  \n}\n',
+    hint: '在空白那行寫 <code>if (i %in% spots) put_beeper()</code>。執行時看 Environment 裡的 i，和對話框裡的 TRUE / FALSE。',
+    solution: 'spots <- c(2, 5, 7)\nfor (i in 2:8) {\n  move()\n  if (i %in% spots) put_beeper()\n}\n', par: 4, req: [['for', 1], ['%in%', 1, '%in%']],
+    def: () => corridor(8, {}, { targets: [[2, 1, 1], [5, 1, 1], [7, 1, 1]] }),
+    check: w => {
+      for (let x = 1; x <= 8; x++) {
+        const n = w.beepers[`${x},1`] || 0, want = [2, 5, 7].includes(x) ? 1 : 0;
+        if (n !== want) return { ok: false, msg: want ? `第 ${x} 格在 spots 裡，應該放 1 顆，現在有 ${n} 顆。` : `第 ${x} 格不在 spots 裡，不應該放寶石。` };
+      }
+      return { ok: true };
+    } },
+
   { id: 'sweep', tag: 'while+if', title: '清掃走廊',
     goal: '長度和寶石位置都不固定。走到牆邊，把每一格（包括第一格和最後一格）的寶石都撿起來。',
     concept: `<p>把 while 和 if 組合起來：一路往前走，每到一格就檢查要不要撿。</p>
@@ -848,7 +867,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const HL_KW = /^(for|while|if|else|in|next|break|repeat|function|TRUE|FALSE|NULL)$/;
 function hl(src){
-  const re = /(#.*$)|("[^"]*")|(\b\d+(?:\.\d+)?\b)|(<-|%%|==|<=|>=|!=|&&|\|\|)|([A-Za-z_.][\w.]*)/g;
+  const re = /(#.*$)|("[^"]*")|(\b\d+(?:\.\d+)?\b)|(%in%|<-|%%|==|<=|>=|!=|&&|\|\|)|([A-Za-z_.][\w.]*)/g;
   let out = '', last = 0, m;
   while ((m = re.exec(src))) {
     out += esc(src.slice(last, m.index));
@@ -1267,6 +1286,7 @@ const BOSS = [
   { code: ['n <- 1', 'count <- 0', 'while (n < 20) {', '  n <- n * 3', '  count <- count + 1', '}', 'count'], opts: ['[1] 3', '[1] 2', '[1] 4', '[1] 27'], why: 'n 依序 1 → 3 → 9 → 27，乘了 3 次。' },
   { code: ['for (ch in c("R", "真", "好")) {', '  cat(ch)', '}'], opts: ['R真好', '好真R', 'R 真 好', '[1] "R" "真" "好"'], why: 'for 不只能走訪數字，也能走訪文字向量：ch 依序是 "R"、"真"、"好"。cat() 只給一個參數時不會加空格，所以三次連在一起印成 R真好。' },
   { code: ['x <- 4', 'if (!(x > 5)) {', '  print("小")', '} else {', '  print("大")', '}'], opts: ['[1] "小"', '[1] "大"', 'Error', '什麼都不印'], why: 'x > 5 是 FALSE，前面加上 ! 反轉成 TRUE，所以執行第一個區塊。' },
+  { code: ['spots <- c(2, 5, 7)', 'for (i in 1:6) {', '  if (i %in% spots) cat(i, "")', '}'], opts: ['2 5', '2 5 7', '1 3 4 6', 'TRUE TRUE'], why: 'i 從 1 跑到 6，只有 2 和 5 同時在 spots 裡；7 在 spots 裡，但 i 跑不到 7。' },
   { code: ['x <- 0', 'if (x > 5 || x == 0) {', '  print("A")', '} else {', '  print("B")', '}'], opts: ['[1] "A"', '[1] "B"', 'Error', '[1] "A" "B"'], why: '|| 是「或者」：x > 5 是 FALSE，但 x == 0 是 TRUE，只要一個成立就是 TRUE。' },
   { code: ['for (i in 3:1) cat(i, "")'], opts: ['3 2 1', '1 2 3', '3', '什麼都不印'], why: '3:1 會產生倒數的向量 c(3, 2, 1)，所以 i 依序是 3、2、1（不是 1、2、3）。每一圈 cat(i, "") 印出 i 和一個空字串；cat 會在兩個參數之間加一個空格，所以結果是「3 2 1 」，每個數字後面都跟著一個空格。' },
   { code: ['x <- 15', 'if (x %% 3 == 0 && x %% 5 == 0) {', '  "FizzBuzz"', '} else if (x %% 3 == 0) {', '  "Fizz"', '} else {', '  x', '}'], opts: ['[1] "FizzBuzz"', '[1] "Fizz"', '[1] 15', '[1] "Fizz" "FizzBuzz"'], why: '15 同時是 3 和 5 的倍數，第一個條件就成立，後面不再檢查。' },
