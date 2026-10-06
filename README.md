@@ -86,7 +86,7 @@ Karel 風格的程式遊戲：寫 R 程式指揮機器人「R 寶」走迷宮、
 | 2 | 參數 | `move_n(n)`、引數、`seq_len(n)` 處理 0 |
 | 3 | return | 回傳值、最後一行自動回傳；量走廊找中點 |
 | 4 | 區域變數 | function 裡改不到外面的變數，用回傳值帶出結果 |
-| 5 | 預設值 | `function(len, n = 1)`、具名參數 |
+| 5 | 位置引數、具名引數、預設值 | positional vs keyword argument、混用時的配對規則、`function(len, n = 1)` |
 | 6 | 分解問題 | 由上而下設計：`harvest_row()` 收割整片田 |
 | 7 | 線性搜尋 | `return` 立刻離開 function、最差 n 步 |
 | 8 | 最大值 | 記住目前最大值與位置 |

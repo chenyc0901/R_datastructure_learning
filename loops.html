@@ -239,6 +239,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .confetti{position:fixed;width:8px;height:12px;z-index:40;pointer-events:none;border-radius:2px;animation:conf 1.1s cubic-bezier(.2,.6,.4,1) forwards}
 @keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.concept table.argtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13.5px;background:var(--panel);border:1px solid var(--line)}
+.concept table.argtbl th,.concept table.argtbl td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.concept table.argtbl th{background:var(--sunk);color:var(--muted);font-weight:600;font-size:12px}
+.concept table.argtbl small{color:var(--muted)}
 .concept pre.snippet{margin:6px 0 2px;padding:10px 12px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;font-family:var(--f-code);font-size:13px;line-height:1.55;overflow-x:auto;font-variant-ligatures:none}
 .pwform{display:flex;gap:8px}
 .pwform input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
@@ -607,6 +611,7 @@ function execute(src, def){
     const args = n.args.map(a => ({ name: a.name, v: ev(a.e) })), local = new Map(), pn = f.params.map(q => q.name);
     for (const a of args.filter(a => a.name)) {
       if (!pn.includes(a.name)) throw new RErr(`unused argument (${a.name} = …)：${name}() 沒有叫 ${a.name} 的參數`, n.line);
+      if (local.has(a.name)) throw new RErr(`formal argument "${a.name}" matched by multiple actual arguments：${a.name} 給了兩次`, n.line);
       local.set(a.name, a.v);
     }
     const rest = args.filter(a => !a.name); let k = 0;

@@ -849,6 +849,7 @@ function execute(src, def){
     const args = n.args.map(a => ({ name: a.name, v: ev(a.e) })), local = new Map(), pn = f.params.map(q => q.name);
     for (const a of args.filter(a => a.name)) {
       if (!pn.includes(a.name)) throw new RErr(`unused argument (${a.name} = …)：${name}() 沒有叫 ${a.name} 的參數`, n.line);
+      if (local.has(a.name)) throw new RErr(`formal argument "${a.name}" matched by multiple actual arguments：${a.name} 給了兩次`, n.line);
       local.set(a.name, a.v);
     }
     const rest = args.filter(a => !a.name); let k = 0;
