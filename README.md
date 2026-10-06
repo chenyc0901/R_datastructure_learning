@@ -9,6 +9,7 @@
 | 02 R 寶的奇幻旅程 | `loops.html` |
 | 03 R 寶的演算法學院 | `algo.html` |
 | 04 R 寶的 apply 工廠 | `apply.html` |
+| 05 R 寶的資料倉庫 | `io.html` |
 | ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
@@ -138,3 +139,20 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 
 ---
 陳育辰（YCC）· 中國醫藥大學 醫技系
+
+## 第五部分：R 寶的資料倉庫（`io.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/io.html
+
+套件的安裝與載入、工作目錄與路徑，以及文字檔、CSV、TSV、RDS 的讀寫。頁面模擬一台電腦：安裝過的套件和寫進「硬碟」的檔案會保留下來（存在瀏覽器裡），變數和 `library()` 每一格重來；右下角的「R 寶的電腦」可以看硬碟內容和已安裝的套件。範例的輸出和寫出的檔案都已和真正的 R 比對（套件下載訊息是模擬的）。
+
+| 章 | 內容 | 練習 |
+|---|---|---|
+| 01 | 套件是什麼、`install.packages` 與 `library`；動畫「R 寶的書架」 | 第一次用 stringr |
+| 02 | `套件::函式`、同名函式的遮蔽、`require`、Bioconductor 與 BiocManager | 只用 `::` 找 CpG |
+| 03 | `getwd`、`list.files`、絕對／相對路徑、`file.path`、`dir.create`；動畫「路徑導航」 | 整理一盤樣本檔 |
+| 04 | `readLines`、FASTA 解析、`writeLines`、`cat(append = TRUE)` | FASTA 長度報告 |
+| 05 | data.frame、`read.csv`、NA 篩選陷阱、`write.csv(row.names = FALSE)`；動畫「CSV ↔ data.frame」 | qPCR 資料清理 |
+| 06 | `read.delim`、`read.table`、`na.strings`、註解行、`na.omit`、寫 TSV | 整理儀器匯出檔 |
+| 07 | 型別被猜錯、`saveRDS`／`readRDS`、`save`／`load`、`source` | 存下分析結果 |
+| 08 | 大魔王：`list.files` → `lapply` → `do.call(rbind)` 批次合併 | 合併一整批計數檔 |
