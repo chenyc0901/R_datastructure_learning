@@ -51,6 +51,19 @@ a{color:inherit}
 .eyebrow{font-family:var(--f-display);font-weight:600;font-size:clamp(13px,1.4vw,16px);letter-spacing:.38em;color:var(--teal);text-transform:uppercase}
 h1{margin:14px 0 0;font-weight:900;font-size:clamp(52px,10.5vw,138px);line-height:1;letter-spacing:.01em;text-wrap:balance}
 h1 .l2{display:block;background:linear-gradient(90deg,var(--ink) 0%,var(--ink) 35%,var(--blue) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* R 寶 stands beside the second title line, holding a data gem toward the live chart */
+h1 .l2row{display:flex;align-items:flex-end;gap:.12em}
+.rbao{flex:none;width:1.02em;height:1.02em;margin-bottom:-.04em;overflow:visible;filter:drop-shadow(0 0 22px color-mix(in srgb,var(--blue) 35%,transparent))}
+.rbao .rb-float{animation:rbfloat 3.6s ease-in-out infinite}
+.rbao .rb-shadow{transform-origin:62px 143px;animation:rbshadow 3.6s ease-in-out infinite}
+.rbao .rb-eyes{transform-box:fill-box;transform-origin:center;animation:rbblink 5s infinite}
+.rbao .rb-halo{animation:pulse 1.8s ease-in-out infinite}
+.rbao .rb-gem{transform-box:fill-box;transform-origin:center;animation:rbgem 3.6s ease-in-out infinite}
+@keyframes rbfloat{50%{transform:translateY(-6px)}}
+@keyframes rbshadow{50%{transform:scaleX(.82);opacity:.3}}
+@keyframes rbblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+@keyframes rbgem{50%{transform:rotate(8deg) scale(1.06)}}
+@media (prefers-reduced-motion: reduce){.rbao *{animation:none!important}}
 .en{margin-top:16px;font-family:var(--f-display);font-weight:500;font-size:clamp(16px,2vw,24px);letter-spacing:.14em;color:var(--dim)}
 .en b{color:var(--ink);font-weight:700}
 .meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:28px;font-size:14px;color:var(--dim)}
@@ -119,7 +132,29 @@ footer .mono{font-family:var(--f-code)}
 
     <div class="title">
       <div class="eyebrow rise">Big Data Analytics &amp; Practice</div>
-      <h1 class="rise d1">大數據分析<span class="l2">與實踐</span></h1>
+      <h1 class="rise d1">大數據分析<span class="l2row"><span class="l2">與實踐</span><svg class="rbao" viewBox="0 0 150 150" role="img" aria-label="R 寶：課程的機器人吉祥物，正拿著一顆資料寶石">
+        <defs>
+          <linearGradient id="rbBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa5ff"/><stop offset="1" stop-color="#2f6fe0"/></linearGradient>
+          <radialGradient id="rbGlow"><stop offset="0" stop-color="#ffb547" stop-opacity=".9"/><stop offset="1" stop-color="#ffb547" stop-opacity="0"/></radialGradient>
+        </defs>
+        <ellipse class="rb-shadow" cx="62" cy="143" rx="34" ry="5" fill="#000" opacity=".45"/>
+        <g class="rb-float">
+          <circle class="rb-halo" cx="62" cy="12" r="13" fill="url(#rbGlow)"/>
+          <line x1="62" y1="16" x2="62" y2="30" stroke="#8fb6ff" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="62" cy="12" r="6" fill="#ffb547"/>
+          <rect x="18" y="28" width="88" height="74" rx="28" fill="url(#rbBody)"/>
+          <rect x="30" y="42" width="64" height="42" rx="17" fill="#0b1422"/>
+          <g class="rb-eyes"><rect x="42" y="53" width="12" height="16" rx="6" fill="#35d6c3"/><rect x="70" y="53" width="12" height="16" rx="6" fill="#35d6c3"/></g>
+          <path d="M52 75 q10 7 20 0" stroke="#35d6c3" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <rect x="36" y="100" width="52" height="30" rx="11" fill="#2a5fc4"/>
+          <circle cx="62" cy="115" r="10" fill="#0b1422"/>
+          <text x="62" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#eaf1fa">R</text>
+          <rect x="22" y="103" width="15" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(25 30 107)"/>
+          <rect x="86" y="96" width="30" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(-28 88 100)"/>
+          <g class="rb-gem"><polygon points="128,64 140,78 128,92 116,78" fill="#35d6c3" stroke="#a6f0e7" stroke-width="2.5" stroke-linejoin="round"/><polygon points="128,64 133,78 128,92 123,78" fill="#a6f0e7" opacity=".45"/></g>
+          <ellipse cx="46" cy="132" rx="11" ry="6" fill="#9fb0c7"/><ellipse cx="78" cy="132" rx="11" ry="6" fill="#9fb0c7"/>
+        </g>
+      </svg></span></h1>
       <div class="en rise d2">以 <b>R</b> 為工具：從資料結構、迴圈到分析思維</div>
       <div class="meta rise d3">
         <div><small>INSTRUCTOR</small><span>陳育辰（YCC）</span></div>
