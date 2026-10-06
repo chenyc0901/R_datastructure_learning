@@ -1068,7 +1068,7 @@ repeat {
     def: () => ({ W: 5, H: 5, robot: [1, 1, 0], beepers: { '5,5': 1 }, walls: MAZE }),
     check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
 
-  { id: 'boss', tag: '大魔王', title: '寶石倉庫大清倉', boss: true, xp: 150,
+  { id: 'boss', tag: '大魔王', title: '寶石倉庫大清倉', boss: true, xp: 150, pass: 'ycc0901',
     goal: '倉庫的大小、寶石的位置和數量每次都不一樣，一格還可能疊好幾顆。把倉庫裡的寶石全部撿光，用變數 total 記下一共撿了幾顆，最後在 R 寶停下來的那一格，把 total 顆寶石全部放下，堆成一堆。',
     concept: `<p>這關沒有新語法，要把前面學過的全部組合起來（外層和內層都可以用 <code>repeat</code> ＋ <code>break</code>，就像「一路種到牆邊」那關）。先拆成三個小問題：</p>
       <p><b>① 掃一列：</b>一路往前走，每到一格就把寶石撿<b>光</b>。一格可能有好幾顆，所以用 <code>while (beepers_present())</code>，不是 <code>if</code>。每撿一顆就 <code>total &lt;- total + 1</code>。</p>
@@ -1601,7 +1601,8 @@ function goalPreview(def){
 
 /* ---------- solution (password protected, annotated) ---------- */
 const SOL_PASS = '0901';   // only a classroom speed bump: the answers ship with the page
-let solUnlocked = false;
+const solPass = () => L.pass || SOL_PASS;   // a level may set its own password (the boss does)
+const solUnlocked = new Set();
 function modal(html){
   const m = document.createElement('div'); m.className = 'modal';
   m.innerHTML = `<div class="card" role="dialog" aria-modal="true">${html}</div>`;
@@ -1613,16 +1614,16 @@ function modal(html){
   return { m, close };
 }
 function askSolution(){
-  if (solUnlocked) return showSolution();
+  if (solUnlocked.has(solPass())) return showSolution();
   const { m, close } = modal(`<h3>看解答</h3><p style="margin:4px 0 12px;color:var(--muted)">請輸入老師提供的密碼</p>
-    <form id="pwForm" class="pwform"><input id="pw" type="password" inputmode="numeric" autocomplete="off" aria-label="密碼" placeholder="密碼">
+    <form id="pwForm" class="pwform"><input id="pw" type="password" autocomplete="off" autocapitalize="off" aria-label="密碼" placeholder="密碼">
     <button class="btn primary" type="submit">確定</button></form><p class="pwerr" id="pwErr" aria-live="polite"></p>
     <div class="controls"><button class="btn" type="button" id="pwCancel">取消</button></div>`);
   const inp = $('#pw', m); inp.focus();
   $('#pwCancel', m).onclick = close;
   $('#pwForm', m).onsubmit = e => {
     e.preventDefault();
-    if (inp.value.trim() === SOL_PASS) { solUnlocked = true; close(); showSolution(); }
+    if (inp.value.trim() === solPass()) { solUnlocked.add(solPass()); close(); showSolution(); }
     else { $('#pwErr', m).textContent = '密碼不對，再試一次。'; inp.select(); const c = $('.card', m); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
   };
 }
