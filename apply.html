@@ -1,0 +1,2512 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="R apply 家族從原理到應用：函式也是值、自製 lapply、sapply／vapply 的簡化規則、apply 處理矩陣、mapply、tapply、Filter／Reduce／do.call，附動畫與自動批改練習。">
+<meta property="og:title" content="R 寶的 apply 工廠">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%AD%3C/text%3E%3C/svg%3E">
+<title>R 寶的 apply 工廠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+
+/* A reading page: side table of contents + chapters; every code block is an editable, runnable R cell */
+:root{
+  --bg:#eef1f4; --panel:#fbfcfd; --sunk:#f1f4f7; --ink:#16202b; --muted:#5a6776; --line:#d3dae2;
+  --accent:#1d5fae; --accent-ink:#ffffff; --accent-soft:#dde9f7;
+  --amber:#b97d06; --amber-soft:#fdf1cf; --ok:#1d8656; --ok-soft:#dcf2e6; --bad:#c0392b; --bad-soft:#fbe3e0;
+  --t-kw:#8b2fc9; --t-str:#1d7a3a; --t-num:#b4530a; --t-com:#7f8a96; --t-fn:#1d5fae; --t-op:#a3324b;
+  --f-display:"Huninn","Noto Sans TC","PingFang TC",system-ui,sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC",system-ui,-apple-system,sans-serif;
+  --f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Noto Sans TC",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+    --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+    --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+    --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+  --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+  --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+  --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75;font-variant-ligatures:none}
+textarea,pre,code{font-variant-ligatures:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+code{font-family:var(--f-code);font-size:.9em}
+p code,li code,td code,.note code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+
+.page{max-width:1180px;margin:0 auto;padding:24px 16px 80px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:980px){.page{grid-template-columns:minmax(0,1fr);gap:20px}}
+
+/* header */
+.hero{grid-column:1/-1}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--accent)}
+.hero .eyebrow{margin:18px 0 4px;font-family:var(--f-code);font-size:13px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.hero h1{font-family:var(--f-display);font-size:clamp(30px,5vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+.hero p{margin:10px 0 0;color:var(--muted);max-width:66ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:13px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:2px 12px;color:var(--muted)}
+.pill b{color:var(--ink)}
+
+/* toc */
+.toc{position:sticky;top:20px;font-size:14px}
+.toc h2{font-size:12px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;border-left:3px solid transparent}
+.toc a:hover{background:var(--panel)}
+.toc a[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.toc .n{font-family:var(--f-code);font-size:12px;color:var(--muted);min-width:1.6em}
+.toc .ck{margin-left:auto;color:var(--ok);font-weight:700;visibility:hidden}
+.toc a.done .ck{visibility:visible}
+.toc .prog{margin-top:12px;font-size:13px;color:var(--muted)}
+@media (max-width:980px){
+  .toc{position:static;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .toc ol{flex-direction:row;flex-wrap:wrap}
+  .toc a{border-left:0;padding:4px 10px}
+}
+
+/* chapters */
+main{min-width:0}
+.ch{padding-top:12px;margin-bottom:56px;scroll-margin-top:16px}
+.ch-h{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:18px}
+.ch-h .num{font-family:var(--f-code);font-size:40px;font-weight:600;color:var(--accent);line-height:1}
+.ch-h h2{font-family:var(--f-display);font-size:clamp(24px,3.4vw,30px);margin:0;line-height:1.25}
+.ch-h small{display:block;font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:400}
+h3{font-size:19px;margin:30px 0 8px;line-height:1.4}
+h3 .tag{font-family:var(--f-code);font-size:12px;color:var(--muted);font-weight:400;margin-right:8px}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:22px}
+
+.note{border-radius:10px;padding:12px 16px;margin:14px 0;border:1px solid var(--line);background:var(--panel);font-size:15px}
+.note > b:first-child{display:block;margin-bottom:2px}
+.note.tip{background:var(--ok-soft);border-color:transparent}
+.note.warn{background:var(--bad-soft);border-color:transparent}
+.note.lab{background:var(--amber-soft);border-color:transparent}
+.note.link{background:var(--accent-soft);border-color:transparent}
+
+table.cmp{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.cmp th,table.cmp td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{background:var(--sunk);font-size:13px;color:var(--muted);font-weight:600}
+table.cmp tr:last-child td{border-bottom:0}
+.tblwrap{overflow-x:auto}
+
+/* runnable cells */
+.cell{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;overflow:hidden}
+.cell-h{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-bottom:1px solid var(--line);background:var(--sunk);font-size:13px}
+.cell-h .lab{font-weight:600;color:var(--muted);margin-right:auto}
+.cell-h button{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:2px 10px;font-size:13px}
+.cell-h button.run{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.ed{position:relative;font-family:var(--f-code);font-size:14px;line-height:1.6}
+.ed pre,.ed textarea{margin:0;padding:12px 14px;font:inherit;line-height:inherit;white-space:pre;tab-size:2;overflow:hidden;border:0}
+.ed pre{position:absolute;inset:0;pointer-events:none;color:var(--ink)}
+.ed textarea{position:relative;display:block;width:100%;resize:none;background:transparent;color:transparent;caret-color:var(--ink);overflow-x:auto;min-height:3.4em}
+.ed textarea::selection{background:color-mix(in srgb,var(--accent) 30%,transparent);color:transparent}
+.t-kw{color:var(--t-kw);font-weight:600}.t-str{color:var(--t-str)}.t-num{color:var(--t-num)}.t-com{color:var(--t-com);font-style:italic}.t-fn{color:var(--t-fn)}.t-op{color:var(--t-op)}
+.out{margin:0;border-top:1px dashed var(--line);padding:10px 14px;font-family:var(--f-code);font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;background:var(--sunk);min-height:2.4em}
+.out .err{color:var(--bad)}
+.out .dim{color:var(--muted)}
+.envrow{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 10px;border-top:1px solid var(--line);font-family:var(--f-code);font-size:12.5px;background:var(--sunk)}
+.envrow span{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px}
+.envrow span b{color:var(--accent);font-weight:600;margin-right:6px}
+
+/* exercises */
+.ex{border:2px solid var(--accent);border-radius:14px;padding:16px 18px 6px;margin:26px 0 8px;background:var(--panel)}
+.ex.passed{border-color:var(--ok)}
+.ex-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.ex-h .badge{font-family:var(--f-code);font-size:12px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 8px}
+.ex.passed .ex-h .badge{background:var(--ok)}
+.ex-h h3{margin:0;font-size:18px}
+.ex-h .st{margin-left:auto;font-size:13px;color:var(--ok);font-weight:700}
+.ex .cell{margin:12px 0}
+.ex .cell-h button.sol{margin-left:4px}
+.verdict{margin:0 0 12px;padding:10px 14px;border-radius:10px;font-size:14.5px}
+.verdict.ok{background:var(--ok-soft)}
+.verdict.no{background:var(--bad-soft)}
+.verdict code{background:transparent;border:0}
+.verdict pre{margin:6px 0 0;font-family:var(--f-code);font-size:13px;white-space:pre-wrap}
+
+/* modal */
+.modal{position:fixed;inset:0;background:color-mix(in srgb,#000 45%,transparent);display:grid;place-items:center;padding:16px;z-index:50}
+.card{background:var(--panel);border-radius:16px;padding:22px 22px 18px;width:min(420px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:calc(100vh - 32px);overflow:auto}
+.card.wide{width:min(820px,100%)}
+.card h3{margin:0 0 4px;font-family:var(--f-display);font-size:22px}
+.card .row{display:flex;gap:8px;margin-top:12px}
+.card input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.card .err{min-height:1.4em;margin:6px 0 0;color:var(--bad);font-size:14px}
+.card .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.card pre.solcode{margin:10px 0 0;padding:12px 14px;border-radius:10px;background:var(--sunk);border:1px solid var(--line);font-family:var(--f-code);font-size:13.5px;line-height:1.6;overflow-x:auto;white-space:pre}
+.card.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion: reduce){.card.shake{animation:none}}
+
+.next{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.next a{flex:1 1 240px;display:block;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.next a:hover{border-color:var(--accent)}
+.next a span{display:block;font-size:13px;color:var(--muted)}
+.next a b{font-size:17px}
+
+/* ---------- apply chapter additions ---------- */
+:root{--rose:#c2410c;--rose-soft:#fde7da;--teal:#0f8a7e;--teal-soft:#d6f3ef;--g1:#2f6fe0;--g2:#0f8a7e;--g3:#b45309}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rose:#fb923c;--rose-soft:#3b2416;--teal:#35d6c3;--teal-soft:#123430;--g1:#6aa5ff;--g2:#35d6c3;--g3:#f5b041}}
+:root[data-theme="dark"]{--rose:#fb923c;--rose-soft:#3b2416;--teal:#35d6c3;--teal-soft:#123430;--g1:#6aa5ff;--g2:#35d6c3;--g3:#f5b041}
+.hero-row{display:flex;align-items:center;gap:18px}
+.hero-row .bot{width:clamp(64px,10vw,96px);height:auto;flex:none}
+.boss-ch .ch-h .num{color:var(--rose)}
+.ex.boss{border-color:var(--rose)}
+.ex.boss .ex-h .badge{background:var(--rose);color:#fff}
+.ex.boss.passed{border-color:var(--ok)}
+.steps3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.steps3 div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:15px}
+.steps3 b{display:block;font-family:var(--f-display);font-size:17px}
+.steps3 small{color:var(--muted)}
+@media (max-width:640px){.steps3{grid-template-columns:minmax(0,1fr)}}
+
+/* shared widget frame */
+.widget{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:18px 0;overflow:hidden}
+.widget-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.widget-h .ttl{font-weight:700;margin-right:auto;display:flex;align-items:center;gap:8px}
+.widget-h .ttl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:3px 10px;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.wcode{margin:0;padding:10px 14px;font-family:var(--f-code);font-size:14px;border-bottom:1px solid var(--line);white-space:pre-wrap;word-break:break-word}
+.wctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.wctl button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:4px 12px;font-size:14px}
+.wctl button.go{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.wctl button:disabled{opacity:.45;cursor:default}
+.wmsg{flex:1 1 220px;font-size:14px;color:var(--muted);min-height:1.5em}
+.wmsg b{color:var(--ink)}
+.widget .out{border-top:1px solid var(--line)}
+
+/* factory */
+.fac-stage{display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1.25fr);gap:14px;padding:16px 14px;align-items:center;min-height:250px}
+.fac-col{align-self:stretch;display:flex;flex-direction:column;gap:8px}
+.fac-h{font-size:12.5px;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.fac-items{display:flex;flex-direction:column;gap:8px}
+.chip{display:flex;align-items:baseline;gap:8px;border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--bg);font-family:var(--f-code);font-size:13.5px;transition:border-color .2s,background .2s,opacity .2s}
+.chip .tg{color:var(--muted);font-size:12px;min-width:2.6em}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.chip.done{opacity:.5}
+.fac-mid{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.fac-mid .bot{width:96px;height:96px}
+.fac-mid .bot.work{animation:bot-work .5s ease}
+@keyframes bot-work{30%{transform:translateY(-8px) rotate(-4deg)}60%{transform:translateY(0) rotate(3deg)}}
+.fun-tag{white-space:pre-line;font-family:var(--f-code);font-size:12.5px;background:var(--ink);color:var(--bg);border-radius:6px;padding:2px 8px;text-align:center;max-width:150px;word-break:break-all}
+.bubble{min-height:2.6em;font-family:var(--f-code);font-size:12.5px;text-align:center;padding:4px 8px;border-radius:8px;background:var(--amber-soft);visibility:hidden;max-width:150px;word-break:break-word}
+.bubble.show{visibility:visible}
+.bubble.bad{background:var(--bad-soft);color:var(--bad);font-weight:600}
+.fac-out{display:flex;flex-direction:column;gap:6px;min-height:60px}
+.lbox{border:1.5px dashed var(--line);border-radius:10px;padding:6px 10px;font-family:var(--f-code);font-size:13px;line-height:1.45;white-space:pre;background:var(--bg);min-height:2.2em}
+.lbox.fill{border-style:solid;border-color:var(--teal);background:var(--teal-soft)}
+.lbox .tg{color:var(--muted)}
+.wrapper{border:2px solid var(--teal);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px;position:relative}
+.wrapper::before{content:attr(data-k);position:absolute;top:-10px;left:10px;background:var(--panel);padding:0 6px;font-size:12px;color:var(--teal);font-weight:700;font-family:var(--f-code)}
+.vecrow{display:flex;flex-wrap:wrap;gap:0;border:2px solid var(--accent);border-radius:10px;overflow:hidden;width:max-content;max-width:100%}
+.vecrow div{display:flex;flex-direction:column;align-items:center;padding:4px 12px;font-family:var(--f-code);font-size:14px;border-right:1px solid var(--line);background:var(--bg)}
+.vecrow div:last-child{border-right:0}
+.vecrow small{color:var(--muted);font-size:11.5px;min-height:1.2em}
+table.mini{border-collapse:collapse;font-family:var(--f-code);font-size:13.5px;background:var(--bg);border:2px solid var(--accent)}
+table.mini th,table.mini td{padding:3px 12px;border:1px solid var(--line);text-align:right}
+table.mini th{color:var(--muted);font-weight:400;font-size:12px}
+.stamp{border:2px solid var(--bad);color:var(--bad);border-radius:10px;padding:8px 12px;font-size:13.5px;background:var(--bad-soft);font-family:var(--f-code);white-space:pre-wrap}
+.morph{animation:morph .45s ease}
+@keyframes morph{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.flyer{position:fixed;z-index:60;pointer-events:none;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+@media (max-width:720px){
+  .fac-stage{grid-template-columns:minmax(0,1fr);gap:10px}
+  .fac-mid{flex-direction:row;justify-content:center}
+  .fac-mid .bot{width:72px;height:72px}
+  .fac-items{flex-direction:row;flex-wrap:wrap}
+}
+
+/* apply on a matrix */
+.apv-stage{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;padding:16px 14px;overflow-x:auto}
+table.apv{border-collapse:separate;border-spacing:0;font-family:var(--f-code);font-size:14px}
+table.apv th,table.apv td{padding:6px 12px;text-align:right;border-bottom:1px solid var(--line);transition:background .25s}
+table.apv th{color:var(--muted);font-weight:600;font-size:13px}
+table.apv thead th{border-bottom:2px solid var(--line)}
+table.apv td.hot,table.apv th.hot{background:var(--accent-soft)}
+table.apv td.res,table.apv th.res{background:var(--teal-soft);color:var(--ink);font-weight:600;min-width:4.2em;border-left:2px solid var(--teal)}
+table.apv tr.resrow td,table.apv tr.resrow th{background:var(--teal-soft);border-top:2px solid var(--teal);font-weight:600}
+table.apv td.empty{color:transparent}
+.apv-call{padding:0 14px 12px;font-family:var(--f-code);font-size:13.5px;min-height:1.6em;color:var(--muted)}
+.apv-call b{color:var(--ink)}
+
+/* split-apply-combine */
+.sac-stage{padding:16px 14px;display:flex;flex-direction:column;gap:12px;min-height:180px}
+.sac-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gchip{font-family:var(--f-code);font-size:13.5px;border-radius:9px;padding:4px 10px;border:2px solid var(--gc);background:color-mix(in srgb,var(--gc) 14%,var(--bg));animation:morph .35s ease}
+.gchip small{display:block;font-size:11px;color:var(--muted);text-align:center}
+.bucket{border:2px dashed var(--gc);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-width:120px;animation:morph .35s ease}
+.bucket h4{margin:0;font-family:var(--f-code);font-size:13px;color:var(--gc)}
+.bucket .sac-row{gap:6px}
+.bucket .val{font-family:var(--f-code);font-size:14px;font-weight:700;border-top:1px solid var(--line);padding-top:4px}
+.arrow{color:var(--muted);font-size:13px}
+
+/* summary chooser */
+.choose{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:14px 0}
+.choose div{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
+.choose code{font-weight:600}
+.choose p{margin:4px 0 0;font-size:14.5px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.fac-mid .bot.work,.morph,.gchip,.bucket{animation:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="rbBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa5ff"/><stop offset="1" stop-color="#2f6fe0"/></linearGradient>
+  </defs>
+  <symbol id="rbao" viewBox="0 0 150 150">
+    <ellipse cx="62" cy="143" rx="34" ry="5" fill="#000" opacity=".18"/>
+    <line x1="62" y1="16" x2="62" y2="30" stroke="#8fb6ff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="62" cy="12" r="6" fill="#ffb547"/>
+    <rect x="18" y="28" width="88" height="74" rx="28" fill="url(#rbBody)"/>
+    <rect x="30" y="42" width="64" height="42" rx="17" fill="#0b1422"/>
+    <rect x="42" y="53" width="12" height="16" rx="6" fill="#35d6c3"/><rect x="70" y="53" width="12" height="16" rx="6" fill="#35d6c3"/>
+    <path d="M52 75 q10 7 20 0" stroke="#35d6c3" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="36" y="100" width="52" height="30" rx="11" fill="#2a5fc4"/>
+    <circle cx="62" cy="115" r="10" fill="#0b1422"/>
+    <text x="62" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#eaf1fa">R</text>
+    <rect x="22" y="103" width="15" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(25 30 107)"/>
+    <rect x="86" y="96" width="30" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(-28 88 100)"/>
+    <polygon points="128,64 140,78 128,92 116,78" fill="#35d6c3" stroke="#a6f0e7" stroke-width="2.5" stroke-linejoin="round"/>
+    <ellipse cx="46" cy="132" rx="11" ry="6" fill="#9fb0c7"/><ellipse cx="78" cy="132" rx="11" ry="6" fill="#9fb0c7"/>
+  </symbol>
+</svg>
+
+<header class="hero page" style="padding-bottom:0">
+  <div style="grid-column:1/-1">
+    <nav class="crumbs" aria-label="導覽">
+      <a href="./">← 大數據分析與實踐 · 課程首頁</a>
+      <a href="algo.html">上一單元：R 寶的演算法學院</a>
+      <a href="extras.html">控制流程補充教材</a>
+    </nav>
+    <div class="eyebrow">Part 04 · The apply family</div>
+    <div class="hero-row">
+      <svg class="bot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg>
+      <h1>R 寶的 apply 工廠</h1>
+    </div>
+    <p>寫了那麼多 for 迴圈，你會發現很多迴圈長得幾乎一樣：<b>對每一個元素做同一件事，再把結果收起來</b>。apply 家族就是把這個固定套路包成函式。這一章從「函式也是一種值」的原理出發，先親手做出自己的 lapply，再一路用到矩陣、分組統計和生資資料。</p>
+    <div class="meta"><span class="pill">8 章 · 8 題練習</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span><span class="pill">練習解答需要老師提供的密碼</span></div>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="toc" aria-label="目錄">
+    <h2>目錄</h2>
+    <ol id="toc">
+      <li><a href="#ch1" data-ex="ex1"><span class="n">01</span>原理：函式也是值<span class="ck">✓</span></a></li>
+      <li><a href="#ch2" data-ex="ex2"><span class="n">02</span>lapply：裝進 list<span class="ck">✓</span></a></li>
+      <li><a href="#ch3" data-ex="ex3"><span class="n">03</span>sapply 與 vapply<span class="ck">✓</span></a></li>
+      <li><a href="#ch4" data-ex="ex4"><span class="n">04</span>apply：矩陣的列與欄<span class="ck">✓</span></a></li>
+      <li><a href="#ch5" data-ex="ex5"><span class="n">05</span>mapply 與 Map<span class="ck">✓</span></a></li>
+      <li><a href="#ch6" data-ex="ex6"><span class="n">06</span>tapply：分組計算<span class="ck">✓</span></a></li>
+      <li><a href="#ch7" data-ex="ex7"><span class="n">07</span>Filter、Reduce、do.call<span class="ck">✓</span></a></li>
+      <li><a href="#ch8" data-ex="ex8"><span class="n">08</span>大魔王：HBB 篩檢<span class="ck">✓</span></a></li>
+      <li><a href="#sum"><span class="n">✦</span>總整理：該用哪一個？</a></li>
+    </ol>
+    <div class="prog" id="prog"></div>
+  </nav>
+
+  <main>
+<!-- ============ 01 ============ -->
+<section class="ch" id="ch1">
+  <div class="ch-h"><span class="num">01</span><h2>原理：函式也是一種值<small>把「走訪 → 計算 → 收集」的迴圈藏起來</small></h2></div>
+
+  <p>先看一個很典型的迴圈：把一排血糖值從 mg/dL 換成 mmol/L（除以 18）。</p>
+<script type="text/x-r" class="cell" data-label="範例 1-1 · 熟悉的迴圈" data-env="1">glu <- c(92, 140, 105, 88)
+out <- numeric(length(glu))          # ① 準備容器
+for (i in seq_along(glu)) {          # ② 一個一個走訪
+  out[i] <- glu[i] / 18              # ③ 計算，放回第 i 格
+}
+out</script>
+  <p>換一個任務（開根號、算字數、四捨五入……），你會發現 ①②③ 的骨架完全不變，<b>唯一會變的只有「對每個元素做什麼」</b>。如果能把「做什麼」當成參數傳進去，就可以寫一次骨架、到處使用──這就是 apply 家族的原理。</p>
+
+  <h3><span class="tag">1-1</span>函式可以存進變數</h3>
+  <p>在 R 裡，函式和數字、文字一樣都是「值」，可以存進變數、放進 list、當成參數傳來傳去。關鍵是<b>有沒有加括號</b>：</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>寫法</th><th>拿到的是</th><th>比喻</th></tr>
+    <tr><td><code>sqrt</code></td><td>函式本身</td><td>一台還沒開動的機器</td></tr>
+    <tr><td><code>sqrt(16)</code></td><td>函式算完的結果 <code>4</code></td><td>機器做出來的成品</td></tr>
+  </table></div>
+<script type="text/x-r" class="cell" data-label="範例 1-2">f <- sqrt              # 沒有括號：把「開根號這台機器」存進 f
+f(16)                  # 用 f 也能開根號
+to_mmol <- function(x) x / 18
+to_mmol(90)</script>
+
+  <h3><span class="tag">1-2</span>把函式當參數傳進去</h3>
+  <p>既然函式是值，就能當參數。下面的 <code>do_twice</code> 收到一台機器 <code>f</code>，把 <code>x</code> 連續送進去兩次：</p>
+<script type="text/x-r" class="cell" data-label="範例 1-3">do_twice <- function(f, x) f(f(x))
+do_twice(sqrt, 16)                       # sqrt(sqrt(16))
+do_twice(function(x) x + 10, 1)          # 當場寫一個函式傳進去</script>
+  <p>最後一行的 <code>function(x) x + 10</code> 沒有名字，叫做<b>匿名函式</b>：只用一次的小函式，不必特地取名字存起來。R 4.1 之後還可以簡寫成 <code>\(x) x + 10</code>，兩種寫法完全一樣。</p>
+
+  <h3><span class="tag">1-3</span>親手做一個 lapply</h3>
+  <p>把範例 1-1 的骨架包成函式，「做什麼」改成參數 <code>FUN</code>，就得到一個自製的 lapply。容器改用 list（<code>vector("list", n)</code> 建立 n 個空格），因為我們事先不知道 FUN 會回傳什麼：</p>
+<script type="text/x-r" class="cell" data-label="範例 1-4 · 自製 lapply" data-env="1">my_lapply <- function(X, FUN, ...) {
+  out <- vector("list", length(X))      # ① 準備容器：長度一樣的 list
+  for (i in seq_along(X)) {            # ② 走訪每一個元素
+    out[[i]] <- FUN(X[[i]], ...)       # ③ 套用 FUN，放進第 i 格
+  }
+  names(out) <- names(X)               # ④ 名字照抄
+  out
+}
+x <- c(a = 1.234, b = 5.678)
+my_lapply(x, round, digits = 1)
+identical(my_lapply(x, round, digits = 1), lapply(x, round, digits = 1))</script>
+  <p>最後一行是 <code>TRUE</code>：R 內建的 <code>lapply</code> 做的就是這件事（只是用 C 寫成）。注意 <code>...</code>：呼叫時多給的 <code>digits = 1</code> 會原封不動地轉交給 <code>FUN</code>，所以 apply 家族都可以在後面接 FUN 需要的額外參數。</p>
+
+  <div class="steps3">
+    <div><b>① 拆開 split</b><small>把 X 一個一個拿出來：<code>X[[i]]</code></small></div>
+    <div><b>② 套用 apply</b><small>每個都送進同一台機器：<code>FUN(X[[i]])</code></small></div>
+    <div><b>③ 合併 combine</b><small>把結果收進容器：list、向量或矩陣</small></div>
+  </div>
+
+  <h3><span class="tag">1-4</span>動畫：R 寶工廠</h3>
+  <p>切換上面的分頁，看同樣的「拆開 → 套用 → 合併」在不同函式裡，最後合併成什麼形狀。後面三章會一個一個細講。</p>
+  <div class="widget" id="fac">
+    <div class="widget-h"><span class="ttl">R 寶工廠</span><div class="seg" role="group" aria-label="選擇範例" id="facTabs"></div></div>
+    <pre class="wcode" id="facCode"></pre>
+    <div class="fac-stage">
+      <div class="fac-col"><div class="fac-h">① 拆開：X 的每個元素</div><div class="fac-items" id="facIn"></div></div>
+      <div class="fac-mid"><div class="bubble" id="facBub"></div><svg class="bot" id="facBot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg><div class="fun-tag" id="facFun"></div></div>
+      <div class="fac-col"><div class="fac-h">② 套用 → ③ 合併</div><div class="fac-out" id="facOut"></div></div>
+    </div>
+    <div class="wctl"><button type="button" class="go" id="facPlay">▶ 播放</button><button type="button" id="facStep">下一步</button><button type="button" id="facReset">重來</button><span class="wmsg" id="facMsg" aria-live="polite"></span></div>
+    <pre class="out" id="facCon" hidden></pre>
+  </div>
+
+  <div class="note link"><b>apply 家族比迴圈快嗎？</b>不一定。apply 家族的好處是<b>寫得短、意圖清楚、不會忘記準備容器或寫錯索引</b>，速度和「有先準備好容器的 for 迴圈」差不多。真正快的是<b>向量化</b>：像範例 1-1 其實直接寫 <code>glu / 18</code> 就好。apply 家族適合「沒有現成向量化函式」的情況，例如每個元素是一條序列、一個 list、一個病人的資料。</div>
+
+  <div class="ex" id="ex1" data-ex="ex1">
+    <div class="ex-h"><span class="badge">練習 1</span><h3>自己做一個 my_map</h3><span class="st"></span></div>
+    <p>完成函式 <code>my_map(x, f)</code>：對 <code>x</code> 的每個元素套用 <code>f</code>，回傳一個<b>數字向量</b>。請用 <code>numeric()</code> 準備容器、用 <code>for</code> 走訪，<b>不能</b>用 sapply / lapply / vapply。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">檢查時會呼叫 <code>my_map(c(1, 4, 9), sqrt)</code>、<code>my_map(c(2, 3, 5), function(v) v * 10)</code>、<code>my_map(c(-1.25, 2.5), abs)</code>，還有 x 是空向量 <code>numeric(0)</code> 的情況。</p>
+<script type="text/x-r" class="starter">my_map <- function(x, f) {
+  out <- numeric(length(x))     # ① 準備容器
+  # ② 用 for 走訪 x，把 f(x[i]) 放進 out[i]
+  ___
+  out                           # ③ 回傳
+}
+my_map(c(1, 4, 9), sqrt)
+</script>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="ch" id="ch2">
+  <div class="ch-h"><span class="num">02</span><h2>lapply：結果一律裝進 list<small>lapply(X, FUN, ...)：l 代表 list</small></h2></div>
+
+  <p><code>lapply</code> 對 X 的每個元素呼叫 FUN，<b>不管結果是什麼形狀，都裝進一個和 X 一樣長的 list</b>，名字也照抄。最常見的用法是處理「一個病人一組數據」這種長短不一的資料：</p>
+  <div class="note lab"><b>🧪 情境：三位病人的 HbA1c 追蹤</b>每位病人量了不同次數，P03 有一次漏測（NA）。這種資料長度不一，放不進同一個向量，只能用 list。</div>
+<script type="text/x-r" class="cell" data-label="範例 2-1" data-env="1">labs <- list(
+  P01 = c(5.2, 6.1, 5.8),
+  P02 = c(7.4, 8.0),
+  P03 = c(5.5, NA, 6.0)
+)
+lapply(labs, mean)</script>
+  <p>P03 因為有 NA 而算出 NA。<code>mean</code> 本身有 <code>na.rm</code> 參數──就像 1-3 說的，接在後面的參數會透過 <code>...</code> 轉交給 FUN：</p>
+<script type="text/x-r" class="cell" data-label="範例 2-2 · 額外參數">labs <- list(P01 = c(5.2, 6.1, 5.8), P02 = c(7.4, 8.0), P03 = c(5.5, NA, 6.0))
+lapply(labs, mean, na.rm = TRUE)     # 等於對每個 v 呼叫 mean(v, na.rm = TRUE)</script>
+
+  <h3><span class="tag">2-1</span>為什麼一定要是 list？</h3>
+  <p>因為 FUN 每次回傳的東西可能長短不一。下面挑出每位病人 &gt; 6 的數值：P01 有 1 個、P02 有 2 個、P03 一個都沒有──只有 list 裝得下。</p>
+<script type="text/x-r" class="cell" data-label="範例 2-3 · 匿名函式" data-env="1">labs <- list(P01 = c(5.2, 6.1, 5.8), P02 = c(7.4, 8.0), P03 = c(5.5, NA, 6.0))
+high <- lapply(labs, function(v) v[!is.na(v) & v > 6])
+high
+high$P02            # 結果是 list，用 $ 或 [[ ]] 取出
+length(high[["P03"]])</script>
+
+  <h3><span class="tag">2-2</span>走訪向量也可以</h3>
+  <p>X 是一般向量時，lapply 一次拿一個元素。下面用 <code>1:3</code> 產生三段長度不同的 poly-A 序列：</p>
+<script type="text/x-r" class="cell" data-label="範例 2-4">lapply(1:3, function(n) paste(rep("A", n), collapse = ""))</script>
+
+  <div class="tblwrap"><table class="cmp">
+    <tr><th></th><th>for 迴圈</th><th>lapply</th></tr>
+    <tr><td>容器</td><td>自己準備 <code>vector("list", n)</code></td><td>自動建立</td></tr>
+    <tr><td>走訪</td><td>自己寫 <code>for (i in seq_along(X))</code></td><td>自動</td></tr>
+    <tr><td>名字</td><td>要自己 <code>names(out) &lt;- names(X)</code></td><td>自動保留</td></tr>
+    <tr><td>適合</td><td>下一步要用到上一步的結果（例如累加、模擬）</td><td>每個元素<b>各自獨立</b>處理</td></tr>
+  </table></div>
+
+  <div class="ex" id="ex2" data-ex="ex2">
+    <div class="ex-h"><span class="badge">練習 2</span><h3>定序讀長的品管</h3><span class="st"></span></div>
+    <p>list <code>reads</code> 是每個樣本的定序讀長（bp），有些是 NA。請用 <code>lapply</code> 做出 list <code>qc</code>：每個樣本只保留<b>不是 NA、而且 ≥ 50</b> 的讀長，名字和 reads 一樣。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">會換 3 組不同的 reads 檢查，其中有樣本全部不合格（結果是長度 0）。</p>
+<script type="text/x-r" class="starter"># reads 已經在 Environment，先印出來看看
+reads
+qc <- lapply(reads, ___)
+qc
+</script>
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="ch" id="ch3">
+  <div class="ch-h"><span class="num">03</span><h2>sapply 與 vapply<small>sapply 自動「簡化」，vapply 事先說好形狀</small></h2></div>
+
+  <p><code>sapply</code> = <code>lapply</code> ＋ 簡化（s 代表 simplify）。它先像 lapply 一樣收成 list，再看看每次的結果長什麼樣子，能變成向量或矩陣就自動變過去：</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>每次 FUN 回傳</th><th>sapply 的結果</th><th>例子</th></tr>
+    <tr><td>都是 <b>1 個</b>值</td><td>向量</td><td><code>sapply(labs, mean, na.rm = TRUE)</code></td></tr>
+    <tr><td>都是 <b>k 個</b>值（k &gt; 1、一樣多）</td><td>k 列的矩陣，每次的結果是<b>一欄</b></td><td><code>sapply(labs, range, na.rm = TRUE)</code></td></tr>
+    <tr><td>長短不一</td><td>還是 list（和 lapply 一樣）</td><td><code>sapply(labs, function(v) v[v &gt; 6])</code></td></tr>
+  </table></div>
+<script type="text/x-r" class="cell" data-label="範例 3-1 · 三種形狀">labs <- list(P01 = c(5.2, 6.1, 5.8), P02 = c(7.4, 8.0), P03 = c(5.5, NA, 6.0))
+sapply(labs, mean, na.rm = TRUE)                  # 每次 1 個 → 向量
+sapply(labs, range, na.rm = TRUE)                 # 每次 2 個 → 2 × 3 矩陣
+sapply(labs, function(v) v[!is.na(v) & v > 6])    # 長短不一 → list</script>
+
+  <h3><span class="tag">3-1</span>文字向量會自動變成名字</h3>
+  <p>X 是文字向量時，sapply 會把 X 本身當成結果的名字（<code>USE.NAMES = TRUE</code>）。不想要名字就設成 FALSE：</p>
+<script type="text/x-r" class="cell" data-label="範例 3-2">seqs <- c("ATGCGT", "GGA", "TTAGCCA")
+sapply(seqs, nchar)
+sapply(seqs, nchar, USE.NAMES = FALSE)</script>
+
+  <h3><span class="tag">3-2</span>sapply 的陷阱：形狀看資料決定</h3>
+  <p>sapply 很方便，但結果的形狀是<b>執行時才決定</b>的。同一行程式，資料不同，結果可能是向量也可能是 list。最常出事的是「篩選完一筆都不剩」：</p>
+  <div class="note lab"><b>🧬 情境：計算每條序列的 GC 數量</b>先寫一個處理「一條序列」的函式，再交給 sapply 處理「很多條」。</div>
+<script type="text/x-r" class="cell" data-label="範例 3-3 · 空的時候">gc_count <- function(s) sum(strsplit(s, "")[[1]] %in% c("G", "C"))
+seqs <- c("ATGC", "GGCC")
+sapply(seqs, gc_count)          # 正常：具名數字向量
+seqs <- character(0)            # 假設篩選後一條都沒有
+sapply(seqs, gc_count)          # 變成 list()，後面接 sum()、mean() 就會出錯</script>
+  <p><code>strsplit(s, "")</code> 會把一條序列切成一個一個鹼基，回傳的是 list，所以要用 <code>[[1]]</code> 拿出第一個（也是唯一一個）結果。</p>
+
+  <h3><span class="tag">3-3</span>vapply：事先說好每次回傳什麼</h3>
+  <p><code>vapply(X, FUN, FUN.VALUE)</code> 多了第三個參數 <code>FUN.VALUE</code>：一個「樣板」，告訴 R 每次的結果應該長什麼樣子。結果不符合就<b>立刻報錯</b>，而且空的時候也會回傳正確型別的空向量。</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>FUN.VALUE</th><th>意思</th></tr>
+    <tr><td><code>numeric(1)</code></td><td>每次回傳 1 個數字</td></tr>
+    <tr><td><code>character(1)</code></td><td>每次回傳 1 個文字</td></tr>
+    <tr><td><code>logical(1)</code></td><td>每次回傳 1 個 TRUE / FALSE</td></tr>
+    <tr><td><code>numeric(2)</code></td><td>每次回傳 2 個數字（結果是 2 列的矩陣）</td></tr>
+  </table></div>
+<script type="text/x-r" class="cell" data-label="範例 3-4">gc_count <- function(s) sum(strsplit(s, "")[[1]] %in% c("G", "C"))
+vapply(c("ATGC", "GGCC"), gc_count, numeric(1))
+vapply(character(0), gc_count, numeric(1))     # 空的也還是數字向量
+labs <- list(P01 = c(5.2, 6.1, 5.8), P02 = c(7.4, 8.0))
+vapply(labs, range, numeric(2))                # 額外參數要寫在 FUN.VALUE 後面</script>
+<script type="text/x-r" class="cell" data-label="範例 3-5 · 形狀不對就報錯">labs <- list(P01 = c(5.2, 6.1, 5.8), P02 = c(7.4, 8.0))
+vapply(labs, range, numeric(1))      # 說好 1 個，結果每次回傳 2 個</script>
+  <div class="note tip"><b>什麼時候用哪一個？</b>在 Console 裡隨手看結果，用 sapply 最方便。寫進函式、分析流程或要交給別人用的程式，用 vapply：資料變了也不會默默換形狀，出錯時會直接指出是第幾個元素。</div>
+
+  <div class="ex" id="ex3" data-ex="ex3">
+    <div class="ex-h"><span class="badge">練習 3</span><h3>GC 含量（用 vapply）</h3><span class="st"></span></div>
+    <p><code>seqs</code> 是具名的文字向量，每個元素是一條 DNA 序列。請用 <code>vapply</code> 算出具名數字向量 <code>gc</code>：每條序列中 G 或 C 所占的<b>比例</b>，用 <code>round(…, 2)</code> 取到小數第 2 位。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">提示：<code>strsplit(s, "")[[1]]</code> 切成鹼基，<code>%in% c("G", "C")</code> 得到 TRUE/FALSE，<code>mean()</code> 就是 TRUE 的比例。會換 4 組 seqs，其中一組是空的 <code>character(0)</code>。</p>
+<script type="text/x-r" class="starter">seqs
+gc <- vapply(seqs, function(s) {
+  ___
+}, ___)
+gc
+</script>
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="ch" id="ch4">
+  <div class="ch-h"><span class="num">04</span><h2>apply：矩陣的列與欄<small>apply(X, MARGIN, FUN, ...)：MARGIN = 1 每一列，2 每一欄</small></h2></div>
+
+  <p>基因表現量常整理成矩陣：<b>每一列是一個基因、每一欄是一個樣本</b>。<code>apply</code> 專門處理矩陣，<code>MARGIN</code> 決定要「一列一列」還是「一欄一欄」送進 FUN。</p>
+<script type="text/x-r" class="cell" data-label="範例 4-1 · 表現量矩陣" data-env="1">expr <- matrix(c(5.1, 8.2, 2.3, 6.0,
+                 4.8, 9.1, 2.1, 6.4,
+                 5.5, 8.7, 7.9, 5.9),
+               nrow = 4,
+               dimnames = list(c("BRCA1", "TP53", "MYC", "GAPDH"),
+                               c("S1", "S2", "S3")))
+expr
+apply(expr, 1, mean)     # 每個基因（每一列）的平均
+apply(expr, 2, max)      # 每個樣本（每一欄）的最大值</script>
+  <p><code>matrix()</code> 預設是<b>一欄一欄</b>填數字的：前 4 個數字是 S1 這一欄。</p>
+
+  <div class="widget" id="apv">
+    <div class="widget-h"><span class="ttl">動畫：apply 怎麼切矩陣</span>
+      <div class="seg" role="group" aria-label="MARGIN" id="apvM"><button type="button" data-m="1" aria-pressed="true">MARGIN = 1 每一列</button><button type="button" data-m="2" aria-pressed="false">MARGIN = 2 每一欄</button></div>
+      <div class="seg" role="group" aria-label="FUN" id="apvF"><button type="button" data-f="mean" aria-pressed="true">mean</button><button type="button" data-f="max" aria-pressed="false">max</button><button type="button" data-f="range" aria-pressed="false">range</button></div>
+    </div>
+    <pre class="wcode" id="apvCode"></pre>
+    <div class="apv-stage"><table class="apv" id="apvT"></table></div>
+    <div class="apv-call" id="apvCall" aria-live="polite"></div>
+    <div class="wctl"><button type="button" class="go" id="apvPlay">▶ 播放</button><button type="button" id="apvStep">下一步</button><button type="button" id="apvReset">重來</button><span class="wmsg" id="apvMsg"></span></div>
+    <pre class="out" id="apvCon" hidden></pre>
+  </div>
+
+  <h3><span class="tag">4-1</span>FUN 回傳好幾個值：結果會「轉過來」</h3>
+  <p>和 sapply 一樣，每次回傳 k 個值時，apply 會把每次的結果排成<b>一欄</b>。所以用 MARGIN = 1 對 4 個基因算 range，得到的是 2 × 4，基因跑到欄的位置了。要轉回來用 <code>t()</code>：</p>
+<script type="text/x-r" class="cell" data-label="範例 4-2">expr <- matrix(c(5.1, 8.2, 2.3, 6.0, 4.8, 9.1, 2.1, 6.4, 5.5, 8.7, 7.9, 5.9), nrow = 4,
+               dimnames = list(c("BRCA1", "TP53", "MYC", "GAPDH"), c("S1", "S2", "S3")))
+apply(expr, 1, range)          # 2 × 4：每個基因變成一欄
+t(apply(expr, 1, range))       # 轉置回 4 × 2</script>
+
+  <h3><span class="tag">4-2</span>搭配匿名函式</h3>
+  <p>FUN 收到的是<b>一整列（或一整欄）的向量</b>，名字是另一個方向的名稱。用匿名函式就能算任何指標：</p>
+<script type="text/x-r" class="cell" data-label="範例 4-3">expr <- matrix(c(5.1, 8.2, 2.3, 6.0, 4.8, 9.1, 2.1, 6.4, 5.5, 8.7, 7.9, 5.9), nrow = 4,
+               dimnames = list(c("BRCA1", "TP53", "MYC", "GAPDH"), c("S1", "S2", "S3")))
+apply(expr, 1, function(g) max(g) - min(g))       # 每個基因的變化幅度
+apply(expr, 2, function(s) names(which.max(s)))   # 每個樣本表現量最高的基因</script>
+
+  <div class="note tip"><b>有專用函式就用專用函式</b><code>rowSums</code>、<code>colSums</code>、<code>rowMeans</code>、<code>colMeans</code> 做的事等於 <code>apply(x, 1 或 2, sum 或 mean)</code>，但快很多。apply 留給沒有現成函式的計算（sd、range、自訂指標）。</div>
+<script type="text/x-r" class="cell" data-label="範例 4-4">expr <- matrix(c(5.1, 8.2, 2.3, 6.0, 4.8, 9.1, 2.1, 6.4, 5.5, 8.7, 7.9, 5.9), nrow = 4,
+               dimnames = list(c("BRCA1", "TP53", "MYC", "GAPDH"), c("S1", "S2", "S3")))
+rowMeans(expr)
+colSums(expr)</script>
+  <div class="note warn"><b>apply 不適合 data.frame</b>對 data.frame 用 apply，R 會先把它轉成矩陣；只要有一欄是文字，全部數字都會變成文字。data.frame 的每一欄請用 <code>sapply(df, …)</code> 或 <code>lapply(df, …)</code>（data.frame 本身就是一個 list，每一欄是一個元素）。</div>
+
+  <div class="ex" id="ex4" data-ex="ex4">
+    <div class="ex-h"><span class="badge">練習 4</span><h3>找出變異最大的基因</h3><span class="st"></span></div>
+    <p>矩陣 <code>expr</code>（列是基因、欄是樣本）已經準備好了。請用 <code>apply</code> 算出每個基因的變異係數 <code>cv</code> = 標準差 ÷ 平均（<code>sd(g) / mean(g)</code>），用 <code>round(…, 3)</code> 取到小數第 3 位；再把 cv 最大的基因名稱存成 <code>top</code>。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">會換 3 個不同的矩陣檢查。提示：<code>names(which.max(cv))</code>。</p>
+<script type="text/x-r" class="starter">expr
+cv <- ___
+top <- ___
+cv
+top
+</script>
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="ch" id="ch5">
+  <div class="ch-h"><span class="num">05</span><h2>mapply 與 Map：好幾組資料並排走<small>mapply(FUN, x, y, ...)：第 i 次拿 x[i] 和 y[i]</small></h2></div>
+
+  <p>sapply 一次只走訪一個向量。如果 FUN 需要<b>兩個以上</b>的參數，而且每次要拿「同一個位置」的值，就用 <code>mapply</code>（m 代表 multivariate）。注意它的參數順序和 sapply 相反：<b>函式在前、資料在後</b>。</p>
+<script type="text/x-r" class="cell" data-label="範例 5-1">bases <- c("A", "T", "G")
+times <- c(3, 1, 2)
+mapply(function(b, n) paste(rep(b, n), collapse = ""), bases, times)</script>
+  <p>第 1 次：<code>b = "A", n = 3</code>；第 2 次：<code>b = "T", n = 1</code>；第 3 次：<code>b = "G", n = 2</code>。和 sapply 一樣，結果會自動簡化，第一個參數是文字時也會變成名字。</p>
+
+  <h3><span class="tag">5-1</span>直接用現成的函式</h3>
+  <p><code>substr(x, start, stop)</code> 有三個參數，每條序列要從不同位置切：把三個向量並排交給 mapply 就好。</p>
+<script type="text/x-r" class="cell" data-label="範例 5-2 · 擷取片段">seqs  <- c("ATGCGTAAC", "GGATCCTAG")
+start <- c(1, 4)
+mapply(substr, seqs, start, start + 2)               # 每條序列從不同位置取 3 個鹼基
+mapply(substr, seqs, start, start + 2, USE.NAMES = FALSE)</script>
+
+  <h3><span class="tag">5-2</span>Map：結果一律是 list</h3>
+  <p><code>Map(f, x, y)</code> 等於 <code>mapply(f, x, y, SIMPLIFY = FALSE)</code>：就像 lapply 之於 sapply，不做簡化、永遠回傳 list。</p>
+<script type="text/x-r" class="cell" data-label="範例 5-3">ids  <- c("P01", "P02")
+vals <- list(c(5.2, 6.1), c(7.4, 8.0, 7.7))
+Map(function(id, v) paste0(id, "：平均 ", round(mean(v), 1)), ids, vals)</script>
+  <div class="note warn"><b>長度要一樣</b>mapply 會重複使用比較短的那組資料（recycling）。長度不是倍數時會出現警告，通常代表資料對不上，要回頭檢查。</div>
+
+  <div class="ex" id="ex5" data-ex="ex5">
+    <div class="ex-h"><span class="badge">練習 5</span><h3>從不同位置讀密碼子</h3><span class="st"></span></div>
+    <p>文字向量 <code>seqs</code> 是幾條序列，數字向量 <code>starts</code> 是每條序列的起始位置（長度一樣）。請用 <code>mapply</code>（或 Map）做出 <code>codons</code>：第 i 條序列從 <code>starts[i]</code> 開始的 3 個鹼基。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">只檢查值，有沒有名字都可以。會換 3 組資料。</p>
+<script type="text/x-r" class="starter">seqs
+starts
+codons <- ___
+codons
+</script>
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="ch" id="ch6">
+  <div class="ch-h"><span class="num">06</span><h2>tapply 與 split：分組計算<small>tapply(X, INDEX, FUN)：照 INDEX 分組，每組算一次</small></h2></div>
+
+  <p>「各病房的平均血糖」、「每個基因的平均 Ct 值」都是<b>先分組、再每組計算、最後合併</b>。這正是第 1 章的拆開 → 套用 → 合併，只是「拆開」改成照組別拆。</p>
+  <div class="widget" id="sac">
+    <div class="widget-h"><span class="ttl">動畫：split → apply → combine</span><div class="seg" role="group" aria-label="步驟" id="sacTabs"></div></div>
+    <pre class="wcode">glu  &lt;- c(92, 140, 105, 88, 131, 99)
+ward &lt;- c("ER", "ICU", "ER", "OPD", "ICU", "OPD")
+tapply(glu, ward, mean)</pre>
+    <div class="sac-stage" id="sacStage" aria-live="polite"></div>
+    <div class="wctl"><button type="button" class="go" id="sacNext">下一步 →</button><span class="wmsg" id="sacMsg"></span></div>
+  </div>
+<script type="text/x-r" class="cell" data-label="範例 6-1 · 兩種寫法一樣">glu  <- c(92, 140, 105, 88, 131, 99)
+ward <- c("ER", "ICU", "ER", "OPD", "ICU", "OPD")
+split(glu, ward)                  # 拆開：照病房分成 list
+sapply(split(glu, ward), mean)    # 套用 + 合併
+tapply(glu, ward, mean)           # tapply 一步做完</script>
+  <p>組別會<b>照字母排序</b>，不是照資料出現的順序。FUN 一樣可以接額外參數，回傳好幾個值時結果會是 list：</p>
+<script type="text/x-r" class="cell" data-label="範例 6-2">glu  <- c(92, 140, 105, 88, 131, NA)
+ward <- c("ER", "ICU", "ER", "OPD", "ICU", "OPD")
+tapply(glu, ward, mean, na.rm = TRUE)
+tapply(glu, ward, length)          # 每組幾筆
+tapply(glu, ward, range, na.rm = TRUE)</script>
+  <div class="note link"><b>🔗 之後會遇到</b>資料放在 data.frame 時，常用 <code>aggregate()</code> 或 dplyr 的 <code>group_by() |&gt; summarise()</code>，背後是同樣的 split → apply → combine 概念。</div>
+
+  <div class="ex" id="ex6" data-ex="ex6">
+    <div class="ex-h"><span class="badge">練習 6</span><h3>qPCR：每個基因的平均 Ct</h3><span class="st"></span></div>
+    <p>數字向量 <code>ct</code> 是每一個反應孔的 Ct 值，文字向量 <code>gene</code> 是該孔測的基因。請用 <code>tapply</code> 算出 <code>avg</code>：每個基因的平均 Ct，<code>round(…, 1)</code>；再把平均 Ct <b>最低</b>（表現量最高）的基因名稱存成 <code>low</code>。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">會換 3 組資料檢查。</p>
+<script type="text/x-r" class="starter">ct
+gene
+avg <- ___
+low <- ___
+avg
+low
+</script>
+  </div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="ch" id="ch7">
+  <div class="ch-h"><span class="num">07</span><h2>Filter、Reduce、do.call<small>篩選、累積、一次攤開成參數</small></h2></div>
+
+  <p>這三個也是「把函式當參數」的工具，常和 lapply 搭配使用。</p>
+  <h3><span class="tag">7-1</span>Filter(f, x)：留下 f 回答 TRUE 的元素</h3>
+  <p>f 對每個元素回答 TRUE 或 FALSE，Filter 只留下 TRUE 的。對向量來說和 <code>x[條件]</code> 一樣，但對 list 特別好用：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-1">seqs <- c("ATGCGT", "GGA", "TTAGCCA")
+Filter(function(s) nchar(s) >= 5, seqs)
+patients <- list(list(id = "P01", age = 72), list(id = "P02", age = 45), list(id = "P03", age = 66))
+old <- Filter(function(p) p$age >= 65, patients)
+sapply(old, function(p) p$id)</script>
+
+  <h3><span class="tag">7-2</span>Reduce(f, x)：兩兩合併成一個</h3>
+  <p>Reduce 先算 <code>f(x[[1]], x[[2]])</code>，再把結果和 <code>x[[3]]</code> 合併，一路到最後。加上 <code>accumulate = TRUE</code> 可以看到每一步：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-2">Reduce(`+`, 1:5)                       # ((((1 + 2) + 3) + 4) + 5)
+Reduce(`+`, 1:5, accumulate = TRUE)    # 每一步的結果：就是 cumsum()
+Reduce(function(a, b) paste0(a, b), c("A", "T", "G"), accumulate = TRUE)</script>
+  <p>反引號 <code>`+`</code> 是把運算子當成函式名稱來用：<code>`+`(1, 2)</code> 就是 <code>1 + 2</code>。Reduce 在生資最常見的用途是<b>取好幾組基因的交集</b>：</p>
+  <div class="note lab"><b>🧬 情境：三次實驗都顯著的基因</b>每次差異表現分析得到一組基因，想找出三次都出現的「核心基因」。</div>
+<script type="text/x-r" class="cell" data-label="範例 7-3">deg <- list(
+  exp1 = c("TP53", "MYC", "EGFR", "KRAS"),
+  exp2 = c("MYC", "TP53", "BRAF"),
+  exp3 = c("PTEN", "MYC", "TP53")
+)
+Reduce(intersect, deg)          # 交集：三次都出現
+sort(Reduce(union, deg))        # 聯集：至少出現一次</script>
+
+  <h3><span class="tag">7-3</span>do.call(f, list)：把 list 攤開當參數</h3>
+  <p><code>do.call(rbind, L)</code> 等於 <code>rbind(L[[1]], L[[2]], …)</code>。最常用在「lapply 算出一堆等長的結果，想疊成一張表」：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-4">labs <- list(P01 = c(5.2, 6.1, 5.8), P02 = c(7.4, 8.0), P03 = c(5.5, 6.0))
+rows <- lapply(labs, function(v) c(n = length(v), mean = round(mean(v), 2), max = max(v)))
+rows
+do.call(rbind, rows)</script>
+
+  <div class="ex" id="ex7" data-ex="ex7">
+    <div class="ex-h"><span class="badge">練習 7</span><h3>核心基因</h3><span class="st"></span></div>
+    <p>list <code>deg</code> 的每個元素是一次實驗找到的基因。請用 <code>Reduce</code> 做出：<code>core</code>（<b>每一次</b>都出現的基因）和 <code>all_genes</code>（至少出現一次的基因，用 <code>sort()</code> 照字母排序）。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">會換 3 組資料，實驗次數不一定是 3 次。core 的順序不限。</p>
+<script type="text/x-r" class="starter">deg
+core <- ___
+all_genes <- ___
+core
+all_genes
+</script>
+  </div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="ch boss-ch" id="ch8">
+  <div class="ch-h"><span class="num">08</span><h2>大魔王：多位病人的 HBB 篩檢<small>不准寫迴圈，只用 apply 家族完成整個流程</small></h2></div>
+
+  <p>還記得 R 寶的奇幻旅程最後一關嗎？當時用 for 迴圈比對<b>一位</b>病人的 HBB 序列。現在檢驗科一次送來好幾位病人，資料是「list 裡面裝 list」：</p>
+<script type="text/x-r" class="cell" data-label="範例 8-1 · 資料長這樣">patients <- list(
+  list(id = "P01", seq = "ACTCCTGAGGAG"),
+  list(id = "P02", seq = "ACTCCTGTGGAG"),
+  list(id = "P03", seq = "ACTCATGTGGAG")
+)
+str(patients)
+patients[[2]]$seq</script>
+  <p>參考序列是 HBB 第 4～7 個密碼子 <code>ACT CCT GAG GAG</code>。第 6 個密碼子 GAG → GTG（整段的<b>第 8 個鹼基</b> A → T）就是鐮刀型貧血的 HbS 突變。</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>要做的事</th><th>思路</th><th>工具</th></tr>
+    <tr><td>取出每位病人的編號</td><td>每位病人回傳 1 個文字</td><td><code>vapply(…, character(1))</code></td></tr>
+    <tr><td>每位病人和參考序列不同的位置有幾個</td><td>切成鹼基 → 和 ref 逐一比較 → 加總</td><td><code>vapply(…, numeric(1))</code>、<code>strsplit</code>、<code>!=</code>、<code>sum</code></td></tr>
+    <tr><td>是不是 HbS</td><td>第 8 個鹼基是不是 T</td><td><code>vapply(…, logical(1))</code>、<code>substr</code></td></tr>
+    <tr><td>列出 HbS 的病人</td><td>用 TRUE/FALSE 挑名字</td><td><code>names(hbs)[hbs]</code> 或 Filter</td></tr>
+  </table></div>
+
+  <div class="ex boss" id="ex8" data-ex="ex8">
+    <div class="ex-h"><span class="badge">練習 8 · 大魔王</span><h3>HBB 批次篩檢</h3><span class="st"></span></div>
+    <p><code>patients</code>（每位病人是 <code>list(id, seq)</code>）和參考序列 <code>ref</code>（一個字串）已經準備好了。<b>不能用 for / while / repeat</b>，請做出：</p>
+    <ul>
+      <li><code>n_mut</code>：具名數字向量，名字是病人編號，值是和 ref 不同的鹼基個數。</li>
+      <li><code>hbs</code>：具名邏輯向量，名字是病人編號，第 8 個鹼基是 T 就是 TRUE。</li>
+      <li><code>carriers</code>：文字向量，所有 HbS 病人的編號（照原本順序；沒有人時是空的）。</li>
+    </ul>
+    <p class="dim" style="color:var(--muted);font-size:14px">會隨機產生 5 批病人檢查，其中一批沒有任何 HbS。</p>
+<script type="text/x-r" class="starter"># patients 和 ref 已經在 Environment
+ids <- vapply(patients, function(p) p$id, character(1))
+ref_b <- strsplit(ref, "")[[1]]
+
+n_mut <- ___
+names(n_mut) <- ids
+
+hbs <- ___
+names(hbs) <- ids
+
+carriers <- ___
+n_mut
+hbs
+carriers
+</script>
+  </div>
+</section>
+
+<!-- ============ summary ============ -->
+<section class="ch" id="sum">
+  <div class="ch-h"><span class="num">✦</span><h2>總整理：該用哪一個？<small>先想向量化，再想 apply 家族，最後才是 for</small></h2></div>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>手上的資料</th><th>想要的結果</th><th>用</th></tr>
+    <tr><td>向量或 list</td><td>list（每個結果形狀不一）</td><td><code>lapply(X, FUN, ...)</code></td></tr>
+    <tr><td>向量或 list</td><td>向量 / 矩陣，隨手看看</td><td><code>sapply(X, FUN, ...)</code></td></tr>
+    <tr><td>向量或 list</td><td>型別固定的向量，寫進程式裡</td><td><code>vapply(X, FUN, numeric(1), ...)</code></td></tr>
+    <tr><td>矩陣</td><td>每一列 / 每一欄 算一次</td><td><code>apply(m, 1, FUN)</code> / <code>apply(m, 2, FUN)</code></td></tr>
+    <tr><td>好幾個等長的向量</td><td>第 i 次同時拿每組的第 i 個</td><td><code>mapply(FUN, x, y)</code> / <code>Map(f, x, y)</code></td></tr>
+    <tr><td>值 ＋ 組別</td><td>每組一個結果</td><td><code>tapply(x, g, FUN)</code> = <code>sapply(split(x, g), FUN)</code></td></tr>
+    <tr><td>list</td><td>留下符合條件的 / 兩兩合併 / 攤開當參數</td><td><code>Filter</code> / <code>Reduce</code> / <code>do.call</code></td></tr>
+  </table></div>
+  <div class="choose">
+    <div><code>① 有向量化函式嗎？</code><p><code>x / 18</code>、<code>sum</code>、<code>ifelse</code>、<code>rowMeans</code>、<code>nchar</code>……能直接用就直接用，最快也最短。</p></div>
+    <div><code>② 每個元素各自獨立？</code><p>是 → apply 家族。先寫好處理「一個」的函式，再交給 lapply / vapply 處理「全部」。</p></div>
+    <div><code>③ 這一步要用上一步的結果？</code><p>例如累加、模擬、R 寶走迷宮 → for / while，或 Reduce。</p></div>
+  </div>
+  <div class="note link"><b>🔗 延伸</b>tidyverse 的 purrr 套件有 <code>map()</code>、<code>map_dbl()</code>、<code>map_chr()</code>，概念和 lapply、vapply 一模一樣：<code>map_dbl(x, f)</code> ≈ <code>vapply(x, f, numeric(1))</code>。學會這一章，換到 purrr 只是換名字。</div>
+  <div class="next">
+    <a href="algo.html"><span>上一單元</span><b>R 寶的演算法學院 →</b></a>
+    <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
+  </div>
+</section>
+  </main>
+</div>
+
+<script>
+/* ================= R-subset interpreter for the apply chapter =================
+   Separate from the game engine: adds functions as values, named vectors, matrices,
+   lazy defaults, `...`, and the apply family. Values:
+     NULL -> null · NA -> undefined · atomic -> JS scalar or array (attrs: names, dim, dimnames)
+     list -> RList · closure -> RFun · built-in -> RBuiltin                                   */
+const STEP_LIMIT = 200000;
+class RErr extends Error { constructor(msg, line){ super(msg); this.line = line; } }
+class BreakSig { constructor(l){ this.line = l; } }
+class NextSig { constructor(l){ this.line = l; } }
+class ReturnSig { constructor(v, vis, l){ this.v = v; this.vis = vis; this.line = l; } }
+class RFun { constructor(params, body, env, src){ this.params = params; this.body = body; this.env = env; this.src = src; } }
+class RBuiltin { constructor(name){ this.name = name; } }
+class RList { constructor(names, vals){ this.names = names; this.vals = vals; } }
+class Promise_ { constructor(e, env){ this.e = e; this.env = env; this.done = false; this.v = null; } }
+const MISSING = Symbol('missing');
+const isList = v => v instanceof RList;
+const isFn = v => v instanceof RFun || v instanceof RBuiltin;
+const KWS = new Set(['if','else','for','while','repeat','in','break','next','TRUE','FALSE','NULL','NA','function','Inf','NaN','NA_real_','NA_character_','NA_integer_']);
+const FULLWIDTH = {'（':'(', '）':')', '，':',', '｛':'{', '｝':'}', '；':';', '＝':'=', '＜':'<', '＞':'>', '“':'"', '”':'"', '：':':', '［':'[', '］':']'};
+
+function tokenize(src){
+  const toks = []; let i = 0, line = 1; const n = src.length;
+  while (i < n) {
+    const c = src[i];
+    if (c === '\n') { toks.push({ t: 'nl', line, s: i, e: i + 1 }); line++; i++; continue; }
+    if (c === ' ' || c === '\t' || c === '\r' || c === '　') { i++; continue; }
+    if (c === '#') { while (i < n && src[i] !== '\n') i++; continue; }
+    if (src.startsWith('___', i)) throw new RErr('把 ___ 換成你的答案再執行', line);
+    if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(src[i + 1] || ''))) {
+      let j = i; while (j < n && /[0-9.]/.test(src[j])) j++;
+      if ((src[j] === 'e' || src[j] === 'E') && /[-+0-9]/.test(src[j + 1] || '')) { j++; if (src[j] === '-' || src[j] === '+') j++; while (j < n && /[0-9]/.test(src[j])) j++; }
+      const v = parseFloat(src.slice(i, j)); if (src[j] === 'L') j++;
+      toks.push({ t: 'num', v, line, s: i, e: j }); i = j; continue;
+    }
+    if (/[A-Za-z_.]/.test(c)) {
+      let j = i; while (j < n && /[A-Za-z0-9_.]/.test(src[j])) j++;
+      const w = src.slice(i, j);
+      toks.push({ t: KWS.has(w) ? w : 'id', v: w, line, s: i, e: j }); i = j; continue;
+    }
+    if (c === '`') {
+      const j = src.indexOf('`', i + 1);
+      if (j < 0 || src.slice(i + 1, j).includes('\n')) throw new RErr('反引號 ` 少了結尾', line);
+      toks.push({ t: 'id', v: src.slice(i + 1, j), line, s: i, e: j + 1 }); i = j + 1; continue;
+    }
+    if (c === '"' || c === "'") {
+      let j = i + 1, s = '';
+      while (j < n && src[j] !== c && src[j] !== '\n') {
+        if (src[j] === '\\' && j + 1 < n) { const m = src[j + 1]; s += m === 'n' ? '\n' : m === 't' ? '\t' : m; j += 2; }
+        else s += src[j++];
+      }
+      if (src[j] !== c) throw new RErr('字串少了結尾的引號', line);
+      toks.push({ t: 'str', v: s, line, s: i, e: j + 1 }); i = j + 1; continue;
+    }
+    if (FULLWIDTH[c]) throw new RErr(`這裡用了全形符號「${c}」，請改成半形的「${FULLWIDTH[c]}」`, line);
+    if (c === '\\' && src[i + 1] === '(') { toks.push({ t: 'function', v: '\\', line, s: i, e: i + 1 }); i++; continue; }
+    let op = ['%in%', '%/%', '<<-', '<-', '<=', '>=', '==', '!=', '&&', '||', '%%', '|>', '->'].find(o => src.startsWith(o, i));
+    if (op === '->') throw new RErr('這裡不支援 -> 向右指定，請改成 變數 <- 值', line);
+    if (!op && '+-*/^<>!&|=(){}[],:;$~'.includes(c)) op = c;
+    if (!op) throw new RErr(`unexpected input「${c}」`, line);
+    toks.push({ t: op, line, s: i, e: i + op.length }); i += op.length;
+  }
+  toks.push({ t: 'eof', line, s: n, e: n });
+  return toks;
+}
+
+function parse(src){
+  const toks = tokenize(src); let p = 0, depth = 0;
+  const peek = (o = 0) => toks[p + o], next = () => toks[p++];
+  const show = t => t.t === 'nl' ? '換行' : t.t === 'eof' ? '程式結尾' : t.v !== undefined ? String(t.v) : t.t;
+  const err = (t, msg) => new RErr(msg || `unexpected '${show(t)}'`, t.line);
+  const skipNL = () => { while (peek().t === 'nl' || peek().t === ';') p++; };
+  const skipNLonly = () => { while (peek().t === 'nl') p++; };
+  const expect = (t, msg) => { if (peek().t !== t) throw err(peek(), msg); return next(); };
+  function stmts(end){
+    const body = []; skipNL();
+    while (peek().t !== end) {
+      if (peek().t === 'eof') throw err(peek(), '少了結尾的 }');
+      body.push(expr());
+      const t = peek().t;
+      if (!(t === 'nl' || t === ';' || t === 'eof' || t === '}')) throw err(peek(), `unexpected '${show(peek())}'：一行只能寫一個指令（或用換行分開）。是不是少了逗號或括號？`);
+      skipNL();
+    }
+    return body;
+  }
+  const body = () => { skipNLonly(); return expr(); };
+  function condExpr(kw){
+    expect('(', `${kw} 後面要接 (`); skipNLonly();
+    const e = expr(); skipNLonly();
+    expect(')', `${kw} 的條件少了 )`);
+    return e;
+  }
+  function expr(){ return assign(); }
+  function assign(){
+    const left = tilde();
+    if (peek().t === '<-' || peek().t === '=' || peek().t === '<<-') {
+      const op = next();
+      const ok = n => n.k === 'var' || ((n.k === 'index' || n.k === 'index2' || n.k === 'dollar') && ok(n.a)) || (n.k === 'call' && n.args.length && ok(n.args[0].e));
+      if (!ok(left)) throw err(op, '只能把值存進變數，例如 x <- 3');
+      skipNLonly();
+      return { k: 'assign', target: left, val: assign(), line: op.line, up: op.t === '<<-' };
+    }
+    return left;
+  }
+  function tilde(){ const a = orE(); if (peek().t === '~') throw err(peek(), '這裡不支援公式 ~'); return a; }
+  const bin = (sub, ops) => () => {
+    let a = sub();
+    while (ops.includes(peek().t)) { const op = next(); skipNLonly(); a = { k: 'bin', op: op.t, a, b: sub(), line: op.line }; }
+    return a;
+  };
+  const orE = bin(() => andE(), ['||', '|']);
+  const andE = bin(() => notE(), ['&&', '&']);
+  function notE(){ if (peek().t === '!') { const op = next(); return { k: 'un', op: '!', a: notE(), line: op.line }; } return cmpE(); }
+  const cmpE = bin(() => addE(), ['==', '!=', '<', '>', '<=', '>=']);
+  const addE = bin(() => mulE(), ['+', '-']);
+  const mulE = bin(() => spE(), ['*', '/']);
+  function spE(){
+    let a = seqE();
+    while (['%%', '%in%', '%/%', '|>'].includes(peek().t)) {
+      const op = next(); skipNLonly(); const b = seqE();
+      if (op.t === '|>') {
+        if (b.k !== 'call') throw err(op, '|> 右邊要接函式呼叫，例如 x |> sum()');
+        a = { ...b, args: [{ name: null, e: a }, ...b.args] };
+      } else a = { k: 'bin', op: op.t, a, b, line: op.line };
+    }
+    return a;
+  }
+  const seqE = bin(() => unE(), [':']);
+  function unE(){ if (peek().t === '-' || peek().t === '+') { const op = next(); return { k: 'un', op: op.t, a: unE(), line: op.line }; } return powE(); }
+  function powE(){ const a = postfix(); if (peek().t === '^') { const op = next(); return { k: 'bin', op: '^', a, b: unE(), line: op.line }; } return a; }
+  function idxArgs(close2){
+    const xs = []; let cur = null, drop = null;
+    for (;;) {
+      skipNLonly(); const t = peek().t;
+      if (t === ']') { xs.push(cur); break; }
+      if (t === ',') { next(); xs.push(cur); cur = null; continue; }
+      if (peek().t === 'id' && peek().v === 'drop' && peek(1).t === '=') { next(); next(); drop = expr(); continue; }
+      cur = expr();
+    }
+    expect(']', '少了 ]'); if (close2) expect(']', '少了 ]]');
+    return { xs, drop };
+  }
+  function postfix(){
+    let a = primary();
+    for (;;) {
+      if (peek().t === '(') {
+        const lp = next(); const args = []; skipNLonly();
+        if (peek().t !== ')') for (;;) {
+          skipNLonly(); let name = null;
+          if ((peek().t === 'id' || peek().t === 'str') && peek(1).t === '=') { name = next().v; next(); skipNLonly(); }
+          if (peek().t === ',' || peek().t === ')') { if (name === null) throw err(peek(), '參數之間多了一個逗號'); args.push({ name, e: { k: 'lit', v: MISSING } }); }
+          else args.push({ name, e: expr() });
+          skipNLonly();
+          if (peek().t === ',') { next(); continue; }
+          break;
+        }
+        expect(')', `${a.k === 'var' ? a.name : '函式'}( 少了 )。是不是括號沒有配對？`);
+        a = a.k === 'var' ? { k: 'call', name: a.name, args, line: a.line ?? lp.line } : { k: 'callv', f: a, args, line: lp.line };
+      } else if (peek().t === '[' && peek(1).t === '[') {
+        next(); next(); const { xs } = idxArgs(true);
+        a = { k: 'index2', a, xs, line: a.line };
+      } else if (peek().t === '[') {
+        next(); const { xs, drop } = idxArgs(false);
+        a = { k: 'index', a, xs, drop, line: a.line };
+      } else if (peek().t === '$') {
+        next(); const nm = peek(); if (nm.t !== 'id' && nm.t !== 'str') throw err(nm, '$ 後面要接名稱，例如 patient$seq');
+        next(); a = { k: 'dollar', a, name: nm.v, line: a.line };
+      } else break;
+    }
+    return a;
+  }
+  function primary(){
+    const t = next();
+    switch (t.t) {
+      case 'num': case 'str': return { k: 'lit', v: t.v, line: t.line };
+      case 'TRUE': return { k: 'lit', v: true, line: t.line };
+      case 'FALSE': return { k: 'lit', v: false, line: t.line };
+      case 'NULL': return { k: 'lit', v: null, line: t.line };
+      case 'NA': case 'NA_real_': case 'NA_character_': case 'NA_integer_': return { k: 'lit', v: undefined, line: t.line };
+      case 'Inf': return { k: 'lit', v: Infinity, line: t.line };
+      case 'NaN': return { k: 'lit', v: NaN, line: t.line };
+      case 'function': {
+        expect('(', 'function 後面要接 (，例如 function(x) { … }');
+        const params = []; skipNLonly();
+        if (peek().t !== ')') for (;;) {
+          const nm = expect('id', 'function( ) 裡面要寫參數名稱，例如 function(x)').v; let def = null;
+          if (peek().t === '=') { next(); skipNLonly(); def = expr(); }
+          params.push({ name: nm, def }); skipNLonly();
+          if (peek().t === ',') { next(); skipNLonly(); continue; }
+          break;
+        }
+        expect(')', 'function 的參数少了 )');
+        const b = body();
+        return { k: 'fn', params, body: b, src: src.slice(t.s, toks[p - 1].e), line: t.line };
+      }
+      case 'if': {
+        const c = condExpr('if'); const then = body();
+        const save = p, nl = peek().t === 'nl'; skipNLonly(); let els = null;
+        if (peek().t === 'else') {
+          if (nl && depth === 0) throw err(peek(), "unexpected 'else'：在最外層，R 讀到換行就認為 if 已經結束了。請把 else 接在 } 的同一行：} else {");
+          next(); els = body();
+        } else p = save;
+        return { k: 'if', cond: c, then, els, line: t.line };
+      }
+      case 'for': {
+        expect('(', 'for 後面要接 (');
+        const v = expect('id', 'for 的括號裡先寫變數名稱，例如 for (i in 1:5)').v;
+        expect('in', '少了 in，例如 for (i in 1:5)');
+        const seq = expr();
+        expect(')', 'for 的括號少了 )');
+        return { k: 'for', v, seq, body: body(), line: t.line };
+      }
+      case 'while': { const c = condExpr('while'); return { k: 'while', cond: c, body: body(), line: t.line }; }
+      case 'repeat': return { k: 'repeat', body: body(), line: t.line };
+      case 'break': case 'next': return { k: t.t, line: t.line };
+      case '{': { depth++; const b = stmts('}'); depth--; next(); return { k: 'block', body: b, line: t.line }; }
+      case 'else': throw err(t, "unexpected 'else'：else 要緊接在 if 區塊的 } 後面");
+      case 'id': return { k: 'var', name: t.v, line: t.line };
+      case '(': { skipNLonly(); const e = expr(); skipNLonly(); expect(')', '少了 )'); return { k: 'paren', e, line: t.line }; }
+    }
+    throw err(t);
+  }
+  return stmts('eof');
+}
+
+/* ---------- vectors and attributes ---------- */
+const asVec = v => Array.isArray(v) ? v : v === null ? [] : isList(v) ? v.vals : [v];
+const namesOf = v => isList(v) ? (v.names.some(x => x) ? v.names : null) : Array.isArray(v) && v.names ? v.names : null;
+const dimOf = v => Array.isArray(v) && v.dim ? v.dim : null;
+function mk(arr, names, dim, dimnames){   // attach attributes; a bare length-1 vector becomes a scalar
+  if (!names && !dim) return arr.length === 1 ? arr[0] : arr;
+  const r = arr.slice();
+  if (names && names.some(x => x !== '')) r.names = names.slice();
+  if (dim) { r.dim = dim; if (dimnames && (dimnames[0] || dimnames[1])) r.dimnames = dimnames; }
+  return r.names || r.dim ? r : (r.length === 1 ? r[0] : r);
+}
+const keepAttrs = (src, arr) => Array.isArray(src) && arr.length === src.length ? mk(arr, src.names, src.dim, src.dimnames) : mk(arr);
+const isNA = x => x === undefined || (typeof x === 'number' && isNaN(x));
+const vtype = V => V.some(x => typeof x === 'string') ? 'character' : V.some(x => typeof x === 'number') ? 'numeric' : V.some(x => typeof x === 'boolean') ? 'logical' : !V.length && V.rtype ? V.rtype : 'logical';
+const typedEmpty = (t, named) => { const r = []; r.rtype = t; if (named) r.names = []; return r; };
+const emptyOf = t => t === 'character' ? 'character(0)' : t === 'numeric' ? 'numeric(0)' : t === 'integer' ? 'integer(0)' : t === 'list' ? 'list()' : 'logical(0)';
+const isWhole = x => typeof x === 'number' && Number.isInteger(x);
+
+/* ---------- formatting, as R prints ---------- */
+const dispW = t => [...t].reduce((n, ch) => n + (/[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦]/.test(ch) ? 2 : 1), 0);
+const padL = (s, w) => ' '.repeat(Math.max(0, w - dispW(s))) + s;
+const padR = (s, w) => s + ' '.repeat(Math.max(0, w - dispW(s)));
+const sig7 = x => { const m = Number(x.toPrecision(7)).toExponential().split('e')[0].replace('.', '').replace('-', ''); return Math.max(1, m.replace(/0+$/, '').length); };
+function fmtNums(V){   // common formatting for a numeric vector: 7 significant digits, fixed unless scientific is narrower
+  const fin = V.filter(x => typeof x === 'number' && isFinite(x));
+  let dec = 0, mdec = 0, fw = 0, sw = 0;
+  for (const x0 of fin) {
+    const x = Number(x0.toPrecision(7)), s = sig7(x0);
+    const e = x === 0 ? 0 : Math.floor(Math.log10(Math.abs(x)) + 1e-12);
+    dec = Math.max(dec, Math.max(0, s - 1 - e)); mdec = Math.max(mdec, s - 1);
+  }
+  dec = Math.min(dec, 15);
+  for (const x of fin) {
+    const neg = x < 0 ? 1 : 0, ip = Math.abs(x) < 1 ? 1 : Math.floor(Math.log10(Math.abs(Number(x.toFixed(dec))) || 1) + 1e-12) + 1;
+    fw = Math.max(fw, neg + ip + (dec ? dec + 1 : 0));
+    const e = x === 0 ? 0 : Math.floor(Math.log10(Math.abs(x)) + 1e-12);
+    sw = Math.max(sw, neg + 1 + (mdec ? mdec + 1 : 0) + (Math.abs(e) >= 100 ? 5 : 4));
+  }
+  const sci = fin.length && fw > sw;
+  return V.map(x => x === undefined ? 'NA' : typeof x === 'boolean' ? (x ? '1' : '0') : isNaN(x) ? 'NaN' : !isFinite(x) ? (x > 0 ? 'Inf' : '-Inf')
+    : sci ? x.toExponential(mdec).replace(/e([+-])(\d)$/, 'e$10$2') : x.toFixed(dec).replace(/^-(0\.?0*)$/, '$1'));
+}
+const fmtNum1 = x => fmtNums([x])[0];   // one number, as cat() shows it
+const asChar1 = x => x === undefined ? undefined : typeof x === 'string' ? x : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE')
+  : isNaN(x) ? 'NaN' : !isFinite(x) ? (x > 0 ? 'Inf' : '-Inf') : String(Number(x.toPrecision(15))).replace(/e\+?(-?)(\d)$/, 'e$10$2').replace(/e\+?(-?)(\d\d+)$/, 'e$1$2');
+function fmtElems(V, quote){
+  const t = vtype(V);
+  if (t === 'character') return V.map(x => x === undefined ? 'NA' : quote ? `"${String(x).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"` : String(x));
+  if (t === 'numeric') return fmtNums(V);
+  return V.map(x => x === undefined ? 'NA' : x ? 'TRUE' : 'FALSE');
+}
+const fmtFun = f => f instanceof RBuiltin ? `function(…) <內建函式 ${f.name}>` : f.src;
+function fmtVector(v){
+  const V = asVec(v), nm = namesOf(v);
+  if (!V.length) return nm ? 'named ' + emptyOf(vtype(V)) : emptyOf(vtype(V));
+  const S = fmtElems(V, true), str = vtype(V) === 'character';
+  if (nm) {
+    const N = nm.map(x => x === undefined || x === null ? '<NA>' : x);
+    const w = Math.max(...S.map(dispW), ...N.map(dispW)), per = Math.max(1, Math.floor(80 / (w + 1))), out = [];
+    for (let i = 0; i < V.length; i += per) {
+      out.push(N.slice(i, i + per).map(s => padL(s, w) + ' ').join(''));
+      out.push(S.slice(i, i + per).map(s => padL(s, w) + ' ').join(''));
+    }
+    return out.join('\n');
+  }
+  const w = Math.max(...S.map(dispW)), L = `[${V.length}]`.length, per = Math.max(1, Math.floor((80 - L) / (w + 1))), out = [];
+  for (let i = 0; i < V.length; i += per)
+    out.push(padL(`[${i + 1}]`, L) + S.slice(i, i + per).map(s => ' ' + (str ? padR(s, w) : padL(s, w))).join(''));
+  return out.join('\n');
+}
+function fmtMatrix(v){
+  const [nr, nc] = v.dim, dn = v.dimnames || [null, null], V = asVec(v), str = vtype(V) === 'character';
+  if (!nr || !nc) return `<${nr} x ${nc} matrix>`;
+  const rl = Array.from({ length: nr }, (_, i) => dn[0] ? dn[0][i] : `[${i + 1},]`), rw = Math.max(...rl.map(dispW));
+  const cols = Array.from({ length: nc }, (_, j) => {
+    const S = fmtElems(V.slice(j * nr, j * nr + nr), true), lab = dn[1] ? dn[1][j] : `[,${j + 1}]`;
+    return { lab, S, w: Math.max(dispW(lab), ...S.map(dispW)) };
+  });
+  const out = []; let j = 0;
+  while (j < nc) {
+    let k = j, width = rw;
+    do { width += cols[k].w + 1; k++; } while (k < nc && width + cols[k].w + 1 <= 80);
+    const pad = str ? padR : padL;
+    out.push(' '.repeat(rw) + cols.slice(j, k).map(c => ' ' + pad(c.lab, c.w)).join(''));
+    for (let i = 0; i < nr; i++) out.push(padR(rl[i], rw) + cols.slice(j, k).map(c => ' ' + pad(c.S[i], c.w)).join(''));
+    j = k;
+  }
+  return out.join('\n');
+}
+const syntactic = s => /^([A-Za-z]|[.][A-Za-z._]|[.]$)[\w.]*$/.test(s) && !KWS.has(s);
+function fmtPrint(v, prefix = ''){
+  if (v === null) return 'NULL';
+  if (v === MISSING) return '';
+  if (isFn(v)) return fmtFun(v);
+  if (isList(v)) {
+    if (!v.vals.length) return v.named ? 'named list()' : 'list()';
+    return v.vals.map((x, i) => {
+      const tag = prefix + (v.names[i] ? '$' + (syntactic(v.names[i]) ? v.names[i] : '`' + v.names[i] + '`') : `[[${i + 1}]]`);
+      return tag + '\n' + (isList(x) && x.vals.length ? fmtPrint(x, tag) : fmtPrint(x)) + '\n';
+    }).join('\n');
+  }
+  if (dimOf(v)) return fmtMatrix(v);
+  return fmtVector(v);
+}
+const fmtEl = x => isFn(x) ? 'function' : isList(x) ? `List of ${x.vals.length}` : x === null ? 'NULL' : fmtElems([x], true)[0];
+function fmtShort(v){   // one line, for the variable chips under a cell
+  if (isFn(v)) return v instanceof RBuiltin ? `<內建 ${v.name}>` : 'function(' + v.params.map(p => p.name).join(', ') + ')';
+  if (v === null) return 'NULL';
+  if (isList(v)) return `List of ${v.vals.length}` + (namesOf(v) ? `（${v.names.slice(0, 4).join(', ')}${v.vals.length > 4 ? ', …' : ''}）` : '');
+  const V = asVec(v), d = dimOf(v);
+  if (d) return `matrix ${d[0]} × ${d[1]}`;
+  if (!V.length) return emptyOf(vtype(V));
+  const S = fmtElems(V, true), nm = namesOf(v);
+  const parts = S.slice(0, 6).map((s, i) => nm ? `${nm[i]}=${s}` : s);
+  return parts.join(' ') + (V.length > 6 ? ' …' : '');
+}
+
+/* ---------- the interpreter ---------- */
+function execute(src, presets){
+  const G = { vars: new Map(Object.entries(presets || {})), parent: null };
+  let env = G, steps = 0, depth = 0, visible = true;
+  const outs = [], warns = [];
+  const tick = line => { if (++steps > STEP_LIMIT) throw new RErr(`已經執行超過 ${STEP_LIMIT} 步，可能是無限迴圈（或無限遞迴）！`, line); };
+  const output = t => outs.push(t);
+  const warn = m => warns.push(m);
+  const force = (v, line) => {
+    if (v instanceof Promise_) {
+      if (!v.done) { const save = env; env = v.env; try { v.v = ev(v.e); } finally { env = save; } v.done = true; }
+      return v.v;
+    }
+    return v;
+  };
+  const findEnv = name => { for (let e = env; e; e = e.parent) if (e.vars.has(name)) return e; return null; };
+  function getVar(name, line){
+    const e = findEnv(name);
+    if (!e) return undefined;
+    const v = e.vars.get(name);
+    if (v === MISSING) throw new RErr(`argument "${name}" is missing, with no default：呼叫函式時沒有給 ${name} 值`, line);
+    return force(v, line);
+  }
+  const CONST = { pi: Math.PI, T: true, F: false, letters: 'abcdefghijklmnopqrstuvwxyz'.split(''), LETTERS: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('') };
+  function lookupFn(name, line){   // like R: skip variables that are not functions
+    for (let e = env; e; e = e.parent) if (e.vars.has(name)) { const v = force(e.vars.get(name), line); if (isFn(v)) return v; }
+    if (BUILTIN[name]) return new RBuiltin(name);
+    return null;
+  }
+  const num1 = (x, line, what = '這裡') => {
+    if (isFn(x)) throw new RErr(`${what}需要數字，但拿到的是一個函式`, line);
+    if (isList(x)) throw new RErr(`${what}需要數字，但拿到的是 list。要先用 [[ ]] 或 $ 把裡面的值拿出來`, line);
+    const V = asVec(x);
+    if (!V.length) throw new RErr(`${what}需要一個數字，但拿到的是空的（NULL 或長度 0）`, line);
+    const y = V[0];
+    if (typeof y === 'string') { const n = Number(y); if (y.trim() === '' || isNaN(n)) throw new RErr(`non-numeric argument：${what}需要數字，不是文字 "${y}"`, line); return n; }
+    return y === undefined ? NaN : +y;
+  };
+  const nums = (x, line) => {
+    if (isList(x)) throw new RErr('non-numeric argument：這是 list，不能直接做數學運算。可以先用 unlist()，或用 sapply 對每個元素計算', line);
+    if (isFn(x)) throw new RErr('non-numeric argument：這是一個函式，不是數字', line);
+    return asVec(x).map(y => { if (typeof y === 'string') throw new RErr('non-numeric argument：文字不能做數學運算', line); return y === undefined ? undefined : +y; });
+  };
+  const condV = (v, line, kw = 'if') => {
+    if (isList(v)) throw new RErr('argument is not interpretable as logical：條件不能是 list', line);
+    const V = asVec(v);
+    if (!V.length) throw new RErr('argument is of length zero：條件是空的', line);
+    if (V.length > 1) throw new RErr(`the condition has length > 1：${kw} 的條件只能是一個 TRUE 或 FALSE`, line);
+    const x = V[0];
+    if (isNA(x)) throw new RErr(`missing value where TRUE/FALSE needed：條件是 NA，${kw} 不知道要走哪邊。可以先用 is.na() 檢查`, line);
+    if (typeof x === 'string') { if (/^(TRUE|true|T|True)$/.test(x)) return true; if (/^(FALSE|false|F|False)$/.test(x)) return false; throw new RErr('argument is not interpretable as logical：條件要是 TRUE 或 FALSE', line); }
+    return !!x;
+  };
+
+  /* -- combining, c() and unlist() share the naming rule -- */
+  function combine(items, line){   // items: [{name, v}]
+    const out = [], nms = []; let anyName = false, asList = items.some(it => isList(it.v) || isFn(it.v));
+    for (const it of items) {
+      const v = it.v; if (v === null || v === MISSING) continue;
+      const vals = isFn(v) ? [v] : isList(v) ? v.vals : asVec(v), inner = isFn(v) ? null : namesOf(v), outer = it.name || '';
+      vals.forEach((x, j) => {
+        let nm = '';
+        if (outer && inner && inner[j]) nm = outer + '.' + inner[j];
+        else if (outer) nm = vals.length === 1 ? outer : outer + (j + 1);
+        else if (inner) nm = inner[j] || '';
+        if (nm) anyName = true;
+        out.push(x); nms.push(nm);
+      });
+    }
+    if (asList) return new RList(nms, out);
+    if (!out.length) return null;
+    const t = vtype(out);
+    const conv = t === 'character' ? out.map(asChar1) : t === 'numeric' ? out.map(x => typeof x === 'boolean' ? +x : x) : out;
+    return mk(conv, anyName ? nms : null);
+  }
+  function unlistV(v, useNames = true){
+    if (!isList(v)) return v;
+    const items = v.vals.map((x, i) => ({ name: useNames ? v.names[i] : '', v: isList(x) ? unlistV(x, useNames) : x }));
+    if (items.some(it => isList(it.v) || isFn(it.v))) return v;
+    const r = combine(items);
+    return useNames ? r : (Array.isArray(r) ? mk([...r]) : r);
+  }
+
+  /* -- indexing -- */
+  function positions(I, len, names, line, forAssign){   // -> { pos: [0-based or -1 for NA], newNames }
+    if (I === MISSING) return { pos: Array.from({ length: len }, (_, k) => k) };
+    if (isList(I)) throw new RErr('invalid subscript type \'list\'：中括號裡不能放 list', line);
+    if (isFn(I)) throw new RErr('invalid subscript type：中括號裡不能放函式', line);
+    const V = asVec(I);
+    if (!V.length) return { pos: [] };
+    if (V.every(x => typeof x === 'boolean' || x === undefined) && V.some(x => typeof x === 'boolean')) {
+      const L = Math.max(len, V.length), pos = [];
+      for (let k = 0; k < L; k++) { const b = V[k % V.length]; if (b === true) pos.push(k); else if (b === undefined) pos.push(-1); }
+      return { pos };
+    }
+    if (V.some(x => typeof x === 'string')) {
+      const pos = [], newNames = [];
+      for (const s of V) {
+        let k = names ? names.indexOf(s) : -1;
+        if (k < 0 && forAssign) { k = len + newNames.length; const j = newNames.indexOf(s); if (j >= 0) k = len + j; else newNames.push(s); }
+        pos.push(k);
+      }
+      return { pos, newNames, byName: true };
+    }
+    const Nn = V.map(x => x === undefined ? NaN : Math.trunc(+x));
+    if (Nn.some(x => x < 0)) {
+      if (Nn.some(x => x > 0)) throw new RErr("can't mix positive and negative subscripts：正負位置不能混在一起", line);
+      const drop = new Set(Nn.map(x => -x - 1));
+      return { pos: Array.from({ length: len }, (_, k) => k).filter(k => !drop.has(k)) };
+    }
+    return { pos: Nn.filter(x => x !== 0).map(x => isNaN(x) ? -1 : x - 1) };
+  }
+  function index1(a, xs, line, drop = true){
+    if (a === null) return null;
+    if (isFn(a)) throw new RErr("object of type 'closure' is not subsettable：函式不能用 [ ] 取值。要先呼叫它，例如 f(x)", line);
+    const d = dimOf(a);
+    if (xs.length === 2 && !d) throw new RErr('incorrect number of dimensions：這不是矩陣，只能用一個位置 x[i]', line);
+    if (xs.length > 2) throw new RErr('incorrect number of dimensions：位置太多了', line);
+    if (xs.length === 2) {
+      const [nr, nc] = d, dn = a.dimnames || [null, null];
+      const R = positions(xs[0], nr, dn[0], line).pos, C = positions(xs[1], nc, dn[1], line).pos;
+      if (R.some(k => k >= nr || k < 0) || C.some(k => k >= nc || k < 0)) throw new RErr('subscript out of bounds：超出矩陣的範圍了', line);
+      const V = asVec(a), vals = [];
+      for (const c of C) for (const r of R) vals.push(V[c * nr + r]);
+      if (drop && (R.length === 1 || C.length === 1)) {
+        const nm = R.length === 1 && C.length === 1 ? null : R.length === 1 ? (dn[1] ? C.map(c => dn[1][c]) : null) : (dn[0] ? R.map(r => dn[0][r]) : null);
+        return mk(vals, nm);
+      }
+      return mk(vals, null, [R.length, C.length], [dn[0] ? R.map(r => dn[0][r]) : null, dn[1] ? C.map(c => dn[1][c]) : null]);
+    }
+    const I = xs[0] === undefined ? MISSING : xs[0];
+    if (isList(a)) {
+      const { pos } = positions(I, a.vals.length, a.names, line);
+      return new RList(pos.map(k => k >= 0 && k < a.vals.length ? a.names[k] : (typeof asVec(I)[0] === 'string' ? '<NA>' : '')), pos.map(k => k >= 0 && k < a.vals.length ? a.vals[k] : null));
+    }
+    const V = asVec(a), nm = namesOf(a);
+    if (I === MISSING) return a;
+    const { pos, byName } = positions(I, V.length, nm, line);
+    if (byName && !nm) return mk(pos.map(() => undefined), pos.map(() => undefined));
+    if (!pos.length) return typedEmpty(V.length ? vtype(V) : (V.rtype || 'logical'), !!nm);
+    return mk(pos.map(k => k >= 0 ? V[k] : undefined), nm ? pos.map(k => k >= 0 && k < V.length ? nm[k] : undefined) : null);
+  }
+  function index2(a, I, line){
+    if (a === null) return null;
+    if (isFn(a)) throw new RErr("object of type 'closure' is not subsettable：函式不能用 [[ ]] 取值", line);
+    const V = isList(a) ? a.vals : asVec(a), nm = isList(a) ? a.names : namesOf(a);
+    const x = asVec(I);
+    if (x.length !== 1) throw new RErr(x.length ? 'subscript out of bounds：[[ ]] 一次只能拿一個元素' : 'subscript out of bounds：[[ ]] 裡面是空的', line);
+    let k;
+    if (typeof x[0] === 'string') {
+      k = nm ? nm.indexOf(x[0]) : -1;
+      if (k < 0) { if (isList(a)) return null; throw new RErr(`subscript out of bounds：沒有叫 "${x[0]}" 的元素`, line); }
+    } else {
+      k = Math.trunc(num1(x[0], line)) - 1;
+      if (k < 0 || k >= V.length) throw new RErr(`subscript out of bounds：只有 ${V.length} 個元素，沒有第 ${k + 1} 個`, line);
+    }
+    return V[k];
+  }
+  function coerceAll(vals){ const t = vtype(vals); return t === 'character' ? vals.map(asChar1) : t === 'numeric' ? vals.map(x => typeof x === 'boolean' ? +x : x) : vals; }
+  function replace1(cur, xs, v, line){
+    if (isFn(cur)) throw new RErr('函式不能用 [ ] 修改', line);
+    if (xs.length === 2) {
+      const d = dimOf(cur); if (!d) throw new RErr('incorrect number of subscripts：這不是矩陣', line);
+      const [nr, nc] = d, dn = cur.dimnames || [null, null];
+      const R = positions(xs[0], nr, dn[0], line).pos, C = positions(xs[1], nc, dn[1], line).pos, Vv = asVec(v);
+      if (!Vv.length) throw new RErr('replacement has length zero：右邊是空的', line);
+      const A = asVec(cur).slice(); let t = 0;
+      for (const c of C) for (const r of R) { if (r < 0 || r >= nr || c < 0 || c >= nc) throw new RErr('subscript out of bounds', line); A[c * nr + r] = Vv[t++ % Vv.length]; }
+      return mk(coerceAll(A), null, d, cur.dimnames);
+    }
+    const I = xs[0] === undefined ? MISSING : xs[0];
+    if (isList(cur) || isList(v)) {
+      const L = isList(cur) ? cur : new RList(asVec(cur).map((_, i) => (namesOf(cur) || [])[i] || ''), [...asVec(cur)]);
+      const names = [...L.names], vals = [...L.vals], { pos, newNames } = positions(I, vals.length, names, line, true);
+      if (v === null) { const del = new Set(pos); return new RList(names.filter((_, k) => !del.has(k)), vals.filter((_, k) => !del.has(k))); }
+      const src = isList(v) ? v.vals : asVec(v);
+      pos.forEach((k, t) => { while (vals.length <= k) { vals.push(null); names.push(''); } vals[k] = src[t % src.length]; });
+      (newNames || []).forEach((s, j) => { names[L.vals.length + j] = s; });
+      return new RList(names, vals);
+    }
+    const A = [...asVec(cur)], nm = namesOf(cur) ? [...namesOf(cur)] : null, Vv = asVec(v);
+    const { pos, newNames } = positions(I, A.length, nm, line, true);
+    if (!pos.length) return cur;
+    if (!Vv.length) throw new RErr('replacement has length zero：右邊是空的（NULL 或長度 0）', line);
+    if (pos.length % Vv.length) warn('number of items to replace is not a multiple of replacement length');
+    const n0 = A.length;
+    pos.forEach((k, t) => { if (k < 0) return; while (A.length < k) A.push(undefined); A[k] = Vv[t % Vv.length]; });
+    let names = nm;
+    if (newNames && newNames.length) { names = names || Array(n0).fill(''); newNames.forEach((s, j) => { names[n0 + j] = s; }); }
+    if (names) while (names.length < A.length) names.push('');
+    return mk(coerceAll(A), names, dimOf(cur) && A.length === n0 ? cur.dim : null, dimOf(cur) && A.length === n0 ? cur.dimnames : null);
+  }
+  function replace2(cur, I, v, line){
+    const x = asVec(I)[0];
+    if (isList(cur) || isList(v) || isFn(v) || cur === null && (isList(v) || isFn(v))) {
+      const L = isList(cur) ? cur : new RList(asVec(cur).map((_, i) => (namesOf(cur) || [])[i] || ''), [...asVec(cur)]);
+      const names = [...L.names], vals = [...L.vals];
+      let k = typeof x === 'string' ? names.indexOf(x) : Math.trunc(num1(x, line)) - 1;
+      if (v === null) { if (k >= 0 && k < vals.length) { names.splice(k, 1); vals.splice(k, 1); } return new RList(names, vals); }
+      let newName = null;
+      if (k < 0) { k = vals.length; newName = String(x); }
+      while (vals.length <= k) { vals.push(null); names.push(''); }
+      if (newName !== null) names[k] = newName;
+      vals[k] = v; return new RList(names, vals);
+    }
+    if (asVec(v).length !== 1) throw new RErr(`more elements supplied than there are to replace：x[[i]] 只能放一個值，右邊有 ${asVec(v).length} 個`, line);
+    return replace1(cur, [I], v, line);
+  }
+  function setAttr(fname, cur, v, line){
+    switch (fname) {
+      case 'names': {
+        if (v === null) { if (isList(cur)) return new RList(cur.vals.map(() => ''), cur.vals); return mk([...asVec(cur)], null, dimOf(cur), cur && cur.dimnames); }
+        const N = asVec(v).map(asChar1), len = isList(cur) ? cur.vals.length : asVec(cur).length;
+        if (N.length > len) throw new RErr(`'names' attribute [${N.length}] must be the same length as the vector [${len}]：名字比元素還多`, line);
+        const full = Array.from({ length: len }, (_, i) => i < N.length ? N[i] : undefined);
+        if (isList(cur)) return new RList(full.map(x => x ?? ''), cur.vals);
+        const r = [...asVec(cur)]; r.names = full; if (dimOf(cur)) { r.dim = cur.dim; if (cur.dimnames) r.dimnames = cur.dimnames; } return r;
+      }
+      case 'rownames': case 'colnames': {
+        const d = dimOf(cur); if (!d) throw new RErr(`attempt to set '${fname}' on an object with no dimensions：${fname} 只能用在矩陣`, line);
+        const k = fname === 'rownames' ? 0 : 1, N = v === null ? null : asVec(v).map(asChar1);
+        if (N && N.length !== d[k]) throw new RErr(`length of 'dimnames' [${N.length}] not equal to array extent [${d[k]}]：名字的個數要和${k ? '欄' : '列'}數一樣`, line);
+        const dn = [...(cur.dimnames || [null, null])]; dn[k] = N;
+        return mk([...asVec(cur)], null, d, dn);
+      }
+      case 'dimnames': {
+        const d = dimOf(cur); if (!d) throw new RErr("'dimnames' applied to non-array", line);
+        if (v === null) return mk([...asVec(cur)], null, d, null);
+        return mk([...asVec(cur)], null, d, [0, 1].map(k => v.vals[k] === null || v.vals[k] === undefined ? null : asVec(v.vals[k]).map(asChar1)));
+      }
+      case 'dim': {
+        const D = asVec(v).map(x => num1(x, line)), V = asVec(cur);
+        if (D[0] * D[1] !== V.length) throw new RErr(`dims [product ${D[0] * D[1]}] do not match the length of object [${V.length}]`, line);
+        return mk([...V], null, D);
+      }
+    }
+    throw new RErr(`could not find function "${fname}<-"：不能這樣指定`, line);
+  }
+  function assignTo(t, v, line, up){
+    if (t.k === 'var') {
+      if (up) { let e = env.parent; while (e && !e.vars.has(t.name)) e = e.parent; (e || G).vars.set(t.name, v); }
+      else env.vars.set(t.name, v);
+      return;
+    }
+    const base = t.k === 'call' ? t.args[0].e : t.a;
+    let cur = null;
+    if (base.k === 'var') { const e = findEnv(base.name); cur = e ? force(e.vars.get(base.name), line) : null; if (!e && t.k !== 'dollar' && t.k !== 'index2' && t.k !== 'index') throw new RErr(`object '${base.name}' not found`, line); }
+    else cur = ev(base);
+    let nv;
+    if (t.k === 'index') nv = replace1(cur, t.xs.map(x => x === null ? MISSING : ev(x)), v, line);
+    else if (t.k === 'index2') nv = replace2(cur, ev(t.xs[0]), v, line);
+    else if (t.k === 'dollar') {
+      if (cur !== null && !isList(cur)) throw new RErr('$ 只能用在 list 上；向量請用 x["名字"] 或 x[[i]]', line);
+      nv = replace2(cur === null ? new RList([], []) : cur, t.name, v, line);
+    } else nv = setAttr(t.name, cur, v, line);
+    assignTo(base, nv, line, up);
+  }
+
+  /* -- arithmetic -- */
+  function bin1(op, x, y, line){
+    if (['==', '!=', '<', '>', '<=', '>='].includes(op)) {
+      if (x === undefined || y === undefined) return undefined;
+      if (typeof x === 'string' || typeof y === 'string') { x = asChar1(x); y = asChar1(y); } else { x = +x; y = +y; if (isNaN(x) || isNaN(y)) return undefined; }
+      switch (op) { case '==': return x === y; case '!=': return x !== y; case '<': return x < y; case '>': return x > y; case '<=': return x <= y; default: return x >= y; }
+    }
+    if (op === '&' || op === '|') {
+      const b = z => { if (typeof z === 'string') throw new RErr(`operations are possible only for numeric, logical or complex types：${op} 不能用在文字上`, line); return z === undefined || (typeof z === 'number' && isNaN(z)) ? undefined : !!z; };
+      const a = b(x), c = b(y);
+      if (op === '&') return a === false || c === false ? false : a === undefined || c === undefined ? undefined : true;
+      return a === true || c === true ? true : a === undefined || c === undefined ? undefined : false;
+    }
+    if (typeof x === 'string' || typeof y === 'string') throw new RErr('non-numeric argument to binary operator：文字不能做數學運算', line);
+    if (x === undefined || y === undefined) return undefined;
+    x = +x; y = +y;
+    switch (op) {
+      case '+': return x + y; case '-': return x - y; case '*': return x * y; case '/': return x / y; case '^': return Math.pow(x, y);
+      case '%/%': return Math.floor(x / y);
+      default: return y === 0 ? NaN : x - Math.floor(x / y) * y;
+    }
+  }
+  function arith(op, a, b, line){
+    if (isList(a) || isList(b)) throw new RErr(`non-numeric argument to binary operator：${op} 不能直接用在 list 上。可以先用 unlist() 攤平，或用 sapply 對每個元素計算`, line);
+    if (isFn(a) || isFn(b)) throw new RErr(`non-numeric argument to binary operator：函式不能拿來做 ${op} 運算。是不是忘了加括號呼叫它？`, line);
+    if (op === ':') {
+      const f = num1(a, line, ': 的左邊'), t = num1(b, line, ': 的右邊'), r = [];
+      if (isNaN(f) || isNaN(t)) throw new RErr('NA/NaN argument：: 的兩邊不能是 NA', line);
+      if (f <= t) for (let x = f; x <= t + 1e-9; x++) r.push(x); else for (let x = f; x >= t - 1e-9; x--) r.push(x);
+      return mk(r);
+    }
+    const A = asVec(a), B = asVec(b);
+    if (op === '%in%') { const S = new Set(B.map(asChar1)); return mk(A.map(x => S.has(asChar1(x)))); }
+    if (!A.length || !B.length) return [];
+    const L = Math.max(A.length, B.length), r = [];
+    if (L % A.length || L % B.length) warn('longer object length is not a multiple of shorter object length：兩邊長度不是倍數關係，短的那邊會被重複使用');
+    for (let k = 0; k < L; k++) r.push(bin1(op, A[k % A.length], B[k % B.length], line));
+    const src = Array.isArray(a) && a.length === L && (a.names || a.dim) ? a : Array.isArray(b) && b.length === L ? b : a;
+    return keepAttrs(src, r);
+  }
+  const OPS = new Set(['+', '-', '*', '/', '^', '%%', '%/%', '==', '!=', '<', '>', '<=', '>=', '&', '|', ':', '%in%']);
+
+  /* -- calling functions -- */
+  function matchArgs(args, formals, fname, line){   // formals: [names]; '...' collects the rest
+    const out = {}, dots = [], used = new Set(), hasDots = formals.includes('...');
+    const before = hasDots ? formals.slice(0, formals.indexOf('...')) : formals;
+    args.forEach((a, i) => {
+      if (a.name == null || a.name === '...') return;
+      if (formals.includes(a.name)) {
+        if (a.name in out) throw new RErr(`formal argument "${a.name}" matched by multiple actual arguments：${a.name} 給了兩次`, line);
+        out[a.name] = a.v; used.add(i); return;
+      }
+      const part = before.filter(f => f.startsWith(a.name) && !(f in out));   // R also matches unique prefixes
+      if (part.length === 1) { out[part[0]] = a.v; used.add(i); }
+    });
+    let fi = 0;
+    args.forEach((a, i) => {
+      if (used.has(i)) return;
+      if (a.name != null) { if (hasDots) { dots.push(a); return; } throw new RErr(`unused argument (${a.name} = …)：${fname}() 沒有叫 ${a.name} 的參數`, line); }
+      while (fi < before.length && before[fi] in out) fi++;
+      if (fi < before.length) out[before[fi++]] = a.v;
+      else if (hasDots) dots.push(a);
+      else throw new RErr(`unused argument：${fname}() 的參數給太多了`, line);
+    });
+    for (const k of Object.keys(out)) if (out[k] === MISSING) delete out[k];
+    out['...'] = dots.filter(d => d.v !== MISSING);
+    return out;
+  }
+  function callUser(f, args, line, name){
+    if (depth >= 200) throw new RErr('evaluation nested too deeply：遞迴太深了，是不是少了停止的條件？', line);
+    const pn = f.params.map(q => q.name);
+    const m = matchArgs(args, pn, name, line), local = new Map(), fenv = { vars: local, parent: f.env };
+    for (const q of f.params) {
+      if (q.name === '...') { local.set('...', m['...']); continue; }
+      if (q.name in m) local.set(q.name, m[q.name]);
+      else local.set(q.name, q.def ? new Promise_(q.def, fenv) : MISSING);   // defaults are lazy, evaluated inside the function
+    }
+    const save = env; env = fenv; depth++;
+    try {
+      visible = true;
+      const r = ev(f.body);
+      return r;
+    } catch (e) {
+      if (e instanceof ReturnSig) { visible = e.vis; return e.v; }
+      if (e instanceof BreakSig || e instanceof NextSig) throw new RErr('break / next 只能寫在迴圈裡面，不能用來離開 function（要離開請用 return）', e.line);
+      throw e;
+    } finally { env = save; depth--; }
+  }
+  function matchFun(f, line, what = 'FUN'){
+    if (isFn(f)) return f;
+    if (typeof f === 'string') { const g = lookupFn(f, line); if (g) return g; throw new RErr(`could not find function "${f}"`, line); }
+    throw new RErr(`match.fun(${what})：${what} 要給「函式本身」，例如 sapply(x, mean) 或 sapply(x, function(v) v * 2)。你給的是 ${fmtShort(f)}——如果寫成 mean(x)，那是函式已經算完的「結果」，不是函式。`, line);
+  }
+  function invoke(f, args, line, name){
+    if (f instanceof RFun) return callUser(f, args, line, name || 'FUN');
+    return builtin(f.name, args, line);
+  }
+  const evalArgs = argNodes => {
+    const out = [];
+    for (const a of argNodes) {
+      if (a.e.k === 'var' && a.e.name === '...') {
+        const e = findEnv('...'); if (!e) throw new RErr("'...' used in an incorrect context：... 只能用在有 ... 參數的函式裡", a.e.line);
+        out.push(...e.vars.get('...').map(d => ({ name: d.name, v: force(d.v) })));
+      } else out.push({ name: a.name, v: a.e.k === 'lit' && a.e.v === MISSING ? MISSING : ev(a.e) });
+    }
+    return out;
+  };
+  function call(n){
+    tick(n.line);
+    if (n.name === 'switch') return doSwitch(n);
+    if (n.name === 'return') {
+      if (env === G) throw new RErr('return() 只能寫在 function 裡面', n.line);
+      visible = true; const v = n.args.length ? ev(n.args[0].e) : null;
+      throw new ReturnSig(v, visible, n.line);
+    }
+    if (n.name === 'missing') { const e = findEnv(n.args[0].e.name); visible = true; return !!e && e.vars.get(n.args[0].e.name) === MISSING; }
+    if (n.name === 'function' || n.name === 'continue') throw new RErr(n.name === 'continue' ? 'R 沒有 continue，要跳過這一圈請用 next' : 'function 的寫法是 function(x) { … }', n.line);
+    const f = lookupFn(n.name, n.line);
+    if (!f) {
+      if (findEnv(n.name)) throw new RErr(`attempt to apply non-function：${n.name} 是變數，不是函式`, n.line);
+      throw new RErr(`could not find function "${n.name}"：沒有這個函式，檢查一下拼字`, n.line);
+    }
+    const args = evalArgs(n.args);
+    visible = true;
+    return invoke(f, args, n.line, n.name);
+  }
+  function doSwitch(n){
+    const sel = asVec(ev(n.args[0].e))[0], rest = n.args.slice(1);
+    visible = true;
+    if (typeof sel === 'number') { const a = rest[sel - 1]; return a ? ev(a.e) : (visible = false, null); }
+    let k = rest.findIndex(a => a.name === asChar1(sel));
+    if (k < 0) k = rest.findIndex(a => !a.name);
+    if (k < 0) { visible = false; return null; }
+    while (k < rest.length && rest[k].e.k === 'lit' && rest[k].e.v === MISSING) k++;   // fall through empty alternatives
+    return k < rest.length ? ev(rest[k].e) : null;
+  }
+
+  /* -- apply family -- */
+  const elemsOf = (X, line) => {   // what lapply walks over: list elements, or single vector elements
+    if (isFn(X)) throw new RErr('lapply / sapply 的第一個參數要是向量或 list，不是函式。順序是 sapply(資料, 函式)', line);
+    if (isList(X)) return { vals: X.vals, names: namesOf(X) };
+    const V = asVec(X); return { vals: [...V], names: namesOf(X) };
+  };
+  function simplify(L, higher = true){   // R's simplify2array()
+    const vals = L.vals; if (!vals.length) return L;
+    const lens = vals.map(v => isList(v) ? v.vals.length : isFn(v) ? 1 : asVec(v).length);
+    if (lens.every(k => k === 1)) {
+      if (vals.some(v => isList(v) || isFn(v))) return new RList(L.names, vals.map(v => isList(v) ? v.vals[0] : v));
+      return unlistV(new RList(L.names, vals));
+    }
+    const k = lens[0];
+    if (k > 1 && lens.every(x => x === k) && vals.every(v => !isList(v) && !isFn(v))) {
+      const flat = vals.flatMap(v => asVec(v)), t = vtype(flat);
+      const conv = t === 'character' ? flat.map(asChar1) : t === 'numeric' ? flat.map(x => typeof x === 'boolean' ? +x : x) : flat;
+      const rn = namesOf(vals[0]), cn = namesOf(L);
+      return mk(conv, null, [k, vals.length], [rn ? [...rn] : null, cn ? [...cn] : null]);
+    }
+    return L;
+  }
+  const useNamesFor = (X, names) => names ? names : (!isList(X) && vtype(asVec(X)) === 'character' && asVec(X).length ? asVec(X).map(asChar1) : null);
+  function lapplyCore(X, FUN, extra, line){
+    const { vals, names } = elemsOf(X, line), f = matchFun(FUN, line), out = [];
+    for (const x of vals) { tick(line); out.push(invoke(f, [{ name: null, v: x }, ...extra], line, 'FUN')); }
+    return new RList(names ? [...names] : vals.map(() => ''), out);
+  }
+  const lgl = (v, d) => v === undefined ? d : condV(v, null);
+  const typeName = v => isList(v) ? 'list' : isFn(v) ? 'closure' : v === null ? 'NULL' : ({ character: 'character', numeric: 'double', logical: 'logical' })[vtype(asVec(v))];
+
+  /* -- built-in functions: name -> [formals, impl(a, line)] -- */
+  const numArgs = (a, line) => a['...'].flatMap(d => nums(d.v, line));
+  const naRm = (V, a) => lgl(a['na.rm'], false) ? V.filter(x => !isNA(x)) : V;
+  const one = (x, line) => { const V = asVec(x); return V.length ? V[0] : undefined; };
+  const mapKeep = (x, f) => { if (isList(x)) throw new RErr('這個函式不能直接用在 list 上，可以用 sapply / lapply 對每個元素做', null); return keepAttrs(x, asVec(x).map(f)); };
+  const sortKeyCmp = (a, b) => typeof a === 'string' || typeof b === 'string' ? (asChar1(a) < asChar1(b) ? -1 : asChar1(a) > asChar1(b) ? 1 : 0) : a - b;
+  function roundR(x, d){
+    if (isNA(x) || !isFinite(x)) return x;
+    const s = Math.abs(x).toFixed(Math.min(100, Math.max(0, d) + 40)), dot = s.indexOf('.'), tail = s.slice(dot + 1 + Math.max(0, d));
+    if (d >= 0 && /^50*$/.test(tail)) {   // exact tie: R rounds to even
+      const f = 10 ** d, lo = Math.floor(Math.abs(x) * f), up = lo % 2 === 0 ? lo : lo + 1;
+      return Math.sign(x) * up / f;
+    }
+    if (d < 0) { const f = 10 ** -d; return Math.round(x / f) * f; }
+    return Number(x.toFixed(d));
+  }
+  function sprintf1(fmt, vals, line){
+    let k = 0;
+    return fmt.replace(/%(-?)(0?)(\d*)(?:\.(\d+))?([dfsieg%])/g, (m, left, zero, w, prec, t) => {
+      if (t === '%') return '%';
+      const v = vals[k++]; let s;
+      if (v === undefined && t !== 's') s = 'NA';
+      else if (t === 'd' || t === 'i') { if (typeof v !== 'number' || !Number.isInteger(v)) throw new RErr(`invalid format '${m}'; use format %f, %e, %g or %a for numeric objects：%d 只能放整數`, line); s = String(v); }
+      else if (t === 'f') { if (typeof v !== 'number') throw new RErr(`invalid format '${m}'; use format %s for character objects`, line); s = v.toFixed(prec === undefined ? 6 : +prec); }
+      else if (t === 'e') s = v.toExponential(prec === undefined ? 6 : +prec).replace(/e([+-])(\d)$/, 'e$10$2');
+      else if (t === 'g') s = fmtNum1(v);
+      else s = v === undefined ? 'NA' : typeof v === 'number' ? fmtNum1(v) : asChar1(v);
+      if (w && s.length < +w) s = left ? s.padEnd(+w) : zero && t !== 's' ? (s[0] === '-' ? '-' + s.slice(1).padStart(+w - 1, '0') : s.padStart(+w, '0')) : s.padStart(+w);
+      return s;
+    });
+  }
+  const recycleN = arrs => Math.max(0, ...arrs.map(a => a.length)) * (arrs.some(a => !a.length) ? 0 : 1);
+  const levelsOf = V => { const u = [...new Set(V.filter(x => !isNA(x)))]; return u.sort(sortKeyCmp).map(asChar1); };
+  const identical = (a, b) => {
+    if (isList(a) || isList(b)) return isList(a) && isList(b) && a.vals.length === b.vals.length && JSON.stringify(namesOf(a)) === JSON.stringify(namesOf(b)) && a.vals.every((x, i) => identical(x, b.vals[i]));
+    if (isFn(a) || isFn(b)) return a === b;
+    if (a === null || b === null) return a === b;
+    const A = asVec(a), B = asVec(b);
+    if (A.length !== B.length || vtype(A) !== vtype(B) && A.length) return false;
+    if (JSON.stringify(namesOf(a) || null) !== JSON.stringify(namesOf(b) || null)) return false;
+    if (JSON.stringify(dimOf(a)) !== JSON.stringify(dimOf(b)) || JSON.stringify((a && a.dimnames) || null) !== JSON.stringify((b && b.dimnames) || null)) return false;
+    return A.every((x, i) => Object.is(x, B[i]) || (x === B[i]));
+  };
+  function bindVecs(a, line, byRow){
+    const items = a['...'].filter(d => d.v !== null);
+    if (!items.length) return null;
+    const vecs = items.map(d => {
+      if (isList(d.v)) throw new RErr(`${byRow ? 'rbind' : 'cbind'}() 這裡只支援向量`, line);
+      const dm = dimOf(d.v);
+      if (dm) {
+        const V = asVec(d.v), dn = d.v.dimnames || [null, null];
+        if (byRow) return Array.from({ length: dm[0] }, (_, i) => ({ name: dn[0] ? dn[0][i] : '', vals: Array.from({ length: dm[1] }, (_, j) => V[j * dm[0] + i]), names: dn[1] }));
+        return Array.from({ length: dm[1] }, (_, j) => ({ name: dn[1] ? dn[1][j] : '', vals: V.slice(j * dm[0], j * dm[0] + dm[0]), names: dn[0] }));
+      }
+      return [{ name: d.name || '', vals: [...asVec(d.v)], names: namesOf(d.v) }];
+    }).flat();
+    const k = Math.max(...vecs.map(v => v.vals.length)), n = vecs.length;
+    const vals = [], t = vtype(vecs.flatMap(v => v.vals));
+    if (byRow) { for (let j = 0; j < k; j++) for (let i = 0; i < n; i++) vals.push(vecs[i].vals[j % vecs[i].vals.length]); }
+    else for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) vals.push(vecs[i].vals[j % vecs[i].vals.length]);
+    const conv = t === 'character' ? vals.map(asChar1) : t === 'numeric' ? vals.map(x => typeof x === 'boolean' ? +x : x) : vals;
+    const outer = vecs.some(v => v.name) ? vecs.map(v => v.name) : null, inner = (vecs.find(v => v.names && v.names.length === k) || {}).names || null;
+    return byRow ? mk(conv, null, [n, k], [outer, inner ? [...inner] : null]) : mk(conv, null, [k, n], [inner ? [...inner] : null, outer]);
+  }
+  const BUILTIN = {
+    c: [['...'], (a, line) => combine(a['...'], line)],
+    list: [['...'], a => new RList(a['...'].map(d => d.name || ''), a['...'].map(d => d.v))],
+    vector: [['mode', 'length'], (a, line) => { const m = asChar1(one(a.mode ?? 'logical')), k = num1(a.length ?? 0, line); return m === 'list' ? new RList(Array(k).fill(''), Array(k).fill(null)) : mk(Array(k).fill(m === 'character' ? '' : m === 'numeric' ? 0 : false)); }],
+    length: [['x'], a => isList(a.x) ? a.x.vals.length : isFn(a.x) ? 1 : asVec(a.x).length],
+    names: [['x'], a => { const n = namesOf(a.x); return n ? mk([...n]) : null; }],
+    setNames: [['object', 'nm'], (a, line) => setAttr('names', a.object ?? null, a.nm ?? null, line)],
+    unlist: [['x', 'recursive', 'use.names'], a => unlistV(a.x, lgl(a['use.names'], true))],
+    seq: [['from', 'to', 'by', 'length.out', 'along.with'], (a, line) => {
+      if (a['along.with'] !== undefined) return mk(asVec(a['along.with']).map((_, i) => i + 1));
+      if (a.from !== undefined && a.to === undefined && a.by === undefined && a['length.out'] === undefined) { const V = asVec(a.from); if (V.length > 1) return mk(V.map((_, i) => i + 1)); const k = num1(a.from, line); return k >= 1 ? mk(Array.from({ length: Math.floor(k) }, (_, i) => i + 1)) : mk([1, 0].slice(0, 2 - (k >= 1))); }
+      const from = num1(a.from ?? 1, line);
+      if (a['length.out'] !== undefined) {
+        const k = num1(a['length.out'], line);
+        const to = a.to !== undefined ? num1(a.to, line) : from + (k - 1) * num1(a.by ?? 1, line);
+        return mk(Array.from({ length: k }, (_, i) => k === 1 ? from : Number((from + (to - from) * i / (k - 1)).toPrecision(15))));
+      }
+      const to = num1(a.to ?? 1, line); let by = a.by === undefined ? (from <= to ? 1 : -1) : num1(a.by, line);
+      if (by === 0 || (to - from) * by < 0) throw new RErr("wrong sign in 'by' argument：by 的方向不對", line);
+      const r = []; for (let i = 0, x = from; by > 0 ? x <= to + 1e-10 : x >= to - 1e-10; i++, x = from + i * by) { tick(line); r.push(Number(x.toPrecision(15))); }
+      return mk(r);
+    }],
+    seq_len: [['length.out'], (a, line) => { const k = num1(a['length.out'], line); if (k < 0) throw new RErr("argument of length 0：seq_len() 不能是負數", line); return k ? mk(Array.from({ length: k }, (_, i) => i + 1)) : typedEmpty('integer'); }],
+    seq_along: [['along.with'], a => { const n = isList(a['along.with']) ? a['along.with'].vals.length : asVec(a['along.with']).length; return n ? mk(Array.from({ length: n }, (_, i) => i + 1)) : typedEmpty('integer'); }],
+    rep: [['x', 'times', 'each', 'length.out'], (a, line) => {
+      let V = [...asVec(a.x)], nm = namesOf(a.x) ? [...namesOf(a.x)] : null;
+      const each = a.each !== undefined ? num1(a.each, line) : 1;
+      if (each > 1) { V = V.flatMap(x => Array(each).fill(x)); if (nm) nm = nm.flatMap(x => Array(each).fill(x)); }
+      if (a.times !== undefined) {
+        const T = asVec(a.times).map(x => num1(x, line));
+        if (T.length === 1) { const t = T[0]; V = Array.from({ length: t }, () => V).flat(); if (nm) nm = Array.from({ length: t }, () => nm).flat(); }
+        else { if (T.length !== V.length) throw new RErr("invalid 'times' argument：times 的長度要和 x 一樣", line); const nV = [], nN = []; V.forEach((x, i) => { for (let k = 0; k < T[i]; k++) { nV.push(x); if (nm) nN.push(nm[i]); } }); V = nV; if (nm) nm = nN; }
+      }
+      if (a['length.out'] !== undefined) { const k = num1(a['length.out'], line), B = V, BN = nm; V = Array.from({ length: k }, (_, i) => B[i % B.length]); if (nm) nm = Array.from({ length: k }, (_, i) => BN[i % BN.length]); }
+      return mk(V, nm);
+    }],
+    rev: [['x'], a => isList(a.x) ? new RList([...a.x.names].reverse(), [...a.x.vals].reverse()) : mk([...asVec(a.x)].reverse(), namesOf(a.x) ? [...namesOf(a.x)].reverse() : null)],
+    numeric: [['length'], (a, line) => { const k = num1(a.length ?? 0, line); return k ? mk(Array(k).fill(0)) : typedEmpty('numeric'); }],
+    double: [['length'], (a, line) => { const k = num1(a.length ?? 0, line); return k ? mk(Array(k).fill(0)) : typedEmpty('numeric'); }],
+    integer: [['length'], (a, line) => { const k = num1(a.length ?? 0, line); return k ? mk(Array(k).fill(0)) : typedEmpty('integer'); }],
+    character: [['length'], (a, line) => { const k = num1(a.length ?? 0, line); return k ? mk(Array(k).fill('')) : typedEmpty('character'); }],
+    logical: [['length'], (a, line) => { const k = num1(a.length ?? 0, line); return k ? mk(Array(k).fill(false)) : typedEmpty('logical'); }],
+    sum: [['...', 'na.rm'], (a, line) => { const V = naRm(numArgs(a, line), a); return V.some(isNA) ? (V.some(x => x === undefined) ? undefined : NaN) : V.reduce((s, x) => s + x, 0); }],
+    prod: [['...', 'na.rm'], (a, line) => { const V = naRm(numArgs(a, line), a); return V.some(isNA) ? undefined : V.reduce((s, x) => s * x, 1); }],
+    mean: [['x', '...', 'na.rm'], (a, line) => {
+      if (a.x === undefined) throw new RErr('argument "x" is missing, with no default：mean() 要給資料', line);
+      if (isList(a.x) || isFn(a.x) || vtype(asVec(a.x)) === 'character') { warn('argument is not numeric or logical: returning NA：mean() 只能算數字向量' + (isList(a.x) ? '，這是 list，可以先用 unlist()' : '')); return undefined; }
+      const V = naRm(nums(a.x, line), a); if (V.some(x => x === undefined)) return undefined; return V.length ? V.reduce((s, x) => s + x, 0) / V.length : NaN;
+    }],
+    median: [['x', 'na.rm'], (a, line) => { const V = naRm(nums(a.x, line), a); if (V.some(isNA)) return undefined; if (!V.length) return undefined; const S = [...V].sort((p, q) => p - q), m = S.length >> 1; return S.length % 2 ? S[m] : (S[m - 1] + S[m]) / 2; }],
+    var: [['x', 'na.rm'], (a, line) => { const V = naRm(nums(a.x, line), a); if (V.some(isNA) || V.length < 2) return undefined; const m = V.reduce((s, x) => s + x, 0) / V.length; return V.reduce((s, x) => s + (x - m) ** 2, 0) / (V.length - 1); }],
+    sd: [['x', 'na.rm'], (a, line) => { const v = BUILTIN.var[1](a, line); return v === undefined ? undefined : Math.sqrt(v); }],
+    max: [['...', 'na.rm'], (a, line) => { const all = a['...'].flatMap(d => isList(d.v) ? (() => { throw new RErr('invalid \'type\' (list) of argument：max() 不能直接用在 list 上', line); })() : asVec(d.v)); const V = naRm(all, a); if (!V.length) { warn('no non-missing arguments to max; returning -Inf'); return -Infinity; } if (V.some(isNA)) return undefined; return vtype(V) === 'character' ? V.map(asChar1).sort().pop() : Math.max(...V.map(Number)); }],
+    min: [['...', 'na.rm'], (a, line) => { const all = a['...'].flatMap(d => isList(d.v) ? (() => { throw new RErr('invalid \'type\' (list) of argument：min() 不能直接用在 list 上', line); })() : asVec(d.v)); const V = naRm(all, a); if (!V.length) { warn('no non-missing arguments to min; returning Inf'); return Infinity; } if (V.some(isNA)) return undefined; return vtype(V) === 'character' ? V.map(asChar1).sort()[0] : Math.min(...V.map(Number)); }],
+    range: [['...', 'na.rm'], (a, line) => mk([BUILTIN.min[1](a, line), BUILTIN.max[1](a, line)])],
+    cumsum: [['x'], (a, line) => { let s = 0; return keepAttrs(a.x, nums(a.x, line).map(x => s = s === undefined || x === undefined ? undefined : s + x)); }],
+    abs: [['x'], (a, line) => keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.abs(x)))],
+    sqrt: [['x'], (a, line) => { const r = nums(a.x, line).map(x => x === undefined ? x : Math.sqrt(x)); if (r.some(x => typeof x === 'number' && isNaN(x))) warn('NaNs produced：負數不能開根號'); return keepAttrs(a.x, r); }],
+    exp: [['x'], (a, line) => keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.exp(x)))],
+    log: [['x', 'base'], (a, line) => { const b = a.base === undefined ? Math.E : num1(a.base, line); return keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.log(x) / Math.log(b))); }],
+    log2: [['x'], (a, line) => keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.log2(x)))],
+    log10: [['x'], (a, line) => keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.log10(x)))],
+    floor: [['x'], (a, line) => keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.floor(x)))],
+    ceiling: [['x'], (a, line) => keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : Math.ceil(x)))],
+    round: [['x', 'digits'], (a, line) => { const d = a.digits === undefined ? 0 : num1(a.digits, line); return keepAttrs(a.x, nums(a.x, line).map(x => x === undefined ? x : roundR(x, d))); }],
+    which: [['x'], (a, line) => { const V = asVec(a.x), nm = namesOf(a.x); if (V.some(x => typeof x !== 'boolean' && x !== undefined)) throw new RErr("argument to 'which' is not logical：which() 裡面要放 TRUE/FALSE，例如 which(x > 5)", line); const pos = V.flatMap((v, i) => v === true ? [i] : []); if (!pos.length) return typedEmpty('integer', !!nm); return mk(pos.map(i => i + 1), nm ? pos.map(i => nm[i]) : null); }],
+    'which.max': [['x'], (a, line) => { const V = nums(a.x, line), nm = namesOf(a.x); let k = -1; V.forEach((x, i) => { if (!isNA(x) && (k < 0 || x > V[k])) k = i; }); return k < 0 ? [] : mk([k + 1], nm ? [nm[k]] : null); }],
+    'which.min': [['x'], (a, line) => { const V = nums(a.x, line), nm = namesOf(a.x); let k = -1; V.forEach((x, i) => { if (!isNA(x) && (k < 0 || x < V[k])) k = i; }); return k < 0 ? [] : mk([k + 1], nm ? [nm[k]] : null); }],
+    any: [['...', 'na.rm'], a => { const V = naRm(a['...'].flatMap(d => asVec(d.v)), a); return V.some(x => x === true || (typeof x === 'number' && x !== 0 && !isNaN(x))) ? true : V.some(isNA) ? undefined : false; }],
+    all: [['...', 'na.rm'], a => { const V = naRm(a['...'].flatMap(d => asVec(d.v)), a); return V.some(x => x === false || x === 0) ? false : V.some(isNA) ? undefined : true; }],
+    'is.na': [['x'], a => isList(a.x) ? mk(a.x.vals.map(v => !isList(v) && asVec(v).length === 1 && isNA(asVec(v)[0])), namesOf(a.x)) : keepAttrs(a.x, asVec(a.x).map(isNA))],
+    'is.null': [['x'], a => a.x === null],
+    'is.numeric': [['x'], a => !isList(a.x) && !isFn(a.x) && a.x !== null && vtype(asVec(a.x)) === 'numeric'],
+    'is.character': [['x'], a => !isList(a.x) && !isFn(a.x) && a.x !== null && vtype(asVec(a.x)) === 'character' && asVec(a.x).some(x => typeof x === 'string')],
+    'is.logical': [['x'], a => !isList(a.x) && !isFn(a.x) && a.x !== null && vtype(asVec(a.x)) === 'logical'],
+    'is.list': [['x'], a => isList(a.x)],
+    'is.function': [['x'], a => isFn(a.x)],
+    'is.matrix': [['x'], a => !!dimOf(a.x)],
+    'as.numeric': [['x'], (a, line) => { let bad = false; const r = asVec(isList(a.x) ? unlistV(a.x) : a.x).map(x => x === undefined ? x : typeof x === 'string' ? (x.trim() === '' || isNaN(Number(x)) ? (bad = true, undefined) : Number(x)) : +x); if (bad) warn('NAs introduced by coercion：有些文字不是數字，變成了 NA'); return mk(r); }],
+    'as.integer': [['x'], (a, line) => mk(asVec(a.x).map(x => x === undefined ? x : Math.trunc(Number(x))))],
+    'as.character': [['x'], a => isList(a.x) ? mk(a.x.vals.map(v => asVec(v).length === 1 ? asChar1(asVec(v)[0]) : 'c(' + asVec(v).map(y => fmtElems([y], true)[0]).join(', ') + ')')) : mk(asVec(a.x).map(asChar1))],
+    'as.logical': [['x'], a => mk(asVec(a.x).map(x => x === undefined ? x : typeof x === 'string' ? (/^(TRUE|true|T|True)$/.test(x) ? true : /^(FALSE|false|F|False)$/.test(x) ? false : undefined) : !!x))],
+    'as.list': [['x'], a => isList(a.x) ? a.x : new RList(asVec(a.x).map((_, i) => (namesOf(a.x) || [])[i] || ''), [...asVec(a.x)])],
+    class: [['x'], a => isList(a.x) ? 'list' : isFn(a.x) ? 'function' : a.x === null ? 'NULL' : dimOf(a.x) ? mk(['matrix', 'array']) : vtype(asVec(a.x))],
+    typeof: [['x'], a => typeName(a.x)],
+    identical: [['x', 'y'], a => identical(a.x ?? null, a.y ?? null)],
+    ifelse: [['test', 'yes', 'no'], (a, line) => {
+      const T = asVec(a.test), Y = asVec(a.yes), N = asVec(a.no);
+      if (a.yes === undefined || a.no === undefined) throw new RErr('ifelse() 需要三個參數：ifelse(條件, 是, 否)', line);
+      const r = T.map((t, i) => isNA(t) ? undefined : (typeof t === 'string' ? condV(t, line) : !!t) ? Y[i % Y.length] : N[i % N.length]);
+      return keepAttrs(a.test, coerceAll(r));
+    }],
+    nchar: [['x'], a => keepAttrs(a.x, asVec(a.x).map(x => x === undefined ? 2 : [...asChar1(x)].length))],
+    toupper: [['x'], a => keepAttrs(a.x, asVec(a.x).map(x => x === undefined ? x : asChar1(x).toUpperCase()))],
+    tolower: [['x'], a => keepAttrs(a.x, asVec(a.x).map(x => x === undefined ? x : asChar1(x).toLowerCase()))],
+    substr: [['x', 'start', 'stop'], (a, line) => { const s = num1(a.start, line), e = num1(a.stop, line); return keepAttrs(a.x, asVec(a.x).map(x => x === undefined ? x : [...asChar1(x)].slice(Math.max(0, s - 1), Math.max(0, e)).join(''))); }],
+    strsplit: [['x', 'split'], (a, line) => {
+      if (isList(a.x) || vtype(asVec(a.x)) !== 'character') throw new RErr('non-character argument：strsplit() 只能切文字', line);
+      const sp = asChar1(one(a.split ?? ''));
+      return new RList(namesOf(a.x) ? [...namesOf(a.x)] : asVec(a.x).map(() => ''), asVec(a.x).map(x => x === undefined ? undefined : mk(sp === '' ? [...x] : x.split(new RegExp(sp)).filter((p, i, A) => !(i === A.length - 1 && p === '' && A.length > 1)))));
+    }],
+    paste: [['...', 'sep', 'collapse'], (a, line) => {
+      const parts = a['...'].map(d => isList(d.v) ? d.v.vals.map(v => asVec(v).length === 1 ? asChar1(asVec(v)[0]) : 'c(' + asVec(v).map(asChar1).join(', ') + ')') : asVec(d.v).map(x => x === undefined ? 'NA' : asChar1(x))).filter(p => p.length);
+      const sep = a.sep === undefined ? ' ' : asChar1(one(a.sep)), L = Math.max(0, ...parts.map(p => p.length));
+      const r = Array.from({ length: L }, (_, i) => parts.map(p => p[i % p.length]).join(sep));
+      return a.collapse !== undefined && a.collapse !== null ? r.join(asChar1(one(a.collapse))) : mk(r);
+    }],
+    paste0: [['...', 'collapse'], (a, line) => BUILTIN.paste[1]({ ...a, sep: '' }, line)],
+    sprintf: [['fmt', '...'], (a, line) => {
+      const F = asVec(a.fmt), args = a['...'].map(d => asVec(d.v)), L = recycleN([F, ...args]);
+      return mk(Array.from({ length: L }, (_, i) => sprintf1(asChar1(F[i % F.length]), args.map(v => v[i % v.length]), line)));
+    }],
+    grepl: [['pattern', 'x', 'fixed'], (a, line) => { const p = asChar1(one(a.pattern)), re = lgl(a.fixed, false) ? null : new RegExp(p); return mk(asVec(a.x).map(x => x === undefined ? false : re ? re.test(asChar1(x)) : asChar1(x).includes(p))); }],
+    sub: [['pattern', 'replacement', 'x', 'fixed'], (a, line) => { const p = asChar1(one(a.pattern)), r = asChar1(one(a.replacement)); return keepAttrs(a.x, asVec(a.x).map(x => x === undefined ? x : lgl(a.fixed, false) ? asChar1(x).replace(p, r) : asChar1(x).replace(new RegExp(p), r.replace(/\\(\d)/g, '$$$1')))); }],
+    gsub: [['pattern', 'replacement', 'x', 'fixed'], (a, line) => { const p = asChar1(one(a.pattern)), r = asChar1(one(a.replacement)); return keepAttrs(a.x, asVec(a.x).map(x => x === undefined ? x : lgl(a.fixed, false) ? asChar1(x).split(p).join(r) : asChar1(x).replace(new RegExp(p, 'g'), r.replace(/\\(\d)/g, '$$$1')))); }],
+    sort: [['x', 'decreasing'], (a, line) => {
+      if (isList(a.x)) throw new RErr("'x' must be atomic：sort() 不能直接排 list", line);
+      const V = asVec(a.x), nm = namesOf(a.x), idx = V.map((_, i) => i).filter(i => !isNA(V[i]));
+      idx.sort((i, j) => sortKeyCmp(V[i], V[j]) || i - j); if (lgl(a.decreasing, false)) idx.reverse();
+      return mk(idx.map(i => V[i]), nm ? idx.map(i => nm[i]) : null);
+    }],
+    order: [['...', 'decreasing'], (a, line) => { const V = asVec(a['...'][0].v), idx = V.map((_, i) => i); const dec = lgl(a.decreasing, false); idx.sort((i, j) => (isNA(V[i]) - isNA(V[j])) || (dec ? -sortKeyCmp(V[i], V[j]) : sortKeyCmp(V[i], V[j])) || i - j); return mk(idx.map(i => i + 1)); }],
+    unique: [['x'], a => { if (isList(a.x)) return a.x; const seen = new Set(), r = []; for (const x of asVec(a.x)) { const k = typeof x + ':' + String(x); if (!seen.has(k)) { seen.add(k); r.push(x); } } return mk(r); }],
+    head: [['x', 'n'], (a, line) => { const k = a.n === undefined ? 6 : num1(a.n, line); const L = isList(a.x) ? a.x.vals.length : asVec(a.x).length; const m = k < 0 ? Math.max(0, L + k) : Math.min(k, L); return index1(a.x, [mk(Array.from({ length: m }, (_, i) => i + 1))], line); }],
+    tail: [['x', 'n'], (a, line) => { const k = a.n === undefined ? 6 : num1(a.n, line); const L = isList(a.x) ? a.x.vals.length : asVec(a.x).length; const m = k < 0 ? Math.max(0, L + k) : Math.min(k, L); return index1(a.x, [mk(Array.from({ length: m }, (_, i) => L - m + i + 1))], line); }],
+    intersect: [['x', 'y'], a => { const Y = new Set(asVec(a.y).map(asChar1)), seen = new Set(); return mk(asVec(a.x).filter(x => Y.has(asChar1(x)) && !seen.has(asChar1(x)) && seen.add(asChar1(x)))); }],
+    union: [['x', 'y'], a => { const seen = new Set(); return mk([...asVec(a.x), ...asVec(a.y)].filter(x => !seen.has(asChar1(x)) && seen.add(asChar1(x)))); }],
+    setdiff: [['x', 'y'], a => { const Y = new Set(asVec(a.y).map(asChar1)), seen = new Set(); return mk(asVec(a.x).filter(x => !Y.has(asChar1(x)) && !seen.has(asChar1(x)) && seen.add(asChar1(x)))); }],
+    table: [['...'], (a, line) => { const V = asVec(a['...'][0].v), lv = levelsOf(V), r = lv.map(l => V.filter(x => asChar1(x) === l).length); return mk(r, lv); }],
+    matrix: [['data', 'nrow', 'ncol', 'byrow', 'dimnames'], (a, line) => {
+      const V = asVec(a.data ?? undefined);
+      let nr = a.nrow !== undefined ? num1(a.nrow, line) : null, nc = a.ncol !== undefined ? num1(a.ncol, line) : null;
+      if (nr === null && nc === null) { nr = V.length; nc = 1; } else if (nr === null) nr = Math.ceil(V.length / nc); else if (nc === null) nc = Math.ceil(V.length / nr);
+      if (V.length && (nr * nc) % V.length && V.length % nr) warn(`data length [${V.length}] is not a sub-multiple or multiple of the number of rows [${nr}]`);
+      const out = Array(nr * nc);
+      for (let k = 0; k < nr * nc; k++) { const x = V.length ? V[k % V.length] : undefined; if (lgl(a.byrow, false)) { const i = Math.floor(k / nc), j = k % nc; out[j * nr + i] = x; } else out[k] = x; }
+      const dn = a.dimnames ? [0, 1].map(k => a.dimnames.vals[k] == null ? null : asVec(a.dimnames.vals[k]).map(asChar1)) : null;
+      return mk(out, null, [nr, nc], dn);
+    }],
+    dim: [['x'], a => dimOf(a.x) ? mk([...a.x.dim]) : null],
+    nrow: [['x'], a => dimOf(a.x) ? a.x.dim[0] : null],
+    ncol: [['x'], a => dimOf(a.x) ? a.x.dim[1] : null],
+    rownames: [['x'], a => dimOf(a.x) && a.x.dimnames && a.x.dimnames[0] ? mk([...a.x.dimnames[0]]) : null],
+    colnames: [['x'], a => dimOf(a.x) && a.x.dimnames && a.x.dimnames[1] ? mk([...a.x.dimnames[1]]) : null],
+    dimnames: [['x'], a => dimOf(a.x) && a.x.dimnames ? new RList(['', ''], a.x.dimnames.map(d => d ? mk([...d]) : null)) : null],
+    t: [['x'], (a, line) => {
+      const d = dimOf(a.x), V = asVec(a.x);
+      if (!d) return mk([...V], null, [1, V.length], [null, namesOf(a.x) ? [...namesOf(a.x)] : null]);
+      const [nr, nc] = d, out = [];
+      for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) out.push(V[j * nr + i]);
+      const dn = a.x.dimnames || [null, null];
+      return mk(out, null, [nc, nr], [dn[1], dn[0]]);
+    }],
+    rowSums: [['x', 'na.rm'], (a, line) => margin(a, line, 0, 'sum')],
+    colSums: [['x', 'na.rm'], (a, line) => margin(a, line, 1, 'sum')],
+    rowMeans: [['x', 'na.rm'], (a, line) => margin(a, line, 0, 'mean')],
+    colMeans: [['x', 'na.rm'], (a, line) => margin(a, line, 1, 'mean')],
+    rbind: [['...'], (a, line) => bindVecs(a, line, true)],
+    cbind: [['...'], (a, line) => bindVecs(a, line, false)],
+    lapply: [['X', 'FUN', '...'], (a, line) => lapplyCore(a.X, a.FUN, a['...'], line)],
+    sapply: [['X', 'FUN', '...', 'simplify', 'USE.NAMES'], (a, line) => {
+      const L = lapplyCore(a.X, a.FUN, a['...'], line);
+      if (lgl(a['USE.NAMES'], true)) { const nm = useNamesFor(a.X, namesOf(a.X)); if (nm) L.names = [...nm]; }
+      if (!L.vals.length) { const e = new RList([], []); e.named = !isList(a.X) && vtype(asVec(a.X)) === 'character' && lgl(a['USE.NAMES'], true); return e; }
+      return lgl(a.simplify, true) ? simplify(L) : L;
+    }],
+    vapply: [['X', 'FUN', 'FUN.VALUE', '...', 'USE.NAMES'], (a, line) => {
+      if (a['FUN.VALUE'] === undefined) throw new RErr('argument "FUN.VALUE" is missing, with no default：vapply 要告訴它每次的結果長什麼樣子，例如 numeric(1)', line);
+      const tpl = a['FUN.VALUE'], tl = isList(tpl) ? tpl.vals.length : asVec(tpl).length, tt = typeName(tpl);
+      const L = lapplyCore(a.X, a.FUN, a['...'], line);
+      L.vals.forEach((v, i) => {
+        const len = isList(v) ? v.vals.length : asVec(v).length;
+        if (len !== tl) throw new RErr(`values must be length ${tl},\n but FUN(X[[${i + 1}]]) result is length ${len}：vapply 說好每次回傳 ${tl} 個值，第 ${i + 1} 次卻回傳了 ${len} 個`, line);
+        const vt = typeName(v), okT = vt === tt || (tt === 'double' && vt === 'logical');
+        if (!okT) throw new RErr(`values must be type '${tt}',\n but FUN(X[[${i + 1}]]) result is type '${vt}'：vapply 說好回傳 ${tt}，第 ${i + 1} 次卻回傳了 ${vt}`, line);
+      });
+      if (lgl(a['USE.NAMES'], true)) { const nm = useNamesFor(a.X, namesOf(a.X)); if (nm) L.names = [...nm]; }
+      if (!L.vals.length) return typedEmpty(tt === 'double' ? 'numeric' : tt, !isList(a.X) && vtype(asVec(a.X)) === 'character' && lgl(a['USE.NAMES'], true));
+      if (tl === 1) { const r = unlistV(new RList(L.names, L.vals.map(v => mk([...asVec(v)])))); return tt === 'double' ? keepAttrs(r, asVec(r).map(x => typeof x === 'boolean' ? +x : x)) : r; }
+      return simplify(new RList(L.names, L.vals.map(v => { const r = [...asVec(v)]; const nm = namesOf(tpl) || namesOf(v); return mk(r, nm); })));
+    }],
+    apply: [['X', 'MARGIN', 'FUN', '...', 'simplify'], (a, line) => {
+      const d = dimOf(a.X);
+      if (!d) throw new RErr('dim(X) must have a positive length：apply() 要用在矩陣上；向量或 list 請用 sapply / lapply', line);
+      const M = num1(a.MARGIN, line); if (M !== 1 && M !== 2) throw new RErr('MARGIN 只能是 1（每一列）或 2（每一欄）', line);
+      const f = matchFun(a.FUN, line), [nr, nc] = d, V = asVec(a.X), dn = a.X.dimnames || [null, null];
+      const n = M === 1 ? nr : nc, out = [];
+      for (let k = 0; k < n; k++) {
+        tick(line);
+        const slice = M === 1 ? Array.from({ length: nc }, (_, j) => V[j * nr + k]) : V.slice(k * nr, k * nr + nr);
+        out.push(invoke(f, [{ name: null, v: mk(slice, M === 1 ? dn[1] : dn[0]) }, ...a['...']], line, 'FUN'));
+      }
+      const names = M === 1 ? dn[0] : dn[1];
+      return simplify(new RList(names ? [...names] : out.map(() => ''), out));
+    }],
+    mapply: [['FUN', '...', 'MoreArgs', 'SIMPLIFY', 'USE.NAMES'], (a, line) => mapplyCore(a, line, lgl(a.SIMPLIFY, true))],
+    Map: [['f', '...'], (a, line) => mapplyCore({ FUN: a.f, '...': a['...'] }, line, false)],
+    tapply: [['X', 'INDEX', 'FUN', '...'], (a, line) => {
+      const X = asVec(a.X), G = asVec(a.INDEX);
+      if (X.length !== G.length) throw new RErr('arguments must have same length：X 和分組 INDEX 的長度要一樣', line);
+      const lv = levelsOf(G), f = matchFun(a.FUN, line), nm = namesOf(a.X);
+      const out = lv.map(l => { tick(line); const idx = G.map((g, i) => asChar1(g) === l ? i : -1).filter(i => i >= 0); return invoke(f, [{ name: null, v: mk(idx.map(i => X[i]), nm ? idx.map(i => nm[i]) : null) }, ...a['...']], line, 'FUN'); });
+      if (out.every(v => !isList(v) && !isFn(v) && asVec(v).length === 1)) return mk(coerceAll(out.map(v => asVec(v)[0])), lv);
+      return new RList(lv, out);
+    }],
+    split: [['x', 'f'], (a, line) => {
+      const G = asVec(a.f), lv = levelsOf(G);
+      if (isList(a.x)) return new RList(lv, lv.map(l => { const idx = a.x.vals.map((_, i) => i).filter(i => asChar1(G[i % G.length]) === l); return new RList(idx.map(i => a.x.names[i]), idx.map(i => a.x.vals[i])); }));
+      const X = asVec(a.x), nm = namesOf(a.x);
+      return new RList(lv, lv.map(l => { const idx = X.map((_, i) => i).filter(i => asChar1(G[i % G.length]) === l); return mk(idx.map(i => X[i]), nm ? idx.map(i => nm[i]) : null); }));
+    }],
+    Filter: [['f', 'x'], (a, line) => {
+      const f = matchFun(a.f, line, 'f'), { vals } = elemsOf(a.x, line);
+      const keep = vals.map(v => { tick(line); const r = invoke(f, [{ name: null, v }], line, 'f'); const V = asVec(r); if (V.length !== 1 || typeof V[0] !== 'boolean') throw new RErr('Filter 的函式要回傳一個 TRUE 或 FALSE', line); return V[0]; });
+      return index1(a.x, [mk(keep.flatMap((k, i) => k ? [i + 1] : []))], line);
+    }],
+    Reduce: [['f', 'x', 'init', 'right', 'accumulate'], (a, line) => {
+      const f = matchFun(a.f, line, 'f'); let { vals } = elemsOf(a.x, line); vals = [...vals];
+      if (a.init !== undefined) vals.unshift(a.init);
+      if (!vals.length) return null;
+      let acc = vals[0]; const hist = [acc];
+      for (let i = 1; i < vals.length; i++) { tick(line); acc = invoke(f, [{ name: null, v: acc }, { name: null, v: vals[i] }], line, 'f'); hist.push(acc); }
+      return lgl(a.accumulate, false) ? simplify(new RList(hist.map(() => ''), hist)) : acc;
+    }],
+    'do.call': [['what', 'args'], (a, line) => { const f = matchFun(a.what, line, 'what'), L = isList(a.args) ? a.args : new RList(asVec(a.args).map(() => ''), [...asVec(a.args)]); return invoke(f, L.vals.map((v, i) => ({ name: L.names[i] || null, v })), line, asChar1(typeof a.what === 'string' ? a.what : 'what')); }],
+    print: [['x', '...'], (a, line) => { output(fmtPrint(a.x ?? null) + '\n'); visible = false; return a.x ?? null; }],
+    cat: [['...', 'sep'], (a, line) => {
+      const sep = a.sep === undefined ? ' ' : asChar1(one(a.sep));
+      const parts = a['...'].flatMap(d => { if (isList(d.v)) { if (d.v.vals.every(v => !isList(v) && asVec(v).length === 1)) return d.v.vals.map(v => asVec(v)[0]); throw new RErr("argument 1 (type 'list') cannot be handled by 'cat'：cat() 不能印 list，可以用 print() 或 str()", line); } if (isFn(d.v)) throw new RErr("argument 1 (type 'closure') cannot be handled by 'cat'：cat() 不能印函式", line); return asVec(d.v); });
+      const S = parts.map(x => x === undefined ? 'NA' : typeof x === 'string' ? x : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : fmtNum1(x));
+      let out = ''; S.forEach((s, i) => { out += s; if (i < S.length - 1) out += s.endsWith('\n') && sep === ' ' ? '' : sep; });
+      output(out); visible = false; return null;
+    }],
+    message: [['...'], a => { output(a['...'].flatMap(d => asVec(d.v)).map(asChar1).join('') + '\n'); visible = false; return null; }],
+    invisible: [['x'], a => { visible = false; return a.x ?? null; }],
+    stop: [['...'], (a, line) => { throw new RErr(a['...'].flatMap(d => asVec(d.v)).map(asChar1).join(''), line); }],
+    warning: [['...'], a => { warn(a['...'].flatMap(d => asVec(d.v)).map(asChar1).join('')); visible = false; return null; }],
+    nlevels: [['x'], a => levelsOf(asVec(a.x)).length],
+    str: [['object'], a => { output(strOf(a.object) + '\n'); visible = false; return null; }],
+  };
+  for (const op of OPS) BUILTIN[op] = [['e1', 'e2'], (a, line) => a.e2 === undefined ? ev({ k: 'un', op, a: { k: 'lit', v: a.e1 }, line }) : arith(op, a.e1, a.e2, line)];
+  BUILTIN['['] = [['x', '...'], (a, line) => index1(a.x, a['...'].map(d => d.v), line)];
+  BUILTIN['[['] = [['x', '...'], (a, line) => index2(a.x, a['...'][0].v, line)];
+  function strOf(v, lv = 1){
+    const pre = lv === 1 ? ' $ ' : '  ' + Array(lv - 1).fill('..').join(' ') + '$ ';
+    if (isList(v)) return `List of ${v.vals.length}` + v.vals.map((x, i) => `\n${pre}${padR(v.names[i] || '', Math.max(...v.names.map(s => (s || '').length)))}:` + (isList(x) ? strOf(x, lv + 1) : ' ' + strOf(x, lv))).join('');
+    if (v === null) return ' NULL';
+    if (isFn(v)) return 'function (' + (v.params || []).map(p => p.name).join(', ') + ')  ';
+    const V = asVec(v), t = vtype(V), ab = { character: 'chr', numeric: 'num', logical: 'logi' }[t];
+    const d = dimOf(v);
+    const head = d ? `${ab} [1:${d[0]}, 1:${d[1]}]` : (namesOf(v) ? 'Named ' : '') + (V.length === 1 ? ab : `${ab} [1:${V.length}]`);
+    return `${head} ${fmtElems(V.slice(0, 10), true).map(s => s.trim()).join(' ')}${V.length > 10 ? ' ...' : ''}`;
+  }
+  function margin(a, line, k, how){
+    const d = dimOf(a.x); if (!d) throw new RErr("'x' must be an array of at least two dimensions：這個函式只能用在矩陣上", line);
+    const [nr, nc] = d, V = nums(a.x, line), dn = a.x.dimnames || [null, null], n = k ? nc : nr, r = [];
+    for (let i = 0; i < n; i++) {
+      let S = k ? V.slice(i * nr, i * nr + nr) : Array.from({ length: nc }, (_, j) => V[j * nr + i]);
+      S = naRm(S, a); const s = S.some(isNA) ? undefined : S.reduce((p, q) => p + q, 0);
+      r.push(how === 'sum' ? s : s === undefined ? undefined : s / S.length);
+    }
+    return mk(r, dn[k] ? [...dn[k]] : null);
+  }
+  function mapplyCore(a, line, simp){
+    const f = matchFun(a.FUN, line), lists = a['...'];
+    if (!lists.length) return new RList([], []);
+    const els = lists.map(d => elemsOf(d.v, line).vals), L = recycleN(els);
+    if (L && els.some(e => L % e.length)) warn('longer argument not a multiple of length of shorter：幾個向量的長度不是倍數關係');
+    const more = a.MoreArgs ? a.MoreArgs.vals.map((v, i) => ({ name: a.MoreArgs.names[i] || null, v })) : [];
+    const out = [];
+    for (let i = 0; i < L; i++) { tick(line); out.push(invoke(f, [...lists.map((d, j) => ({ name: d.name, v: els[j][i % els[j].length] })), ...more], line, 'FUN')); }
+    const first = lists[0].v, nm = lgl(a['USE.NAMES'], true) ? useNamesFor(first, namesOf(first)) : null;
+    const R = new RList(nm && nm.length === L ? [...nm] : out.map(() => ''), out);
+    return simp ? simplify(R) : R;
+  }
+  function builtin(name, args, line){
+    const b = BUILTIN[name];
+    const a = matchArgs(args, b[0], name, line);
+    visible = true;
+    return b[1](a, line);
+  }
+
+  /* -- evaluation -- */
+  function ev(n){
+    switch (n.k) {
+      case 'lit': visible = true; return n.v;
+      case 'paren': { const v = ev(n.e); visible = true; return v; }
+      case 'var': {
+        visible = true;
+        const e = findEnv(n.name);
+        if (e) return getVar(n.name, n.line);
+        if (n.name in CONST) return CONST[n.name];
+        if (BUILTIN[n.name]) return new RBuiltin(n.name);
+        if (n.name === 'continue') throw new RErr("object 'continue' not found：R 沒有 continue，要跳過這一圈請用 next", n.line);
+        throw new RErr(`object '${n.name}' not found：還沒有這個變數（或拼錯了）`, n.line);
+      }
+      case 'assign': { tick(n.line); const v = ev(n.val); assignTo(n.target, v, n.line, n.up); visible = false; return v; }
+      case 'fn': visible = true; return new RFun(n.params, n.body, env, n.src);
+      case 'call': return call(n);
+      case 'callv': {
+        tick(n.line);
+        const f = ev(n.f); if (!isFn(f)) throw new RErr('attempt to apply non-function：括號前面不是函式', n.line);
+        const args = evalArgs(n.args); visible = true; return invoke(f, args, n.line, 'FUN');
+      }
+      case 'if': {
+        tick(n.line);
+        const c = condV(ev(n.cond), n.line);
+        if (c) return ev(n.then);
+        if (n.els) return ev(n.els);
+        visible = false; return null;
+      }
+      case 'block': { visible = true; let r = null; for (const s of n.body) r = ev(s); if (!n.body.length) visible = true; return r; }
+      case 'for': {
+        const sv = ev(n.seq), seq = isList(sv) ? sv.vals : isFn(sv) ? (() => { throw new RErr('invalid for() loop sequence：in 後面不能放函式', n.line); })() : asVec(sv);
+        for (const v of seq) {
+          tick(n.line); env.vars.set(n.v, v);
+          try { ev(n.body); } catch (e) { if (e instanceof NextSig) continue; if (e instanceof BreakSig) break; throw e; }
+        }
+        visible = false; return null;
+      }
+      case 'while':
+        for (;;) {
+          tick(n.line);
+          if (!condV(ev(n.cond), n.line, 'while')) break;
+          try { ev(n.body); } catch (e) { if (e instanceof NextSig) continue; if (e instanceof BreakSig) break; throw e; }
+        }
+        visible = false; return null;
+      case 'repeat':
+        for (;;) {
+          tick(n.line);
+          try { ev(n.body); } catch (e) { if (e instanceof NextSig) continue; if (e instanceof BreakSig) break; throw e; }
+        }
+        visible = false; return null;
+      case 'break': throw new BreakSig(n.line);
+      case 'next': throw new NextSig(n.line);
+      case 'un': {
+        const a = ev(n.a); visible = true;
+        if (isList(a)) throw new RErr(`invalid argument to unary operator：${n.op} 不能用在 list 上`, n.line);
+        if (n.op === '!') return keepAttrs(a, asVec(a).map(x => { if (typeof x === 'string') throw new RErr('invalid argument type：! 不能用在文字上', n.line); return isNA(x) ? undefined : !x; }));
+        if (n.op === '-') return keepAttrs(a, nums(a, n.line).map(x => x === undefined ? undefined : -x));
+        return a;
+      }
+      case 'bin': {
+        tick(n.line);
+        if (n.op === '&&' || n.op === '||') {
+          const one = v => { const k = isList(v) ? -1 : asVec(v).length; if (k > 1) throw new RErr(`'length = ${k}' in coercion to 'logical(1)'：${n.op} 只能接單一個 TRUE / FALSE；要逐一比較整個向量請用 ${n.op[0]}`, n.line); const x = asVec(v)[0]; if (isNA(x)) return undefined; return condV(v, n.line, n.op); };
+          const a = one(ev(n.a));
+          if (n.op === '&&' && a === false) { visible = true; return false; }
+          if (n.op === '||' && a === true) { visible = true; return true; }
+          const b = one(ev(n.b)); visible = true;
+          if (n.op === '&&') return a === undefined ? (b === false ? false : undefined) : b;
+          return a === undefined ? (b === true ? true : undefined) : b;
+        }
+        const r = arith(n.op, ev(n.a), ev(n.b), n.line); visible = true; return r;
+      }
+      case 'index': {
+        const a = ev(n.a), xs = n.xs.map(x => x === null ? MISSING : ev(x));
+        const drop = n.drop ? condV(ev(n.drop), n.line) : true;
+        visible = true; return index1(a, xs, n.line, drop);
+      }
+      case 'index2': {
+        const a = ev(n.a); if (n.xs.length !== 1 || n.xs[0] === null) throw new RErr('[[ ]] 裡面要放一個位置或名字', n.line);
+        const I = ev(n.xs[0]); visible = true; return index2(a, I, n.line);
+      }
+      case 'dollar': {
+        const a = ev(n.a); visible = true;
+        if (isFn(a)) throw new RErr("object of type 'closure' is not subsettable：函式不能用 $ 取值", n.line);
+        if (a === null) return null;
+        if (!isList(a)) throw new RErr('$ operator is invalid for atomic vectors：$ 只能用在 list（或 data.frame）上。具名向量請用 x["名字"]', n.line);
+        let k = a.names.indexOf(n.name);
+        if (k < 0) { const p = a.names.filter(s => s.startsWith(n.name)); if (p.length === 1) k = a.names.indexOf(p[0]); }
+        return k < 0 ? null : a.vals[k];
+      }
+    }
+    throw new RErr('程式出錯：不認得的語法', n.line);
+  }
+  let error = null;
+  const flushWarn = () => {
+    if (!warns.length) return;
+    output(warns.length === 1 ? `Warning message:\n${warns[0]}\n` : 'Warning messages:\n' + warns.map((w, i) => `${i + 1}: ${w}`).join('\n') + '\n');
+    warns.length = 0;
+  };
+  try {
+    const prog = parse(src);
+    for (const s of prog) {
+      visible = true; env = G; depth = 0;
+      const v = ev(s);
+      if (visible) output(fmtPrint(v) + '\n');
+      flushWarn();
+    }
+  } catch (e) {
+    flushWarn();
+    if (e instanceof BreakSig || e instanceof NextSig) error = new RErr('break / next 只能寫在迴圈裡面', e.line);
+    else if (e instanceof ReturnSig) error = new RErr('return() 只能寫在 function 裡面', e.line);
+    else if (e instanceof RErr) error = e;
+    else if (e instanceof RangeError) error = new RErr('evaluation nested too deeply：遞迴太深了，是不是少了停止的條件？', null);
+    else error = new RErr('程式出錯：' + e.message, null);
+  }
+  return { out: outs.join(''), error, vars: G.vars };
+}
+
+</script>
+
+<script>
+/* ================= page ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const HL_KW = /^(for|while|if|else|in|next|break|repeat|function|TRUE|FALSE|NULL|NA|Inf|NaN)$/;
+function hl(src){
+  const re = /(#.*$)|("[^"]*"|'[^']*')|(`[^`\n]*`)|(\b\d+(?:\.\d+)?(?:e[-+]?\d+)?\b)|(%in%|%\/%|<<-|<-|%%|==|<=|>=|!=|&&|\|\||\|>|&|\||\\(?=\())|([A-Za-z_.][\w.]*)/gm;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const t = esc(m[0]);
+    if (m[1]) out += `<span class="t-com">${t}</span>`;
+    else if (m[2]) out += `<span class="t-str">${t}</span>`;
+    else if (m[3]) out += `<span class="t-fn">${t}</span>`;
+    else if (m[4]) out += `<span class="t-num">${t}</span>`;
+    else if (m[5]) out += `<span class="t-op">${t}</span>`;
+    else if (HL_KW.test(m[0])) out += `<span class="t-kw">${t}</span>`;
+    else if (src[re.lastIndex] === '(') out += `<span class="t-fn">${t}</span>`;
+    else out += t;
+    last = re.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+
+const runR = (code, vars) => execute(code, vars);
+const setupVars = setup => setup ? Object.fromEntries(execute(setup).vars) : {};
+function renderOut(el, r, showEnv, preset){
+  let h = r.out ? esc(r.out) : '';
+  if (r.error) h += `<span class="err">Error${r.error.line ? `（第 ${r.error.line} 行）` : ''}: ${esc(r.error.message)}</span>`;
+  el.innerHTML = h || '<span class="dim">（沒有輸出）</span>';
+  const env = el.nextElementSibling;
+  if (env && env.classList.contains('envrow')) env.remove();
+  if (showEnv && r.vars && r.vars.size) {
+    const row = document.createElement('div'); row.className = 'envrow';
+    row.innerHTML = [...r.vars].filter(([k]) => !(preset && k in preset) && !k.startsWith('.')).map(([k, v]) => `<span><b>${esc(k)}</b>${esc(fmtShort(v))}</span>`).join('');
+    if (row.innerHTML) el.after(row);
+  }
+}
+
+/* editor: transparent textarea over a highlighted <pre> */
+function makeEditor(code, onRun){
+  const box = document.createElement('div'); box.className = 'ed';
+  box.innerHTML = '<pre aria-hidden="true"></pre><textarea spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="R 程式碼"></textarea>';
+  const pre = box.firstChild, ta = box.lastChild;
+  const sync = () => {
+    pre.innerHTML = hl(ta.value) + '\n';
+    ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+  };
+  ta.value = code;
+  ta.addEventListener('input', sync);
+  ta.addEventListener('scroll', () => { pre.scrollLeft = ta.scrollLeft; });
+  ta.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); onRun(); return; }
+    if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); const a = ta.selectionStart; ta.setRangeText('  ', a, ta.selectionEnd, 'end'); sync(); }
+  });
+  requestAnimationFrame(sync);
+  return { el: box, get: () => ta.value, set: v => { ta.value = v; sync(); }, sync };
+}
+
+/* example cells */
+document.querySelectorAll('script.cell').forEach(sc => {
+  const code = sc.textContent.replace(/^\n/, '').replace(/\s+$/, '');
+  const cell = document.createElement('div'); cell.className = 'cell';
+  cell.innerHTML = `<div class="cell-h"><span class="lab">${esc(sc.dataset.label || '範例')}</span><button type="button" class="reset">還原</button><button type="button" class="run">▶ 執行</button></div>`;
+  const out = document.createElement('pre'); out.className = 'out'; out.hidden = true;
+  const run = () => { out.hidden = false; renderOut(out, runR(ed.get()), sc.dataset.env); };
+  const ed = makeEditor(code, run);
+  cell.append(ed.el, out);
+  cell.querySelector('.run').onclick = run;
+  cell.querySelector('.reset').onclick = () => { ed.set(code); out.hidden = true; const e = out.nextElementSibling; if (e && e.classList.contains('envrow')) e.remove(); };
+  sc.replaceWith(cell);
+});
+
+/* ================= widget 1: the factory ================= */
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = ms => new Promise(r => setTimeout(r, reduceMotion ? Math.min(ms, 60) : ms));
+function fly(fromEl, toEl, html, cls = 'chip'){
+  if (reduceMotion || !fromEl || !toEl) return Promise.resolve();
+  const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+  const f = document.createElement('div'); f.className = 'flyer ' + cls; f.innerHTML = html;
+  f.style.left = a.left + 'px'; f.style.top = a.top + 'px';
+  document.body.appendChild(f);
+  const fw = f.getBoundingClientRect();
+  const dx = b.left + b.width / 2 - (a.left + fw.width / 2), dy = b.top + b.height / 2 - (a.top + fw.height / 2);
+  const anim = f.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${dx}px,${dy}px) scale(.85)`, opacity: .9 }], { duration: 520, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
+  return Promise.race([anim.finished.catch(() => {}), new Promise(r => setTimeout(r, 900))]).then(() => f.remove());   // never hang if the animation is paused
+}
+const FAC = [
+  { tab: 'lapply', code: 'lapply(c(4, 9, 16), sqrt)', fun: 'sqrt', ins: [['[[1]]', '4'], ['[[2]]', '9'], ['[[3]]', '16']], outs: ['2', '3', '4'],
+    final: { k: 'list' }, msg: '<b>lapply</b>：不管結果長什麼樣子，一律裝進 list，長度和 X 一樣。' },
+  { tab: 'sapply', code: 'sapply(c(4, 9, 16), sqrt)', fun: 'sqrt', ins: [['[[1]]', '4'], ['[[2]]', '9'], ['[[3]]', '16']], outs: ['2', '3', '4'],
+    final: { k: 'vec', names: null }, msg: '<b>sapply</b> = lapply + 簡化：每次都只回傳 1 個值 → 合併成向量。' },
+  { tab: 'sapply · 名字', code: 'sapply(c("ATG", "GCGC", "TA"), nchar)', fun: 'nchar', ins: [['[[1]]', '"ATG"'], ['[[2]]', '"GCGC"'], ['[[3]]', '"TA"']], outs: ['3', '4', '2'],
+    final: { k: 'vec', names: ['ATG', 'GCGC', 'TA'] }, msg: 'X 是文字向量時，sapply 會把 X 本身當成結果的<b>名字</b>（USE.NAMES = TRUE）。' },
+  { tab: 'sapply · 矩陣', code: 'sapply(list(a = 1:3, b = c(4.5, 6)), range)', fun: 'range', ins: [['$a', '1 2 3'], ['$b', '4.5 6.0']], outs: ['1 3', '4.5 6.0'],
+    final: { k: 'mat', cols: ['a', 'b'], cells: [['1', '4.5'], ['3', '6.0']] }, msg: '每次都回傳 <b>2 個</b>值 → 排成 2 列的矩陣，每次的結果是<b>一欄</b>。' },
+  { tab: 'vapply · 檢查', code: 'vapply(list(a = 1:3, b = 4:6), function(v) v[v > 2], numeric(1))', fun: 'function(v) v[v > 2]', ins: [['$a', '1 2 3'], ['$b', '4 5 6']], outs: ['3', '4 5 6'],
+    check: 1, failAt: 1, msg: '<b>vapply</b> 事先說好「每次回傳 1 個數字」；第 2 次回傳了 3 個 → 立刻停下來報錯，不會默默變成 list。' },
+];
+(() => {
+  const tabs = $('#facTabs'), code = $('#facCode'), inEl = $('#facIn'), outEl = $('#facOut'), bub = $('#facBub'), bot = $('#facBot'), funEl = $('#facFun');
+  const msg = $('#facMsg'), con = $('#facCon'), bPlay = $('#facPlay'), bStep = $('#facStep'), bReset = $('#facReset');
+  let S = 0, k = 0, busy = false, token = 0;
+  FAC.forEach((s, i) => tabs.insertAdjacentHTML('beforeend', `<button type="button" aria-pressed="${i === 0}" data-i="${i}">${esc(s.tab)}</button>`));
+  const total = () => FAC[S].failAt !== undefined ? FAC[S].failAt + 1 : FAC[S].ins.length + 1;
+  function reset(){
+    token++; busy = false; k = 0;
+    const s = FAC[S];
+    code.innerHTML = hl(s.code);
+    funEl.textContent = 'FUN = ' + s.fun + (s.check ? '\n說好：numeric(1)' : '');
+    inEl.innerHTML = s.ins.map(([t, v]) => `<div class="chip"><span class="tg">${esc(t)}</span>${esc(v)}</div>`).join('');
+    outEl.innerHTML = `<div class="wrapper" data-k="${s.check ? '暫存的結果' : 'list，長度 ' + s.ins.length}">` + s.ins.map(([t]) => `<div class="lbox"><span class="tg">${esc(t)}</span></div>`).join('') + '</div>';
+    bub.className = 'bubble'; bub.textContent = '';
+    msg.innerHTML = '按 <b>▶ 播放</b> 或 <b>下一步</b>，看 R 寶一個一個處理。';
+    con.hidden = true; bPlay.disabled = bStep.disabled = false;
+  }
+  function finish(){
+    const s = FAC[S], r = runR(s.code);
+    con.hidden = false; renderOut(con, r);
+    bPlay.disabled = bStep.disabled = true;
+    msg.innerHTML = s.msg;
+  }
+  async function step(){
+    if (busy || k >= total()) return;
+    busy = true; const my = token, s = FAC[S];
+    const chips = inEl.children, boxes = outEl.querySelectorAll('.lbox');
+    if (k < s.ins.length) {
+      const i = k, chip = chips[i];
+      [...chips].forEach(c => c.classList.remove('on')); chip.classList.add('on');
+      bub.className = 'bubble';
+      await fly(chip, bot, esc(s.ins[i][1])); if (my !== token) return;
+      bot.classList.remove('work'); void bot.getBoundingClientRect(); bot.classList.add('work');
+      const arg = s.ins[i][1].includes(' ') ? `c(${s.ins[i][1].split(' ').join(', ')})` : s.ins[i][1];
+      const bad = s.failAt === i;
+      bub.innerHTML = `FUN(${esc(arg)})<br>→ ${esc(s.outs[i])}` + (s.check ? (bad ? '<br>長度 3 ✗' : '<br>長度 1 ✓') : '');
+      bub.className = 'bubble show' + (bad ? ' bad' : '');
+      await sleep(550); if (my !== token) return;
+      if (bad) {
+        outEl.insertAdjacentHTML('beforeend', `<div class="stamp morph">Error: values must be length 1,\n but FUN(X[[${i + 1}]]) result is length ${s.outs[i].split(' ').length}</div>`);
+        chip.classList.remove('on'); k = total(); busy = false; finish(); return;
+      }
+      await fly(bot, boxes[i], esc(s.outs[i])); if (my !== token) return;
+      boxes[i].classList.add('fill');
+      boxes[i].innerHTML = `<span class="tg">${esc(s.ins[i][0])}</span>\n[1] ${esc(s.outs[i])}`;
+      chip.classList.remove('on'); chip.classList.add('done');
+      k++;
+      msg.innerHTML = `第 ${k} / ${s.ins.length} 個完成` + (k === s.ins.length && s.final && s.final.k !== 'list' ? '，下一步：<b>簡化</b>' : k === s.ins.length ? '，下一步：<b>合併</b>' : '');
+    } else {
+      const f = s.final; bub.className = 'bubble';
+      if (f.k === 'list') outEl.querySelector('.wrapper').dataset.k = `list，長度 ${s.ins.length} ✓`;
+      else if (f.k === 'vec') outEl.innerHTML = `<div class="vecrow morph">${s.outs.map((v, i) => `<div><small>${f.names ? esc(f.names[i]) : ''}</small>${esc(v)}</div>`).join('')}</div><div class="fac-h morph">${f.names ? '具名' : ''}向量，長度 ${s.outs.length}</div>`;
+      else outEl.innerHTML = `<table class="mini morph"><tr><th></th>${f.cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr>${f.cells.map((r, i) => `<tr><th>[${i + 1},]</th>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table><div class="fac-h morph">矩陣 2 × ${f.cols.length}</div>`;
+      k++; finish();
+    }
+    busy = false;
+  }
+  tabs.onclick = e => { const b = e.target.closest('button'); if (!b) return; S = +b.dataset.i; tabs.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); reset(); };
+  bStep.onclick = step;
+  bPlay.onclick = async () => { const my = token; bPlay.disabled = true; while (k < total() && my === token) { await step(); await sleep(250); } };
+  bReset.onclick = reset;
+  reset();
+})();
+
+/* ================= widget 2: apply over a matrix ================= */
+(() => {
+  const G = ['BRCA1', 'TP53', 'MYC', 'GAPDH'], SM = ['S1', 'S2', 'S3'];
+  const M = [[5.1, 4.8, 5.5], [8.2, 9.1, 8.7], [2.3, 2.1, 7.9], [6.0, 6.4, 5.9]];
+  const SETUP = 'expr <- matrix(c(5.1, 8.2, 2.3, 6.0, 4.8, 9.1, 2.1, 6.4, 5.5, 8.7, 7.9, 5.9), nrow = 4,\n               dimnames = list(c("BRCA1", "TP53", "MYC", "GAPDH"), c("S1", "S2", "S3")))\n';
+  const FN = { mean: v => v.reduce((a, b) => a + b, 0) / v.length, max: v => Math.max(...v), range: v => [Math.min(...v), Math.max(...v)] };
+  const T = $('#apvT'), code = $('#apvCode'), call = $('#apvCall'), msg = $('#apvMsg'), con = $('#apvCon'), bPlay = $('#apvPlay'), bStep = $('#apvStep');
+  let mg = 1, fn = 'mean', k = 0, token = 0;
+  const n = () => mg === 1 ? G.length : SM.length;
+  const fmt = v => Array.isArray(v) ? v.map(x => fmtNum1(+x.toFixed(2))).join(' – ') : fmtNum1(+v.toFixed(2));
+  function draw(){
+    let h = `<thead><tr><th></th>${SM.map((s, j) => `<th data-c="${j}">${s}</th>`).join('')}${mg === 1 ? '<th class="res">FUN →</th>' : ''}</tr></thead><tbody>`;
+    G.forEach((g, i) => { h += `<tr><th data-r="${i}">${g}</th>${M[i].map((x, j) => `<td data-r="${i}" data-c="${j}">${x.toFixed(1)}</td>`).join('')}${mg === 1 ? `<td class="res" data-o="${i}"></td>` : ''}</tr>`; });
+    if (mg === 2) h += `<tr class="resrow"><th>FUN ↓</th>${SM.map((_, j) => `<td data-o="${j}"></td>`).join('')}</tr>`;
+    T.innerHTML = h + '</tbody>';
+  }
+  function reset(){
+    token++; k = 0; draw();
+    code.innerHTML = hl(`apply(expr, ${mg}, ${fn})`);
+    call.innerHTML = `MARGIN = ${mg}：一次把<b>${mg === 1 ? '一整列（一個基因）' : '一整欄（一個樣本）'}</b>送進 ${fn}()。`;
+    msg.textContent = ''; con.hidden = true; bPlay.disabled = bStep.disabled = false;
+  }
+  function step(){
+    if (k >= n()) return;
+    T.querySelectorAll('.hot').forEach(e => e.classList.remove('hot'));
+    const sel = mg === 1 ? `[data-r="${k}"]` : `[data-c="${k}"]`;
+    T.querySelectorAll(sel).forEach(e => e.classList.add('hot'));
+    const v = mg === 1 ? M[k] : M.map(r => r[k]), nm = mg === 1 ? SM : G, r = FN[fn](v);
+    call.innerHTML = `${fn}(c(${v.map((x, i) => `${nm[i]} = ${x.toFixed(1)}`).join(', ')}))  →  <b>${esc(fmt(r))}</b>`;
+    const o = T.querySelector(`[data-o="${k}"]`); o.textContent = fmt(r); o.classList.add('morph');
+    k++;
+    if (k === n()) {
+      con.hidden = false; renderOut(con, runR(SETUP + `apply(expr, ${mg}, ${fn})`));
+      msg.innerHTML = fn === 'range' ? `range 每次回傳 <b>2 個</b>值 → 結果是 2 × ${n()} 的矩陣，每個${mg === 1 ? '基因' : '樣本'}變成<b>一欄</b>（看下面的實際輸出）。` : `每次回傳 1 個值 → 結果是長度 ${n()} 的具名向量，名字是${mg === 1 ? '基因' : '樣本'}名稱。`;
+      bPlay.disabled = bStep.disabled = true;
+    }
+  }
+  const seg = (el, key, set) => el.onclick = e => { const b = e.target.closest('button'); if (!b) return; el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); set(b.dataset[key]); reset(); };
+  seg($('#apvM'), 'm', v => mg = +v); seg($('#apvF'), 'f', v => fn = v);
+  bStep.onclick = step; $('#apvReset').onclick = reset;
+  bPlay.onclick = async () => { const my = token; bPlay.disabled = true; while (k < n() && my === token) { step(); await sleep(700); } };
+  reset();
+})();
+
+/* ================= widget 3: split-apply-combine ================= */
+(() => {
+  const glu = [92, 140, 105, 88, 131, 99], ward = ['ER', 'ICU', 'ER', 'OPD', 'ICU', 'OPD'], lv = ['ER', 'ICU', 'OPD'];
+  const col = { ER: 'var(--g1)', ICU: 'var(--g3)', OPD: 'var(--g2)' };
+  const stg = $('#sacStage'), tabs = $('#sacTabs'), msg = $('#sacMsg'), nextB = $('#sacNext');
+  const names = ['① 原始資料', '② split 拆組', '③ apply 每組 mean', '④ combine 合併'];
+  let st = 0;
+  names.forEach((t, i) => tabs.insertAdjacentHTML('beforeend', `<button type="button" data-i="${i}" aria-pressed="${i === 0}">${t}</button>`));
+  const chip = i => `<span class="gchip" style="--gc:${col[ward[i]]}">${glu[i]}<small>${ward[i]}</small></span>`;
+  const mean = w => { const v = glu.filter((_, i) => ward[i] === w); return v.reduce((a, b) => a + b, 0) / v.length; };
+  function draw(){
+    tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.i === st)));
+    if (st === 0) { stg.innerHTML = `<div class="sac-row">${glu.map((_, i) => chip(i)).join('')}</div>`; msg.innerHTML = '6 個血糖值，每個值有自己的病房（顏色）。'; }
+    if (st >= 1 && st <= 2) stg.innerHTML = `<div class="sac-row">${lv.map(w => `<div class="bucket" style="--gc:${col[w]}"><h4>$${w}</h4><div class="sac-row">${glu.map((_, i) => ward[i] === w ? chip(i) : '').join('')}</div>${st === 2 ? `<div class="val">mean → ${fmtNum1(mean(w))}</div>` : ''}</div>`).join('<span class="arrow"></span>')}</div>`;
+    if (st === 1) msg.innerHTML = '<code>split(glu, ward)</code>：照病房拆成 list，組別照<b>字母排序</b>。';
+    if (st === 2) msg.innerHTML = '每一組各自送進 <code>mean()</code>：等於 <code>sapply(split(glu, ward), mean)</code> 的「套用」。';
+    if (st === 3) { stg.innerHTML = `<div class="vecrow morph">${lv.map(w => `<div><small>${w}</small>${fmtNums(lv.map(mean))[lv.indexOf(w)]}</div>`).join('')}</div><pre class="out" style="border:1px solid var(--line);border-radius:10px;margin:0">${esc(runR('glu <- c(92, 140, 105, 88, 131, 99)\nward <- c("ER", "ICU", "ER", "OPD", "ICU", "OPD")\ntapply(glu, ward, mean)').out)}</pre>`; msg.innerHTML = '合併成<b>具名向量</b>：名字是組別。tapply 一步做完這三件事。'; }
+    nextB.textContent = st === 3 ? '重來 ↺' : '下一步 →';
+  }
+  tabs.onclick = e => { const b = e.target.closest('button'); if (!b) return; st = +b.dataset.i; draw(); };
+  nextB.onclick = () => { st = (st + 1) % 4; draw(); };
+  draw();
+})();
+
+/* ================= exercises ================= */
+/* each test is a setup snippet; the reference solution runs on the same setup and the listed variables are compared */
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = A => A[Math.floor(Math.random() * A.length)];
+const rv = (v, d = 1) => +v.toFixed(d);
+const rLit = v => typeof v === 'string' ? `"${v}"` : String(v);
+const rVec = A => A.length ? `c(${A.map(rLit).join(', ')})` : 'character(0)';
+const HBB = 'ACTCCTGAGGAG';
+function hbbBatch(withHbS){
+  const n = rnd(3, 5), ps = [];
+  for (let i = 0; i < n; i++) {
+    const s = HBB.split('');
+    const muts = rnd(0, 2);
+    for (let m = 0; m < muts; m++) { const p = rnd(0, 11); if (p === 7) continue; s[p] = pick('ACGT'.replace(s[p], '').split('')); }
+    if (withHbS && (i === 1 || Math.random() < .3)) s[7] = 'T';
+    ps.push(`  list(id = "P${String(rnd(10, 99))}${i}", seq = "${s.join('')}")`);
+  }
+  return `patients <- list(\n${ps.join(',\n')}\n)\nref <- "${HBB}"`;
+}
+function exprSetup(){
+  const g = ['BRCA1', 'TP53', 'MYC', 'EGFR', 'GAPDH', 'IL6'].sort(() => Math.random() - .5).slice(0, rnd(3, 5));
+  const s = rnd(3, 4), vals = [];
+  for (let j = 0; j < s; j++) for (let i = 0; i < g.length; i++) vals.push(rv(2 + Math.random() * 8));
+  return `expr <- matrix(${rVec(vals)}, nrow = ${g.length},\n  dimnames = list(${rVec(g)}, ${rVec(Array.from({ length: s }, (_, j) => 'S' + (j + 1)))}))`;
+}
+function seqSetup(n){ const ss = Array.from({ length: n }, () => Array.from({ length: rnd(4, 10) }, () => pick('ACGT')).join('')); return `seqs <- c(${ss.map((s, i) => `s${i + 1} = "${s}"`).join(', ')})`; }
+
+const EX = {
+  ex1: {
+    tests: [''],
+    after: '.t1 <- my_map(c(1, 4, 9), sqrt)\n.t2 <- my_map(c(2, 3, 5), function(v) v * 10)\n.t3 <- my_map(c(-1.25, 2.5), abs)\n.t4 <- my_map(numeric(0), sqrt)',
+    want: ['.t1', '.t2', '.t3', '.t4'], ignoreNames: true,
+    label: { '.t1': 'my_map(c(1, 4, 9), sqrt)', '.t2': 'my_map(c(2, 3, 5), function(v) v * 10)', '.t3': 'my_map(c(-1.25, 2.5), abs)', '.t4': 'my_map(numeric(0), sqrt)' },
+    hint: { '.t4': (want, got) => asVec(got).length ? 'x 是空的時候，1:length(x) 會變成 1:0，迴圈反而跑了 2 次。改用 seq_along(x)。' : null },
+    ban: ['sapply', 'lapply', 'vapply', 'mapply', 'Map'], banMsg: '這題要自己用 for 迴圈做出來，不能用 apply 家族。', need: ['for'],
+    solution: `my_map <- function(x, f) {
+  out <- numeric(length(x))       # ① 準備容器：和 x 一樣長、全是 0 的數字向量
+  for (i in seq_along(x)) {       # ② i = 1, 2, …；x 是空的時候一圈都不跑
+    out[i] <- f(x[i])             # ③ 把第 i 個元素交給 f，結果放進第 i 格
+  }
+  out                             # 最後一行就是回傳值
+}
+my_map(c(1, 4, 9), sqrt)          # [1] 1 2 3`,
+  },
+  ex2: {
+    tests: ['reads <- list(S1 = c(48, 120, NA, 75), S2 = c(30, 45), S3 = c(51, 50, 49, NA, 200))',
+            'reads <- list(A = c(NA, 88, 52), B = c(150, 20, 50, 49))',
+            'reads <- list(x1 = c(NA, NA), x2 = c(65), x3 = c(10, 300, 75, NA, 50))'],
+    want: ['qc'], need: ['lapply'],
+    solution: `reads                                            # 先看資料：每個樣本一組讀長
+qc <- lapply(reads, function(v) v[!is.na(v) & v >= 50])
+# 對每個樣本 v：!is.na(v) 是「不是 NA」，v >= 50 是「夠長」
+# 兩個條件用 & 逐一合併，v[...] 只留下 TRUE 的位置
+# 全部不合格的樣本會得到長度 0 的向量，所以結果一定要用 list 裝
+qc`,
+  },
+  ex3: {
+    tests: ['seqs <- c(s1 = "ATGCGC", s2 = "AATT", s3 = "GGGCAT")', () => seqSetup(4), () => seqSetup(1), 'seqs <- character(0)'],
+    want: ['gc'], need: ['vapply'],
+    hint: { gc: (want, got) => isList(got) ? '結果變成 list 了：檢查 FUN.VALUE 是不是 numeric(1)，以及函式每次是不是只回傳 1 個數字。' : null },
+    solution: `seqs                                         # 具名的文字向量，每個元素是一條序列
+gc <- vapply(seqs, function(s) {
+  b <- strsplit(s, "")[[1]]                  # 切成一個一個鹼基；strsplit 回傳 list，[[1]] 拿出來
+  round(mean(b %in% c("G", "C")), 2)         # TRUE/FALSE 的平均 = G 或 C 的比例，取 2 位
+}, numeric(1))                               # 說好每次回傳 1 個數字；空的時候也會是數字向量
+gc                                           # 名字自動用 seqs 的名字`,
+  },
+  ex4: {
+    tests: ['expr <- matrix(c(5.1, 8.2, 2.3, 6.0, 4.8, 9.1, 2.1, 6.4, 5.5, 8.7, 7.9, 5.9), nrow = 4,\n  dimnames = list(c("BRCA1", "TP53", "MYC", "GAPDH"), c("S1", "S2", "S3")))', exprSetup, exprSetup],
+    want: ['cv', 'top'], need: ['apply'],
+    solution: `expr                                                  # 列是基因、欄是樣本
+cv <- round(apply(expr, 1, function(g) sd(g) / mean(g)), 3)
+# MARGIN = 1：每次把一整列（一個基因在各樣本的值）交給函式 g
+# sd(g) / mean(g) 就是變異係數；round 整個向量一起取 3 位
+top <- names(which.max(cv))                           # which.max 回傳最大值的位置（帶名字），names 取出基因名
+cv
+top`,
+  },
+  ex5: {
+    tests: ['seqs <- c("ATGCGTAAC", "GGATCCTAG", "TTTAAACCC")\nstarts <- c(1, 4, 7)', 'seqs <- c("GATTACA", "CCGG")\nstarts <- c(3, 2)',
+            () => { const n = rnd(2, 4), ss = Array.from({ length: n }, () => Array.from({ length: rnd(6, 12) }, () => pick('ACGT')).join('')); return `seqs <- ${rVec(ss)}\nstarts <- c(${ss.map(s => rnd(1, s.length - 2)).join(', ')})`; }],
+    want: ['codons'], ignoreNames: true, need: ['mapply|Map'],
+    solution: `seqs
+starts
+codons <- mapply(function(s, k) substr(s, k, k + 2), seqs, starts)
+# 第 i 次：s = seqs[i]、k = starts[i]，從第 k 個取到第 k + 2 個（共 3 個鹼基）
+# 寫成 mapply(substr, seqs, starts, starts + 2) 也可以：三個向量並排
+codons`,
+  },
+  ex6: {
+    tests: ['ct <- c(22.1, 30.5, 21.8, 29.9, 25.0, 24.6)\ngene <- c("GAPDH", "IL6", "GAPDH", "IL6", "TNF", "TNF")',
+            () => { const gs = ['ACTB', 'IL1B', 'TNF', 'CXCL8'].slice(0, rnd(2, 4)), ct = [], g = []; gs.forEach(x => { const base = 18 + Math.random() * 14; for (let r = 0; r < rnd(2, 3); r++) { ct.push(rv(base + Math.random() - .5)); g.push(x); } }); const ord = ct.map((_, i) => i).sort(() => Math.random() - .5); return `ct <- c(${ord.map(i => ct[i]).join(', ')})\ngene <- ${rVec(ord.map(i => g[i]))}`; },
+            'ct <- c(31.2, 18.9, 19.3, 30.8)\ngene <- c("MYC", "B2M", "B2M", "MYC")'],
+    want: ['avg', 'low'], need: ['tapply'],
+    solution: `ct
+gene
+avg <- round(tapply(ct, gene, mean), 1)    # 照 gene 分組，每組的 Ct 取平均，再取 1 位小數
+low <- names(which.min(avg))               # Ct 越低代表越早偵測到 → 表現量越高
+avg
+low`,
+  },
+  ex7: {
+    tests: ['deg <- list(exp1 = c("TP53", "MYC", "EGFR", "KRAS"), exp2 = c("MYC", "TP53", "BRAF"), exp3 = c("PTEN", "MYC", "RB1"))',
+            'deg <- list(a = c("IL6", "TNF"), b = c("TNF", "IL6", "IL1B"))',
+            () => { const pool = ['TP53', 'MYC', 'EGFR', 'KRAS', 'BRAF', 'PTEN', 'RB1', 'CDK4']; const k = rnd(3, 4); return `deg <- list(${Array.from({ length: k }, (_, i) => `run${i + 1} = ${rVec(['MYC', ...pool.filter(() => Math.random() < .5)].filter((x, j, A) => A.indexOf(x) === j).sort(() => Math.random() - .5))}`).join(', ')})`; }],
+    want: ['core', 'all_genes'], need: ['Reduce'], setEq: ['core'],
+    solution: `deg
+core <- Reduce(intersect, deg)            # 先取前兩次的交集，再和第 3 次取交集……
+all_genes <- sort(Reduce(union, deg))     # 聯集：出現過一次就算；sort 照字母排
+core
+all_genes`,
+  },
+  ex8: {
+    pass: 'ycc0901',
+    tests: [() => hbbBatch(true), () => hbbBatch(true), () => hbbBatch(false), () => hbbBatch(true), () => hbbBatch(true)],
+    want: ['n_mut', 'hbs', 'carriers'], ban: ['for', 'while', 'repeat'], banMsg: '大魔王規定不能用 for / while / repeat，全部要用 apply 家族完成。', need: ['vapply|sapply'],
+    hint: { carriers: want => asVec(want).length ? null : '這一批沒有 HbS，carriers 應該是空的（長度 0）。' },
+    solution: `ids <- vapply(patients, function(p) p$id, character(1))   # 每位病人回傳 1 個文字：編號
+ref_b <- strsplit(ref, "")[[1]]                             # 參考序列切成 12 個鹼基，只要切一次
+
+n_mut <- vapply(patients, function(p) {
+  b <- strsplit(p$seq, "")[[1]]                             # 這位病人的序列切成鹼基
+  sum(b != ref_b)                                           # 逐一比較，不同的位置是 TRUE，加總就是個數
+}, numeric(1))                                              # 每位病人回傳 1 個數字
+names(n_mut) <- ids                                         # 用編號當名字
+
+hbs <- vapply(patients, function(p) substr(p$seq, 8, 8) == "T", logical(1))
+# 第 8 個鹼基（第 6 個密碼子的中間）是不是 T：每位病人回傳 1 個 TRUE/FALSE
+names(hbs) <- ids
+
+carriers <- names(hbs)[hbs]                                 # 用 TRUE/FALSE 挑出 HbS 病人的名字
+n_mut
+hbs
+carriers`,
+  },
+};
+
+/* deep comparison of interpreter values */
+function sameVal(a, b, o = {}){
+  if (isList(a) || isList(b)) {
+    if (!(isList(a) && isList(b)) || a.vals.length !== b.vals.length) return false;
+    if (!o.ignoreNames && JSON.stringify(namesOf(a) || []) !== JSON.stringify(namesOf(b) || [])) return false;
+    return a.vals.every((x, i) => sameVal(x, b.vals[i], o));
+  }
+  if (isFn(a) || isFn(b)) return false;
+  const A = asVec(a), B = asVec(b);
+  if (A.length !== B.length) return false;
+  if (!A.length) return true;
+  if (!o.ignoreNames && JSON.stringify(namesOf(a) || null) !== JSON.stringify(namesOf(b) || null)) return false;
+  if (o.setEq) { const k = x => typeof x + String(x); const S = new Set(B.map(k)); return A.every(x => S.has(k(x))); }
+  return A.every((x, i) => { const y = B[i]; if (typeof x === 'number' && typeof y === 'number') return Math.abs(x - y) < 1e-9 || (isNaN(x) && isNaN(y)); return x === y; });
+}
+const showVal = v => esc(fmtPrint(v === undefined ? undefined : v));
+
+const KEY = 'r-apply-v1';
+const store = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } })();
+store.done = store.done || {}; store.code = store.code || {};
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+
+const SOL_PASS = '0901';   // classroom speed bump only: the answers ship with the page
+const unlocked = new Set();
+function modal(html, wide){
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="card${wide ? ' wide' : ''}" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(m);
+  const close = () => { m.remove(); document.removeEventListener('keydown', onEsc); };
+  const onEsc = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onEsc);
+  m.onclick = e => { if (e.target === m) close(); };
+  return { m, close };
+}
+function askPass(pass, then){
+  if (unlocked.has(pass)) return then();
+  const { m, close } = modal(`<h3>看解答</h3><p style="margin:0;color:var(--muted)">請輸入老師提供的密碼</p>
+    <form class="row"><input type="password" autocomplete="off" aria-label="密碼" placeholder="密碼"><button class="btn primary" type="submit">確定</button></form>
+    <p class="err" aria-live="polite"></p><div class="acts"><button class="btn" type="button">取消</button></div>`);
+  const inp = $('input', m); inp.focus();
+  $('.acts .btn', m).onclick = close;
+  $('form', m).onsubmit = e => {
+    e.preventDefault();
+    if (inp.value.trim() === pass) { unlocked.add(pass); close(); then(); return; }
+    $('.err', m).textContent = '密碼不對，再試一次。'; inp.select();
+    const c = $('.card', m); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+  };
+}
+
+function updateToc(){
+  let n = 0;
+  document.querySelectorAll('#toc a[data-ex]').forEach(a => { const d = !!store.done[a.dataset.ex]; a.classList.toggle('done', d); n += d; });
+  $('#prog').textContent = `練習完成 ${n} / 8`;
+}
+const tokensOf = code => { try { return tokenize(code).filter(t => t.t !== 'str').map(t => t.v ?? t.t); } catch (e) { return []; } };
+
+document.querySelectorAll('.ex').forEach(box => {
+  const id = box.dataset.ex, X = EX[id], sc = $('script.starter', box);
+  const setups = X.tests.map(t => typeof t === 'function' ? t() : t);
+  const starter = sc.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n';
+  const cell = document.createElement('div'); cell.className = 'cell';
+  cell.innerHTML = `<div class="cell-h"><span class="lab">你的程式</span><button type="button" class="reset">還原</button><button type="button" class="sol">看解答</button><button type="button" class="run">▶ 執行並檢查</button></div>`;
+  const out = document.createElement('pre'); out.className = 'out'; out.hidden = true;
+  const verdict = document.createElement('div'); verdict.className = 'verdict'; verdict.hidden = true; verdict.setAttribute('aria-live', 'polite');
+  const mark = ok => { box.classList.toggle('passed', ok); $('.st', box).textContent = ok ? '✓ 已完成' : ''; };
+  const run = () => {
+    const code = ed.get();
+    store.code[id] = code; persist();
+    const pv0 = setupVars(setups[0]);
+    out.hidden = false;
+    renderOut(out, runR(code, pv0), true, pv0);
+    if (setups[0]) out.insertAdjacentHTML('afterbegin', `<span class="dim"># 測資 1：\n${esc(setups[0].replace(/^/gm, '# '))}\n</span>`);
+    verdict.hidden = false;
+    const bad = msg => { verdict.className = 'verdict no'; verdict.innerHTML = msg; };
+    const toks = tokensOf(code);
+    const hit = (X.ban || []).find(b => toks.includes(b));
+    if (hit) return bad(`<b>還不行</b>　${esc(X.banMsg)}（找到了 <code>${esc(hit)}</code>）`);
+    const miss = (X.need || []).find(n => !n.split('|').some(w => toks.includes(w)));
+    if (miss) return bad(`<b>還不行</b>　這題要用 <code>${esc(miss.split('|').join('</code> 或 <code>'))}</code> 完成。`);
+    for (let k = 0; k < setups.length; k++) {
+      const pv = setupVars(setups[k]);
+      const full = X.after ? code + '\n' + X.after : code;
+      const r = runR(full, pv), ref = runR(X.solution + (X.after ? '\n' + X.after : ''), pv);
+      const where = setups[k] ? `<pre>${esc(setups[k])}</pre>` : '';
+      if (r.error) return bad(`<b>測資 ${k + 1} / ${setups.length} 沒通過</b>${where}程式出錯：${esc(r.error.message)}`);
+      for (const v of X.want) {
+        const lab = (X.label && X.label[v]) || v;
+        if (!r.vars.has(v)) return bad(`<b>測資 ${k + 1} / ${setups.length} 沒通過</b>${where}找不到變數 <code>${esc(lab)}</code>。`);
+        const o = { ignoreNames: X.ignoreNames, setEq: (X.setEq || []).includes(v) };
+        if (!sameVal(r.vars.get(v), ref.vars.get(v), o))
+          return bad(`<b>測資 ${k + 1} / ${setups.length} 沒通過</b>${where}<code>${esc(lab)}</code> 應該是：<pre>${showVal(ref.vars.get(v))}</pre>你的是：<pre>${showVal(r.vars.get(v))}</pre>${X.hint && X.hint[v] && X.hint[v](ref.vars.get(v), r.vars.get(v)) ? `💡 ${esc(X.hint[v](ref.vars.get(v), r.vars.get(v)))}` : ''}`);
+      }
+    }
+    verdict.className = 'verdict ok'; verdict.innerHTML = `<b>✓ 全部 ${setups.length} 組測資都通過！</b>${id === 'ex8' ? '　大魔王打倒了 🎉' : ''}`;
+    store.done[id] = 1; persist(); mark(true); updateToc();
+  };
+  const ed = makeEditor(store.code[id] ?? starter, run);
+  cell.append(ed.el, out);
+  cell.querySelector('.run').onclick = run;
+  cell.querySelector('.reset').onclick = () => { ed.set(starter); out.hidden = true; verdict.hidden = true; const e = out.nextElementSibling; if (e && e.classList.contains('envrow')) e.remove(); };
+  cell.querySelector('.sol').onclick = () => askPass(X.pass || SOL_PASS, () => {
+    const { m, close } = modal(`<h3>${esc($('.ex-h h3', box).textContent)}：詳解</h3>
+      <p style="margin:0;color:var(--muted)">每一行右邊的 # 是說明。</p>
+      <pre class="solcode">${hl(X.solution)}</pre>
+      <div class="acts"><button class="btn" type="button" data-a="close">關閉</button><button class="btn primary" type="button" data-a="use">放進編輯器</button></div>`, true);
+    $('[data-a=close]', m).onclick = close;
+    $('[data-a=use]', m).onclick = () => { ed.set(X.solution + '\n'); close(); };
+  });
+  sc.replaceWith(cell); cell.after(verdict);
+  mark(!!store.done[id]);
+});
+updateToc();
+
+/* highlight the chapter in view */
+const links = [...document.querySelectorAll('#toc a')];
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + e.target.id))); });
+}, { rootMargin: '-30% 0px -60% 0px' });
+document.querySelectorAll('section.ch').forEach(s => io.observe(s));
+</script>
+
+</body>
+</html>

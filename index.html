@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="大數據分析與實踐 · 以 R 為工具的互動教材：記憶體裡的 R 物件、R 寶的奇幻旅程。">
+<meta name="description" content="大數據分析與實踐 · 以 R 為工具的互動教材：記憶體裡的 R 物件、R 寶的奇幻旅程、演算法學院、apply 工廠。">
 <meta property="og:title" content="大數據分析與實踐">
 <meta property="og:description" content="中國醫藥大學 醫技系 · R 互動教材">
 <meta name="theme-color" content="#050912">
@@ -22,7 +22,7 @@ body{margin:0}
 :root{
   color-scheme:dark;
   --bg:#050912; --bg2:#08101d; --panel:#0b1422; --line:#18263a; --ink:#eaf1fa; --dim:#8b9db3; --faint:#506279;
-  --blue:#4c8dff; --teal:#35d6c3; --amber:#ffb547; --rose:#ff6b8a;
+  --blue:#4c8dff; --teal:#35d6c3; --amber:#ffb547; --rose:#ff6b8a; --violet:#a78bfa;
   --f-display:"Chakra Petch","Noto Sans TC",system-ui,sans-serif;
   --f-han:"Noto Sans TC","PingFang TC",system-ui,sans-serif;
   --f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -82,8 +82,7 @@ h1 .l2row{display:flex;align-items:flex-end;gap:.12em}
 .mods-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 20px;margin-bottom:22px}
 .mods-h h2{margin:0;font-size:clamp(22px,2.6vw,30px);font-weight:900}
 .mods-h p{margin:0;color:var(--dim);font-size:14px}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-@media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid .mod:nth-child(3){grid-column:1/-1}}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 @media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
 .mod{position:relative;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;padding:22px;border:1px solid var(--line);
   background:linear-gradient(160deg,color-mix(in srgb,var(--c) 9%,var(--panel)) 0%,var(--panel) 55%);text-decoration:none;
@@ -159,7 +158,7 @@ footer .mono{font-family:var(--f-code)}
       <div class="meta rise d3">
         <div><small>INSTRUCTOR</small><span>陳育辰（YCC）</span></div>
         <div><small>TOOLKIT</small><span>R · RStudio</span></div>
-        <div><small>MATERIALS</small><span>3 個互動單元</span></div>
+        <div><small>MATERIALS</small><span>4 個互動單元</span></div>
       </div>
     </div>
 
@@ -173,7 +172,7 @@ footer .mono{font-family:var(--f-code)}
 <main class="mods">
   <div class="mods-h">
     <h2>互動教材</h2>
-    <p>三個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它，最後用 function 組出演算法；補充教材補齊細節。</p>
+    <p>四個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法，最後用 apply 家族把迴圈收起來；補充教材補齊細節。</p>
   </div>
   <div class="grid">
     <a class="mod rise" style="--c:var(--blue)" href="memory.html">
@@ -265,6 +264,43 @@ footer .mono{font-family:var(--f-code)}
       <div class="foot">
         <div class="tags"><span>function</span><span>return</span><span>搜尋</span><span>遞迴</span><span>排序</span></div>
         <span class="go">10 關 + 預測挑戰 <i>→</i></span>
+      </div>
+    </a>
+    <a class="mod rise d3" style="--c:var(--violet)" href="apply.html">
+      <div class="part"><b>04</b>PART FOUR</div>
+      <div>
+        <h3>R 寶的 apply 工廠</h3>
+        <p>apply 家族從原理到應用：親手做出 lapply，再用 sapply、vapply、apply、mapply、tapply 處理序列、表現量矩陣與分組資料。</p>
+      </div>
+      <div class="prev" aria-label="示意：三條序列被拆開，逐一交給 nchar，再合併成一個向量">
+        <svg viewBox="0 0 440 112" role="img">
+          <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="14" fill="var(--ink)">sapply(seqs, <tspan fill="var(--violet)">nchar</tspan>)</text>
+          <g font-family="JetBrains Mono, monospace" font-size="13" text-anchor="middle">
+            <g transform="translate(0,32)" fill="none" stroke="var(--line)">
+              <rect x="0" y="0" width="74" height="18"/><rect x="0" y="22" width="74" height="18"/><rect x="0" y="44" width="74" height="18"/>
+            </g>
+            <g fill="var(--dim)"><text x="37" y="45">"ATG"</text><text x="37" y="67">"GCGC"</text><text x="37" y="89">"TA"</text></g>
+            <path d="M84 63 H 150" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" fill="none"/>
+            <g transform="translate(190,63)">
+              <rect x="-24" y="-24" width="48" height="44" rx="15" fill="var(--violet)"/>
+              <rect x="-16" y="-15" width="32" height="22" rx="9" fill="var(--bg)"/>
+              <rect x="-10" y="-10" width="6" height="10" rx="3" fill="var(--teal)"/><rect x="4" y="-10" width="6" height="10" rx="3" fill="var(--teal)"/>
+              <line x1="0" y1="-24" x2="0" y2="-33" stroke="var(--violet)" stroke-width="3" stroke-linecap="round"/><circle cx="0" cy="-35" r="4" fill="var(--amber)"/>
+            </g>
+            <path d="M230 63 H 296" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" fill="none"/>
+            <g transform="translate(306,44)">
+              <rect x="0" y="0" width="134" height="38" fill="color-mix(in srgb,var(--violet) 18%,transparent)" stroke="var(--violet)"/>
+              <line x1="44.7" y1="0" x2="44.7" y2="38" stroke="var(--violet)"/><line x1="89.3" y1="0" x2="89.3" y2="38" stroke="var(--violet)"/>
+              <g font-size="10" fill="var(--faint)"><text x="22.3" y="13">ATG</text><text x="67" y="13">GCGC</text><text x="111.7" y="13">TA</text></g>
+              <g fill="var(--ink)" font-size="14"><text x="22.3" y="31">3</text><text x="67" y="31">4</text><text x="111.7" y="31">2</text></g>
+            </g>
+          </g>
+          <text x="0" y="108" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--faint)">split → apply → combine</text>
+        </svg>
+      </div>
+      <div class="foot">
+        <div class="tags"><span>lapply</span><span>sapply</span><span>vapply</span><span>apply</span><span>mapply</span><span>tapply</span><span>Reduce</span></div>
+        <span class="go">8 章 + 動畫 + 練習 <i>→</i></span>
       </div>
     </a>
   </div>

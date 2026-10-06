@@ -8,6 +8,7 @@
 | 01 記憶體裡的 R 物件 | `memory.html` |
 | 02 R 寶的奇幻旅程 | `loops.html` |
 | 03 R 寶的演算法學院 | `algo.html` |
+| 04 R 寶的 apply 工廠 | `apply.html` |
 | ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
@@ -93,6 +94,23 @@ Karel 風格的程式遊戲：寫 R 程式指揮機器人「R 寶」走迷宮、
 | 9 | 遞迴 | 停止條件、呼叫堆疊；不准用迴圈 |
 | 10 | 💀 氣泡排序 | 相鄰比較、n − 1 輪 |
 | ★ | 預測挑戰 | 作用域、預設值、提早 return、遞迴的輸出順序 |
+
+## 第四部分：R 寶的 apply 工廠（`apply.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/apply.html
+
+apply 家族從原理到應用，每段程式都能直接執行（內建的 R 直譯器支援函式值、具名向量、矩陣與 list），輸出已逐一和真正的 R 比對。
+
+| 章 | 內容 | 練習 |
+|---|---|---|
+| 01 | 原理：函式也是值、匿名函式、親手做 lapply；動畫「R 寶工廠」 | 自己做 my_map |
+| 02 | lapply：結果裝進 list、`...` 額外參數 | 定序讀長品管 |
+| 03 | sapply 的簡化規則與陷阱、vapply 的 FUN.VALUE | GC 含量 |
+| 04 | apply：矩陣的列與欄、結果轉置；動畫 | 變異係數最大的基因 |
+| 05 | mapply 與 Map | 從不同位置讀密碼子 |
+| 06 | tapply 與 split（split → apply → combine 動畫） | qPCR 平均 Ct |
+| 07 | Filter、Reduce、do.call | 多次實驗的核心基因 |
+| 08 | 大魔王：多位病人的 HBB 批次篩檢（不准寫迴圈） | HBB 篩檢 |
 
 ## 補充教材：控制流程（`extras.html`）
 
