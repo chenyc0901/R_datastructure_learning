@@ -10,6 +10,7 @@
 | 03 R 寶的演算法學院 | `algo.html` |
 | 04 R 寶的 apply 工廠 | `apply.html` |
 | 05 R 寶的資料倉庫 | `io.html` |
+| 06 R 寶的統計圖鑑 | `plot.html` |
 | ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
@@ -156,3 +157,19 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 | 06 | `read.delim`、`read.table`、`na.strings`、註解行、`na.omit`、寫 TSV | 整理儀器匯出檔 |
 | 07 | 型別被猜錯、`saveRDS`／`readRDS`、`save`／`load`、`source` | 存下分析結果 |
 | 08 | 大魔王：`list.files` → `lapply` → `do.call(rbind)` 批次合併 | 合併一整批計數檔 |
+
+## 第六部分：R 寶的統計圖鑑（`plot.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/plot.html
+
+用 R 內建的繪圖函式（base graphics）呈現統計結果。網頁裡的直譯器會把 `plot()`、`hist()`、`boxplot()` 等畫成 SVG，版面、刻度和預設顏色都對照真正的 R 調整過；summary、quantile、t.test、lm 等文字輸出已和 R 4.4.2 逐字比對。
+
+| 章 | 內容 | 練習 |
+|---|---|---|
+| 01 | `plot()` 與圖的組成：main、xlab、ylab、pch、col、cex；動畫「調整一張圖」 | 年齡與膽固醇散佈圖 |
+| 02 | 一個數值：`summary`、`hist`、`boxplot`、密度曲線；動畫「分布顯微鏡」 | 膽固醇直方圖＋中位數線 |
+| 03 | 類別資料：`table`、`prop.table`、`barplot`、`pie` 的使用時機 | 兩組人數長條圖 |
+| 04 | 比較組別：`boxplot(y ~ g)`、資料點、平均數 ± SD、`t.test` | 男女的 HbA1c |
+| 05 | 兩個數值：散佈圖、`cor`、`lm` 與迴歸線；動畫「相關係數直覺」 | 年齡和膽固醇的關係 |
+| 06 | 折線圖：`type = "b"`、`lines`、`legend`、`par(mfrow)`、`png()` 存檔 | 兩位病人的 OGTT |
+| 07 | 總整理：資料類型 → 圖的對照表、選圖器、8 題小測驗、常見的誤導圖 | — |

@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="R 套件與檔案：install.packages 與 library、::、Bioconductor、工作目錄與路徑、readLines／writeLines、read.csv／write.csv、read.delim、saveRDS 與 source，附動畫與自動批改練習。">
-<meta property="og:title" content="R 寶的資料倉庫">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%A6%3C/text%3E%3C/svg%3E">
+<meta name="description" content="用 R 的圖呈現統計結果：plot、hist、boxplot、barplot、pie、lines、legend，搭配 summary、t.test、cor、lm，並整理什麼資料用什麼圖。附動畫、小測驗與自動批改練習。">
+<meta property="og:title" content="R 寶的統計圖鑑">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E">
 <meta charset="utf-8">
-<title>R 寶的資料倉庫</title>
+<title>R 寶的統計圖鑑</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
@@ -320,6 +320,41 @@ table.cmp tr:last-child td{border-bottom:0}
 @keyframes morph{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 
 @media (prefers-reduced-motion: reduce){.drawer{transition:none}.book.in,.tree .new,.pcbtn.ping{animation:none}}
+
+/* plots */
+.out.only-plot{display:none}
+.plots{border-top:1px solid var(--line);background:#fff;padding:8px;display:flex;flex-direction:column;gap:8px}
+.plots svg,.plotbox svg{display:block;width:100%;max-width:580px;height:auto;margin:0 auto}
+.plotbox{background:#fff;border-radius:10px;padding:6px}
+.viewer svg{display:block;width:100%;height:auto}
+.tune-stage{display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);gap:14px;padding:14px}
+.tune-ctl{display:flex;flex-direction:column;gap:10px;font-size:14px}
+.tune-ctl label{display:flex;flex-direction:column;gap:4px;font-weight:600}
+.tune-ctl label.chk{flex-direction:row;align-items:center;gap:6px;font-weight:400}
+.tune-ctl input[type=text]{font-family:var(--f-code);font-size:14px;padding:6px 8px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.tune-out .wcode{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--sunk)}
+.wsl{display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+.widget-h .chk{display:inline-flex;align-items:center;gap:6px;font-size:13.5px}
+.dist-stage{padding:12px 14px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,0.6fr);gap:12px;align-items:start}
+.dist-stage .wcode{border:1px solid var(--line);border-radius:10px;background:var(--sunk);font-size:13px}
+.box-anat{max-width:420px;margin:12px auto;color:var(--ink)}
+.box-anat svg{width:100%;height:auto}
+.choose-stage{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:14px;padding:14px;align-items:start}
+.choose-side .wcode{border:1px solid var(--line);border-radius:10px;background:var(--sunk);margin-bottom:10px}
+.choose-side p{margin:6px 0;font-size:14.5px}
+.choose-side .bad{background:var(--bad-soft);border-radius:10px;padding:8px 12px;font-size:14px}
+.quiz{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.qz{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
+.qz p{margin:0 0 8px;font-weight:600}
+.qz .opts{display:flex;flex-wrap:wrap;gap:6px}
+.qz .opts button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 12px;font-size:14px}
+.qz .opts button.right{border-color:var(--ok);background:var(--ok-soft);font-weight:700}
+.qz .opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.qz .fb{margin-top:8px;font-size:14px;color:var(--muted)}
+.qz-score{font-weight:700}
+table.guide td{font-size:14.5px}
+table.guide small{color:var(--muted)}
+@media (max-width:720px){.tune-stage,.dist-stage,.choose-stage{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -350,16 +385,15 @@ table.cmp tr:last-child td{border-bottom:0}
   <div style="grid-column:1/-1">
     <nav class="crumbs" aria-label="導覽">
       <a href="./">← 大數據分析與實踐 · 課程首頁</a>
-      <a href="apply.html">上一單元：R 寶的 apply 工廠</a>
-      <a href="plot.html">下一單元：R 寶的統計圖鑑 →</a>
+      <a href="io.html">上一單元：R 寶的資料倉庫</a>
     </nav>
-    <div class="eyebrow">Part 05 · Packages &amp; Files</div>
+    <div class="eyebrow">Part 06 · Plots for statistics</div>
     <div class="hero-row">
       <svg class="bot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg>
-      <h1>R 寶的資料倉庫</h1>
+      <h1>R 寶的統計圖鑑</h1>
     </div>
-    <p>真正的分析不會把資料一個一個打進程式裡：資料放在<b>檔案</b>裡，很多好用的工具放在別人寫好的<b>套件（package）</b>裡。這一章教你怎麼安裝、載入套件，怎麼在資料夾之間找到檔案，以及怎麼把文字檔、CSV、TSV 讀進 R、把結果寫回硬碟。</p>
-    <div class="meta"><span class="pill">8 章 · 8 題練習</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span><span class="pill">右下角 <b>💻 R 寶的電腦</b> 可以看硬碟和已安裝的套件</span></div>
+    <p>算出平均數、p 值之後，還要讓別人一眼看懂。這一章用 R 內建的繪圖函式，把描述統計、組間比較、相關和時間變化畫成圖，最後整理出<b>什麼樣的資料要用什麼樣的圖</b>。</p>
+    <div class="meta"><span class="pill">7 章 · 6 題練習 · 1 個小測驗</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span><span class="pill">右下角 <b>💻 R 寶的電腦</b> 可以看資料檔和存下來的圖</span></div>
   </div>
 </header>
 
@@ -367,627 +401,399 @@ table.cmp tr:last-child td{border-bottom:0}
   <nav class="toc" aria-label="目錄">
     <h2>目錄</h2>
     <ol id="toc">
-      <li><a href="#ch1" data-ex="ex1"><span class="n">01</span>套件：install 與 library<span class="ck">✓</span></a></li>
-      <li><a href="#ch2" data-ex="ex2"><span class="n">02</span>::、require 與 Bioconductor<span class="ck">✓</span></a></li>
-      <li><a href="#ch3" data-ex="ex3"><span class="n">03</span>工作目錄與路徑<span class="ck">✓</span></a></li>
-      <li><a href="#ch4" data-ex="ex4"><span class="n">04</span>文字檔：readLines / writeLines<span class="ck">✓</span></a></li>
-      <li><a href="#ch5" data-ex="ex5"><span class="n">05</span>CSV 與 data.frame<span class="ck">✓</span></a></li>
-      <li><a href="#ch6" data-ex="ex6"><span class="n">06</span>TSV、空白分隔、遺漏值<span class="ck">✓</span></a></li>
-      <li><a href="#ch7" data-ex="ex7"><span class="n">07</span>RDS 存檔與 source<span class="ck">✓</span></a></li>
-      <li><a href="#ch8" data-ex="ex8"><span class="n">08</span>大魔王：批次讀整個資料夾<span class="ck">✓</span></a></li>
-      <li><a href="#sum"><span class="n">✦</span>總整理：專案資料夾怎麼放</a></li>
+      <li><a href="#ch1" data-ex="ex1"><span class="n">01</span>第一張圖：plot()<span class="ck">✓</span></a></li>
+      <li><a href="#ch2" data-ex="ex2"><span class="n">02</span>一個數值：hist、boxplot<span class="ck">✓</span></a></li>
+      <li><a href="#ch3" data-ex="ex3"><span class="n">03</span>類別資料：barplot<span class="ck">✓</span></a></li>
+      <li><a href="#ch4" data-ex="ex4"><span class="n">04</span>比較組別<span class="ck">✓</span></a></li>
+      <li><a href="#ch5" data-ex="ex5"><span class="n">05</span>兩個數值：散佈圖<span class="ck">✓</span></a></li>
+      <li><a href="#ch6" data-ex="ex6"><span class="n">06</span>隨時間變化：折線圖<span class="ck">✓</span></a></li>
+      <li><a href="#ch7"><span class="n">07</span>總整理：資料 → 圖</a></li>
     </ol>
     <div class="prog" id="prog"></div>
   </nav>
 
   <main>
 <section class="ch" id="intro" style="padding-top:0">
-  <div class="note lab"><b>🖥 這一頁是一台模擬的電腦</b>R 寶的電腦裡有一個專案資料夾 <code>/Users/rbao/bio_project</code>，裡面放著檢驗科送來的資料。每一格範例都像是<b>重新打開一次 RStudio</b>：</div>
-  <div class="sessbox">
-    <div class="keep"><b>✓ 會留下來（存在電腦裡）</b>安裝過的套件、寫進硬碟的檔案和資料夾。下一格、甚至重新整理網頁之後都還在。</div>
-    <div class="gone"><b>✗ 每一格重來（存在這次的 R 裡）</b>變數、<code>library()</code> 載入的套件、<code>setwd()</code> 換過的工作目錄。</div>
-  </div>
-  <p>這正好就是真實世界的規則，也是這一章最重要的觀念之一。按右下角的 <b>💻 R 寶的電腦</b> 隨時可以看硬碟裡有什麼、裝了哪些套件；玩壞了也可以一鍵還原。</p>
+  <div class="note lab"><b>🧪 這一章的資料：40 位受檢者的檢驗結果</b>R 寶的專案資料夾 <code>data/lab.csv</code> 裡有 22 位對照組（control）和 18 位糖尿病組（diabetes）的資料：性別 <code>sex</code>、年齡 <code>age</code>、空腹血糖 <code>glucose</code>（mg/dL）、糖化血色素 <code>hba1c</code>（%）、總膽固醇 <code>chol</code>（mg/dL）、血型 <code>blood</code>。另外 <code>data/ogtt.csv</code> 是三位病人的口服葡萄糖耐受試驗。</div>
+<script type="text/x-r" class="cell" data-label="範例 0-1 · 先看資料">lab <- read.csv("data/lab.csv")
+str(lab)
+head(lab, 3)</script>
+  <p>每一格範例和上一單元一樣，都像重新打開一次 RStudio，所以每格都會先 <code>read.csv()</code>。畫出來的圖會出現在輸出的下面，<b>和 RStudio 的 Plots 窗格一樣</b>。這一章用的是 R 內建的繪圖函式（base graphics），不用安裝任何套件。</p>
+  <div class="note link"><b>為什麼要畫圖？</b>統計量把一堆數字濃縮成幾個數字，一定會丟掉資訊。平均數一樣的兩組資料，分布可能完全不同；相關係數 0.9 也可能來自一個極端值。<b>先畫圖看資料，再決定用什麼統計量</b>，最後再用圖把結果呈現給別人。</div>
 </section>
 
 <!-- ============ 01 ============ -->
 <section class="ch" id="ch1">
-  <div class="ch-h"><span class="num">01</span><h2>套件是什麼？install 與 library<small>把別人寫好的工具箱搬進你的 R</small></h2></div>
-
-  <p>你用過的 <code>sum()</code>、<code>sd()</code>、<code>read.csv()</code> 其實也都來自套件，只是 R 一打開就自動載入了。用 <code>search()</code> 可以看到這次的 R 載入了哪些套件：</p>
-<script type="text/x-r" class="cell" data-label="範例 1-1 · R 一打開就有的套件">search()                       # 這次的 R 載入了哪些套件
-sd(c(18.2, 18.9, 17.8))        # sd() 來自 package:stats</script>
-  <p>內建的功能不夠用時，就去下載別人寫好的套件。R 的套件主要來自三個地方：</p>
+  <div class="ch-h"><span class="num">01</span><h2>第一張圖：plot() 與圖的組成<small>標題、軸標籤、點的形狀和顏色</small></h2></div>
+  <p><code>plot(x, y)</code> 把每一對 (x, y) 畫成一個點。第一個參數是橫軸、第二個是縱軸：</p>
+<script type="text/x-r" class="cell" data-label="範例 1-1">lab <- read.csv("data/lab.csv")
+plot(lab$hba1c, lab$glucose)</script>
+  <p>能畫，但不夠好：軸標籤直接用了程式碼 <code>lab$hba1c</code>，也沒有標題和單位。給別人看的圖要加上這些資訊：</p>
+<script type="text/x-r" class="cell" data-label="範例 1-2 · 加上標題和單位">lab <- read.csv("data/lab.csv")
+plot(lab$hba1c, lab$glucose,
+     main = "HbA1c vs fasting glucose",     # 標題
+     xlab = "HbA1c (%)",                    # x 軸標籤（記得單位）
+     ylab = "Glucose (mg/dL)",              # y 軸標籤
+     pch = 16,                              # 點的形狀：16 是實心圓
+     col = "steelblue",                     # 顏色
+     cex = 1.2)                             # 點的大小（1 是預設）</script>
   <div class="tblwrap"><table class="cmp">
-    <tr><th>來源</th><th>內容</th><th>安裝方式</th></tr>
-    <tr><td><b>CRAN</b></td><td>官方套件庫，兩萬多個套件：stringr、dplyr、ggplot2、readxl……</td><td><code>install.packages("stringr")</code></td></tr>
-    <tr><td><b>Bioconductor</b></td><td>生物資訊專用：Biostrings、DESeq2、limma……</td><td><code>BiocManager::install("DESeq2")</code></td></tr>
-    <tr><td><b>GitHub</b></td><td>還在開發中、或作者自己放的版本</td><td><code>remotes::install_github("作者/套件")</code></td></tr>
+    <tr><th>參數</th><th>意思</th><th>常用的值</th></tr>
+    <tr><td><code>main</code> / <code>xlab</code> / <code>ylab</code></td><td>標題、x 軸、y 軸文字</td><td>文字，可以寫中文</td></tr>
+    <tr><td><code>pch</code></td><td>點的形狀</td><td>1 空心圓（預設）、16 實心圓、17 三角形、15 方形、4 叉叉</td></tr>
+    <tr><td><code>col</code></td><td>顏色</td><td><code>"tomato"</code>、<code>"steelblue"</code>、<code>"gray40"</code>，或數字 1–8</td></tr>
+    <tr><td><code>cex</code></td><td>大小倍數</td><td>0.5 小一半、2 大一倍</td></tr>
+    <tr><td><code>type</code></td><td>畫法</td><td><code>"p"</code> 點、<code>"l"</code> 線、<code>"b"</code> 點加線</td></tr>
+    <tr><td><code>xlim</code> / <code>ylim</code></td><td>軸的範圍</td><td><code>c(0, 250)</code></td></tr>
   </table></div>
+<script type="text/x-r" class="cell" data-label="範例 1-3 · pch 與顏色對照">plot(1:6, rep(2, 6), pch = c(0, 1, 2, 3, 4, 15), cex = 2.5, xlim = c(0.5, 6.5), ylim = c(0.5, 2.6),
+     axes = FALSE, xlab = "", ylab = "", main = "pch and col")
+points(1:6, rep(1.2, 6), pch = c(16, 17, 18, 19, 20, 16), cex = 2.5, col = 1:6)
+text(1:6, rep(2.45, 6), c(0, 1, 2, 3, 4, 15))
+text(1:6, rep(0.75, 6), c("16 / col=1", "17 / 2", "18 / 3", "19 / 4", "20 / 5", "16 / 6"))</script>
 
-  <h3><span class="tag">1-1</span>還沒裝、還沒載入</h3>
-  <p>stringr 是處理文字的套件，裡面有 <code>str_length()</code>、<code>str_detect()</code> 這些函式。直接呼叫會怎樣？</p>
-<script type="text/x-r" class="cell" data-label="範例 1-2">str_length("ATGCGT")           # stringr 的函式</script>
-<script type="text/x-r" class="cell" data-label="範例 1-3">library(stringr)               # 想載入它……</script>
-  <p>如果 R 寶的電腦還沒裝過 stringr，<code>library()</code> 會說 <code>there is no package called ‘stringr’</code>：書架上根本沒有這本書。這時要先<b>安裝</b>：</p>
-<script type="text/x-r" class="cell" data-label="範例 1-4 · 安裝（每台電腦做一次）" data-noverify="1">install.packages("stringr")    # 從 CRAN 下載，放進這台電腦</script>
-  <p class="dim" style="color:var(--muted);font-size:14px">下載過程的訊息是模擬的；在你的電腦上網址、檔案大小會不一樣。注意 stringr 還需要 stringi、glue 等其他套件（<b>相依套件</b>），install.packages 會一起裝好。</p>
-<script type="text/x-r" class="cell" data-label="範例 1-5 · 載入（每次打開 R 都要）">library(stringr)               # 從書架拿到桌上
-str_length(c("ATGCGT", "GC", NA))
-str_detect(c("BRCA1", "TP53", "BRCA2"), "^BRCA")
-search()                       # package:stringr 出現了</script>
-<script type="text/x-r" class="cell" data-label="範例 1-6 · 新的一格 = 新開的 R">str_detect("BRCA1", "^BRCA")   # 上一格 library 過了，這一格呢？</script>
-  <p>範例 1-6 又找不到函式了：上一格的 <code>library()</code> 只對上一次的 R 有效。這就像<b>圖書館</b>：</p>
-  <div class="steps3">
-    <div><b>☁️ CRAN</b><small>全世界的書店，書永遠都在</small></div>
-    <div><b>📚 install.packages()</b><small>把書買回家、放上<b>書架</b>（電腦的 library 資料夾）。一台電腦做一次。</small></div>
-    <div><b>📖 library()</b><small>從書架拿到<b>桌上</b>（這次的 R）。每次打開 R、每個腳本開頭都要做。</small></div>
-  </div>
-
-  <h3><span class="tag">1-2</span>動畫：R 寶的書架</h3>
-  <p>選一本書，依序按按鈕，看它從 CRAN 到書架、再到桌上。按「關掉 R 再打開」，桌上的書會被收回書架，但書架上的書還在。<b>這裡的安裝和範例格共用同一台電腦。</b></p>
-  <div class="widget" id="shelf">
-    <div class="widget-h"><span class="ttl">R 寶的書架</span><div class="seg" role="group" aria-label="選一個套件" id="shelfPick"></div></div>
-    <div class="shelf-stage">
-      <div class="zone cran" data-z="cran"><h4>☁️ CRAN</h4><small>線上的套件庫</small><div class="books"></div></div>
-      <div class="zone lib" data-z="lib"><h4>📚 書架 · 這台電腦</h4><small>install.packages() 放到這裡，關機也還在</small><div class="books"></div></div>
-      <div class="zone desk" data-z="desk"><h4>📖 桌上 · 這次的 R</h4><small>library() 拿到這裡，關掉 R 就收走</small><div class="books"></div><svg class="shelf-bot" viewBox="0 0 150 150" aria-hidden="true"><use href="#rbao"/></svg></div>
-    </div>
-    <pre class="shelf-con" id="shelfCon" aria-live="polite"></pre>
-    <div class="wctl">
-      <button type="button" data-act="install">install.packages()</button>
-      <button type="button" data-act="library">library()</button>
-      <button type="button" data-act="use" class="go">用它的函式</button>
-      <button type="button" data-act="restart">關掉 R 再打開</button>
-      <button type="button" data-act="remove">remove.packages()</button>
+  <h3><span class="tag">1-1</span>動畫：調整一張圖</h3>
+  <p>改改看每個參數，右邊的程式碼和圖會跟著變。注意<b>每個參數都是「名稱 = 值」</b>，順序不重要。</p>
+  <div class="widget" id="tune">
+    <div class="widget-h"><span class="ttl">調整一張圖</span></div>
+    <div class="tune-stage">
+      <div class="tune-ctl">
+        <label>type<span class="seg" data-k="type"><button type="button" data-v="p" aria-pressed="true">"p" 點</button><button type="button" data-v="l" aria-pressed="false">"l" 線</button><button type="button" data-v="b" aria-pressed="false">"b" 都要</button></span></label>
+        <label>pch<span class="seg" data-k="pch"><button type="button" data-v="1" aria-pressed="true">1</button><button type="button" data-v="16" aria-pressed="false">16</button><button type="button" data-v="17" aria-pressed="false">17</button><button type="button" data-v="15" aria-pressed="false">15</button><button type="button" data-v="4" aria-pressed="false">4</button></span></label>
+        <label>col<span class="seg" data-k="col"><button type="button" data-v="black" aria-pressed="true">black</button><button type="button" data-v="steelblue" aria-pressed="false">steelblue</button><button type="button" data-v="tomato" aria-pressed="false">tomato</button><button type="button" data-v="darkgreen" aria-pressed="false">darkgreen</button></span></label>
+        <label>cex <output id="tuneCexV">1</output><input type="range" id="tuneCex" min="0.5" max="2.5" step="0.25" value="1"></label>
+        <label>main<input type="text" id="tuneMain" value="OGTT: P02" spellcheck="false"></label>
+        <label class="chk"><input type="checkbox" id="tuneH"> 加一條 <code>abline(h = 200, lty = 2)</code></label>
+      </div>
+      <div class="tune-out"><pre class="wcode" id="tuneCode"></pre><div class="plotbox" id="tunePlot"></div></div>
     </div>
   </div>
-
-  <div class="tblwrap"><table class="cmp">
-    <tr><th></th><th><code>install.packages("x")</code></th><th><code>library(x)</code></th></tr>
-    <tr><td>做什麼</td><td>下載，放進電腦</td><td>載入這次的 R</td></tr>
-    <tr><td>多久做一次</td><td>每台電腦一次（R 大改版後要重裝）</td><td>每次打開 R 都要</td></tr>
-    <tr><td>套件名稱</td><td><b>一定要加引號</b></td><td>可以不加引號</td></tr>
-    <tr><td>寫在腳本裡？</td><td>✗ 不要：每次跑都會重新下載</td><td>✓ 寫在腳本最上面</td></tr>
-  </table></div>
-  <div class="note warn"><b>常見錯誤</b><code>install.packages(stringr)</code> 少了引號 → <code>object 'stringr' not found</code>。<code>library(Stringr)</code> 大小寫錯 → 找不到套件。套件名稱和變數一樣，<b>有分大小寫</b>。</div>
 
   <div class="ex" id="ex1" data-ex="ex1">
-    <div class="ex-h"><span class="badge">練習 1</span><h3>第一次用 stringr</h3><span class="st"></span></div>
-    <p>檢查時 R 寶的電腦<b>已經裝好 stringr</b>，但每次都是新開的 R。<code>genes</code> 已經在 Environment，請<b>載入 stringr</b> 後做出：</p>
+    <div class="ex-h"><span class="badge">練習 1</span><h3>年齡與膽固醇</h3><span class="st"></span></div>
+    <p>讀入 <code>data/lab.csv</code>，畫出<b>橫軸是年齡 age、縱軸是總膽固醇 chol</b> 的散佈圖，並且：</p>
     <ul>
-      <li><code>len</code>：每個基因名稱有幾個字（用 <code>str_length</code>）。</li>
-      <li><code>is_il</code>：哪些基因是 <code>IL</code> 開頭（用 <code>str_detect</code>，pattern 是 <code>"^IL"</code>）。</li>
-      <li><code>il_genes</code>：IL 開頭的基因名稱。</li>
+      <li>標題 <code>"Age and cholesterol"</code>、x 軸 <code>"Age (years)"</code>、y 軸 <code>"Cholesterol (mg/dL)"</code>。</li>
+      <li>用實心圓 <code>pch = 16</code>，顏色自己選。</li>
     </ul>
-    <p class="dim" style="color:var(--muted);font-size:14px">這題要用 stringr，所以不能用 base R 的 nchar、grepl。</p>
-<script type="text/x-r" class="starter"># genes 已經在 Environment
-genes
-___                     # 先載入 stringr
-len <- ___
-is_il <- ___
-il_genes <- genes[is_il]
-len
-il_genes
+<script type="text/x-r" class="starter">lab <- read.csv("data/lab.csv")
+plot(___, ___,
+     main = ___,
+     xlab = ___,
+     ylab = ___,
+     pch = ___, col = "tomato")
 </script>
   </div>
 </section>
 
 <!-- ============ 02 ============ -->
 <section class="ch" id="ch2">
-  <div class="ch-h"><span class="num">02</span><h2>::、require 與 Bioconductor<small>指名道姓、安全地安裝、生資套件</small></h2></div>
+  <div class="ch-h"><span class="num">02</span><h2>一個數值變數：看分布<small>summary、直方圖 hist、盒形圖 boxplot</small></h2></div>
+  <p>拿到一欄數字，第一個問題是：<b>資料集中在哪裡？分散多大？有沒有特別大或特別小的值？</b>先用數字回答：</p>
+<script type="text/x-r" class="cell" data-label="範例 2-1 · 描述統計">lab <- read.csv("data/lab.csv")
+summary(lab$glucose)          # 最小、Q1、中位數、平均、Q3、最大
+sd(lab$glucose)               # 標準差：平均離平均數多遠
+quantile(lab$glucose, c(0.1, 0.9))   # 第 10、90 百分位數</script>
 
-  <h3><span class="tag">2-1</span><code>套件::函式</code>：不 library 也能用</h3>
-  <p>只要套件<b>裝過</b>，就可以用 <code>套件名::函式名</code> 直接指定，不必先 library。好處是一眼就看得出函式來自哪裡，而且只借用一個函式。</p>
-<script type="text/x-r" class="cell" data-label="範例 2-1">stringr::str_to_upper("atgcgt")        # 沒有 library 也能用
-stringr::str_count("ACGCGTCG", "CG")    # 數 CpG
-tools::file_ext("data/qpcr.csv")        # tools 是 R 內建、但預設沒載入的套件</script>
+  <h3><span class="tag">2-1</span>直方圖：資料的形狀</h3>
+  <p>直方圖把數值切成一段一段（bin），每段的高度是落在裡面的人數。</p>
+<script type="text/x-r" class="cell" data-label="範例 2-2 · hist">lab <- read.csv("data/lab.csv")
+hist(lab$glucose,
+     main = "Fasting glucose",
+     xlab = "Glucose (mg/dL)",
+     col = "lightblue")</script>
+  <p>切幾段由 <code>breaks</code> 決定。段太少看不出形狀，段太多又變成一根一根的雜訊；R 預設用 Sturges 公式自動決定。下面的動畫可以拉拉看，也可以加入一個「打錯的」極端值，看看平均數和中位數誰比較容易被拉走。</p>
+  <div class="widget" id="dist">
+    <div class="widget-h"><span class="ttl">分布顯微鏡</span>
+      <label class="wsl">breaks <output id="distBV">預設</output><input type="range" id="distB" min="0" max="30" step="1" value="0"></label>
+      <label class="chk"><input type="checkbox" id="distO"> 加入一筆 400 mg/dL（打錯的資料）</label>
+    </div>
+    <div class="dist-stage"><div class="plotbox" id="distPlot"></div><pre class="wcode" id="distStat"></pre></div>
+  </div>
 
-  <h3><span class="tag">2-2</span>同名函式：誰蓋掉誰？</h3>
-  <p>不同套件可能有同名的函式。R 找函式時，照 <code>search()</code> 的順序<b>從左找到右</b>，新載入的套件會插在最前面，所以會「蓋掉」（mask）後面的同名函式。載入 dplyr 時 R 會主動提醒：</p>
-<script type="text/x-r" class="cell" data-label="範例 2-2" data-noverify="1">library(dplyr)       # 還沒裝的話，先執行 install.packages("dplyr")
-search()</script>
-  <p>這段訊息是說：載入 dplyr 之後，直接寫 <code>filter()</code> 會用到 dplyr 的版本，stats 的 <code>filter()</code> 被蓋掉了。想用被蓋掉的那個，就寫 <code>stats::filter()</code>。<span style="color:var(--muted)">（這個網頁版只模擬 dplyr 的安裝和載入，它的函式要到 RStudio 裡才能用。）</span></p>
-
-  <h3><span class="tag">2-3</span>library、require、requireNamespace</h3>
-<script type="text/x-r" class="cell" data-label="範例 2-3" data-noverify="1">ok <- require(Biostrings)    # 找不到：不會停下來，只回傳 FALSE（還有警告）
-ok
-requireNamespace("Biostrings", quietly = TRUE)   # 只檢查有沒有裝，不載入</script>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>寫法</th><th>找不到套件時</th><th>適合</th></tr>
-    <tr><td><code>library(x)</code></td><td><b>錯誤，程式停止</b></td><td>腳本開頭：少了套件就應該立刻知道</td></tr>
-    <tr><td><code>require(x)</code></td><td>警告，回傳 FALSE，程式繼續</td><td>寫在函式裡；一般腳本用 library 比較好</td></tr>
-    <tr><td><code>requireNamespace("x", quietly = TRUE)</code></td><td>回傳 FALSE，什麼都不印</td><td>檢查有沒有裝</td></tr>
-  </table></div>
-  <p>把它們組合起來，就是「沒裝才裝」的常見寫法。分享給同學的腳本可以這樣寫，就不會每次都重新下載：</p>
-<script type="text/x-r" class="cell" data-label="範例 2-4 · 沒裝才裝" data-noverify="1">if (!requireNamespace("stringr", quietly = TRUE)) {
-  install.packages("stringr")
-}
-library(stringr)
-packageVersion("stringr")     # 裝的是哪一版</script>
-
-  <h3><span class="tag">2-4</span>Bioconductor：生資套件要換一個安裝方式</h3>
-<script type="text/x-r" class="cell" data-label="範例 2-5" data-noverify="1">install.packages("Biostrings")      # Biostrings 不在 CRAN</script>
-  <p>看到 <code>is not available for this version of R</code>，通常是三種情況：拼錯字、大小寫錯，或是<b>它根本不在 CRAN</b>。Biostrings、DESeq2 這些生資套件在 Bioconductor，要先從 CRAN 裝「安裝工具」BiocManager，再用它安裝：</p>
-<script type="text/x-r" class="cell" data-label="範例 2-6 · Bioconductor" data-noverify="1">install.packages("BiocManager")         # ① 從 CRAN 裝安裝工具（一次）
-BiocManager::install("Biostrings")      # ② 用它從 Bioconductor 安裝（一次）
-library(Biostrings)                     # ③ 每次使用前載入</script>
-  <p class="dim" style="color:var(--muted);font-size:14px">真正載入 Biostrings 時還會印出很多 masking 訊息，這裡只保留「Loading required package」那幾行。</p>
-
-  <h3><span class="tag">2-5</span>stringr 和 base R 的對照</h3>
-  <p>stringr 的函式都是 <code>str_</code> 開頭，而且<b>第一個參數一定是文字</b>，比 base R 好記：</p>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>想做的事</th><th>base R</th><th>stringr</th></tr>
-    <tr><td>字數</td><td><code>nchar(x)</code></td><td><code>str_length(x)</code></td></tr>
-    <tr><td>有沒有符合</td><td><code>grepl(pattern, x)</code></td><td><code>str_detect(x, pattern)</code></td></tr>
-    <tr><td>符合幾次</td><td>（沒有簡單的寫法）</td><td><code>str_count(x, pattern)</code></td></tr>
-    <tr><td>取一段</td><td><code>substr(x, 2, 4)</code></td><td><code>str_sub(x, 2, 4)</code>，<code>str_sub(x, -3)</code> 取最後 3 個</td></tr>
-    <tr><td>取代全部</td><td><code>gsub(pattern, new, x)</code></td><td><code>str_replace_all(x, pattern, new)</code></td></tr>
-    <tr><td>大寫</td><td><code>toupper(x)</code></td><td><code>str_to_upper(x)</code></td></tr>
-    <tr><td>接起來</td><td><code>paste0(a, b)</code></td><td><code>str_c(a, b)</code></td></tr>
-  </table></div>
+  <h3><span class="tag">2-2</span>盒形圖：五個數字畫成一張圖</h3>
+<script type="text/x-r" class="cell" data-label="範例 2-3 · boxplot">lab <- read.csv("data/lab.csv")
+boxplot(lab$glucose, ylab = "Glucose (mg/dL)", main = "Fasting glucose")
+fivenum(lab$glucose)       # 盒形圖用的五個數字</script>
+  <div class="box-anat">
+    <svg viewBox="0 0 300 220" role="img" aria-label="盒形圖各部位說明">
+      <g stroke="currentColor" fill="none" stroke-width="1.5">
+        <rect x="90" y="70" width="70" height="70" fill="var(--sunk)"/>
+        <line x1="90" y1="100" x2="160" y2="100" stroke-width="4"/>
+        <line x1="125" y1="70" x2="125" y2="30" stroke-dasharray="4 4"/><line x1="107" y1="30" x2="143" y2="30"/>
+        <line x1="125" y1="140" x2="125" y2="185" stroke-dasharray="4 4"/><line x1="107" y1="185" x2="143" y2="185"/>
+        <circle cx="125" cy="12" r="4"/>
+      </g>
+      <g font-size="12" fill="currentColor">
+        <text x="170" y="16">離群值（超過 1.5 × IQR）</text>
+        <text x="170" y="34">鬚的上端：範圍內最大值</text>
+        <text x="170" y="74">Q3（第 75 百分位）</text>
+        <text x="170" y="104">中位數（粗線）</text>
+        <text x="170" y="144">Q1（第 25 百分位）</text>
+        <text x="170" y="189">鬚的下端：範圍內最小值</text>
+        <text x="8" y="108" font-weight="700">盒子 = 中間 50%</text>
+        <text x="8" y="124">高度 = IQR</text>
+      </g>
+    </svg>
+  </div>
+<script type="text/x-r" class="cell" data-label="範例 2-4 · 機率密度">lab <- read.csv("data/lab.csv")
+hist(lab$hba1c, freq = FALSE, col = "gray90",
+     main = "HbA1c", xlab = "HbA1c (%)")    # freq = FALSE：y 軸改成密度，面積加起來是 1
+lines(density(lab$hba1c), lwd = 2, col = "tomato")   # 疊上平滑的密度曲線</script>
+  <p>HbA1c 有兩個高峰（雙峰）：兩群人混在一起。這是只看平均數完全看不出來的。</p>
+  <div class="note tip"><b>平均數還是中位數？</b>對稱、沒有極端值 → 平均數 ± 標準差。偏斜（例如檢驗值常常右偏）或有極端值 → 中位數和 IQR（四分位距）。直方圖和盒形圖就是用來判斷是哪一種的。</div>
 
   <div class="ex" id="ex2" data-ex="ex2">
-    <div class="ex-h"><span class="badge">練習 2</span><h3>只用 :: 找 CpG</h3><span class="st"></span></div>
-    <p>定序儀送來的序列 <code>seqs</code> 大小寫混在一起。<b>不能用 library / require</b>，全部用 <code>stringr::</code> 呼叫，做出：</p>
+    <div class="ex-h"><span class="badge">練習 2</span><h3>膽固醇的分布</h3><span class="st"></span></div>
+    <p>請畫出 <code>chol</code> 的直方圖，並在圖上用紅色直線標出中位數：</p>
     <ul>
-      <li><code>up</code>：全部轉成大寫（<code>str_to_upper</code>）。</li>
-      <li><code>cpg</code>：<code>up</code> 裡每條序列有幾個 <code>"CG"</code>（<code>str_count</code>）。</li>
-      <li><code>has_tata</code>：<code>up</code> 裡每條序列有沒有 <code>"TATAA"</code>（<code>str_detect</code>）。</li>
+      <li>直方圖用 <code>breaks = 8</code>，標題 <code>"Total cholesterol"</code>，x 軸 <code>"Cholesterol (mg/dL)"</code>。</li>
+      <li>把中位數存成變數 <code>med</code>，再用 <code>abline(v = med, col = "red", lwd = 2)</code> 畫上去。</li>
+      <li>把標準差存成變數 <code>s</code>。</li>
     </ul>
-<script type="text/x-r" class="starter"># seqs 已經在 Environment；R 寶的電腦裝好了 stringr，但沒有 library
-seqs
-up <- ___
-cpg <- ___
-has_tata <- ___
-cpg
-has_tata
+<script type="text/x-r" class="starter">lab <- read.csv("data/lab.csv")
+med <- ___
+s <- ___
+hist(___, breaks = 8, main = ___, xlab = ___)
+abline(v = ___, col = "red", lwd = 2)
+med
+s
 </script>
   </div>
 </section>
 
 <!-- ============ 03 ============ -->
 <section class="ch" id="ch3">
-  <div class="ch-h"><span class="num">03</span><h2>工作目錄與路徑<small>R 到底去哪裡找檔案？</small></h2></div>
-
-  <p>寫 <code>read.csv("qpcr.csv")</code> 時，R 只會在<b>工作目錄</b>（working directory）裡找 qpcr.csv。這一頁的工作目錄是 R 寶的專案資料夾：</p>
-<script type="text/x-r" class="cell" data-label="範例 3-1">getwd()                 # 現在的工作目錄
-list.files()            # 工作目錄裡有什麼
-list.files("data")      # data 資料夾裡有什麼</script>
-<script type="text/x-r" class="cell" data-label="範例 3-2 · list.files 的參數">list.files("data", pattern = "\\.csv$")          # 只要 .csv 結尾的（正規表示式）
-list.files("data/samples", full.names = TRUE)    # 連資料夾路徑一起回傳
-list.files("data", recursive = TRUE)             # 子資料夾裡的檔案也列出來</script>
-
-  <h3><span class="tag">3-1</span>絕對路徑、相對路徑</h3>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>寫法</th><th>意思</th><th>例子</th></tr>
-    <tr><td>絕對路徑</td><td>從根目錄 <code>/</code> 開始，在哪裡執行都一樣</td><td><code>/Users/rbao/bio_project/data/qpcr.csv</code></td></tr>
-    <tr><td>相對路徑</td><td>從<b>工作目錄</b>開始算</td><td><code>data/qpcr.csv</code></td></tr>
-    <tr><td><code>.</code> / <code>..</code></td><td>目前這一層 / 上一層</td><td><code>../Desktop</code></td></tr>
-    <tr><td><code>~</code></td><td>使用者的家目錄</td><td><code>~/Downloads</code> = <code>/Users/rbao/Downloads</code></td></tr>
-  </table></div>
-  <p>相對路徑的好處是：整個專案資料夾複製給同學，程式不用改就能跑。絕對路徑換一台電腦就找不到了。</p>
-
-  <h3><span class="tag">3-2</span>動畫：路徑導航</h3>
-  <p>在框框裡打一個路徑，看 R 怎麼從工作目錄一步一步走過去。<b>點左邊的資料夾</b>可以模擬 <code>setwd()</code>：同一個相對路徑，換了工作目錄就指到不同地方。</p>
-  <div class="widget" id="pathnav">
-    <div class="widget-h"><span class="ttl">路徑導航</span></div>
-    <div class="nav-stage">
-      <div class="nav-tree" id="navTree"></div>
-      <div class="nav-side">
-        <label for="navIn" style="font-size:14px;font-weight:600">路徑</label>
-        <input id="navIn" type="text" value="data/qpcr.csv" spellcheck="false" autocomplete="off" autocapitalize="off">
-        <div class="nav-ex" id="navEx"></div>
-        <div class="nav-steps" id="navSteps" aria-live="polite"></div>
-      </div>
-    </div>
-  </div>
-
-  <h3><span class="tag">3-3</span>組路徑、檢查、建資料夾</h3>
-<script type="text/x-r" class="cell" data-label="範例 3-3">f <- file.path("data", "samples", "S01.csv")   # 用 / 把資料夾和檔名接起來
-f
-file.exists(f)
-file.exists("data/S01.csv")                     # 少了 samples 這一層
-basename(f)                                     # 只要檔名
-tools::file_ext(f)                              # 副檔名</script>
-<script type="text/x-r" class="cell" data-label="範例 3-4 · 輸出用的資料夾">dir.exists("results")
-dir.create("results")        # 建立資料夾（寫進硬碟，下一格還在）
-dir.create("results")        # 已經有了：只會警告，不會覆蓋
-list.files()</script>
-  <p>執行之後，看看右下角 💻 的硬碟，<code>results</code> 資料夾出現了。之後的範例都會把結果寫進 <code>results/</code>，原始資料留在 <code>data/</code> 不去動它。</p>
-
-  <h3><span class="tag">3-4</span>setwd()：能不用就不用</h3>
-<script type="text/x-r" class="cell" data-label="範例 3-5">setwd("data")                # 工作目錄換到 data
-getwd()
-read.csv("qpcr.csv")$ct      # 相對路徑改從 data 開始算</script>
-  <p><code>setwd()</code> 會讓程式依賴「現在在哪個資料夾」，順序一亂就找不到檔案；把 <code>setwd("C:/Users/某某某/…")</code> 寫進腳本，換一台電腦就壞掉。比較好的做法是用 <b>RStudio Project</b>（File → New Project）：打開 .Rproj 檔時，工作目錄自動設成專案資料夾，程式裡一律寫相對路徑。</p>
-  <div class="note warn"><b>Windows 的反斜線</b>從檔案總管複製的路徑長這樣：<code>C:\Users\rbao\data.csv</code>。在 R 的字串裡 <code>\</code> 是跳脫字元（<code>\n</code> 是換行），所以會出錯。改成 <code>/</code>：<code>"C:/Users/rbao/data.csv"</code>，或寫兩次 <code>\\</code>。</div>
-<script type="text/x-r" class="cell" data-label="範例 3-6">path <- "C:\Users\rbao\data.csv"</script>
+  <div class="ch-h"><span class="num">03</span><h2>類別資料：計數與比例<small>table、長條圖 barplot、圓餅圖 pie</small></h2></div>
+  <p>血型、性別、組別這種<b>類別</b>資料，沒有「平均」可言，要先數每一類有幾個：</p>
+<script type="text/x-r" class="cell" data-label="範例 3-1">lab <- read.csv("data/lab.csv")
+tab <- table(lab$blood)
+tab
+round(prop.table(tab) * 100, 1)     # 百分比
+barplot(tab, main = "Blood type", ylab = "Count", col = "steelblue")</script>
+  <p>長條圖的每根長條都從 0 開始，<b>高度</b>就是人數，眼睛很容易比較。照多到少排序會更好讀；也可以把數字標在長條上：</p>
+<script type="text/x-r" class="cell" data-label="範例 3-2 · 排序並標上數字">lab <- read.csv("data/lab.csv")
+tab <- sort(table(lab$blood), decreasing = TRUE)
+bp <- barplot(tab, col = "steelblue", ylim = c(0, 20),
+              main = "Blood type (sorted)", ylab = "Count")
+text(bp, tab, labels = tab, pos = 3)    # bp 是每根長條的中心位置，pos = 3 放在上方</script>
+<script type="text/x-r" class="cell" data-label="範例 3-3 · 圓餅圖">lab <- read.csv("data/lab.csv")
+tab <- table(lab$blood)
+pie(tab, col = c("tomato", "gold", "steelblue", "gray80"), main = "Blood type")</script>
+  <div class="note warn"><b>為什麼大部分時候不用圓餅圖？</b>人眼比較「長度」很準，比較「角度和面積」很不準：你能一眼看出 A 型和 B 型哪個多嗎？在長條圖上就很明顯。圓餅圖只適合<b>類別很少（2–3 類）</b>、而且想強調「部分佔整體多少」的時候。</div>
 
   <div class="ex" id="ex3" data-ex="ex3">
-    <div class="ex-h"><span class="badge">練習 3</span><h3>整理一盤樣本檔</h3><span class="st"></span></div>
-    <p>儀器把每個樣本存成一個檔案，放在 <code>data/plate</code>，裡面還混了說明檔。請做出：</p>
+    <div class="ex-h"><span class="badge">練習 3</span><h3>兩組的人數</h3><span class="st"></span></div>
+    <p>請做出：</p>
     <ul>
-      <li><code>csv_files</code>：<code>data/plate</code> 裡所有 <b>.csv</b> 檔，<b>含資料夾路徑</b>（例如 <code>"data/plate/A01.csv"</code>）。</li>
-      <li><code>ids</code>：每個檔案的樣本編號，就是檔名去掉 <code>.csv</code>（例如 <code>"A01"</code>）。</li>
-      <li><code>out_file</code>：之後要寫出的結果路徑 <code>results/plate_summary.csv</code>，用 <code>file.path()</code> 組出來。</li>
-      <li>確定 <code>results</code> 資料夾存在（不存在才建立，存在也不能出錯）。</li>
+      <li><code>tab</code>：每個組別（<code>group</code>）有幾個人的 table。</li>
+      <li><code>pct</code>：每組佔的百分比，四捨五入到小數 1 位。</li>
+      <li>用 <code>tab</code> 畫長條圖，顏色用 <code>c("steelblue", "tomato")</code>，標題 <code>"Group size"</code>，y 軸 <code>"Count"</code>。</li>
     </ul>
-    <p class="dim" style="color:var(--muted);font-size:14px">檢查時會換成不同的樣本檔，有時候 results 已經存在、有時候還沒有，所以不能把檔名寫死。</p>
-<script type="text/x-r" class="starter">list.files("data/plate")      # 先看看裡面有什麼
-csv_files <- ___
-ids <- ___
-out_file <- ___
-___                           # 確定 results 存在
-csv_files
-ids
+<script type="text/x-r" class="starter">lab <- read.csv("data/lab.csv")
+tab <- ___
+pct <- ___
+barplot(___)
+tab
+pct
 </script>
   </div>
 </section>
 
 <!-- ============ 04 ============ -->
 <section class="ch" id="ch4">
-  <div class="ch-h"><span class="num">04</span><h2>文字檔：readLines、writeLines、cat<small>一行一行讀、一行一行寫</small></h2></div>
+  <div class="ch-h"><span class="num">04</span><h2>比較組別：數值 × 類別<small>並排盒形圖、平均數與誤差線、t 檢定</small></h2></div>
+  <p>想知道「糖尿病組的血糖是不是比較高」，就是把一個<b>數值</b>變數依照<b>類別</b>分組比較。用公式 <code>數值 ~ 組別</code> 一次畫出每組的盒形圖：</p>
+<script type="text/x-r" class="cell" data-label="範例 4-1 · boxplot(y ~ group)">lab <- read.csv("data/lab.csv")
+boxplot(glucose ~ group, data = lab,
+        col = c("steelblue", "tomato"),
+        main = "Fasting glucose by group", ylab = "Glucose (mg/dL)")
+tapply(lab$glucose, lab$group, median)</script>
+  <p><code>~</code> 讀作「依照」：<code>glucose ~ group</code> 就是「glucose 依照 group 分組」。<code>data = lab</code> 告訴 R 到 lab 裡找這兩欄，就不用寫 <code>lab$</code>。</p>
+<script type="text/x-r" class="cell" data-label="範例 4-2 · 把每個人也畫上去">lab <- read.csv("data/lab.csv")
+boxplot(glucose ~ group, data = lab, col = "white", outline = FALSE,
+        ylim = c(60, 230), ylab = "Glucose (mg/dL)")
+x <- ifelse(lab$group == "control", 1, 2)          # control 畫在 1、diabetes 畫在 2
+points(x, lab$glucose, pch = 16, col = ifelse(x == 1, "steelblue", "tomato"))</script>
+  <p>資料不多的時候，把每一個點都畫出來最誠實：讀者能看到樣本數、分布和極端值。</p>
 
-  <p>最單純的檔案就是純文字：<code>readLines()</code> 把每一行讀成文字向量的一個元素。</p>
-<script type="text/x-r" class="cell" data-label="範例 4-1">notes <- readLines("data/notes.txt")
-notes
-length(notes)                              # 幾行
-readLines("data/notes.txt", n = 1)         # 只讀第一行</script>
+  <h3><span class="tag">4-1</span>論文常見的「平均數 ± 標準差」長條圖</h3>
+<script type="text/x-r" class="cell" data-label="範例 4-3 · 長條圖加誤差線">lab <- read.csv("data/lab.csv")
+m <- tapply(lab$glucose, lab$group, mean)
+s <- tapply(lab$glucose, lab$group, sd)
+bp <- barplot(m, ylim = c(0, 220), col = c("steelblue", "tomato"),
+              ylab = "Glucose (mg/dL)", main = "Mean ± SD")
+arrows(bp, m - s, bp, m + s, angle = 90, code = 3, length = 0.1)   # 上下各一個 T 字</script>
+  <p>這種圖很常見，但它只畫了兩個數字（平均、標準差），<b>看不到分布和樣本數</b>，也看不到 control 組那個 168 的人。能用盒形圖或資料點就盡量用。</p>
 
-  <h3><span class="tag">4-1</span>讀 FASTA 序列檔</h3>
-  <p>FASTA 是最常見的序列格式：<code>&gt;</code> 開頭的是<b>標題行</b>（序列名稱），下面一行或多行是序列本身。</p>
-  <div class="rawfile"><div class="fh">📄 data/hbb.fasta</div><pre>&gt;P01 normal
-ACTCCTGAGG
-AGAAGTCT
-&gt;P02 carrier
-ACTCCTGTGG
-AGAAGTCT
-&gt;P03
-ACTCATGTGG
-AG</pre></div>
-  <p>序列被拆成好幾行，要把屬於同一個標題的行接起來。技巧是：用 <code>cumsum()</code> 幫每一行編號，每遇到一個標題，編號就 +1。</p>
-<script type="text/x-r" class="cell" data-label="範例 4-2 · 幫每一行編號">fa <- readLines("data/hbb.fasta")
-is_head <- grepl("^>", fa)       # 哪幾行是標題
-is_head
-cumsum(is_head)                  # TRUE 算 1：每遇到標題就 +1</script>
-<script type="text/x-r" class="cell" data-label="範例 4-3 · 接成一條一條序列">fa <- readLines("data/hbb.fasta")
-is_head <- grepl("^>", fa)
-id <- cumsum(is_head)
-groups <- split(fa[!is_head], id[!is_head])          # 序列行照編號分組
-seqs <- sapply(groups, paste, collapse = "")         # 每組接成一條
-names(seqs) <- sub(" .*", "", sub("^>", "", fa[is_head]))   # 去掉 > 和空白後面的說明
-seqs
-nchar(seqs)</script>
-  <p>這就是上一單元的「分組 → 計算」：<b>值</b>是序列行，<b>組別</b>是 cumsum 算出來的編號，<b>函式</b>是 <code>paste(..., collapse = "")</code>。<span style="color:var(--muted)">（用 tapply 一步做也可以，但 tapply 的結果是 array，之後再改 names() 印出來會多一段 attr，所以這裡用 split + sapply。）</span></p>
-
-  <h3><span class="tag">4-2</span>寫文字檔</h3>
-<script type="text/x-r" class="cell" data-label="範例 4-4 · writeLines">dir.create("results", showWarnings = FALSE)       # 沒有就建立，有了也不警告
-report <- c("id\tlength", "P01\t18", "P02\t18", "P03\t12")
-writeLines(report, "results/hbb_length.txt")      # 每個元素寫成一行（會覆蓋舊檔）
-readLines("results/hbb_length.txt")</script>
-<script type="text/x-r" class="cell" data-label="範例 4-5 · cat 接在後面">dir.create("results", showWarnings = FALSE)
-log_file <- "results/run.log"
-cat("start\n", file = log_file)                         # 新建（覆蓋）
-cat("read 3 sequences\n", file = log_file, append = TRUE)   # append = TRUE：接在後面
-cat("done\n", file = log_file, append = TRUE)
-readLines(log_file)</script>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th></th><th><code>writeLines(x, file)</code></th><th><code>cat(..., file = )</code></th></tr>
-    <tr><td>換行</td><td>每個元素後面自動加換行</td><td>要自己寫 <code>"\n"</code></td></tr>
-    <tr><td>接在檔案後面</td><td>✗（每次覆蓋）</td><td><code>append = TRUE</code></td></tr>
-    <tr><td>能寫的東西</td><td>只能是文字</td><td>文字、數字都可以</td></tr>
-  </table></div>
-<script type="text/x-r" class="cell" data-label="範例 4-6 · 兩個常見問題">dir.create("results", showWarnings = FALSE)
-cat("no newline at the end", file = "results/oops.txt")   # 最後沒有換行
-readLines("results/oops.txt")                              # 讀得到，但會警告
-writeLines(42, "results/n.txt")                            # 數字不能直接寫</script>
+  <h3><span class="tag">4-2</span>把統計檢定的結果放上圖</h3>
+<script type="text/x-r" class="cell" data-label="範例 4-4 · t 檢定">lab <- read.csv("data/lab.csv")
+tt <- t.test(glucose ~ group, data = lab)     # Welch 兩樣本 t 檢定
+tt
+tt$p.value
+boxplot(glucose ~ group, data = lab, col = c("steelblue", "tomato"), ylab = "Glucose (mg/dL)")
+legend("topleft", legend = paste("Welch t-test p =", signif(tt$p.value, 3)), bty = "n")</script>
+  <p><code>tt</code> 是一個 list，<code>tt$p.value</code> 拿出 p 值、<code>tt$estimate</code> 拿出兩組平均。p 值很小只代表「兩組平均的差異不太可能只是巧合」，差異有多大，還是要看圖和平均數。</p>
 
   <div class="ex" id="ex4" data-ex="ex4">
-    <div class="ex-h"><span class="badge">練習 4</span><h3>FASTA 長度報告</h3><span class="st"></span></div>
-    <p><code>data/run.fasta</code> 是一批新的序列（每條可能有好幾行）。請做出：</p>
+    <div class="ex-h"><span class="badge">練習 4</span><h3>男女的 HbA1c</h3><span class="st"></span></div>
+    <p>請比較男性（M）和女性（F）的 HbA1c：</p>
     <ul>
-      <li><code>seqs</code>：具名文字向量，名字是標題行 <code>&gt;</code> 後面、第一個空白之前的編號，值是接起來的整條序列。</li>
-      <li>檔案 <code>results/lengths.txt</code>：每條序列一行，格式是 <code>編號&lt;tab&gt;長度</code>，例如 <code>P01	18</code>，沒有標題行。</li>
+      <li>畫出 <code>hba1c ~ sex</code> 的盒形圖（用 <code>data = lab</code>），y 軸 <code>"HbA1c (%)"</code>。</li>
+      <li><code>med</code>：每個性別的 HbA1c 中位數（用 tapply）。</li>
+      <li><code>p</code>：Welch t 檢定的 p 值。</li>
     </ul>
-    <p class="dim" style="color:var(--muted);font-size:14px">檢查時會換成不同的 FASTA 檔，results 資料夾也不一定存在。tab 在 R 的字串裡寫成 <code>"\t"</code>。</p>
-<script type="text/x-r" class="starter">fa <- readLines("data/run.fasta")
-is_head <- grepl("^>", fa)
-id <- cumsum(is_head)
-seqs <- sapply(split(___, ___), paste, collapse = "")
-names(seqs) <- ___
-seqs
-
-dir.create("results", showWarnings = FALSE)
-lines <- paste(names(seqs), nchar(seqs), sep = "\t")
-___                                  # 寫進 results/lengths.txt
+<script type="text/x-r" class="starter">lab <- read.csv("data/lab.csv")
+boxplot(___, data = lab, ylab = ___)
+med <- ___
+p <- ___
+med
+p
 </script>
   </div>
 </section>
 
 <!-- ============ 05 ============ -->
 <section class="ch" id="ch5">
-  <div class="ch-h"><span class="num">05</span><h2>CSV 與 data.frame<small>表格資料的標準格式</small></h2></div>
+  <div class="ch-h"><span class="num">05</span><h2>兩個數值：看關係<small>散佈圖、相關係數、迴歸線</small></h2></div>
+<script type="text/x-r" class="cell" data-label="範例 5-1 · 散佈圖與相關係數">lab <- read.csv("data/lab.csv")
+plot(glucose ~ hba1c, data = lab, pch = 16, col = "gray40",
+     xlab = "HbA1c (%)", ylab = "Glucose (mg/dL)")
+cor(lab$hba1c, lab$glucose)          # 皮爾森相關係數 r：-1 ~ 1</script>
+  <p>公式寫法 <code>plot(y ~ x, data = lab)</code> 和 <code>plot(lab$x, lab$y)</code> 一樣，注意公式是 <b>y 在前面</b>。</p>
+<script type="text/x-r" class="cell" data-label="範例 5-2 · 加上迴歸線">lab <- read.csv("data/lab.csv")
+fit <- lm(glucose ~ hba1c, data = lab)    # 簡單線性迴歸：glucose = a + b × hba1c
+fit
+b <- coef(fit)
+plot(glucose ~ hba1c, data = lab, pch = 16, col = "gray40", xlab = "HbA1c (%)", ylab = "Glucose (mg/dL)")
+abline(fit, col = "tomato", lwd = 2)     # abline 認得 lm 的結果
+legend("topleft", bty = "n",
+       legend = c(paste0("y = ", round(b[1], 1), " + ", round(b[2], 1), "x"),
+                  paste0("r = ", round(cor(lab$hba1c, lab$glucose), 2))))</script>
+  <p>斜率 27.3 的意思是：HbA1c 每高 1%，空腹血糖平均高約 27 mg/dL。</p>
 
-  <p>表格讀進 R 會變成 <b>data.frame</b>。它其實就是一個 <b>list</b>：每個元素是一欄（一個向量），而且每欄一樣長。所以 list 學過的 <code>$</code>、<code>[[ ]]</code>、<code>lapply</code> 全部都能用。</p>
-<script type="text/x-r" class="cell" data-label="範例 5-1 · 自己做一個 data.frame">qc <- data.frame(
-  sample = c("S1", "S2", "S3"),
-  reads  = c(52000, 48100, 61250),
-  pass   = c(TRUE, FALSE, TRUE)
-)
-qc
-str(qc)              # 3 列（obs.）、3 欄（variables），每欄的型別
-qc$reads             # 一欄就是一個向量
-qc[2, ]              # [列, 欄]：第 2 列、所有欄
-qc[qc$pass, "sample"]</script>
-
-  <h3><span class="tag">5-1</span>CSV 長什麼樣子</h3>
-  <p>CSV（comma-separated values）就是用<b>逗號</b>分隔欄位的純文字檔，第一行通常是欄位名稱（header）。Excel 也能另存成 CSV。下面左邊是檔案的原始內容，右邊是 <code>read.csv()</code> 讀進來的樣子；滑鼠指到一格（或用手指點），兩邊會一起亮起來。</p>
-  <div class="widget" id="csvw">
-    <div class="widget-h"><span class="ttl">CSV ↔ data.frame</span>
-      <div class="seg" role="group" aria-label="header" id="csvH"><button type="button" data-v="1" aria-pressed="true">header = TRUE</button><button type="button" data-v="0" aria-pressed="false">header = FALSE</button></div>
-      <div class="seg" role="group" aria-label="sep" id="csvS"><button type="button" data-v="," aria-pressed="true">sep = ","</button><button type="button" data-v=";" aria-pressed="false">sep = ";"</button></div>
+  <h3><span class="tag">5-1</span>動畫：r 長什麼樣子？</h3>
+  <p>拉動 r，看看 50 個點的散佈圖怎麼變。r 只描述<b>直線</b>關係的強弱；也試試「彎曲」和「一個極端值」兩種情況。</p>
+  <div class="widget" id="corw">
+    <div class="widget-h"><span class="ttl">相關係數直覺</span>
+      <label class="wsl">r <output id="corV">0.80</output><input type="range" id="corR" min="-1" max="1" step="0.05" value="0.8"></label>
+      <div class="seg" role="group" aria-label="特殊情況" id="corS"><button type="button" data-v="lin" aria-pressed="true">直線</button><button type="button" data-v="curve" aria-pressed="false">彎曲</button><button type="button" data-v="out" aria-pressed="false">一個極端值</button></div>
     </div>
-    <div class="csv-stage"><div><div class="fh" style="font-family:var(--f-code);font-size:12.5px;color:var(--muted);margin-bottom:6px">📄 data/qpcr.csv</div><div class="csv-raw" id="csvRaw"></div></div><div class="csv-out" id="csvOut"></div></div>
-    <p class="csv-msg" id="csvMsg"></p>
+    <div class="dist-stage"><div class="plotbox" id="corPlot"></div><div class="wmsg" id="corMsg" style="padding:0 14px 12px"></div></div>
   </div>
-
-<script type="text/x-r" class="cell" data-label="範例 5-2 · read.csv">qpcr <- read.csv("data/qpcr.csv")
-qpcr
-str(qpcr)
-nrow(qpcr)
-mean(qpcr$ct, na.rm = TRUE)
-tapply(qpcr$ct, qpcr$gene, mean, na.rm = TRUE)</script>
-  <p>檔案裡寫的 <code>NA</code> 會自動變成 R 的遺漏值；數字欄變成 num（整數是 int），文字欄變成 chr。</p>
-
-  <h3><span class="tag">5-2</span>篩選列：小心 NA</h3>
-<script type="text/x-r" class="cell" data-label="範例 5-3">qpcr <- read.csv("data/qpcr.csv")
-qpcr[qpcr$ct > 20, ]                        # 第 4 列的 ct 是 NA → 冒出一整列 NA
-qpcr[!is.na(qpcr$ct) & qpcr$ct > 20, ]      # 先排除 NA
-qpcr[order(qpcr$ct), c("sample", "ct")]     # 照 ct 排序，只要兩欄</script>
-  <p><code>NA &gt; 20</code> 的結果是 NA，用 NA 去挑列，R 不知道要不要，只好給你一列全是 NA 的資料（列名也變成 NA）。篩選前先 <code>!is.na()</code>，或用 <code>which()</code>（它會自動丟掉 NA）。</p>
-
-  <h3><span class="tag">5-3</span>write.csv：記得 row.names = FALSE</h3>
-<script type="text/x-r" class="cell" data-label="範例 5-4 · 預設會多寫一欄">qpcr <- read.csv("data/qpcr.csv")
-qpcr$high <- !is.na(qpcr$ct) & qpcr$ct > 25     # 新增一欄
-dir.create("results", showWarnings = FALSE)
-write.csv(qpcr, "results/qpcr_flag.csv")
-cat(readLines("results/qpcr_flag.csv"), sep = "\n")   # 第一欄多了 "1","2",… 列名
-read.csv("results/qpcr_flag.csv")               # 讀回來多了一欄 X</script>
-<script type="text/x-r" class="cell" data-label="範例 5-5 · 正確寫法">qpcr <- read.csv("data/qpcr.csv")
-dir.create("results", showWarnings = FALSE)
-write.csv(qpcr, "results/qpcr_clean.csv", row.names = FALSE)
-cat(readLines("results/qpcr_clean.csv"), sep = "\n")
-identical(read.csv("results/qpcr_clean.csv"), qpcr)    # 讀回來一模一樣</script>
-  <div class="note tip"><b>write.csv 的小規則</b>文字和欄位名稱會加上雙引號；數字、TRUE/FALSE、NA 不加。<code>row.names = FALSE</code> 不寫列名。寫出去的檔案用 Excel 打開也看得懂。</div>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>|r|</th><th>大致的說法</th></tr>
+    <tr><td>0 – 0.3</td><td>很弱或沒有直線關係</td></tr>
+    <tr><td>0.3 – 0.7</td><td>中等</td></tr>
+    <tr><td>0.7 – 1</td><td>強</td></tr>
+  </table></div>
+  <div class="note warn"><b>相關不等於因果</b>HbA1c 和血糖高度相關，是因為它們都反映同一件事（長期的血糖控制），不是誰造成誰。另外一定要畫圖：一個極端值就能讓 r 從 0 變成 0.7。</div>
 
   <div class="ex" id="ex5" data-ex="ex5">
-    <div class="ex-h"><span class="badge">練習 5</span><h3>qPCR 資料清理</h3><span class="st"></span></div>
-    <p>新的一次 qPCR 結果在 <code>data/qpcr_run.csv</code>（欄位：<code>sample</code>、<code>gene</code>、<code>ct</code>）。Ct 是 NA 或 ≥ 35 的都算失敗。請做出：</p>
+    <div class="ex-h"><span class="badge">練習 5</span><h3>年齡和膽固醇有關嗎？</h3><span class="st"></span></div>
     <ul>
-      <li><code>run</code>：讀進來的原始 data.frame。</li>
-      <li><code>clean</code>：只留 Ct 不是 NA、而且 &lt; 35 的列，再照 <code>ct</code> 由小到大排序。</li>
-      <li>檔案 <code>results/qpcr_clean.csv</code>：把 <code>clean</code> 寫出去，<b>不要列名</b>。</li>
+      <li>畫 <code>chol ~ age</code> 的散佈圖（x 是年齡）。</li>
+      <li><code>fit</code>：<code>lm(chol ~ age, data = lab)</code> 的結果，並用 <code>abline(fit)</code> 加上迴歸線。</li>
+      <li><code>r</code>：age 和 chol 的相關係數，四捨五入到小數 2 位。</li>
     </ul>
-<script type="text/x-r" class="starter">run <- read.csv("data/qpcr_run.csv")
-run
-clean <- ___
-clean <- ___                       # 照 ct 排序
-clean
-dir.create("results", showWarnings = FALSE)
-___                                # 寫出 results/qpcr_clean.csv
+<script type="text/x-r" class="starter">lab <- read.csv("data/lab.csv")
+plot(___, data = lab, pch = 16)
+fit <- ___
+abline(___, col = "red")
+r <- ___
+r
 </script>
   </div>
 </section>
 
 <!-- ============ 06 ============ -->
 <section class="ch" id="ch6">
-  <div class="ch-h"><span class="num">06</span><h2>TSV、空白分隔、遺漏值<small>先看檔案長怎樣，再選對的函式和參數</small></h2></div>
-
-  <p>不是每個表格都用逗號分隔。讀檔之前，<b>先用 <code>readLines()</code> 看前幾行</b>，確認分隔符號、有沒有標題、遺漏值長什麼樣子。</p>
-  <div class="rawfile"><div class="fh">📄 data/patients.tsv（<span class="tab">→</span> 是 tab）</div><pre>id<span class="tab">→</span>age<span class="tab">→</span>sex<span class="tab">→</span>hb
-P01<span class="tab">→</span>34<span class="tab">→</span>F<span class="tab">→</span>12.8
-P02<span class="tab">→</span>58<span class="tab">→</span>M<span class="tab">→</span>.
-P03<span class="tab">→</span>41<span class="tab">→</span>M<span class="tab">→</span>14.6
-P04<span class="tab">→</span>29<span class="tab">→</span>F<span class="tab">→</span>11.2</pre></div>
-<script type="text/x-r" class="cell" data-label="範例 6-1 · tab 分隔：read.delim">pt <- read.delim("data/patients.tsv")
-pt
-str(pt)                     # hb 怎麼變成 chr 了？</script>
-  <p>P02 的血紅素寫成 <code>.</code>（這台機器的遺漏值），整欄只要有一個不是數字，<b>整欄都會變成文字</b>，<code>mean()</code> 就算不了。用 <code>na.strings</code> 告訴 R 哪些寫法代表遺漏值：</p>
-<script type="text/x-r" class="cell" data-label="範例 6-2 · na.strings">pt <- read.delim("data/patients.tsv", na.strings = c("NA", "."))
-str(pt)
-mean(pt$hb, na.rm = TRUE)</script>
-
-  <h3><span class="tag">6-1</span>空白分隔、檔頭有註解</h3>
-<script type="text/x-r" class="cell" data-label="範例 6-3">cat(readLines("data/lab_raw.txt"), sep = "\n")        # 先看原始檔
-lab <- read.table("data/lab_raw.txt", header = TRUE)    # 空白分隔；# 開頭是註解
-lab
-str(lab)</script>
-<script type="text/x-r" class="cell" data-label="範例 6-4 · 用錯函式">read.csv("data/lab_raw.txt")     # read.csv 不認得 # 註解，也不是用空白分隔</script>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>函式</th><th>sep</th><th>header</th><th># 是註解？</th><th>適合</th></tr>
-    <tr><td><code>read.csv()</code></td><td><code>","</code></td><td>TRUE</td><td>✗</td><td>.csv</td></tr>
-    <tr><td><code>read.delim()</code></td><td><code>"\t"</code></td><td>TRUE</td><td>✗</td><td>.tsv、.txt（tab）</td></tr>
-    <tr><td><code>read.table()</code></td><td>空白（一個或多個）</td><td><b>FALSE</b></td><td>✓</td><td>空白分隔的文字檔</td></tr>
-  </table></div>
-  <p>三個函式其實是同一個函式換了預設值，參數都可以改：<code>skip = 2</code>（跳過前 2 行）、<code>na.strings</code>、<code>comment.char</code>、<code>colClasses</code>（指定每欄型別）。</p>
-
-  <h3><span class="tag">6-2</span>找出遺漏值</h3>
-<script type="text/x-r" class="cell" data-label="範例 6-5">lab <- read.table("data/lab_raw.txt", header = TRUE)
-colSums(is.na(lab))       # 每一欄有幾個 NA
-complete.cases(lab)       # 每一列是不是完整
-na.omit(lab)              # 只留完整的列（列名保留原本的編號）</script>
-<script type="text/x-r" class="cell" data-label="範例 6-6 · 寫成 TSV">lab <- read.table("data/lab_raw.txt", header = TRUE)
+  <div class="ch-h"><span class="num">06</span><h2>隨時間變化：折線圖<small>type = "b"、lines、legend、並排與存檔</small></h2></div>
+  <p>口服葡萄糖耐受試驗（OGTT）：喝下 75 g 葡萄糖後，在 0、30、60、90、120 分鐘抽血。資料的 x 是<b>有順序的時間</b>，所以用線把點連起來：</p>
+<script type="text/x-r" class="cell" data-label="範例 6-1">og <- read.csv("data/ogtt.csv")
+og
+plot(og$time, og$P01, type = "b", pch = 16, col = "steelblue",
+     ylim = c(80, 240), xlab = "Time (min)", ylab = "Glucose (mg/dL)", main = "OGTT")
+lines(og$time, og$P02, type = "b", pch = 17, col = "tomato")      # 在同一張圖上加線
+lines(og$time, og$P03, type = "b", pch = 15, col = "darkgreen")
+abline(h = 200, lty = 2, col = "gray50")                           # 2 小時 ≥ 200：糖尿病
+legend("topright", legend = c("P01", "P02", "P03"),
+       col = c("steelblue", "tomato", "darkgreen"), pch = c(16, 17, 15), lty = 1)</script>
+  <div class="note tip"><b>第一張圖決定軸的範圍</b><code>plot()</code> 開一張新圖、決定 x 和 y 的範圍；<code>lines()</code>、<code>points()</code>、<code>abline()</code>、<code>legend()</code>、<code>text()</code> 都只是「加在上面」。所以第一張圖要先用 <code>ylim</code> 留夠空間，不然後面的線會跑出去。</div>
+<script type="text/x-r" class="cell" data-label="範例 6-2 · par(mfrow) 並排">og <- read.csv("data/ogtt.csv")
+par(mfrow = c(1, 3))            # 1 列 3 欄：接下來三張圖排在一起
+plot(og$time, og$P02, type = "p", main = 'type = "p"')
+plot(og$time, og$P02, type = "l", main = 'type = "l"')
+plot(og$time, og$P02, type = "b", main = 'type = "b"')</script>
+<script type="text/x-r" class="cell" data-label="範例 6-3 · 存成圖檔">og <- read.csv("data/ogtt.csv")
 dir.create("results", showWarnings = FALSE)
-write.table(lab, "results/lab.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
-cat(readLines("results/lab.tsv"), sep = "\n")</script>
-  <div class="note link"><b>Excel 檔怎麼辦？</b>.xlsx 不是純文字，要用 readxl 套件：<code>install.packages("readxl")</code>，再 <code>readxl::read_excel("data.xlsx", sheet = 1)</code>。讀進來是 tibble（加強版的 data.frame）。最穩定的做法還是請對方另存成 CSV。</div>
+png("results/ogtt_P02.png", width = 800, height = 600)   # ① 打開一個圖檔
+plot(og$time, og$P02, type = "b", main = "OGTT P02")     # ② 畫圖（不會出現在畫面上）
+dev.off()                                                # ③ 關閉 → 檔案才寫好</script>
+  <p>在 RStudio 也可以按 Plots 窗格的 <b>Export → Save as Image</b>。寫在程式裡的好處是每次重跑都會自動更新圖檔。</p>
 
   <div class="ex" id="ex6" data-ex="ex6">
-    <div class="ex-h"><span class="badge">練習 6</span><h3>整理儀器匯出檔</h3><span class="st"></span></div>
-    <p>生化儀匯出的 <code>data/chem.tsv</code>：前面有幾行 <code>#</code> 開頭的說明，欄位用 <b>tab</b> 分隔，遺漏值有時寫 <code>NA</code>、有時寫 <code>.</code>。請做出：</p>
+    <div class="ex-h"><span class="badge">練習 6</span><h3>兩位病人的 OGTT</h3><span class="st"></span></div>
+    <p>在同一張圖上比較 P01 和 P03：</p>
     <ul>
-      <li><code>chem</code>：正確讀進來的 data.frame（數字欄要是數字）。</li>
-      <li><code>n_missing</code>：每一欄有幾個遺漏值（具名的數字向量）。</li>
-      <li><code>complete</code>：只留沒有遺漏值的列。</li>
-      <li>檔案 <code>results/chem_complete.tsv</code>：把 <code>complete</code> 寫出去，tab 分隔、<b>不加引號、不要列名</b>。</li>
+      <li>先 <code>plot()</code> P01（<code>type = "b"</code>），<code>ylim = c(80, 200)</code>。</li>
+      <li>用 <code>lines()</code> 加上 P03（<code>type = "b"</code>）。</li>
+      <li>用 <code>abline(h = 140, lty = 2)</code> 畫出 140 mg/dL 的參考線。</li>
+      <li>加上 legend，兩項的文字是 <code>"P01"</code>、<code>"P03"</code>。</li>
     </ul>
-    <p class="dim" style="color:var(--muted);font-size:14px">提示：read.delim 預設不會跳過 <code>#</code>，可以設定 <code>comment.char = "#"</code>。</p>
-<script type="text/x-r" class="starter">cat(readLines("data/chem.tsv"), sep = "\n")     # 先看原始檔
-chem <- ___
-str(chem)
-n_missing <- ___
-complete <- ___
-dir.create("results", showWarnings = FALSE)
-___
+<script type="text/x-r" class="starter">og <- read.csv("data/ogtt.csv")
+plot(og$time, ___, type = "b", ylim = c(80, 200), pch = 16, col = "steelblue",
+     xlab = "Time (min)", ylab = "Glucose (mg/dL)")
+lines(___)
+abline(___)
+legend(___)
 </script>
   </div>
 </section>
 
 <!-- ============ 07 ============ -->
 <section class="ch" id="ch7">
-  <div class="ch-h"><span class="num">07</span><h2>RDS 存檔與 source<small>原封不動存下 R 物件、重複使用自己的函式</small></h2></div>
-
-  <p>CSV 很通用，但它只是文字：R 讀回來時要重新「猜」每欄的型別。有時候會猜錯——</p>
-<script type="text/x-r" class="cell" data-label="範例 7-1 · 被猜錯的編號">ids <- data.frame(id = c("007", "012", "105"), dose = c(1.5, 2, 2.5))
-dir.create("results", showWarnings = FALSE)
-write.csv(ids, "results/ids.csv", row.names = FALSE)
-back <- read.csv("results/ids.csv")
-back                      # 007 變成 7 了
-str(back)
-str(read.csv("results/ids.csv", colClasses = c("character", "numeric")))   # 指定型別</script>
-  <p>病歷號、檢體編號、郵遞區號這種「長得像數字的文字」最容易出事。另一個問題是：list、巢狀的資料根本放不進一張表。</p>
-
-  <h3><span class="tag">7-1</span>saveRDS / readRDS：存一個物件</h3>
-<script type="text/x-r" class="cell" data-label="範例 7-2">run <- list(
-  date = "2026-09-30",
-  ct = c(GAPDH = 18.2, IL6 = 25.1),
-  samples = data.frame(id = c("007", "012"), ok = c(TRUE, FALSE))
-)
-dir.create("results", showWarnings = FALSE)
-saveRDS(run, "results/run.rds")         # 整個物件原封不動存起來
-back <- readRDS("results/run.rds")      # 讀回來時自己取名字
-identical(run, back)
-str(back)</script>
-  <p>.rds 是 R 專用的二進位檔，用記事本打開是亂碼（看看 💻 硬碟裡的 run.rds）。適合存<b>分析到一半的結果</b>，下次直接讀回來，不用從頭再跑。</p>
-<script type="text/x-r" class="cell" data-label="範例 7-3 · save / load 的陷阱">note <- "qPCR run 1"
-dir.create("results", showWarnings = FALSE)
-save(note, file = "results/session.RData")   # save 可以一次存好幾個物件
-note <- "我改過了"
-load("results/session.RData")                # load 會用存檔裡的 note 直接蓋掉現在的 note
-note</script>
-  <p><code>load()</code> 不會告訴你它蓋掉了哪些變數，所以一般建議用 <code>saveRDS</code> / <code>readRDS</code>：讀回來的東西叫什麼名字由你決定。</p>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>格式</th><th>寫 / 讀</th><th>別的軟體能開？</th><th>型別保留？</th><th>適合</th></tr>
-    <tr><td>.csv / .tsv</td><td><code>write.csv</code> / <code>read.csv</code></td><td>✓ Excel、任何程式</td><td>✗ 要重新猜</td><td>交換表格資料</td></tr>
-    <tr><td>.txt</td><td><code>writeLines</code> / <code>readLines</code></td><td>✓</td><td>✗ 全是文字</td><td>序列、紀錄、報告</td></tr>
-    <tr><td>.rds</td><td><code>saveRDS</code> / <code>readRDS</code></td><td>✗ 只有 R</td><td>✓ 完全保留</td><td>存一個 R 物件（list、模型……）</td></tr>
-    <tr><td>.RData</td><td><code>save</code> / <code>load</code></td><td>✗ 只有 R</td><td>✓</td><td>一次存很多物件（小心覆蓋）</td></tr>
+  <div class="ch-h"><span class="num">07</span><h2>總整理：什麼資料用什麼圖？<small>先問「我想回答什麼問題」，再看「手上是什麼資料」</small></h2></div>
+  <div class="tblwrap"><table class="cmp guide">
+    <tr><th>手上的資料</th><th>想回答的問題</th><th>用這種圖</th><th>R</th><th>搭配的統計量</th></tr>
+    <tr><td><b>一個數值</b><br><small>血糖、年齡、Ct 值</small></td><td>集中在哪？分散多大？形狀？有沒有極端值？</td><td>直方圖、盒形圖</td><td><code>hist(x)</code><br><code>boxplot(x)</code></td><td><code>summary</code>、<code>mean</code>/<code>sd</code> 或 <code>median</code>/<code>IQR</code></td></tr>
+    <tr><td><b>一個類別</b><br><small>血型、性別</small></td><td>每類有多少？佔多少？</td><td>長條圖（類別很少時才用圓餅圖）</td><td><code>barplot(table(x))</code></td><td><code>table</code>、<code>prop.table</code></td></tr>
+    <tr><td><b>數值 × 類別</b><br><small>兩組的血糖</small></td><td>組和組之間有沒有差？</td><td>並排盒形圖（＋資料點）</td><td><code>boxplot(y ~ g, data)</code></td><td><code>tapply</code>、<code>t.test</code></td></tr>
+    <tr><td><b>數值 × 數值</b><br><small>HbA1c 與血糖</small></td><td>有沒有關係？多強？</td><td>散佈圖（＋迴歸線）</td><td><code>plot(y ~ x, data)</code><br><code>abline(lm(y ~ x))</code></td><td><code>cor</code>、<code>lm</code></td></tr>
+    <tr><td><b>數值 × 時間</b><br><small>OGTT、追蹤</small></td><td>怎麼隨時間變化？</td><td>折線圖</td><td><code>plot(t, y, type = "b")</code><br><code>lines()</code></td><td>每個時間點的平均</td></tr>
+    <tr><td><b>類別 × 類別</b><br><small>組別 × 性別</small></td><td>組成比例一樣嗎？</td><td>並排或堆疊長條圖</td><td><code>barplot(table(a, b), beside = TRUE)</code><br><small>（這個網頁版不支援，請在 RStudio 試）</small></td><td><code>table(a, b)</code>、<code>chisq.test</code></td></tr>
   </table></div>
 
-  <h3><span class="tag">7-2</span>source()：執行一個 .R 檔</h3>
-  <p>常用的函式可以寫在自己的 .R 檔裡，用 <code>source()</code> 執行整個檔案，函式就定義好了。這和 library 很像，只是來源是你自己的檔案。</p>
-<script type="text/x-r" class="cell" data-label="範例 7-4">cat(readLines("R/helpers.R"), sep = "\n")    # 先看看檔案內容
-source("R/helpers.R")                        # 執行整個檔案
-gc_content("ATGCGC")
-vapply(c(a = "GGCC", b = "ATAT"), gc_content, numeric(1))</script>
-
-  <div class="ex" id="ex7" data-ex="ex7">
-    <div class="ex-h"><span class="badge">練習 7</span><h3>存下分析結果</h3><span class="st"></span></div>
-    <p><code>batch</code>（一個 list，裡面有 <code>run</code> 編號和具名的序列向量 <code>seqs</code>）已經在 Environment。請：</p>
-    <ul>
-      <li>用 <code>source()</code> 載入 <code>R/helpers.R</code>，用裡面的 <code>gc_content()</code> 算出每條序列的 GC 比例，存成具名數字向量 <code>gc</code>。</li>
-      <li>把 <code>gc</code> 放進 batch：<code>batch$gc &lt;- gc</code>。</li>
-      <li>用 saveRDS 把 <code>batch</code> 存成 <code>results/batch.rds</code>，再讀回來存成 <code>back</code>。</li>
-    </ul>
-<script type="text/x-r" class="starter"># batch 已經在 Environment
-str(batch)
-___                              # 載入 R/helpers.R
-gc <- ___
-batch$gc <- gc
-dir.create("results", showWarnings = FALSE)
-___                              # 存成 results/batch.rds
-back <- ___
-identical(back, batch)
-</script>
+  <h3><span class="tag">7-1</span>選圖器</h3>
+  <p>選一種資料，看看推薦的圖、程式碼，以及<b>不推薦</b>的畫法為什麼不好。</p>
+  <div class="widget" id="chooser">
+    <div class="widget-h"><span class="ttl">我手上的資料是……</span><div class="seg" role="group" aria-label="資料類型" id="chooseSeg"></div></div>
+    <div class="choose-stage"><div class="plotbox" id="choosePlot"></div><div class="choose-side"><pre class="wcode" id="chooseCode"></pre><div id="chooseWhy"></div></div></div>
   </div>
-</section>
 
-<!-- ============ 08 ============ -->
-<section class="ch boss-ch" id="ch8">
-  <div class="ch-h"><span class="num">08</span><h2>大魔王：批次讀整個資料夾<small>list.files → lapply → do.call(rbind) → 寫出結果</small></h2></div>
+  <h3><span class="tag">7-2</span>小測驗：該畫哪一種圖？</h3>
+  <div class="quiz" id="quiz"></div>
 
-  <p>RNA-seq 的計數結果常常是<b>一個樣本一個檔案</b>。<code>data/samples</code> 裡有三個樣本，每個檔案都有 <code>gene</code>、<code>count</code> 兩欄（S03 少了 TNF），還混了一個說明檔：</p>
-<script type="text/x-r" class="cell" data-label="範例 8-1 · 一個一個讀太慢">list.files("data/samples")
-read.csv("data/samples/S01.csv")</script>
-  <p>把前幾章串起來：<b>list.files</b> 找出檔案 → <b>lapply</b> 每個檔案讀一次（得到一個 list，裝著好幾個 data.frame）→ <b>do.call(rbind, …)</b> 疊成一張大表。</p>
-<script type="text/x-r" class="cell" data-label="範例 8-2 · 三步合併">files <- list.files("data/samples", pattern = "\\.csv$", full.names = TRUE)
-files
-tabs <- lapply(files, read.csv)          # 一個檔案 → 一個 data.frame
-length(tabs)
-all <- do.call(rbind, tabs)              # 等於 rbind(tabs[[1]], tabs[[2]], tabs[[3]])
-all</script>
-  <p>問題是：疊起來之後就分不出哪一列來自哪個樣本了。讀的時候順便加上一欄 <code>sample</code>：</p>
-<script type="text/x-r" class="cell" data-label="範例 8-3 · 加上樣本名稱">files <- list.files("data/samples", pattern = "\\.csv$", full.names = TRUE)
-read_one <- function(f) {
-  d <- read.csv(f)
-  id <- sub("\\.csv$", "", basename(f))     # "data/samples/S01.csv" → "S01"
-  data.frame(sample = id, d)                # sample 放第一欄；id 只有 1 個，會自動重複
-}
-all <- do.call(rbind, lapply(files, read_one))
-all
-tapply(all$count, all$sample, sum)          # 每個樣本的總 reads</script>
-
-  <div class="ex boss" id="ex8" data-ex="ex8">
-    <div class="ex-h"><span class="badge">練習 8 · 大魔王</span><h3>合併一整批計數檔</h3><span class="st"></span></div>
-    <p>新的一批樣本在 <code>data/batch</code>：每個樣本一個 <code>.csv</code>（欄位 <code>gene</code>、<code>count</code>），另外還混了其他檔案。樣本數量和檔名每次都不一樣。請做出：</p>
-    <ul>
-      <li><code>all_counts</code>：所有樣本疊成的一張表，欄位依序是 <code>sample</code>、<code>gene</code>、<code>count</code>，<code>sample</code> 是檔名去掉 .csv；樣本照 list.files 的順序。</li>
-      <li><code>totals</code>：每個樣本的 count 總和（具名數字向量，名字是樣本）。</li>
-      <li>檔案 <code>results/all_counts.csv</code>：<code>all_counts</code>，不要列名。</li>
-      <li>檔案 <code>results/totals.csv</code>：兩欄 <code>sample</code>、<code>total</code>，不要列名。</li>
-    </ul>
-    <p class="dim" style="color:var(--muted);font-size:14px">會隨機產生 4 批資料檢查；results 資料夾不一定存在。不准把檔名寫死。</p>
-<script type="text/x-r" class="starter">list.files("data/batch")
-files <- ___
-read_one <- function(f) {
-  ___
-}
-all_counts <- ___
-totals <- ___
-all_counts
-totals
-
-dir.create("results", showWarnings = FALSE)
-___                                   # 寫出 results/all_counts.csv
-tot_df <- data.frame(sample = names(totals), total = as.vector(totals))
-___                                   # 寫出 results/totals.csv
-</script>
-  </div>
-</section>
-
-<!-- ============ summary ============ -->
-<section class="ch" id="sum">
-  <div class="ch-h"><span class="num">✦</span><h2>總整理：專案資料夾怎麼放<small>讓別人（和三個月後的你）打開就能跑</small></h2></div>
-  <div class="rawfile"><div class="fh">📁 bio_project/</div><pre>bio_project/
-├── bio_project.Rproj     ← 用它打開專案：工作目錄自動設好
-├── analysis.R            ← 主程式：最上面 library()，只用相對路徑
-├── R/helpers.R           ← 自己的函式，用 source() 載入
-├── data/                 ← 原始資料：只讀不改
-│   ├── qpcr.csv
-│   └── samples/S01.csv …
-└── results/              ← 程式產生的結果：隨時可以刪掉重跑
-    ├── qpcr_clean.csv
-    └── run.rds</pre></div>
+  <h3><span class="tag">7-3</span>常見的誤導圖</h3>
+  <p>同樣的資料，畫法不同，給人的印象就不同。下面每一格左右兩張圖用的是同一份資料：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-1 · y 軸不從 0 開始的長條圖">rate <- c(A = 96.2, B = 97.8)          # 兩台儀器的合格率（%）
+par(mfrow = c(1, 2))
+barplot(rate, ylim = c(95, 98.5), xpd = FALSE, main = "Misleading", col = "tomato")
+barplot(rate, ylim = c(0, 100), main = "Honest", col = "steelblue")</script>
+  <p>左圖看起來 B 是 A 的好幾倍，其實只差 1.6 個百分點。<b>長條圖的長度代表數量，一定要從 0 開始</b>；如果想強調小差異，改用點圖或直接寫出數字。</p>
+<script type="text/x-r" class="cell" data-label="範例 7-2 · 平均數一樣，分布不一樣">a <- c(98, 99, 100, 100, 101, 102, 100, 100)
+b <- c(60, 140, 62, 138, 100, 61, 139, 100)
+c(mean(a), mean(b))                    # 平均數一模一樣
+par(mfrow = c(1, 2))
+barplot(c(a = mean(a), b = mean(b)), ylim = c(0, 150), main = "Means only")
+boxplot(a, b, names = c("a", "b"), main = "Distributions")</script>
   <div class="choose">
-    <div><code>套件</code><p><code>install.packages("x")</code> 一台電腦一次（要引號）；<code>library(x)</code> 每次開 R、寫在腳本最上面；只借一個函式用 <code>x::f()</code>；生資套件用 <code>BiocManager::install()</code>。</p></div>
-    <div><code>路徑</code><p>用 <code>getwd()</code>、<code>list.files()</code> 確認位置；一律寫相對路徑；用 RStudio Project 代替 <code>setwd()</code>；Windows 路徑改用 <code>/</code>。</p></div>
-    <div><code>讀檔</code><p>先 <code>readLines(f, n = 5)</code> 看原始檔，再選 <code>read.csv</code> / <code>read.delim</code> / <code>read.table</code>，設定 <code>na.strings</code>、<code>skip</code>、<code>colClasses</code>；讀完用 <code>str()</code> 檢查型別。</p></div>
-    <div><code>寫檔</code><p>先 <code>dir.create("results", showWarnings = FALSE)</code>；表格用 <code>write.csv(x, f, row.names = FALSE)</code>；R 物件用 <code>saveRDS</code>；永遠不要覆蓋 data/ 裡的原始檔。</p></div>
+    <div><code>✓ 好圖的檢查清單</code><p>有標題；軸標籤有<b>單位</b>；長條圖從 0 開始；顏色有意義（不是為了好看）；有圖例說明每條線、每種顏色；看得出樣本數。</p></div>
+    <div><code>✗ 避免</code><p>3D 圖、太多塊的圓餅圖、把沒有順序的類別用線連起來、兩個 y 軸、只畫平均數長條圖卻不給分布。</p></div>
+    <div><code>→ 下一步</code><p>ggplot2 套件用「圖層」的概念畫圖，是目前最常用的 R 繪圖工具；學會這一章「什麼資料用什麼圖」，換到 ggplot2 只是換寫法。</p></div>
   </div>
   <div class="next">
-    <a href="plot.html"><span>下一單元</span><b>R 寶的統計圖鑑 →</b></a>
-    <a href="apply.html"><span>上一單元</span><b>R 寶的 apply 工廠 →</b></a>
+    <a href="io.html"><span>上一單元</span><b>R 寶的資料倉庫 →</b></a>
     <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
   </div>
 </section>
@@ -1111,7 +917,12 @@ function parse(src){
     }
     return left;
   }
-  function tilde(){ const a = orE(); if (peek().t === '~') throw err(peek(), '這裡不支援公式 ~'); return a; }
+  function tilde(){
+    if (peek().t === '~') { const op = next(); const st = peek().s; const r = orE(); return { k: 'formula', lhs: null, rhs: r, src: '~' + src.slice(st, toks[p - 1].e), line: op.line }; }
+    const st = toks[p].s, a = orE();
+    if (peek().t === '~') { const op = next(); skipNLonly(); const r = orE(); return { k: 'formula', lhs: a, rhs: r, src: src.slice(st, toks[p - 1].e).replace(/\s*~\s*/, ' ~ '), line: op.line }; }
+    return a;
+  }
   const bin = (sub, ops) => () => {
     let a = sub();
     while (ops.includes(peek().t)) { const op = next(); skipNLonly(); a = { k: 'bin', op: op.t, a, b: sub(), line: op.line }; }
@@ -1158,7 +969,7 @@ function parse(src){
           skipNLonly(); let name = null;
           if ((peek().t === 'id' || peek().t === 'str') && peek(1).t === '=') { name = next().v; next(); skipNLonly(); }
           if (peek().t === ',' || peek().t === ')') { if (name === null) throw err(peek(), '參數之間多了一個逗號'); args.push({ name, e: { k: 'lit', v: MISSING } }); }
-          else args.push({ name, e: expr() });
+          else { const st = toks[p].s, e = expr(); args.push({ name, e, src: src.slice(st, toks[p - 1].e) }); }
           skipNLonly();
           if (peek().t === ',') { next(); continue; }
           break;
@@ -1246,7 +1057,7 @@ function mk(arr, names, dim, dimnames){   // attach attributes; a bare length-1 
   if (dim) { r.dim = dim; if (dimnames && (dimnames[0] || dimnames[1])) r.dimnames = dimnames; }
   return r.names || r.dim ? r : (r.length === 1 ? r[0] : r);
 }
-const keepAttrs = (src, arr) => Array.isArray(src) && arr.length === src.length ? mk(arr, src.names, src.dim, src.dimnames) : mk(arr);
+const keepAttrs = (src, arr) => { if (!(Array.isArray(src) && arr.length === src.length)) return mk(arr); const r = mk(arr, src.names, src.dim, src.dimnames); if (src.tbl && Array.isArray(r)) r.tbl = true; return r; };
 const isNA = x => x === undefined || (typeof x === 'number' && isNaN(x));
 const vtype = V => V.some(x => typeof x === 'string') ? 'character' : V.some(x => typeof x === 'number') ? 'numeric' : V.some(x => typeof x === 'boolean') ? 'logical' : !V.length && V.rtype ? V.rtype : 'logical';
 const typedEmpty = (t, named) => { const r = []; r.rtype = t; if (named) r.names = []; return r; };
@@ -1279,7 +1090,14 @@ function fmtNums(V, D = 7){   // common formatting for a numeric vector: D signi
 }
 const fmtNum1 = x => fmtNums([x])[0];   // one number, as cat() shows it
 const asChar1 = x => x === undefined ? undefined : typeof x === 'string' ? x : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE')
-  : isNaN(x) ? 'NaN' : !isFinite(x) ? (x > 0 ? 'Inf' : '-Inf') : String(Number(x.toPrecision(15))).replace(/e\+?(-?)(\d)$/, 'e$10$2').replace(/e\+?(-?)(\d\d+)$/, 'e$1$2');
+  : isNaN(x) ? 'NaN' : !isFinite(x) ? (x > 0 ? 'Inf' : '-Inf') : charNum(x);
+function charNum(x){
+  const v = Number(x.toPrecision(15)); if (v === 0) return '0';
+  const sci = v.toExponential().replace(/e\+?(-?)(\d)$/, 'e$1' + '0$2').replace(/e(-?)0(\d\d)$/, 'e$1$2').replace(/e(\d)/, 'e+$1');
+  let fix = Math.abs(v) >= 1e15 ? null : v.toFixed(Math.max(0, Math.min(20, 15 - Math.floor(Math.log10(Math.abs(v))) - 1))).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+  if (fix !== null && Number(fix) !== v) fix = String(v);
+  return fix === null || fix.length > sci.length ? sci : fix;
+}
 function fmtElems(V, quote){
   const t = vtype(V);
   if (t === 'character') return V.map(x => x === undefined ? 'NA' : quote ? `"${String(x).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r')}"` : String(x));
@@ -1329,6 +1147,10 @@ function fmtPrint(v, prefix = ''){
   if (v === null) return 'NULL';
   if (v === MISSING) return '';
   if (isFn(v)) return fmtFun(v);
+  if (v instanceof RFormula) return v.src;
+  if (isList(v) && v.printText) return v.printText.replace(/\n$/, '');
+  if (Array.isArray(v) && v.sumtxt) return v.sumtxt;
+  if (isList(v) && v.cls === 'histogram') return fmtPrint(new RList(v.names, v.vals)) + '\nattr(,"class")\n[1] "histogram"';
   if (isDF(v)) return fmtDF(v);
   if (Array.isArray(v) && v.pv) return fmtVector(mk(v.map(x => '‘' + x + '’'))).replace(/"/g, '');
   if (Array.isArray(v) && v.tbl) return '\n' + fmtVector(v);
@@ -1346,6 +1168,8 @@ const fmtEl = x => isFn(x) ? 'function' : isList(x) ? `List of ${x.vals.length}`
 function fmtShort(v){   // one line, for the variable chips under a cell
   if (isFn(v)) return v instanceof RBuiltin ? `<內建 ${v.name}>` : 'function(' + v.params.map(p => p.name).join(', ') + ')';
   if (v === null) return 'NULL';
+  if (v instanceof RFormula) return 'formula ' + v.src;
+  if (isList(v) && v.cls) return { lm: '線性迴歸 lm', htest: 't 檢定結果', density: '密度估計', histogram: '直方圖的計算結果' }[v.cls] || v.cls;
   if (isDF(v)) return `data.frame：${dfN(v)} 列 × ${v.vals.length} 欄（${v.names.slice(0, 4).join(', ')}${v.vals.length > 4 ? ', …' : ''}）`;
   if (isList(v)) return `List of ${v.vals.length}` + (namesOf(v) ? `（${v.names.slice(0, 4).join(', ')}${v.vals.length > 4 ? ', …' : ''}）` : '');
   const V = asVec(v), d = dimOf(v);
@@ -1466,9 +1290,218 @@ function defaultDisk(){
   f('data/samples/S02.csv', 'gene,count\nGAPDH,4980\nIL6,1320\nTNF,610\n');
   f('data/samples/S03.csv', 'gene,count\nGAPDH,5105\nIL6,95\n');
   f('data/samples/README.txt', 'one file per sample: gene,count\n');
+  f('data/lab.csv', 'id,sex,group,age,glucose,hba1c,chol,blood\nP01,M,control,70,121,5.3,177,O\nP02,M,control,68,102,5.8,215,A\nP03,F,control,60,112,5.7,190,A\nP04,F,control,70,117,4.9,219,A\nP05,M,control,62,69,5.0,187,B\nP06,M,control,64,168,6.2,208,A\nP07,F,control,68,117,5.4,188,O\nP08,M,control,72,121,5.5,204,A\nP09,M,control,59,131,6.1,194,B\nP10,F,control,72,102,5.7,228,O\nP11,M,control,28,116,5.8,181,O\nP12,F,control,42,116,5.5,204,AB\nP13,M,control,67,119,5.4,180,O\nP14,M,control,66,107,5.4,252,B\nP15,M,control,44,99,5.2,160,AB\nP16,F,control,60,110,5.7,187,B\nP17,M,control,31,119,5.4,265,O\nP18,F,control,58,105,5.5,233,O\nP19,M,control,46,85,5.1,203,O\nP20,M,control,34,77,4.8,212,B\nP21,F,control,57,117,5.3,213,A\nP22,F,control,62,115,5.3,175,O\nP23,M,diabetes,60,134,6.1,207,A\nP24,M,diabetes,53,139,6.3,220,O\nP25,M,diabetes,44,197,8.5,254,A\nP26,M,diabetes,46,120,5.7,201,O\nP27,M,diabetes,63,146,7.1,234,B\nP28,M,diabetes,50,175,8.1,222,O\nP29,M,diabetes,64,146,6.4,244,O\nP30,F,diabetes,30,171,8.4,219,A\nP31,M,diabetes,65,88,5.7,157,B\nP32,F,diabetes,38,192,7.9,205,A\nP33,F,diabetes,44,143,7.1,176,B\nP34,F,diabetes,63,192,8.8,182,O\nP35,M,diabetes,35,124,6.5,219,AB\nP36,M,diabetes,64,139,6.6,211,O\nP37,F,diabetes,43,222,9.3,222,A\nP38,M,diabetes,35,185,8.0,186,B\nP39,M,diabetes,56,191,8.3,144,O\nP40,F,diabetes,55,160,6.9,181,B\n');
+  f('data/ogtt.csv', 'time,P01,P02,P03\n0,92,118,98\n30,148,196,165\n60,135,232,178\n90,118,221,150\n120,101,205,132\n');
   f('R/helpers.R', '# my own helper functions\ngc_content <- function(s) {\n  b <- strsplit(s, "")[[1]]\n  mean(b %in% c("G", "C"))\n}\n');
   return { files, dirs };
 }
+
+/* ---------- formulas and base graphics (drawn as SVG) ---------- */
+class RFormula { constructor(lhs, rhs, src, env){ this.lhs = lhs; this.rhs = rhs; this.src = src; this.env = env; } }
+const R_PALETTE = ['black', '#DF536B', '#61D04F', '#2297E6', '#28E2E5', '#CD0BBC', '#F5C710', 'gray62'];
+const PIE_COLS = ['white', 'lightblue', 'mistyrose', 'lightcyan', 'lavender', 'cornsilk'];
+function rcolor(c){
+  if (c === undefined || c === null) return 'none';
+  if (typeof c === 'number') return c === 0 ? 'white' : rcolor(R_PALETTE[(Math.round(c) - 1) % 8]);
+  if (typeof c === 'boolean') return 'none';
+  const s = String(c).trim();
+  if (s === 'transparent' || s === 'NA' || s === '') return 'none';
+  let m = s.match(/^gr[ae]y(\d{1,3})$/i); if (m) { const v = Math.round(+m[1] * 2.55); return `rgb(${v},${v},${v})`; }
+  if ((m = s.match(/^#([0-9a-f]{6})([0-9a-f]{2})$/i))) return `rgba(${parseInt(m[1].slice(0, 2), 16)},${parseInt(m[1].slice(2, 4), 16)},${parseInt(m[1].slice(4, 6), 16)},${(parseInt(m[2], 16) / 255).toFixed(3)})`;
+  if ((m = s.match(/^([a-z]+)[1-4]$/i))) return rcolor(m[1]);
+  const R_ONLY = { gray: '#BEBEBE', grey: '#BEBEBE', green: '#00FF00', purple: '#A020F0', maroon: '#B03060', darkgray: '#A9A9A9', darkgrey: '#A9A9A9' };
+  return R_ONLY[s.toLowerCase()] || s;
+}
+function hsv2hex(h, s, v){
+  const i = Math.floor(h * 6) % 6, f = h * 6 - Math.floor(h * 6), p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  const [r, g, b] = [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i];
+  return '#' + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, '0').toUpperCase()).join('');
+}
+function rPretty(lo, hi, n = 5, minN = Math.floor(n / 3), h = 1.5, h5 = 0.5 + 1.5 * h){   // R's R_pretty()
+  const eps = 1e-10;
+  let dx = hi - lo, cell, U, iSmall;
+  if (dx === 0 && hi === 0) { cell = 1; iSmall = true; }
+  else {
+    cell = Math.max(Math.abs(lo), Math.abs(hi));
+    U = 1 + (h5 >= 1.5 * h + 0.5 ? 1 / (1 + h) : 1.5 / (1 + h5));
+    U *= Math.max(1, n) * 2.220446e-16;
+    iSmall = dx < cell * U * 3;
+  }
+  if (iSmall) { if (cell > 10) cell = 9 + cell / 10; cell *= 0.75; if (minN > 1) cell /= minN; }
+  else { cell = dx; if (n > 1) cell /= n; }
+  if (cell < 20 * 2.2e-308) cell = 20 * 2.2e-308;
+  const base = Math.pow(10, Math.floor(Math.log10(cell)));
+  let unit = base;
+  if (2 * base - cell < h * (cell - unit)) { unit = 2 * base; if (5 * base - cell < h5 * (cell - unit)) { unit = 5 * base; if (10 * base - cell < h * (cell - unit)) unit = 10 * base; } }
+  let ns = Math.floor(lo / unit + 1e-7), nu = Math.ceil(hi / unit - 1e-7);
+  while (ns * unit > lo + eps * unit) ns--;
+  while (nu * unit < hi - eps * unit) nu++;
+  let k = Math.floor(0.5 + nu - ns);
+  if (k < minN) { k = minN - k; if (ns >= 0) { nu += k / 2; ns -= k / 2 + k % 2; } else { ns -= k / 2; nu += k / 2 + k % 2; } }
+  const out = []; for (let i = ns; i <= nu + 1e-9; i++) out.push(Number((i * unit).toPrecision(12)));
+  return out;
+}
+const extRange = (a, b, style = 'r') => {
+  if (!isFinite(a) || !isFinite(b)) { a = 0; b = 1; }
+  if (a === b) { if (a === 0) { a = -1; b = 1; } else { const d = 0.4 * Math.abs(a); a -= d; b += d; } }
+  if (style === 'i') return [a, b];
+  const d = (b - a) * 0.04; return [a - d, b + d];
+};
+const axisTicks = (u0, u1) => rPretty(u0, u1, 5, 1, 0.8, 1.7).filter(t => t >= u0 - 1e-9 * Math.abs(u1 - u0) && t <= u1 + 1e-9 * Math.abs(u1 - u0));
+const textW = (s, fs) => [...String(s)].reduce((w, ch) => w + (/[⺀-￯]/.test(ch) ? 1 : /[il.,:;|!'ijt]/.test(ch) ? 0.28 : /[mwMW@]/.test(ch) ? 0.83 : /[A-Z]/.test(ch) ? 0.66 : 0.55) * fs, 0);
+const xesc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const LTY = { 1: '', 2: '4 4', 3: '1 3', 4: '1 3 4 3', 5: '7 3', 6: '2 2 6 2', solid: '', dashed: '4 4', dotted: '1 3', dotdash: '1 3 4 3', longdash: '7 3', twodash: '2 2 6 2', blank: 'none' };
+function symbolSVG(pch, x, y, cex, col, bg, lwd = 1){
+  const r = 2.7 * cex, c = rcolor(col), f = n => n.toFixed(2);
+  if (c === 'none') return '';
+  if (typeof pch === 'string') return `<text x="${f(x)}" y="${f(y + 4 * cex)}" font-size="${(12 * cex).toFixed(1)}" text-anchor="middle" fill="${c}">${xesc(pch[0] || '')}</text>`;
+  const sw = `stroke="${c}" stroke-width="${lwd}"`;
+  switch (pch) {
+    case 0: return `<rect x="${f(x - r * 0.886)}" y="${f(y - r * 0.886)}" width="${f(r * 1.772)}" height="${f(r * 1.772)}" fill="none" ${sw}/>`;
+    case 2: { const a = r * 1.15; return `<polygon points="${f(x)},${f(y - a)} ${f(x + a * 0.866)},${f(y + a * 0.5)} ${f(x - a * 0.866)},${f(y + a * 0.5)}" fill="none" ${sw}/>`; }
+    case 3: return `<path d="M${f(x - r * 1.4)} ${f(y)}H${f(x + r * 1.4)}M${f(x)} ${f(y - r * 1.4)}V${f(y + r * 1.4)}" ${sw}/>`;
+    case 4: return `<path d="M${f(x - r)} ${f(y - r)}L${f(x + r)} ${f(y + r)}M${f(x - r)} ${f(y + r)}L${f(x + r)} ${f(y - r)}" ${sw}/>`;
+    case 15: return `<rect x="${f(x - r * 0.886)}" y="${f(y - r * 0.886)}" width="${f(r * 1.772)}" height="${f(r * 1.772)}" fill="${c}"/>`;
+    case 16: return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="${c}"/>`;
+    case 17: { const a = r * 1.15; return `<polygon points="${f(x)},${f(y - a)} ${f(x + a * 0.866)},${f(y + a * 0.5)} ${f(x - a * 0.866)},${f(y + a * 0.5)}" fill="${c}"/>`; }
+    case 18: { const a = r * 0.9; return `<polygon points="${f(x)},${f(y - a)} ${f(x + a)},${f(y)} ${f(x)},${f(y + a)} ${f(x - a)},${f(y)}" fill="${c}"/>`; }
+    case 19: return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="${c}" stroke="${c}"/>`;
+    case 20: return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r * 0.66)}" fill="${c}"/>`;
+    case 21: return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="${rcolor(bg)}" ${sw}/>`;
+    case 22: return `<rect x="${f(x - r * 0.886)}" y="${f(y - r * 0.886)}" width="${f(r * 1.772)}" height="${f(r * 1.772)}" fill="${rcolor(bg)}" ${sw}/>`;
+    default: return `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="none" ${sw}/>`;
+  }
+}
+/* draw one page (a list of figures laid out by mfrow) */
+function renderPlotSVG(page, W = 504, H = 378){
+  const [nr, nc] = page.mfrow, cexL = nr === 2 && nc === 2 ? 0.83 : nr >= 3 || nc >= 3 ? 0.66 : 1;
+  const f = n => (+n).toFixed(2);
+  let out = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" class="rplot" font-family="Helvetica, Arial, 'Noto Sans TC', sans-serif"><rect width="${W}" height="${H}" fill="white"/>`;
+  page.figs.forEach((fig, k) => {
+    const pr = page.byrow === false ? k % nr : Math.floor(k / nc), pc = page.byrow === false ? Math.floor(k / nr) : k % nc;
+    const x0 = pc * W / nc, y0 = pr * H / nr, w = W / nc, h = H / nr, lh = 14.4 * cexL, fs = 12 * cexL;
+    const mar = fig.mar || [5.1, 4.1, 4.1, 2.1];
+    let L = x0 + mar[1] * lh, Rr = x0 + w - mar[3] * lh, T = y0 + mar[2] * lh, B = y0 + h - mar[0] * lh;
+    let [u0, u1, v0, v1] = fig.usr;
+    if (fig.asp) {   // equal scale (pie)
+      const sx = (Rr - L) / (u1 - u0), sy = (B - T) / (v1 - v0), s = Math.min(sx, sy);
+      const cx = (L + Rr) / 2, cy = (T + B) / 2, hw = s * (u1 - u0) / 2, hh = s * (v1 - v0) / 2;
+      L = cx - hw; Rr = cx + hw; T = cy - hh; B = cy + hh;
+    }
+    const X = u => L + (u - u0) / (u1 - u0) * (Rr - L), Y = v => B - (v - v0) / (v1 - v0) * (B - T);
+    const clip = `clip${Math.random().toString(36).slice(2, 8)}`;
+    out += `<defs><clipPath id="${clip}"><rect x="${f(L)}" y="${f(T)}" width="${f(Rr - L)}" height="${f(B - T)}"/></clipPath></defs>`;
+    let body = '';
+    const strokeAttr = (col, lty, lwd) => `stroke="${rcolor(col ?? 'black')}" stroke-width="${lwd || 1}"${LTY[lty] ? ` stroke-dasharray="${LTY[lty]}"` : ''}${LTY[lty] === 'none' ? ' stroke-opacity="0"' : ''}`;
+    for (const it of fig.layers) {
+      const pick = (v, i) => Array.isArray(v) ? v[i % v.length] : v;
+      if (it.t === 'rect' && Math.abs(Y(it.y1) - Y(it.y0)) < 0.01) body += `<line x1="${f(X(it.x0))}" x2="${f(X(it.x1))}" y1="${f(Y(it.y0))}" y2="${f(Y(it.y0))}" stroke="${rcolor(it.border ?? 'black')}"/>`;
+      else if (it.t === 'rect') body += `<rect x="${f(Math.min(X(it.x0), X(it.x1)))}" y="${f(Math.min(Y(it.y0), Y(it.y1)))}" width="${f(Math.abs(X(it.x1) - X(it.x0)))}" height="${f(Math.abs(Y(it.y1) - Y(it.y0)))}" fill="${rcolor(it.col)}" stroke="${rcolor(it.border ?? 'black')}" stroke-width="${it.lwd || 1}"/>`;
+      else if (it.t === 'pts') it.x.forEach((x, i) => { const y = it.y[i]; if (isNA(x) || isNA(y)) return; body += symbolSVG(pick(it.pch, i), X(x), Y(y), (pick(it.cex, i) || 1) * cexL, pick(it.col, i), pick(it.bg, i), it.lwd); });
+      else if (it.t === 'line' && it.gap) {   // type = "b": segments stop short of the points
+        const g = 4.5 * (it.gap || 1);
+        for (let i = 1; i < it.x.length; i++) { if ([it.x[i - 1], it.y[i - 1], it.x[i], it.y[i]].some(isNA)) continue; const ax = X(it.x[i - 1]), ay = Y(it.y[i - 1]), bx = X(it.x[i]), by = Y(it.y[i]), L2 = Math.hypot(bx - ax, by - ay); if (L2 <= 2 * g) continue; const ux = (bx - ax) / L2, uy = (by - ay) / L2; body += `<line x1="${f(ax + ux * g)}" y1="${f(ay + uy * g)}" x2="${f(bx - ux * g)}" y2="${f(by - uy * g)}" ${strokeAttr(it.col, it.lty, it.lwd)}/>`; }
+      } else if (it.t === 'line') {
+        let d = '', pen = false;
+        it.x.forEach((x, i) => { const y = it.y[i]; if (isNA(x) || isNA(y)) { pen = false; return; } d += (pen ? 'L' : 'M') + f(X(x)) + ' ' + f(Y(y)); pen = true; });
+        if (d) body += `<path d="${d}" fill="none" ${strokeAttr(it.col, it.lty, it.lwd)} stroke-linejoin="round"/>`;
+      } else if (it.t === 'seg') it.x0.forEach((_, i) => { body += `<line x1="${f(X(it.x0[i]))}" y1="${f(Y(it.y0[i]))}" x2="${f(X(it.x1[i]))}" y2="${f(Y(it.y1[i]))}" ${strokeAttr(pick(it.col, i), pick(it.lty, i), pick(it.lwd, i))}/>`; });
+      else if (it.t === 'arrow') it.x0.forEach((_, i) => {
+        const ax = X(it.x0[i]), ay = Y(it.y0[i]), bx = X(it.x1[i]), by = Y(it.y1[i]), ang = Math.atan2(by - ay, bx - ax), len = (it.length ?? 0.25) * 72, th = (it.angle ?? 30) * Math.PI / 180, st = strokeAttr(pick(it.col, i), 1, it.lwd);
+        body += `<line x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}" ${st}/>`;
+        const head = (px, py, a) => `<path d="M${f(px + len * Math.cos(a + th))} ${f(py + len * Math.sin(a + th))}L${f(px)} ${f(py)}L${f(px + len * Math.cos(a - th))} ${f(py + len * Math.sin(a - th))}" fill="none" ${st}/>`;
+        if (it.code === 2 || it.code === 3) body += head(bx, by, ang + Math.PI);
+        if (it.code === 1 || it.code === 3) body += head(ax, ay, ang);
+      });
+      else if (it.t === 'abline') {
+        const st = strokeAttr(it.col, it.lty, it.lwd);
+        (it.h || []).forEach(v => { body += `<line x1="${f(L)}" x2="${f(Rr)}" y1="${f(Y(v))}" y2="${f(Y(v))}" ${st}/>`; });
+        (it.v || []).forEach(v => { body += `<line y1="${f(T)}" y2="${f(B)}" x1="${f(X(v))}" x2="${f(X(v))}" ${st}/>`; });
+        if (it.a !== undefined) body += `<line x1="${f(X(u0))}" y1="${f(Y(it.a + it.b * u0))}" x2="${f(X(u1))}" y2="${f(Y(it.a + it.b * u1))}" ${st}/>`;
+      } else if (it.t === 'poly') body += `<polygon points="${it.x.map((x, i) => f(X(x)) + ',' + f(Y(it.y[i]))).join(' ')}" fill="${rcolor(it.col)}" stroke="${rcolor(it.border ?? 'black')}"/>`;
+      else if (it.t === 'text') it.x.forEach((x, i) => {
+        const lab = pick(it.labels, i), c = (pick(it.cex, i) || 1) * fs, pos = it.pos, off = (it.offset ?? 0.5) * c;
+        let px = X(x), py = Y(it.y[i]) + c * 0.35, anchor = 'middle';
+        if (pos === 1) py += off + c * 0.5; else if (pos === 3) py -= off + c * 0.5; else if (pos === 2) { px -= off; anchor = 'end'; } else if (pos === 4) { px += off; anchor = 'start'; }
+        if (it.adj === 0) anchor = 'start'; else if (it.adj === 1) anchor = 'end';
+        body += `<text x="${f(px)}" y="${f(py)}" font-size="${f(c)}" text-anchor="${anchor}" fill="${rcolor(pick(it.col, i) ?? 'black')}">${xesc(lab)}</text>`;
+      });
+      else if (it.t === 'legend') body += legendSVG(it, { L, Rr, T, B, X, Y, fs });
+    }
+    out += `<g clip-path="url(#${clip})">${body}</g>`;
+    // axes, box, titles
+    const axisCol = 'black';
+    for (const ax of fig.axes || []) {
+      const at = ax.at, labs = ax.labels;
+      if (ax.side === 1) {
+        const vis = at.filter(v => v >= u0 - 1e-9 && v <= u1 + 1e-9);
+        if (ax.line !== false && vis.length) out += `<line x1="${f(X(Math.min(...vis)))}" x2="${f(X(Math.max(...vis)))}" y1="${f(B)}" y2="${f(B)}" stroke="${axisCol}"/>`;
+        let lastR = -Infinity;
+        at.forEach((v, i) => {
+          if (v < u0 - 1e-9 || v > u1 + 1e-9) return;
+          const tw = ax.las >= 2 ? fs : textW(labs[i], fs * (ax.cex || 1)), cx = X(v), skip = cx - tw / 2 < lastR + fs * 0.4;
+          if (!skip) lastR = cx + tw / 2;
+          if (ax.ticks !== false) out += `<line x1="${f(X(v))}" x2="${f(X(v))}" y1="${f(B)}" y2="${f(B + 0.5 * lh)}" stroke="${axisCol}"/>`;
+          if (skip) return;
+          out += ax.las >= 2 ? `<text transform="translate(${f(X(v) + fs * 0.35)},${f(B + 1.0 * lh)}) rotate(-90)" font-size="${f(fs * (ax.cex || 1))}" text-anchor="end">${xesc(labs[i])}</text>`
+            : `<text x="${f(X(v))}" y="${f(B + 1.0 * lh + fs * 0.98)}" font-size="${f(fs * (ax.cex || 1))}" text-anchor="middle">${xesc(labs[i])}</text>`;
+        });
+      } else if (ax.side === 2) {
+        const vis = at.filter(v => v >= v0 - 1e-9 && v <= v1 + 1e-9);
+        if (vis.length) out += `<line y1="${f(Y(Math.min(...vis)))}" y2="${f(Y(Math.max(...vis)))}" x1="${f(L)}" x2="${f(L)}" stroke="${axisCol}"/>`;
+        let lastT = Infinity;
+        at.forEach((v, i) => {
+          if (v < v0 - 1e-9 || v > v1 + 1e-9) return;
+          const tw = ax.las === 1 ? fs : textW(labs[i], fs), cy = Y(v), skip = cy + tw / 2 > lastT - fs * 0.4;
+          if (!skip) lastT = cy - tw / 2;
+          if (skip) { out += `<line y1="${f(Y(v))}" y2="${f(Y(v))}" x1="${f(L)}" x2="${f(L - 0.5 * lh)}" stroke="${axisCol}"/>`; return; }
+          out += `<line y1="${f(Y(v))}" y2="${f(Y(v))}" x1="${f(L)}" x2="${f(L - 0.5 * lh)}" stroke="${axisCol}"/>`;
+          const tx = L - 1.0 * lh - fs * 0.22;
+          out += ax.las === 1 ? `<text x="${f(L - 1.0 * lh + 4)}" y="${f(Y(v) + fs * 0.35)}" font-size="${f(fs)}" text-anchor="end">${xesc(labs[i])}</text>`
+            : `<text transform="translate(${f(tx)},${f(Y(v))}) rotate(-90)" font-size="${f(fs)}" text-anchor="middle">${xesc(labs[i])}</text>`;
+        });
+      }
+    }
+    if (fig.box) out += `<rect x="${f(L)}" y="${f(T)}" width="${f(Rr - L)}" height="${f(B - T)}" fill="none" stroke="black"/>`;
+    if (fig.main) out += `<text x="${f((L + Rr) / 2)}" y="${f(T - 1.7 * lh + fs * 0.1)}" font-size="${f(fs * 1.2)}" font-weight="bold" text-anchor="middle">${xesc(fig.main)}</text>`;
+    if (fig.sub) out += `<text x="${f((L + Rr) / 2)}" y="${f(B + 4 * lh + fs * 0.75)}" font-size="${f(fs)}" text-anchor="middle">${xesc(fig.sub)}</text>`;
+    if (fig.xlab) out += `<text x="${f((L + Rr) / 2)}" y="${f(B + 3 * lh + fs * 0.95)}" font-size="${f(fs)}" text-anchor="middle">${xesc(fig.xlab)}</text>`;
+    if (fig.ylab) out += `<text transform="translate(${f(L - 3 * lh - fs * 0.22)},${f((T + B) / 2)}) rotate(-90)" font-size="${f(fs)}" text-anchor="middle">${xesc(fig.ylab)}</text>`;
+  });
+  return out + '</svg>';
+}
+function legendSVG(it, P){
+  const fs = P.fs * (it.cex || 1), lh = fs * 1.2, n = it.legend.length, f = v => v.toFixed(2);
+  const hasSym = it.pch !== undefined || it.lty !== undefined || it.fill !== undefined, symW = hasSym ? (it.fill !== undefined ? fs * 1.2 : fs * 2) : 0;
+  const tw = Math.max(...it.legend.map(s => textW(s, fs)));
+  const w = fs * 0.5 + symW + (hasSym ? fs * 0.5 : 0) + tw + fs * 0.5, h = n * lh + fs * 0.5;
+  let x, y;
+  const pos = it.pos;
+  if (typeof pos === 'string') {
+    const ins = 0;
+    x = /left/.test(pos) ? P.L + ins : /right/.test(pos) ? P.Rr - w - ins : (P.L + P.Rr - w) / 2;
+    y = /^top/.test(pos) ? P.T + ins : /^bottom/.test(pos) ? P.B - h - ins : (P.T + P.B - h) / 2;
+  } else { x = P.X(pos[0]); y = P.Y(pos[1]); }
+  let s = '';
+  if (it.bty !== 'n') s += `<rect x="${f(x)}" y="${f(y)}" width="${f(w)}" height="${f(h)}" fill="${it.bg ? rcolor(it.bg) : 'white'}" stroke="black"/>`;
+  const pick = (v, i) => Array.isArray(v) ? v[i % v.length] : v;
+  it.legend.forEach((lab, i) => {
+    const cy = y + fs * 0.25 + lh * (i + 0.5), sx = x + fs * 0.5;
+    if (it.fill !== undefined) s += `<rect x="${f(sx)}" y="${f(cy - fs * 0.4)}" width="${f(fs * 1.2)}" height="${f(fs * 0.8)}" fill="${rcolor(pick(it.fill, i))}" stroke="black"/>`;
+    if (it.lty !== undefined && pick(it.lty, i) !== undefined) s += `<line x1="${f(sx)}" x2="${f(sx + symW)}" y1="${f(cy)}" y2="${f(cy)}" stroke="${rcolor(pick(it.col, i) ?? 'black')}" stroke-width="${pick(it.lwd, i) || 1}"${LTY[pick(it.lty, i)] ? ` stroke-dasharray="${LTY[pick(it.lty, i)]}"` : ''}/>`;
+    if (it.pch !== undefined && pick(it.pch, i) !== undefined) s += symbolSVG(pick(it.pch, i), sx + symW / 2, cy, 1, pick(it.col, i) ?? 'black', pick(it.ptbg, i));
+    s += `<text x="${f(sx + symW + (hasSym ? fs * 0.5 : 0))}" y="${f(cy + fs * 0.35)}" font-size="${f(fs)}" fill="${rcolor(pick(it.textcol, i) ?? 'black')}">${xesc(lab)}</text>`;
+  });
+  if (it.title) s += `<text x="${f(x + w / 2)}" y="${f(y - 3)}" font-size="${f(fs)}" text-anchor="middle">${xesc(it.title)}</text>`;
+  return s;
+}
+
+/* ---------- distributions ---------- */
+function lgamma(x){ const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5]; let y = x, t = x + 5.5; t -= (x + 0.5) * Math.log(t); let s = 1.000000000190015; for (const k of c) s += k / ++y; return -t + Math.log(2.5066282746310005 * s / x); }
+function betacf(a, b, x){ let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap; if (Math.abs(d) < 1e-300) d = 1e-300; d = 1 / d; let h = d; for (let m = 1; m <= 300; m++) { const m2 = 2 * m; let aa = m * (b - m) * x / ((qam + m2) * (a + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; h *= d * c; aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 3e-16) break; } return h; }
+function ibeta(x, a, b){ if (x <= 0) return 0; if (x >= 1) return 1; const bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x)); return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b; }
+const ptR = (t, df) => { const x = df / (df + t * t), p = 0.5 * ibeta(x, df / 2, 0.5); return t > 0 ? 1 - p : p; };
+function qtR(p, df){ let lo = -1e3, hi = 1e3; for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (ptR(m, df) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
 
 /* ---------- the interpreter ---------- */
 function execute(src, presets, opts = {}){
@@ -1801,28 +1834,29 @@ function execute(src, presets, opts = {}){
 
   /* -- calling functions -- */
   function matchArgs(args, formals, fname, line){   // formals: [names]; '...' collects the rest
-    const out = {}, dots = [], used = new Set(), hasDots = formals.includes('...');
+    const out = {}, srcs = {}, dots = [], used = new Set(), hasDots = formals.includes('...');
     const before = hasDots ? formals.slice(0, formals.indexOf('...')) : formals;
     args.forEach((a, i) => {
       if (a.name == null || a.name === '...') return;
       if (formals.includes(a.name)) {
         if (a.name in out) throw new RErr(`formal argument "${a.name}" matched by multiple actual arguments：${a.name} 給了兩次`, line);
-        out[a.name] = a.v; used.add(i); return;
+        out[a.name] = a.v; srcs[a.name] = a.src; used.add(i); return;
       }
       const part = before.filter(f => f.startsWith(a.name) && !(f in out));   // R also matches unique prefixes
-      if (part.length === 1) { out[part[0]] = a.v; used.add(i); }
+      if (part.length === 1) { out[part[0]] = a.v; srcs[part[0]] = a.src; used.add(i); }
     });
     let fi = 0;
     args.forEach((a, i) => {
       if (used.has(i)) return;
       if (a.name != null) { if (hasDots) { dots.push(a); return; } throw new RErr(`unused argument (${a.name} = …)：${fname}() 沒有叫 ${a.name} 的參數`, line); }
       while (fi < before.length && before[fi] in out) fi++;
-      if (fi < before.length) out[before[fi++]] = a.v;
+      if (fi < before.length) { srcs[before[fi]] = a.src; out[before[fi++]] = a.v; }
       else if (hasDots) dots.push(a);
       else throw new RErr(`unused argument：${fname}() 的參數給太多了`, line);
     });
     for (const k of Object.keys(out)) if (out[k] === MISSING) delete out[k];
     out['...'] = dots.filter(d => d.v !== MISSING);
+    out['.src'] = srcs;
     return out;
   }
   function callUser(f, args, line, name){
@@ -1860,7 +1894,7 @@ function execute(src, presets, opts = {}){
       if (a.e.k === 'var' && a.e.name === '...') {
         const e = findEnv('...'); if (!e) throw new RErr("'...' used in an incorrect context：... 只能用在有 ... 參數的函式裡", a.e.line);
         out.push(...e.vars.get('...').map(d => ({ name: d.name, v: force(d.v) })));
-      } else out.push({ name: a.name, v: a.e.k === 'lit' && a.e.v === MISSING ? MISSING : ev(a.e) });
+      } else out.push({ name: a.name, v: a.e.k === 'lit' && a.e.v === MISSING ? MISSING : ev(a.e), src: a.src });
     }
     return out;
   };
@@ -2004,6 +2038,72 @@ function execute(src, presets, opts = {}){
     const outer = vecs.some(v => v.name) ? vecs.map(v => v.name) : null, inner = (vecs.find(v => v.names && v.names.length === k) || {}).names || null;
     return byRow ? mk(conv, null, [n, k], [outer, inner ? [...inner] : null]) : mk(conv, null, [k, n], [inner ? [...inner] : null, outer]);
   }
+  /* ===== graphics device ===== */
+  const dev = { pages: [], cur: null, mfrow: [1, 1], byrow: true, file: null, fresh: true };
+  function newFig(kind){
+    const [r, c] = dev.mfrow, list = dev.file ? dev.file.pages : dev.pages;
+    let pg = dev.cur;
+    if (!pg || dev.fresh || pg.figs.length >= r * c || pg.list !== list) { pg = { mfrow: [r, c], byrow: dev.byrow, figs: [], list }; list.push(pg); dev.cur = pg; dev.fresh = false; }
+    const fig = { kind, layers: [], axes: [], box: false, usr: [0, 1, 0, 1] };
+    pg.figs.push(fig); return fig;
+  }
+  function curFig(line, what){
+    const pg = dev.cur;
+    if (!pg || !pg.figs.length || dev.fresh) throw new RErr(`plot.new has not been called yet：${what}() 是「加在現有的圖上」的函式，要先用 plot()、hist()、barplot()、boxplot() 畫出一張圖`, line);
+    return pg.figs[pg.figs.length - 1];
+  }
+  const numsOf = (v, line, what) => { if (v === undefined || v === null) return []; if (isList(v)) throw new RErr(`${what}要是數字向量，不能是 list 或 data.frame（要用 $ 取出一欄）`, line); const V = asVec(v); if (vtype(V) === 'character' && V.length) throw new RErr(`${what}要是數字，這裡拿到的是文字（例如 "${V.find(x => typeof x === 'string')}"）`, line); return V.map(x => x === undefined ? undefined : +x); };
+  const optS = (v, d) => v === undefined ? d : v === null ? null : asChar1(one(v));
+  const optN = (v, d) => v === undefined || v === null ? d : +asVec(v)[0];
+  const optV = (v, d) => v === undefined || v === null ? d : (asVec(v).length === 1 ? asVec(v)[0] : [...asVec(v)]);
+  const rangeOf = V => { const F = V.filter(x => typeof x === 'number' && isFinite(x)); return F.length ? [Math.min(...F), Math.max(...F)] : [0, 1]; };
+  function stdAxes(fig, which = [1, 2], las){
+    for (const side of which) { const [a, b] = side === 1 ? fig.usr.slice(0, 2) : fig.usr.slice(2); const at = axisTicks(a, b); fig.axes.push({ side, at, labels: fmtNums(at), las }); }
+  }
+  function setWin(fig, xr, yr, a){
+    const xl = a.xlim !== undefined && a.xlim !== null ? numsOf(a.xlim) : xr, yl = a.ylim !== undefined && a.ylim !== null ? numsOf(a.ylim) : yr;
+    fig.usr = [...extRange(xl[0], xl[1], fig.xaxs), ...extRange(yl[0], yl[1], fig.yaxs)];
+  }
+  function labels(fig, a, d){ for (const k of ['main', 'sub', 'xlab', 'ylab']) { const v = a[k] === undefined ? d[k] : a[k] === null ? '' : asChar1(one(a[k])); if (v !== undefined) fig[k] = v; } }
+  const srcOf = (a, k, d) => (a['.src'] && a['.src'][k]) || d;
+  function formulaData(fo, data, line){
+    const get = node => {
+      if (!node) return null;
+      if (node.k !== 'var') { const save = env; env = fo.env; try { return { name: deparseNode(node), v: ev(node) }; } finally { env = save; } }
+      if (data && isList(data)) { const k = data.names.indexOf(node.name); if (k >= 0) return { name: node.name, v: data.vals[k] }; if (isDF(data)) throw new RErr(`object '${node.name}' not found：data 裡沒有 ${node.name} 這一欄，欄位有：${data.names.join(', ')}`, line); }
+      const save = env; env = fo.env; try { return { name: node.name, v: ev(node) }; } finally { env = save; }
+    };
+    return { y: get(fo.lhs), x: get(fo.rhs) };
+  }
+  const deparseNode = n => n.k === 'var' ? n.name : n.k === 'dollar' ? deparseNode(n.a) + '$' + n.name : n.k === 'lit' ? String(n.v) : '…';
+  function pointsLayer(x, y, a, defType = 'p'){
+    const type = optS(a.type, defType), col = optV(a.col, 'black'), L = [];
+    if (type === 'l' || type === 'b' || type === 'o') L.push({ t: 'line', x, y, col, lty: optV(a.lty, 1), lwd: optN(a.lwd, 1), gap: type === 'b' ? optN(a.cex, 1) : 0 });
+    if (type === 'h') L.push({ t: 'seg', x0: x, y0: x.map(() => 0), x1: x, y1: y, col, lty: optV(a.lty, 1), lwd: optN(a.lwd, 1) });
+    if (type === 'p' || type === 'b' || type === 'o') L.push({ t: 'pts', x, y, pch: optV(a.pch, 1), col, cex: optV(a.cex, 1), bg: optV(a.bg, undefined), lwd: optN(a.lwd, 1) });
+    return L;
+  }
+  const PLOT_ARGS = ['x', 'y', 'type', 'main', 'sub', 'xlab', 'ylab', 'xlim', 'ylim', 'col', 'pch', 'cex', 'lty', 'lwd', 'bg', 'las', 'axes', 'frame.plot', 'data', 'asp', 'log', '...'];
+  function boxStats(V){
+    const x = V.filter(v => typeof v === 'number' && !isNaN(v)).sort((p, q) => p - q), n = x.length;
+    if (!n) return { stats: [NaN, NaN, NaN, NaN, NaN], n: 0, out: [] };
+    const n4 = Math.floor((n + 3) / 2) / 2, d = [1, n4, (n + 1) / 2, n + 1 - n4, n].map(k => 0.5 * (x[Math.floor(k) - 1] + x[Math.ceil(k) - 1]));
+    const five = [...d], iqr = d[3] - d[1], out = x.filter(v => v < d[1] - 1.5 * iqr || v > d[3] + 1.5 * iqr);
+    if (out.length) { const inn = x.filter(v => !(v < d[1] - 1.5 * iqr || v > d[3] + 1.5 * iqr)); d[0] = Math.min(...inn); d[4] = Math.max(...inn); }
+    return { stats: d, n, out: V.filter(v => out.includes(v)), five };
+  }
+  const quantile7 = (V, p) => { const x = [...V].sort((a, b) => a - b), n = x.length, h = (n - 1) * p, lo = Math.floor(h + 4 * 2.220446e-16), f = h - lo; return lo + 1 < n ? x[lo] + f * (x[lo + 1] - x[lo]) : x[n - 1]; };
+  const meanOf = V => V.reduce((s, x) => s + x, 0) / V.length;
+  const varOf = V => { const m = meanOf(V); return V.reduce((s, x) => s + (x - m) ** 2, 0) / (V.length - 1); };
+  const clsList = (names, vals, cls, extra = {}) => { const L = new RList(names, vals); L.cls = cls; Object.assign(L, extra); return L; };
+  function fmtGap(V, names, gap){   // a named character vector printed without quotes, print.gap = gap
+    const w = Math.max(...V.map(dispW), ...names.map(dispW)), per = Math.max(1, Math.floor(80 / (w + gap))), out = [];
+    for (let i = 0; i < V.length; i += per) { out.push(names.slice(i, i + per).map(s => padL(s, w) + ' '.repeat(gap)).join('')); out.push(V.slice(i, i + per).map(s => padL(s, w) + ' '.repeat(gap)).join('')); }
+    return out.join('\n');
+  }
+  const mkInt = arr => { const r = mk(arr); if (Array.isArray(r)) r.rtype = 'integer'; return r; };
+  const fmtSig = (x, d) => fmtNums([x], d)[0];
+  function formatPval(p){ return p < 2.220446e-16 ? '< 2.2e-16' : fmtSig(p, 4); }
   const BUILTIN = {
     c: [['...'], (a, line) => combine(a['...'], line)],
     list: [['...'], a => new RList(a['...'].map(d => d.name || ''), a['...'].map(d => d.v))],
@@ -2087,7 +2187,7 @@ function execute(src, presets, opts = {}){
     'as.character': [['x'], a => isList(a.x) ? mk(a.x.vals.map(v => asVec(v).length === 1 ? asChar1(asVec(v)[0]) : 'c(' + asVec(v).map(y => fmtElems([y], true)[0]).join(', ') + ')')) : mk(asVec(a.x).map(asChar1))],
     'as.logical': [['x'], a => mk(asVec(a.x).map(x => x === undefined ? x : typeof x === 'string' ? (/^(TRUE|true|T|True)$/.test(x) ? true : /^(FALSE|false|F|False)$/.test(x) ? false : undefined) : !!x))],
     'as.list': [['x'], a => isList(a.x) ? a.x : new RList(asVec(a.x).map((_, i) => (namesOf(a.x) || [])[i] || ''), [...asVec(a.x)])],
-    class: [['x'], a => isDF(a.x) ? 'data.frame' : Array.isArray(a.x) && a.x.pv ? mk(['package_version', 'numeric_version']) : Array.isArray(a.x) && a.x.tbl ? 'table' : typeName(a.x) === 'integer' ? 'integer' : isList(a.x) ? 'list' : isFn(a.x) ? 'function' : a.x === null ? 'NULL' : dimOf(a.x) ? mk(['matrix', 'array']) : vtype(asVec(a.x))],
+    class: [['x'], a => a.x instanceof RFormula ? 'formula' : isList(a.x) && a.x.cls ? a.x.cls : isDF(a.x) ? 'data.frame' : Array.isArray(a.x) && a.x.pv ? mk(['package_version', 'numeric_version']) : Array.isArray(a.x) && a.x.tbl ? 'table' : typeName(a.x) === 'integer' ? 'integer' : isList(a.x) ? 'list' : isFn(a.x) ? 'function' : a.x === null ? 'NULL' : dimOf(a.x) ? mk(['matrix', 'array']) : vtype(asVec(a.x))],
     typeof: [['x'], a => typeName(a.x)],
     identical: [['x', 'y'], a => identical(a.x ?? null, a.y ?? null)],
     ifelse: [['test', 'yes', 'no'], (a, line) => {
@@ -2123,7 +2223,7 @@ function execute(src, presets, opts = {}){
       if (isList(a.x)) throw new RErr("'x' must be atomic：sort() 不能直接排 list", line);
       const V = asVec(a.x), nm = namesOf(a.x), idx = V.map((_, i) => i).filter(i => !isNA(V[i]));
       idx.sort((i, j) => sortKeyCmp(V[i], V[j]) || i - j); if (lgl(a.decreasing, false)) idx.reverse();
-      return mk(idx.map(i => V[i]), nm ? idx.map(i => nm[i]) : null);
+      const r = mk(idx.map(i => V[i]), nm ? idx.map(i => nm[i]) : null); if (a.x.tbl && Array.isArray(r)) r.tbl = true; return r;
     }],
     order: [['...', 'decreasing'], (a, line) => { const V = asVec(a['...'][0].v), idx = V.map((_, i) => i); const dec = lgl(a.decreasing, false); idx.sort((i, j) => (isNA(V[i]) - isNA(V[j])) || (dec ? -sortKeyCmp(V[i], V[j]) : sortKeyCmp(V[i], V[j])) || i - j); return mk(idx.map(i => i + 1)); }],
     unique: [['x'], a => { if (isList(a.x)) return a.x; const seen = new Set(), r = []; for (const x of asVec(a.x)) { const k = typeof x + ':' + String(x); if (!seen.has(k)) { seen.add(k); r.push(x); } } return mk(r); }],
@@ -2386,6 +2486,302 @@ function execute(src, presets, opts = {}){
     packageVersion: [['pkg'], (a, line) => { const p = str1(a.pkg, line, '套件名稱'); if (!isInstalled(p)) throw new RErr(`there is no package called ‘${p}’`, line); return pkgVer(p); }],
     'installed.packages': [[], () => { const P = [...BASE_PKGS, ...installed].sort((x, y) => x.toLowerCase() < y.toLowerCase() ? -1 : 1); return mk([...P, ...P.map(() => LIB_PATH), ...P.map(p => pkgVer(p)[0])], null, [P.length, 3], [P, ['Package', 'LibPath', 'Version']]); }],
     '.libPaths': [[], () => LIB_PATH],
+  });
+  Object.assign(BUILTIN, {
+    plot: [PLOT_ARGS, (a, line) => {
+      let x = a.x, y = a.y, xl, yl, main;
+      if (x === undefined) throw new RErr('argument "x" is missing：plot() 至少要給資料，例如 plot(x, y)', line);
+      if (x instanceof RFormula) { const fd = formulaData(x, a.data, line); if (!fd.y) throw new RErr('plot 的公式要寫成 y ~ x', line); xl = fd.x.name; yl = fd.y.name; y = fd.y.v; x = fd.x.v; }
+      else if (isList(x) && x.cls === 'density') {
+        const fig = newFig('plot'), X = asVec(x.vals[0]), Y = asVec(x.vals[1]);
+        setWin(fig, rangeOf(X), rangeOf(Y), a); fig.box = true; stdAxes(fig, [1, 2], optN(a.las, 0));
+        fig.layers.push({ t: 'line', x: X, y: Y, col: optV(a.col, 'black'), lty: optV(a.lty, 1), lwd: optN(a.lwd, 1) });
+        labels(fig, a, { main: x.call, xlab: x.xlab, ylab: 'Density' }); fig.sig = { kind: 'density' };
+        visible = false; return null;
+      } else if (isDF(x)) throw new RErr('這個網頁版的 plot() 不能直接畫整個 data.frame，請用 plot(df$x, df$y) 或 plot(y ~ x, data = df)', line);
+      else { xl = srcOf(a, 'x', 'x'); yl = y === undefined ? xl : srcOf(a, 'y', 'y'); if (y === undefined) { y = x; x = asVec(y).map((_, i) => i + 1); xl = 'Index'; } }
+      const X = numsOf(x, line, 'x '), Y = numsOf(y, line, 'y ');
+      if (X.length !== Y.length) throw new RErr(`'x' and 'y' lengths differ：x 有 ${X.length} 個、y 有 ${Y.length} 個，要一樣長`, line);
+      const fig = newFig('plot');
+      setWin(fig, rangeOf(X), rangeOf(Y), a);
+      if (a.axes === undefined || lgl(a.axes, true)) { stdAxes(fig, [1, 2], optN(a.las, 0)); fig.box = a['frame.plot'] === undefined || lgl(a['frame.plot'], true); }
+      fig.layers.push(...pointsLayer(X, Y, a));
+      labels(fig, a, { xlab: xl, ylab: yl });
+      fig.sig = { kind: 'plot', type: optS(a.type, 'p'), x: X, y: Y, pch: optV(a.pch, 1), col: optV(a.col, 'black') };
+      visible = false; return null;
+    }],
+    hist: [['x', 'breaks', 'freq', 'probability', 'include.lowest', 'right', 'col', 'border', 'main', 'xlim', 'ylim', 'xlab', 'ylab', 'axes', 'plot', 'labels', '...'], (a, line) => {
+      if (isList(a.x)) throw new RErr("'x' must be numeric：hist() 要給一個數字向量，例如 hist(df$glucose)", line);
+      const X = numsOf(a.x, line, 'hist() 的資料').filter(v => v !== undefined && !isNaN(v)), n = X.length, xname = srcOf(a, 'x', 'x');
+      if (!n) throw new RErr('invalid number of \'breaks\'：沒有資料可以畫', line);
+      const [lo, hi] = rangeOf(X);
+      let br;
+      if (a.breaks === undefined || typeof asVec(a.breaks)[0] === 'string') br = rPretty(lo, hi, Math.ceil(Math.log2(n) + 1), 1);
+      else if (asVec(a.breaks).length === 1) br = rPretty(lo, hi, num1(a.breaks, line), 1);
+      else { br = numsOf(a.breaks).sort((p, q) => p - q); if (br[0] > lo || br[br.length - 1] < hi) throw new RErr("some 'x' not counted; maybe 'breaks' do not span range of 'x'：breaks 要涵蓋資料的最小值到最大值", line); }
+      const diffs = br.slice(1).map((b, i) => b - br[i]), md = [...diffs].sort((p, q) => p - q)[Math.floor((diffs.length - 1) / 2)], fz = 1e-7 * md;
+      const fb = br.map((b, i) => i === 0 ? b - fz : b + fz);
+      const counts = diffs.map((_, i) => X.filter(v => v > fb[i] && v <= fb[i + 1]).length);
+      const dens = counts.map((c, i) => c / (n * diffs[i])), mids = br.slice(1).map((b, i) => (b + br[i]) / 2);
+      const eq = diffs.every(d => Math.abs(d - diffs[0]) < 1e-7 * md);
+      const freq = a.freq !== undefined ? lgl(a.freq, true) : a.probability !== undefined ? !lgl(a.probability, false) : eq;
+      const res = clsList(['breaks', 'counts', 'density', 'mids', 'xname', 'equidist'], [mk(br), mkInt(counts), mk(dens), mk(mids), xname, eq], 'histogram');
+      if (a.plot !== undefined && !lgl(a.plot, true)) return res;
+      const H = freq ? counts : dens, fig = newFig('hist');
+      setWin(fig, [br[0], br[br.length - 1]], [0, Math.max(...H)], a);
+      if (a.axes === undefined || lgl(a.axes, true)) stdAxes(fig);
+      const col = optV(a.col, 'lightgray');
+      H.forEach((h, i) => fig.layers.push({ t: 'rect', x0: br[i], x1: br[i + 1], y0: 0, y1: h, col: Array.isArray(col) ? col[i % col.length] : col, border: optV(a.border, 'black') }));
+      if (a.labels !== undefined && lgl(a.labels, false)) fig.layers.push({ t: 'text', x: mids, y: H, labels: counts.map(String), pos: 3, offset: 0.2 });
+      labels(fig, a, { main: 'Histogram of ' + xname, xlab: xname, ylab: freq ? 'Frequency' : 'Density' });
+      fig.sig = { kind: 'hist', breaks: br, counts };
+      visible = false; return res;
+    }],
+    barplot: [['height', 'width', 'space', 'names.arg', 'legend.text', 'beside', 'horiz', 'col', 'border', 'main', 'sub', 'xlab', 'ylab', 'xlim', 'ylim', 'axes', 'las', 'cex.names', '...'], (a, line) => {
+      if (a.height === undefined) throw new RErr('barplot() 要給每根長條的高度，例如 barplot(table(x))', line);
+      if (isList(a.height)) throw new RErr('barplot() 要給數字向量（或 table），不能是 list / data.frame', line);
+      if (dimOf(a.height)) throw new RErr('這個網頁版的 barplot() 只支援一組長條（向量或一維 table）', line);
+      const Hh = numsOf(a.height, line, 'barplot() 的高度'), k = Hh.length;
+      const nm = a['names.arg'] !== undefined ? asVec(a['names.arg']).map(asChar1) : namesOf(a.height) ? [...namesOf(a.height)] : null;
+      const sp = optN(a.space, 0.2), wd = 1, horiz = a.horiz !== undefined && lgl(a.horiz, false);
+      const right = Hh.map((_, i) => (i + 1) * (sp + wd)), mid = right.map(r => r - wd / 2);
+      const fig = newFig('bar'); if (horiz) fig.xaxs = 'i'; else fig.yaxs = 'i'; const lim = [Math.min(0, ...Hh.filter(isFinite)), Math.max(0, ...Hh.filter(isFinite))];
+      const pos = [mid[0] - wd / 2, right[k - 1]];
+      if (horiz) setWin(fig, lim, pos, { xlim: a.xlim, ylim: a.ylim }); else setWin(fig, pos, lim, { xlim: a.xlim, ylim: a.ylim });
+      const col = optV(a.col, 'grey');
+      Hh.forEach((h, i) => fig.layers.push(horiz ? { t: 'rect', y0: mid[i] - wd / 2, y1: mid[i] + wd / 2, x0: 0, x1: h, col: Array.isArray(col) ? col[i % col.length] : col, border: optV(a.border, 'black') }
+        : { t: 'rect', x0: mid[i] - wd / 2, x1: mid[i] + wd / 2, y0: 0, y1: h, col: Array.isArray(col) ? col[i % col.length] : col, border: optV(a.border, 'black') }));
+      const vSide = horiz ? 1 : 2, nSide = horiz ? 2 : 1;
+      if (a.axes === undefined || lgl(a.axes, true)) { const [p0, p1] = vSide === 1 ? fig.usr.slice(0, 2) : fig.usr.slice(2); const at = axisTicks(p0, p1); fig.axes.push({ side: vSide, at, labels: fmtNums(at), las: optN(a.las, 0) }); }
+      if (nm) fig.axes.push({ side: nSide, at: mid, labels: nm, ticks: false, line: false, las: optN(a.las, horiz ? 1 : 0), cex: optN(a['cex.names'], 1), names: true });
+      if (a['legend.text'] !== undefined) fig.layers.push({ t: 'legend', pos: 'topright', legend: asVec(a['legend.text']).map(asChar1), fill: col });
+      labels(fig, a, {});
+      fig.sig = { kind: 'bar', heights: Hh, names: nm, horiz };
+      visible = false; const r = mk(mid, null, [k, 1]); return r;
+    }],
+    boxplot: [['x', '...', 'range', 'width', 'notch', 'outline', 'names', 'plot', 'border', 'col', 'horizontal', 'main', 'xlab', 'ylab', 'ylim', 'data', 'las', 'at'], (a, line) => {
+      let groups = [], nms = [], xl = '', yl = '';
+      if (a.x instanceof RFormula) {
+        const fd = formulaData(a.x, a.data, line); if (!fd.y) throw new RErr('boxplot 的公式要寫成 數值 ~ 組別', line);
+        const Y = numsOf(fd.y.v, line, '公式左邊'), G = asVec(fd.x.v);
+        if (Y.length !== G.length) throw new RErr('公式兩邊的長度不一樣', line);
+        nms = levelsOf(G); groups = nms.map(l => Y.filter((_, i) => asChar1(G[i]) === l)); xl = fd.x.name; yl = fd.y.name;
+      } else {
+        const items = [{ name: null, v: a.x }, ...a['...']].filter(d => d.v !== undefined);
+        for (const d of items) {
+          if (isList(d.v)) d.v.vals.forEach((c, i) => { groups.push(numsOf(c, line, 'boxplot 的資料')); nms.push(d.v.names[i] || String(groups.length)); });
+          else { groups.push(numsOf(d.v, line, 'boxplot 的資料')); nms.push(d.name || ''); }
+        }
+        if (a.names !== undefined) nms = asVec(a.names).map(asChar1);
+      }
+      if (!groups.length) throw new RErr('boxplot() 要給資料', line);
+      const S = groups.map(boxStats), k = groups.length;
+      const res = clsList(['stats', 'n', 'out', 'group', 'names'], [mk(S.flatMap(s => s.stats), null, [5, k]), mk(S.map(s => s.n)), mk(S.flatMap(s => s.out)), mk(S.flatMap((s, i) => s.out.map(() => i + 1))), mk(nms)], null);
+      if (a.plot !== undefined && !lgl(a.plot, true)) return res;
+      const fig = newFig('box'), all = S.flatMap(s => [...s.stats, ...s.out]);
+      const horiz = a.horizontal !== undefined && lgl(a.horizontal, false);
+      if (horiz) setWin(fig, a.ylim !== undefined ? numsOf(a.ylim) : rangeOf(all), [0.5, k + 0.5], {}); else setWin(fig, [0.5, k + 0.5], rangeOf(all), { ylim: a.ylim });
+      const col = optV(a.col, 'lightgray'), border = optV(a.border, 'black'), pick = (v, i) => Array.isArray(v) ? v[i % v.length] : v;
+      const P = (pos, v) => horiz ? [v, pos] : [pos, v];
+      S.forEach((s, i) => {
+        const x = i + 1, d = s.stats, w = k === 1 ? 0.2 : 0.4, bc = pick(border, i);
+        const [ax0, ay0] = P(x - w, d[1]), [ax1, ay1] = P(x + w, d[3]);
+        fig.layers.push({ t: 'rect', x0: ax0, y0: ay0, x1: ax1, y1: ay1, col: pick(col, i), border: bc });
+        const seg = (p0, v0, p1, v1, lty, lwd) => { const [x0, y0] = P(p0, v0), [x1, y1] = P(p1, v1); fig.layers.push({ t: 'seg', x0: [x0], y0: [y0], x1: [x1], y1: [y1], col: bc, lty, lwd }); };
+        seg(x - w, d[2], x + w, d[2], 1, 3);
+        seg(x, d[3], x, d[4], 2, 1); seg(x, d[1], x, d[0], 2, 1);
+        seg(x - w / 2, d[4], x + w / 2, d[4], 1, 1); seg(x - w / 2, d[0], x + w / 2, d[0], 1, 1);
+        if (s.out.length && (a.outline === undefined || lgl(a.outline, true))) { const pts = s.out.map(v => P(x, v)); fig.layers.push({ t: 'pts', x: pts.map(p => p[0]), y: pts.map(p => p[1]), pch: 1, col: bc, cex: 1 }); }
+      });
+      const vs = horiz ? 1 : 2, gs = horiz ? 2 : 1;
+      { const [p0, p1] = vs === 1 ? fig.usr.slice(0, 2) : fig.usr.slice(2); const at = axisTicks(p0, p1); fig.axes.push({ side: vs, at, labels: fmtNums(at), las: optN(a.las, 0) }); }
+      if (k > 1 || nms.some(s => s)) fig.axes.push({ side: gs, at: S.map((_, i) => i + 1), labels: nms, las: optN(a.las, horiz ? 1 : 0) });
+      fig.box = true;
+      labels(fig, a, { xlab: xl, ylab: yl });
+      if (horiz) { const t = fig.xlab; fig.xlab = fig.ylab; fig.ylab = t; }
+      fig.sig = { kind: 'box', groups: S.map(s => s.stats), names: nms };
+      visible = false; return res;
+    }],
+    pie: [['x', 'labels', 'edges', 'radius', 'clockwise', 'init.angle', 'col', 'border', 'main', '...'], (a, line) => {
+      const V = numsOf(a.x, line, 'pie() 的資料');
+      if (V.some(v => v < 0)) throw new RErr("'x' values must be positive：圓餅圖的值不能是負的", line);
+      const lab = a.labels !== undefined ? asVec(a.labels).map(asChar1) : namesOf(a.x) ? [...namesOf(a.x)] : V.map((_, i) => String(i + 1));
+      const tot = V.reduce((s, v) => s + v, 0), cw = a.clockwise !== undefined && lgl(a.clockwise, false), init = optN(a['init.angle'], cw ? 90 : 0) * Math.PI / 180, rad = optN(a.radius, 0.8);
+      const fig = newFig('pie'); fig.usr = [...extRange(-1, 1), ...extRange(-1, 1)]; fig.asp = true;
+      const col = a.col !== undefined ? optV(a.col) : PIE_COLS;
+      let acc = 0;
+      V.forEach((v, i) => {
+        const t0 = acc / tot, t1 = (acc + v) / tot; acc += v;
+        const ang = t => init + (cw ? -1 : 1) * 2 * Math.PI * t, n = Math.max(2, Math.ceil(200 * (t1 - t0)));
+        const xs = [0], ys = [0]; for (let j = 0; j <= n; j++) { const th = ang(t0 + (t1 - t0) * j / n); xs.push(rad * Math.cos(th)); ys.push(rad * Math.sin(th)); }
+        fig.layers.push({ t: 'poly', x: xs, y: ys, col: Array.isArray(col) ? col[i % col.length] : col, border: optV(a.border, 'black') });
+        const m = ang((t0 + t1) / 2), cx = Math.cos(m), cy = Math.sin(m);
+        if (lab[i]) { fig.layers.push({ t: 'seg', x0: [rad * cx], y0: [rad * cy], x1: [1.05 * rad * cx], y1: [1.05 * rad * cy] }); fig.layers.push({ t: 'text', x: [1.1 * rad * cx], y: [1.1 * rad * cy], labels: [lab[i]], adj: cx < 0 ? 1 : 0 }); }
+      });
+      labels(fig, a, {});
+      fig.sig = { kind: 'pie', values: V, labels: lab };
+      visible = false; return null;
+    }],
+    points: [['x', 'y', 'type', 'pch', 'col', 'cex', 'bg', 'lwd', 'lty', '...'], (a, line) => { const f = curFig(line, 'points'); let x = a.x, y = a.y; if (y === undefined) { y = x; x = asVec(x).map((_, i) => i + 1); } f.layers.push(...pointsLayer(numsOf(x, line, 'x '), numsOf(y, line, 'y '), a, 'p')); f.layers[f.layers.length - 1].low = 'points'; visible = false; return null; }],
+    lines: [['x', 'y', 'type', 'col', 'lty', 'lwd', 'pch', 'cex', '...'], (a, line) => {
+      const f = curFig(line, 'lines'); let x = a.x, y = a.y;
+      if (isList(x) && x.names.includes('x') && x.names.includes('y')) { y = x.vals[x.names.indexOf('y')]; x = x.vals[x.names.indexOf('x')]; }
+      else if (y === undefined) { y = x; x = asVec(x).map((_, i) => i + 1); }
+      f.layers.push(...pointsLayer(numsOf(x, line, 'x '), numsOf(y, line, 'y '), a, 'l')); f.layers[f.layers.length - 1].low = 'lines'; visible = false; return null;
+    }],
+    abline: [['a', 'b', 'h', 'v', 'reg', 'coef', 'col', 'lty', 'lwd', '...'], (a, line) => {
+      const f = curFig(line, 'abline'), it = { t: 'abline', col: optV(a.col, 'black'), lty: optV(a.lty, 1), lwd: optN(a.lwd, 1), low: 'abline' };
+      const reg = a.reg !== undefined ? a.reg : isList(a.a) ? a.a : null;
+      if (reg) { if (reg.cls !== 'lm') throw new RErr('abline() 的 reg 要是 lm() 的結果', line); const c = asVec(reg.vals[0]); it.a = c[0]; it.b = c[1]; }
+      else if (a.coef !== undefined) { const c = numsOf(a.coef); it.a = c[0]; it.b = c[1]; }
+      else if (a.a !== undefined) { it.a = num1(a.a, line); it.b = a.b === undefined ? 0 : num1(a.b, line); }
+      if (a.h !== undefined) it.h = numsOf(a.h, line, 'h '); if (a.v !== undefined) it.v = numsOf(a.v, line, 'v ');
+      f.layers.push(it); visible = false; return null;
+    }],
+    text: [['x', 'y', 'labels', 'adj', 'pos', 'offset', 'cex', 'col', '...'], (a, line) => {
+      const f = curFig(line, 'text'), X = numsOf(a.x, line, 'x '), Y = a.y === undefined ? null : numsOf(a.y, line, 'y ');
+      const lab = a.labels === undefined ? X.map((_, i) => String(i + 1)) : asVec(a.labels).map(v => typeof v === 'number' ? fmtNum1(v) : asChar1(v) ?? 'NA');
+      const n = Math.max(X.length, Y ? Y.length : 0, lab.length);
+      f.layers.push({ t: 'text', x: Array.from({ length: n }, (_, i) => X[i % X.length]), y: Array.from({ length: n }, (_, i) => Y[i % Y.length]), labels: Array.from({ length: n }, (_, i) => lab[i % lab.length]), pos: a.pos === undefined ? undefined : num1(a.pos, line), offset: optN(a.offset, 0.5), cex: optV(a.cex, 1), col: optV(a.col, 'black'), adj: a.adj === undefined ? undefined : num1(a.adj, line), low: 'text' });
+      visible = false; return null;
+    }],
+    legend: [['x', 'y', 'legend', 'fill', 'col', 'border', 'lty', 'lwd', 'pch', 'bty', 'bg', 'title', 'cex', 'text.col', 'inset', 'horiz', 'pt.bg', '...'], (a, line) => {
+      const f = curFig(line, 'legend');
+      if (a.legend === undefined) throw new RErr('legend() 要給 legend = c("…", "…")，也就是每一項的文字', line);
+      let pos;
+      if (typeof asVec(a.x)[0] === 'string') { pos = asChar1(asVec(a.x)[0]); if (!/^(bottomright|bottom|bottomleft|left|topleft|top|topright|right|center)$/.test(pos)) throw new RErr(`'arg' should be one of “bottomright”, “bottom”, “bottomleft”, “left”, “topleft”, “top”, “topright”, “right”, “center”：位置寫錯了（${pos}）`, line); }
+      else pos = [num1(a.x, line), num1(a.y, line)];
+      f.layers.push({ t: 'legend', pos, legend: asVec(a.legend).map(asChar1), fill: optV(a.fill, undefined), col: optV(a.col, undefined), lty: optV(a.lty, undefined), lwd: optV(a.lwd, undefined), pch: optV(a.pch, undefined), bty: optS(a.bty, 'o'), bg: optS(a.bg, undefined), title: optS(a.title, undefined), cex: optN(a.cex, 1), textcol: optV(a['text.col'], undefined), ptbg: optV(a['pt.bg'], undefined), low: 'legend' });
+      visible = false; return null;
+    }],
+    arrows: [['x0', 'y0', 'x1', 'y1', 'length', 'angle', 'code', 'col', 'lty', 'lwd', '...'], (a, line) => {
+      const f = curFig(line, 'arrows'), X0 = numsOf(a.x0), Y0 = numsOf(a.y0), X1 = a.x1 === undefined ? X0 : numsOf(a.x1), Y1 = a.y1 === undefined ? Y0 : numsOf(a.y1), n = Math.max(X0.length, Y0.length, X1.length, Y1.length), r = (V, i) => V[i % V.length];
+      f.layers.push({ t: 'arrow', x0: Array.from({ length: n }, (_, i) => r(X0, i)), y0: Array.from({ length: n }, (_, i) => r(Y0, i)), x1: Array.from({ length: n }, (_, i) => r(X1, i)), y1: Array.from({ length: n }, (_, i) => r(Y1, i)), length: optN(a.length, 0.25), angle: optN(a.angle, 30), code: optN(a.code, 2), col: optV(a.col, 'black'), lwd: optN(a.lwd, 1), low: 'arrows' });
+      visible = false; return null;
+    }],
+    segments: [['x0', 'y0', 'x1', 'y1', 'col', 'lty', 'lwd', '...'], (a, line) => {
+      const f = curFig(line, 'segments'), X0 = numsOf(a.x0), Y0 = numsOf(a.y0), X1 = a.x1 === undefined ? X0 : numsOf(a.x1), Y1 = a.y1 === undefined ? Y0 : numsOf(a.y1), n = Math.max(X0.length, Y0.length, X1.length, Y1.length), r = (V, i) => V[i % V.length];
+      f.layers.push({ t: 'seg', x0: Array.from({ length: n }, (_, i) => r(X0, i)), y0: Array.from({ length: n }, (_, i) => r(Y0, i)), x1: Array.from({ length: n }, (_, i) => r(X1, i)), y1: Array.from({ length: n }, (_, i) => r(Y1, i)), col: optV(a.col, 'black'), lty: optV(a.lty, 1), lwd: optV(a.lwd, 1), low: 'segments' });
+      visible = false; return null;
+    }],
+    polygon: [['x', 'y', 'col', 'border', '...'], (a, line) => { const f = curFig(line, 'polygon'); f.layers.push({ t: 'poly', x: numsOf(a.x), y: numsOf(a.y), col: optV(a.col, 'none'), border: optV(a.border, 'black') }); visible = false; return null; }],
+    rect: [['xleft', 'ybottom', 'xright', 'ytop', 'col', 'border', '...'], (a, line) => { const f = curFig(line, 'rect'), A = [a.xleft, a.ybottom, a.xright, a.ytop].map(v => numsOf(v)); A[0].forEach((_, i) => f.layers.push({ t: 'rect', x0: A[0][i], y0: A[1][i % A[1].length], x1: A[2][i % A[2].length], y1: A[3][i % A[3].length], col: optV(a.col, 'none'), border: optV(a.border, 'black') })); visible = false; return null; }],
+    title: [['main', 'sub', 'xlab', 'ylab', '...'], (a, line) => { const f = curFig(line, 'title'); labels(f, a, {}); visible = false; return null; }],
+    grid: [['nx', 'ny', 'col', 'lty', 'lwd'], (a, line) => {
+      const f = curFig(line, 'grid'), xs = (f.axes.find(x => x.side === 1 && !x.names) || {}).at || [], ys = (f.axes.find(x => x.side === 2 && !x.names) || {}).at || [];
+      f.layers.unshift({ t: 'abline', v: f.kind === 'bar' || f.kind === 'box' ? [] : xs, h: ys, col: optV(a.col, 'lightgray'), lty: optV(a.lty, 3), lwd: optN(a.lwd, 1), low: 'grid' });
+      visible = false; return null;
+    }],
+    par: [['mfrow', 'mfcol', 'mar', '...'], (a, line) => {
+      const old = new RList(['mfrow'], [mkInt([...dev.mfrow])]);
+      if (a.mfrow !== undefined) { const v = numsOf(a.mfrow); dev.mfrow = [v[0], v[1]]; dev.byrow = true; dev.fresh = true; }
+      if (a.mfcol !== undefined) { const v = numsOf(a.mfcol); dev.mfrow = [v[0], v[1]]; dev.byrow = false; dev.fresh = true; }
+      visible = false; return old;
+    }],
+    'dev.new': [['...'], () => { dev.fresh = true; visible = false; return null; }],
+    png: [['filename', 'width', 'height', 'units', 'res', '...'], (a, line) => {
+      const p = a.filename === undefined ? 'Rplot%03d.png' : str1(a.filename, line, '檔名');
+      writeText(p, '', false, line);
+      dev.file = { path: p, pages: [], w: optN(a.width, 480), h: optN(a.height, 480) }; dev.fresh = true; visible = false; return null;
+    }],
+    'dev.off': [['which'], (a, line) => {
+      if (!dev.file) throw new RErr('cannot shut down device 1 (the null device)：目前沒有打開的圖檔。dev.off() 要配合 png() 使用：png() → 畫圖 → dev.off()', line);
+      const F = dev.file, P = normPath(F.path);
+      disk.files[P] = { img: F.pages.length ? renderPlotSVG(F.pages[F.pages.length - 1], 504, 504 * F.h / F.w) : '', w: F.w, h: F.h }; changed.add(P);
+      dev.file = null; dev.cur = null; dev.fresh = true;
+      const r = [1]; r.names = ['null device']; r.rtype = 'integer'; return r;
+    }],
+    rainbow: [['n', '...'], (a, line) => { const n = num1(a.n, line); return mk(Array.from({ length: n }, (_, i) => hsv2hex(i / n, 1, 1))); }],
+    /* -- statistics -- */
+    signif: [['x', 'digits'], (a, line) => { const d = a.digits === undefined ? 6 : num1(a.digits, line); return keepAttrs(a.x, nums(a.x, line).map(x => x === undefined || x === 0 || !isFinite(x) ? x : Number(x.toPrecision(Math.max(1, d))))); }],
+    quantile: [['x', 'probs', 'na.rm', 'names', 'type'], (a, line) => {
+      let X = numsOf(a.x, line, 'quantile() 的資料');
+      if (X.some(isNA)) { if (!lgl(a['na.rm'], false)) throw new RErr('missing values and NaN\'s not allowed if \'na.rm\' is FALSE：資料裡有 NA，要加 na.rm = TRUE', line); X = X.filter(v => !isNA(v)); }
+      const P = a.probs === undefined ? [0, 0.25, 0.5, 0.75, 1] : numsOf(a.probs);
+      return mk(P.map(p => quantile7(X, p)), a.names !== undefined && !lgl(a.names, true) ? null : P.map(p => fmtNums([100 * p], 7)[0].trim() + '%'));
+    }],
+    fivenum: [['x', 'na.rm'], (a, line) => mk(boxStats(numsOf(a.x, line, 'fivenum() 的資料')).five || [NaN, NaN, NaN, NaN, NaN])],
+    IQR: [['x', 'na.rm'], (a, line) => { let X = numsOf(a.x, line, 'IQR() 的資料'); if (lgl(a['na.rm'], false)) X = X.filter(v => !isNA(v)); else if (X.some(isNA)) throw new RErr("missing values and NaN's not allowed if 'na.rm' is FALSE", line); return quantile7(X, 0.75) - quantile7(X, 0.25); }],
+    summary: [['object', '...', 'digits'], (a, line) => {
+      const x = a.object;
+      if (isDF(x) || isList(x)) throw new RErr('這個網頁版的 summary() 只支援數字向量，data.frame 請一欄一欄看，例如 summary(df$glucose)', line);
+      if (x && x.cls === 'lm') throw new RErr('這個網頁版沒有實作 summary(lm)，可以用 coef() 看係數、cor() 看相關', line);
+      const V = asVec(x);
+      if (vtype(V) === 'character') { const r = mk([String(V.length), 'character', 'character'], ['Length', 'Class', 'Mode']); r.sumtxt = fmtGap(['' + V.length, 'character', 'character'], ['Length', 'Class', 'Mode'], 1); return r; }
+      if (vtype(V) === 'logical') { const T = V.filter(v => v === true).length, F = V.filter(v => v === false).length, N = V.filter(v => v === undefined).length; const nm = ['Mode', ...(F ? ['FALSE'] : []), ...(T ? ['TRUE'] : []), ...(N ? ["NA's"] : [])], vv = ['logical', ...(F ? [String(F)] : []), ...(T ? [String(T)] : []), ...(N ? [String(N)] : [])]; const r = mk(vv, nm); r.sumtxt = fmtGap(vv, nm, 1); return r; }
+      const X = V.filter(v => !isNA(v)), nNA = V.length - X.length;
+      const q = [quantile7(X, 0), quantile7(X, 0.25), quantile7(X, 0.5), meanOf(X), quantile7(X, 0.75), quantile7(X, 1)];
+      const nm = ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'];
+      const r = mk([...q, ...(nNA ? [nNA] : [])], [...nm, ...(nNA ? ["NA's"] : [])]);
+      const S = fmtNums(q.map(v => Number(v.toPrecision(4))), 4);   // summary() keeps 4 significant digits
+      r.sumtxt = fmtGap([...S, ...(nNA ? [String(nNA)] : [])], r.names, 1);
+      return r;
+    }],
+    cor: [['x', 'y', 'use', 'method'], (a, line) => {
+      let X = numsOf(a.x, line, 'cor() 的 x '), Y = numsOf(a.y, line, 'cor() 的 y ');
+      if (X.length !== Y.length) throw new RErr('incompatible dimensions：x 和 y 要一樣長', line);
+      if (a.use !== undefined && /complete/.test(asChar1(one(a.use)))) { const k = X.map((_, i) => i).filter(i => !isNA(X[i]) && !isNA(Y[i])); X = k.map(i => X[i]); Y = k.map(i => Y[i]); }
+      if (X.some(isNA) || Y.some(isNA)) return undefined;
+      let xr = X, yr = Y;
+      if (a.method !== undefined && asChar1(one(a.method)) === 'spearman') { const rank = V => { const o = V.map((v, i) => [v, i]).sort((p, q) => p[0] - q[0]), r = Array(V.length); for (let i = 0; i < o.length;) { let j = i; while (j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; for (let k = i; k <= j; k++) r[o[k][1]] = (i + j) / 2 + 1; i = j + 1; } return r; }; xr = rank(X); yr = rank(Y); }
+      const mx = meanOf(xr), my = meanOf(yr); let sxy = 0, sxx = 0, syy = 0;
+      xr.forEach((x, i) => { sxy += (x - mx) * (yr[i] - my); sxx += (x - mx) ** 2; syy += (yr[i] - my) ** 2; });
+      return sxy / Math.sqrt(sxx * syy);
+    }],
+    lm: [['formula', 'data'], (a, line) => {
+      const fo = a.formula; if (!(fo instanceof RFormula) || !fo.lhs) throw new RErr('lm() 要給公式，例如 lm(y ~ x, data = df)', line);
+      const fd = formulaData(fo, a.data, line), Y0 = numsOf(fd.y.v, line, '公式左邊'), X0 = numsOf(fd.x.v, line, '公式右邊');
+      const k = X0.map((_, i) => i).filter(i => !isNA(X0[i]) && !isNA(Y0[i])), X = k.map(i => X0[i]), Y = k.map(i => Y0[i]);
+      const mx = meanOf(X), my = meanOf(Y); let sxy = 0, sxx = 0; X.forEach((x, i) => { sxy += (x - mx) * (Y[i] - my); sxx += (x - mx) ** 2; });
+      const b = sxy / sxx, b0 = my - b * mx, cf = mk([b0, b], ['(Intercept)', fd.x.name]);
+      const call = `lm(formula = ${fo.src}${a.data !== undefined ? `, data = ${srcOf(a, 'data', 'data')}` : ''})`;
+      const S = fmtNums([b0, b], 4);
+      const txt = `\nCall:\n${call}\n\nCoefficients:\n${fmtGap(S, ['(Intercept)', fd.x.name], 2)}\n\n`;
+      return clsList(['coefficients', 'residuals', 'fitted.values'], [cf, mk(X.map((x, i) => Y[i] - (b0 + b * x))), mk(X.map(x => b0 + b * x))], 'lm', { printText: txt });
+    }],
+    coef: [['object'], (a, line) => { if (!a.object || !isList(a.object) || a.object.cls !== 'lm') throw new RErr('coef() 要給 lm() 的結果', line); return a.object.vals[0]; }],
+    't.test': [['x', 'y', 'alternative', 'mu', 'paired', 'var.equal', 'conf.level', 'data'], (a, line) => {
+      let X, Y, dname, gnames = null;
+      if (a.x instanceof RFormula) {
+        const fd = formulaData(a.x, a.data, line), V = numsOf(fd.y.v, line, '公式左邊'), G = asVec(fd.x.v), lv = levelsOf(G);
+        if (lv.length !== 2) throw new RErr(`grouping factor must have exactly 2 levels：t 檢定只能比較兩組，${fd.x.name} 有 ${lv.length} 組`, line);
+        X = V.filter((_, i) => asChar1(G[i]) === lv[0]); Y = V.filter((_, i) => asChar1(G[i]) === lv[1]); dname = `${fd.y.name} by ${fd.x.name}`; gnames = [fd.x.name, ...lv];
+      } else { X = numsOf(a.x, line, 't.test() 的 x '); Y = a.y === undefined ? null : numsOf(a.y, line, 't.test() 的 y '); dname = srcOf(a, 'x', 'x') + (Y ? ' and ' + srcOf(a, 'y', 'y') : ''); }
+      X = X.filter(v => !isNA(v)); if (Y) Y = Y.filter(v => !isNA(v));
+      const mu = optN(a.mu, 0), ve = a['var.equal'] !== undefined && lgl(a['var.equal'], false), cl = optN(a['conf.level'], 0.95);
+      let t, df, est, se, method, estNames, hyp;
+      if (!Y) { const n = X.length; se = Math.sqrt(varOf(X) / n); est = [meanOf(X)]; t = (est[0] - mu) / se; df = n - 1; method = 'One Sample t-test'; estNames = ['mean of x']; hyp = `true mean is not equal to ${fmtNum1(mu)}`; }
+      else {
+        const nx = X.length, ny = Y.length, vx = varOf(X), vy = varOf(Y); est = [meanOf(X), meanOf(Y)];
+        if (ve) { df = nx + ny - 2; const v = ((nx - 1) * vx + (ny - 1) * vy) / df; se = Math.sqrt(v * (1 / nx + 1 / ny)); method = ' Two Sample t-test'; }
+        else { const sx = vx / nx, sy = vy / ny; se = Math.sqrt(sx + sy); df = (sx + sy) ** 2 / (sx ** 2 / (nx - 1) + sy ** 2 / (ny - 1)); method = 'Welch Two Sample t-test'; }
+        t = (est[0] - est[1] - mu) / se; estNames = gnames ? [`mean in group ${gnames[1]}`, `mean in group ${gnames[2]}`] : ['mean of x', 'mean of y'];
+        hyp = gnames ? `true difference in means between group ${gnames[1]} and group ${gnames[2]} is not equal to ${fmtNum1(mu)}` : `true difference in means is not equal to ${fmtNum1(mu)}`;
+      }
+      const p = 2 * ptR(-Math.abs(t), df), q = qtR(1 - (1 - cl) / 2, df), center = Y ? est[0] - est[1] : est[0];
+      const ci = [center - q * se, center + q * se];
+      const ciS = fmtNums(ci.map(v => Number(v.toPrecision(7))), 7);
+      const txt = `\n\t${method}\n\ndata:  ${dname}\nt = ${fmtSig(t, 5)}, df = ${fmtSig(df, 5)}, p-value = ${formatPval(p)}\nalternative hypothesis: ${hyp}\n${Math.round(cl * 100)} percent confidence interval:\n ${ciS.join(' ')}\nsample estimates:\n${fmtVector(mk(est, estNames))}\n\n`;
+      const ciV = mk(ci); 
+      return clsList(['statistic', 'parameter', 'p.value', 'conf.int', 'estimate'], [mk([t], ['t']), mk([df], ['df']), p, ciV, mk(est, estNames)], 'htest', { printText: txt });
+    }],
+    density: [['x', 'bw', 'n', 'na.rm'], (a, line) => {
+      let X = numsOf(a.x, line, 'density() 的資料'); if (X.some(isNA)) { if (!lgl(a['na.rm'], false)) throw new RErr("'x' contains missing values：資料裡有 NA，要加 na.rm = TRUE", line); X = X.filter(v => !isNA(v)); }
+      const n = X.length, s = Math.sqrt(varOf(X)), iq = quantile7(X, 0.75) - quantile7(X, 0.25);
+      let lo = Math.min(s, iq / 1.34); if (!(lo > 0)) lo = s || Math.abs(X[0]) || 1;
+      const bw = a.bw !== undefined ? num1(a.bw, line) : 0.9 * lo * Math.pow(n, -0.2), m = 512, from = Math.min(...X) - 3 * bw, to = Math.max(...X) + 3 * bw;
+      const gx = Array.from({ length: m }, (_, i) => from + (to - from) * i / (m - 1)), gy = gx.map(g => X.reduce((acc, xi) => acc + Math.exp(-0.5 * ((g - xi) / bw) ** 2), 0) / (n * bw * Math.sqrt(2 * Math.PI)));
+      return clsList(['x', 'y', 'bw', 'n'], [mk(gx), mk(gy), bw, n], 'density', { call: `density.default(x = ${srcOf(a, 'x', 'x')})`, xlab: `N = ${n}   Bandwidth = ${fmtSig(bw, 4)}`, printText: `\nCall:\n\tdensity.default(x = ${srcOf(a, 'x', 'x')})\n\n（密度估計的結果，用 plot() 或 lines() 畫出來）\n` });
+    }],
+    'prop.table': [['x', 'margin'], (a, line) => { const V = numsOf(a.x, line, 'prop.table() 的資料'), s = V.reduce((p, q) => p + q, 0); const r = keepAttrs(a.x, V.map(v => v / s)); return r; }],
+    proportions: [['x', 'margin'], (a, line) => BUILTIN['prop.table'][1](a, line)],
+    aggregate: [['x', 'data', 'FUN', '...'], (a, line) => {
+      const fo = a.x; if (!(fo instanceof RFormula) || !fo.lhs) throw new RErr('這個網頁版的 aggregate() 要用公式：aggregate(數值 ~ 組別, data = df, FUN = mean)', line);
+      const fd = formulaData(fo, a.data, line), V = asVec(fd.y.v), G = asVec(fd.x.v), lv = levelsOf(G), f = matchFun(a.FUN, line);
+      const keep = V.map((v, i) => !isNA(v) && !isNA(G[i]));
+      const out = lv.map(l => { const r = invoke(f, [{ name: null, v: mk(V.filter((v, i) => keep[i] && asChar1(G[i]) === l)) }, ...a['...']], line, 'FUN'); if (asVec(r).length !== 1) throw new RErr('這個網頁版的 aggregate() 只支援每組回傳一個值的函式', line); return asVec(r)[0]; });
+      return mkDF([fd.x.name, fd.y.name], [lv.slice(), coerceAll(out)], null);
+    }],
   });
   BUILTIN.dir = BUILTIN['list.files'];
 
@@ -2771,6 +3167,7 @@ function execute(src, presets, opts = {}){
       }
       case 'assign': { tick(n.line); const v = ev(n.val); assignTo(n.target, v, n.line, n.up); visible = false; return v; }
       case 'fn': visible = true; return new RFun(n.params, n.body, env, n.src);
+      case 'formula': visible = true; return new RFormula(n.lhs, n.rhs, n.src, env);
       case 'call': return call(n);
       case 'callv': {
         tick(n.line);
@@ -2873,7 +3270,7 @@ function execute(src, presets, opts = {}){
     else if (e instanceof RangeError) error = new RErr('evaluation nested too deeply：遞迴太深了，是不是少了停止的條件？', null);
     else error = new RErr('程式出錯：' + e.message, null);
   }
-  return { out: outs.join(''), error, vars: G.vars, changed: [...changed], wd, attached: [...attached] };
+  return { out: outs.join(''), error, vars: G.vars, changed: [...changed], wd, attached: [...attached], plots: dev.pages };
 }
 
 </script>
@@ -2908,7 +3305,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, reduceMotion ? Math.min(ms, 60) : ms));
 
 /* ---------- the shared computer: disk + installed packages (kept in localStorage) ---------- */
-const KEY = 'r-io-v1';
+const KEY = 'r-plot-v1';
 const store = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } })();
 store.done = store.done || {}; store.code = store.code || {};
 const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
@@ -2930,12 +3327,14 @@ function runOnPC(code){
   savePC(); pcRefresh(r);
   return r;
 }
+function clearAfter(el){ let nx = el.nextElementSibling; while (nx && (nx.classList.contains('envrow') || nx.classList.contains('chg') || nx.classList.contains('plots'))) { const t = nx.nextElementSibling; nx.remove(); nx = t; } }
 function renderOut(el, r, showEnv, preset){
   let h = r.out ? esc(r.out) : '';
   if (r.error) h += `<span class="err">Error${r.error.line ? `（第 ${r.error.line} 行）` : ''}: ${esc(r.error.message)}</span>`;
   el.innerHTML = h || '<span class="dim">（沒有輸出）</span>';
-  let nx = el.nextElementSibling;
-  while (nx && (nx.classList.contains('envrow') || nx.classList.contains('chg'))) { const t = nx.nextElementSibling; nx.remove(); nx = t; }
+  el.classList.toggle('only-plot', !h && !!(r.plots && r.plots.length));
+  clearAfter(el);
+  if (r.plots && r.plots.length) { const pd = document.createElement('div'); pd.className = 'plots'; pd.setAttribute('role', 'img'); pd.setAttribute('aria-label', 'R 畫出的圖'); pd.innerHTML = r.plots.map(p => renderPlotSVG(p)).join(''); el.after(pd); el = pd; }
   if (showEnv && r.vars && r.vars.size) {
     const row = document.createElement('div'); row.className = 'envrow';
     row.innerHTML = [...r.vars].filter(([k]) => !(preset && k in preset) && !k.startsWith('.')).map(([k, v]) => `<span><b>${esc(k)}</b>${esc(fmtShort(v))}</span>`).join('');
@@ -2943,7 +3342,7 @@ function renderOut(el, r, showEnv, preset){
   }
   const chips = [];
   for (const p of r.changed || []) {
-    if (disk.files[p]) chips.push(`<button type="button" class="add" data-open="${esc(p)}">📄 寫入 ${esc(rel(p))}</button>`);
+    if (disk.files[p]) chips.push(`<button type="button" class="add" data-open="${esc(p)}">${disk.files[p].img !== undefined ? '🖼 存成' : '📄 寫入'} ${esc(rel(p))}</button>`);
     else if (disk.dirs[p]) chips.push(`<button type="button" class="add" data-open="${esc(p)}">📁 建立 ${esc(rel(p))}/</button>`);
     else chips.push(`<button type="button" class="del" disabled>🗑 刪除 ${esc(rel(p))}</button>`);
   }
@@ -3018,6 +3417,7 @@ function viewerHTML(p){
   const f = disk.files[p];
   if (!f) return '<p class="dnote">這個檔案已經不在了。</p>';
   if (f.rds !== undefined) { const r = execute(`str(readRDS("${p}"))`, {}, { fs: clone(disk), pkgs: new Set() }); return `<div class="viewer"><div class="fh">💾 ${esc(p)}</div><div class="bin">R 的二進位檔（saveRDS 存的），用文字編輯器打開是亂碼。用 <code>readRDS()</code> 讀回來的 <code>str()</code> 是：</div><pre>${esc(r.out)}</pre></div>`; }
+  if (f.img !== undefined) return `<div class="viewer"><div class="fh">🖼 ${esc(p)}<span style="margin-left:auto">${f.w} × ${f.h} px</span></div><div style="background:#fff;padding:6px">${f.img || '<span class="dim">（空白的圖檔：png() 和 dev.off() 之間沒有畫圖）</span>'}</div></div>`;
   if (f.rdata) return `<div class="viewer"><div class="fh">💾 ${esc(p)}</div><div class="bin">save() 存的檔案，<code>load()</code> 會建立這些變數：<b>${esc(Object.keys(f.rdata).join(', '))}</b></div></div>`;
   const t = f.text, lines = t.split('\n'); if (lines[lines.length - 1] === '') lines.pop();
   return `<div class="viewer"><div class="fh">📄 ${esc(p)}<span style="margin-left:auto">${lines.length} 行${t && !t.endsWith('\n') ? ' · 最後沒有換行' : ''}</span></div><pre>${esc(t.replace(/\t/g, '→   ').replace(/\n$/, '')) || '<span class="dim">（空檔案）</span>'}</pre></div>`;
@@ -3048,181 +3448,58 @@ function twoStep(btn, ask, fn){
   };
 }
 
+
 /* ================= exercises: data ================= */
-const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-const pick = xs => xs[Math.floor(Math.random() * xs.length)];
-const shuffle = xs => { const a = [...xs]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const rVec = xs => `c(${xs.map(x => typeof x === 'string' ? JSON.stringify(x) : x).join(', ')})`;
-const rStr = (n, al = 'ACGT') => Array.from({ length: n }, () => pick(al)).join('');
-const uniqNums = (k, lo, hi, dec) => { const s = new Set(); while (s.size < k) s.add(+(lo + Math.random() * (hi - lo)).toFixed(dec)); return [...s]; };
-function fastaTest(results){
-  const k = rnd(2, 5), ids = shuffle(['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08']).slice(0, k).sort();
-  let t = '';
-  for (const id of ids) { t += '>' + id + (Math.random() < .5 ? ' ' + pick(['normal', 'carrier', 'HbS', 'run2 lane1']) : '') + '\n'; for (let j = rnd(1, 3); j > 0; j--) t += rStr(rnd(3, 12)) + '\n'; }
-  return { files: { 'data/run.fasta': t }, dirs: results ? ['results'] : [] };
-}
-function qpcrTest(){
-  const S = shuffle(['A', 'B', 'C', 'D', 'E']).slice(0, rnd(3, 4)).sort(), cts = uniqNums(S.length * 2, 16, 39, 2);
-  let t = 'sample,gene,ct\n', k = 0;
-  for (const s of S) for (const g of ['GAPDH', 'IL6']) { const v = Math.random() < .18 ? 'NA' : cts[k]; k++; t += `${s},${g},${v}\n`; }
-  if (!/NA/.test(t)) t = t.replace(/,(\d+\.?\d*)\n$/, ',NA\n');
-  return { files: { 'data/qpcr_run.csv': t } };
-}
-function chemTest(){
-  const n = rnd(4, 7), hdr = Array.from({ length: rnd(1, 3) }, (_, i) => ['# Analyzer: AU5800', '# Exported by lab', '# Units: glu mg/dL, alt U/L, crp mg/dL'][i]);
-  const miss = () => Math.random() < .2;
-  const rows = Array.from({ length: n }, (_, i) => [`C${String(i + 1).padStart(2, '0')}`, miss() ? pick(['NA', '.']) : rnd(70, 180), miss() ? pick(['NA', '.']) : rnd(10, 90), miss() ? pick(['NA', '.']) : (rnd(1, 40) / 10).toFixed(1)]);
-  rows[0] = [rows[0][0], 95, 22, '0.4'];
-  if (!rows.some(r => r.includes('.'))) rows[n - 1][1] = '.';
-  return { files: { 'data/chem.tsv': hdr.join('\n') + '\nid\tglu\talt\tcrp\n' + rows.map(r => r.join('\t')).join('\n') + '\n' }, dirs: Math.random() < .5 ? ['results'] : [] };
-}
-function batchTest(k){
-  const pre = pick(['KID', 'LIV', 'LUNG', 'HEP']), ids = shuffle(Array.from({ length: 12 }, (_, i) => pre + String(i + 1).padStart(2, '0'))).slice(0, k).sort();
-  const files = {};
-  for (const id of ids) { const genes = ['GAPDH', ...shuffle(['IL6', 'TNF', 'MYC', 'CXCL8']).slice(0, rnd(1, 3))]; files['data/batch/' + id + '.csv'] = 'gene,count\n' + genes.map(g => `${g},${g === 'GAPDH' ? rnd(4000, 6000) : rnd(20, 2000)}`).join('\n') + '\n'; }
-  files['data/batch/README.txt'] = 'one csv per sample: gene,count\n';
-  if (Math.random() < .6) files['data/batch/run_info.tsv'] = 'key\tvalue\nflowcell\tHXYZ\n';
-  return { files, dirs: Math.random() < .5 ? ['results'] : [] };
-}
-const plateTest = (ids, extra, results) => { const files = {}; ids.forEach((id, i) => { files[`data/plate/${id}.csv`] = `well,od\n${id},${(0.412 + 0.137 * i).toFixed(3)}\n`; }); extra.forEach(f => { files['data/plate/' + f] = 'notes\n'; }); return { files, dirs: results ? ['results'] : [] }; };
-const PK = { pkgs: STRINGR_SET };
-
+const PL_CHECK_LOW = { abline: it => ({ h: it.h || null, v: it.v || null, a: it.a ?? null, b: it.b ?? null }), lines: it => ({ y: it.y }), legend: it => ({ legend: it.legend }), points: it => ({ y: it.y }) };
 const EX = {
-  ex1: {
-    tests: [{ vars: 'genes <- c("IL6", "TNF", "IL1B", "NFIL3", "GAPDH", "CXCL8")', ...PK }, { vars: 'genes <- c("BRCA1", "TP53")', ...PK },
-            () => ({ vars: `genes <- ${rVec(shuffle(['IL6', 'IL10', 'IL1B', 'TNF', 'MYC', 'GAPDH', 'IL17A', 'EGFR']).slice(0, rnd(3, 6)))}`, ...PK })],
-    want: ['len', 'is_il', 'il_genes'], ban: ['nchar', 'grepl'], banMsg: '這題要用 stringr 的函式（str_length、str_detect），不能用 base R 的 nchar、grepl。', need: ['library|require'],
-    hint: { il_genes: want => asVec(want).length ? null : '這一組沒有 IL 開頭的基因，il_genes 應該是空的。',
-            is_il: (want, got) => asVec(got).filter(x => x === true).length > asVec(want).filter(x => x === true).length ? 'NFIL3 中間也有 IL，但不是 IL「開頭」：pattern 要寫成 "^IL"，^ 代表開頭。' : null },
-    solution: `genes
-library(stringr)                     # 新開的 R 要先載入；這台電腦已經裝好，不用 install
-len <- str_length(genes)             # 每個基因名稱有幾個字
-is_il <- str_detect(genes, "^IL")    # ^ 代表「開頭」：IL 開頭才是 TRUE
-il_genes <- genes[is_il]             # 用 TRUE/FALSE 挑出 IL 開頭的
-len
-il_genes`,
-  },
-  ex2: {
-    tests: [{ vars: 'seqs <- c("atcgcgTATAAgc", "GGCGCGat", "tataaCG", "attg")', ...PK },
-            () => ({ vars: `seqs <- ${rVec(Array.from({ length: rnd(3, 5) }, () => { let s = rStr(rnd(6, 14)); if (Math.random() < .4) s = s.slice(0, 3) + 'TATAA' + s.slice(3); return [...s].map(c => Math.random() < .5 ? c.toLowerCase() : c).join(''); }))}`, ...PK }),
-            { vars: 'seqs <- c(p1 = "cgcg", p2 = "AT")', ...PK }],
-    want: ['up', 'cpg', 'has_tata'], ban: ['library', 'require'], banMsg: '這題規定不能 library / require，要用 stringr:: 直接呼叫。', need: ['::'],
-    solution: `seqs
-up <- stringr::str_to_upper(seqs)              # 套件名::函式名，不必先 library
-cpg <- stringr::str_count(up, "CG")            # 每條序列有幾個 CG
-has_tata <- stringr::str_detect(up, "TATAA")   # 有沒有 TATA box
-cpg
-has_tata`,
-  },
-  ex3: {
-    tests: [plateTest(['A01', 'A02', 'B01'], ['notes.txt', 'plate_map.xlsx'], false),
-            () => plateTest(shuffle(['A01', 'A03', 'B02', 'C05', 'D11', 'H12', 'E07']).slice(0, rnd(2, 5)).sort(), ['README.md'], true),
-            plateTest(['G09'], ['layout.txt', 'old_csv_backup.txt'], false)],
-    want: ['csv_files', 'ids', 'out_file'], wantDirs: ['results'], need: ['list.files'],
-    hint: { csv_files: (want, got) => asVec(got).some(x => typeof x === 'string' && !x.includes('/')) ? '路徑要包含資料夾：加上 full.names = TRUE。' : asVec(got).some(x => typeof x === 'string' && !/\.csv$/.test(x)) ? '混進了不是 .csv 的檔案：用 pattern = "\\\\.csv$" 只留 .csv 結尾的。' : null,
-            ids: (want, got) => asVec(got).some(x => typeof x === 'string' && x.includes('/')) ? '編號不要包含資料夾：先 basename()，再去掉 .csv。' : null },
-    solution: `list.files("data/plate")
-csv_files <- list.files("data/plate", pattern = "\\\\.csv$", full.names = TRUE)
-# pattern 是正規表示式："\\\\." 是真正的點，$ 是結尾 → 只要 .csv 結尾的
-# full.names = TRUE 會把 "data/plate/" 接在檔名前面
-ids <- sub("\\\\.csv$", "", basename(csv_files))       # basename 去掉資料夾，sub 去掉 .csv
-out_file <- file.path("results", "plate_summary.csv")  # 用 / 接起來："results/plate_summary.csv"
-if (!dir.exists("results")) dir.create("results")      # 不存在才建立（也可以 showWarnings = FALSE）
-csv_files
-ids`,
-  },
-  ex4: {
-    tests: [{ files: { 'data/run.fasta': '>P01 normal\nACTCCTGAGG\nAGAAGTCT\n>P02\nACTCCTGTGGAGAAG\n>P03 carrier HbS\nACT\nCCTG\nTGGAG\n' } }, () => fastaTest(false), () => fastaTest(true)],
-    want: ['seqs'], wantFiles: ['results/lengths.txt'], need: ['readLines', 'writeLines|cat|write'],
-    hint: { seqs: (want, got) => namesOf(got) && namesOf(got).some(x => / |^>/.test(x || '')) ? '名字裡還有 > 或空白後面的說明：用 sub("^>", "", …) 和 sub(" .*", "", …) 去掉。' : null },
-    solution: `fa <- readLines("data/run.fasta")
-is_head <- grepl("^>", fa)                                         # 標題行
-id <- cumsum(is_head)                                              # 每遇到標題就 +1：每條序列一個編號
-seqs <- sapply(split(fa[!is_head], id[!is_head]), paste, collapse = "")   # 同一個編號的序列行分成一組，各自接起來
-names(seqs) <- sub(" .*", "", sub("^>", "", fa[is_head]))          # 先去掉 >，再去掉第一個空白之後的說明
-seqs
-
-dir.create("results", showWarnings = FALSE)
-lines <- paste(names(seqs), nchar(seqs), sep = "\\t")              # "P01<tab>18"
-writeLines(lines, "results/lengths.txt")                           # 每個元素寫成一行`,
-  },
-  ex5: {
-    tests: [{ files: { 'data/qpcr_run.csv': 'sample,gene,ct\nA,GAPDH,17.9\nA,IL6,36.2\nB,GAPDH,18.4\nB,IL6,NA\nC,GAPDH,19.1\nC,IL6,27.35\n' } }, qpcrTest, qpcrTest],
-    want: ['run', 'clean'], wantFiles: ['results/qpcr_clean.csv'], need: ['read.csv', 'write.csv|write.table'],
-    hint: { clean: (want, got) => isDF(got) && asVec(got.vals[got.names.indexOf('ct')] || []).some(x => x === undefined) ? 'clean 裡還有 NA：條件要先寫 !is.na(run$ct)。' : null },
-    fileHint: (want, got) => got && got.startsWith('"",') ? '檔案第一欄多了列名：write.csv 要加 row.names = FALSE。' : null,
-    solution: `run <- read.csv("data/qpcr_run.csv")
-run
-clean <- run[!is.na(run$ct) & run$ct < 35, ]   # 先排除 NA，再留 Ct < 35 的列；逗號後面空白 = 所有欄
-clean <- clean[order(clean$ct), ]              # order() 回傳「由小到大」的列位置
-clean
-dir.create("results", showWarnings = FALSE)
-write.csv(clean, "results/qpcr_clean.csv", row.names = FALSE)   # 不寫列名`,
-  },
-  ex6: {
-    tests: [{ files: { 'data/chem.tsv': '# Analyzer: AU5800\n# Units: glu mg/dL, alt U/L, crp mg/dL\nid\tglu\talt\tcrp\nC01\t95\t22\t0.4\nC02\t.\t41\t1.8\nC03\t130\tNA\t0.9\nC04\t88\t19\t.\nC05\t101\t35\t0.2\n' } }, chemTest, chemTest],
-    want: ['chem', 'n_missing', 'complete'], wantFiles: ['results/chem_complete.tsv'], need: ['read.delim|read.table|read.csv', 'write.table|write.csv|writeLines'],
-    hint: { chem: (want, got) => isDF(got) && got.vals.some((c, j) => j > 0 && vtype(asVec(c)) === 'character') ? '有數字欄變成了文字：用 na.strings = c("NA", ".") 告訴 R 「.」也是遺漏值。' : null },
-    fileHint: (want, got) => got && got.includes('"') ? '檔案裡有引號：write.table 要加 quote = FALSE。' : got && !got.startsWith('id') ? '第一行應該是欄位名稱 id…：記得 row.names = FALSE。' : null,
-    solution: `cat(readLines("data/chem.tsv"), sep = "\\n")
-chem <- read.delim("data/chem.tsv", comment.char = "#", na.strings = c("NA", "."))
-# tab 分隔 → read.delim；# 開頭的說明行當成註解跳過；NA 和 . 都是遺漏值
-str(chem)                                 # 確認 glu、alt、crp 都是數字
-n_missing <- colSums(is.na(chem))         # is.na 變成 TRUE/FALSE 的表格，每欄加總 = NA 的個數
-complete <- na.omit(chem)                 # 只留沒有 NA 的列
-dir.create("results", showWarnings = FALSE)
-write.table(complete, "results/chem_complete.tsv", sep = "\\t", quote = FALSE, row.names = FALSE)`,
-  },
-  ex7: {
-    tests: [{ vars: 'batch <- list(run = "R07", seqs = c(s1 = "ATGCGC", s2 = "AATT", s3 = "GGGC"))' },
-            () => ({ vars: `batch <- list(run = "R${rnd(10, 99)}", seqs = c(${Array.from({ length: rnd(2, 4) }, (_, i) => `x${i + 1} = "${rStr(rnd(4, 10))}"`).join(', ')}))` }),
-            { vars: 'batch <- list(run = "R01", seqs = c(only = "GC"))' }],
-    want: ['gc', 'back'], wantFiles: ['results/batch.rds'], need: ['source', 'saveRDS', 'readRDS'],
-    solution: `str(batch)
-source("R/helpers.R")                                  # 執行整個檔案 → 定義好 gc_content()
-gc <- vapply(batch$seqs, gc_content, numeric(1))       # 每條序列回傳 1 個數字；名字自動沿用
-batch$gc <- gc                                         # 放進 list
-dir.create("results", showWarnings = FALSE)
-saveRDS(batch, "results/batch.rds")                    # 整個 list 原封不動存起來
-back <- readRDS("results/batch.rds")                   # 讀回來，取名叫 back
-identical(back, batch)                                 # TRUE：完全一樣`,
-  },
-  ex8: {
-    pass: 'ycc0901',
-    tests: [{ files: { 'data/batch/KID01.csv': 'gene,count\nGAPDH,5120\nIL6,310\nTNF,95\n', 'data/batch/KID02.csv': 'gene,count\nGAPDH,4870\nIL6,1460\n', 'data/batch/KID03.csv': 'gene,count\nGAPDH,5290\nIL6,402\nTNF,233\nMYC,88\n', 'data/batch/README.txt': 'one csv per sample: gene,count\n' } },
-            () => batchTest(rnd(3, 5)), () => batchTest(2), () => batchTest(rnd(4, 6))],
-    want: ['all_counts', 'totals'], wantFiles: ['results/all_counts.csv', 'results/totals.csv'], need: ['list.files'],
-    hint: { all_counts: (want, got) => isDF(got) && got.names.join() !== 'sample,gene,count' ? `欄位順序要是 sample, gene, count（你的是 ${got.names.join(', ')}）。可以寫 data.frame(sample = id, d)。` : null },
-    fileHint: (want, got) => got && got.startsWith('"",') ? '檔案第一欄多了列名：write.csv 要加 row.names = FALSE。' : null,
-    solution: `list.files("data/batch")
-files <- list.files("data/batch", pattern = "\\\\.csv$", full.names = TRUE)   # 只要 .csv，含資料夾路徑
-read_one <- function(f) {
-  d <- read.csv(f)                               # 讀一個樣本：gene、count 兩欄
-  id <- sub("\\\\.csv$", "", basename(f))          # 檔名去掉 .csv 就是樣本名
-  data.frame(sample = id, d)                     # 加在第一欄；id 只有 1 個，會自動重複到每一列
-}
-all_counts <- do.call(rbind, lapply(files, read_one))      # 每個檔案讀成表格 → 全部疊起來
-totals <- tapply(all_counts$count, all_counts$sample, sum)  # 照樣本分組加總
-all_counts
-totals
-
-dir.create("results", showWarnings = FALSE)
-write.csv(all_counts, "results/all_counts.csv", row.names = FALSE)
-tot_df <- data.frame(sample = names(totals), total = as.vector(totals))   # 具名向量 → 兩欄的表
-write.csv(tot_df, "results/totals.csv", row.names = FALSE)`,
-  },
+  ex1: { tests: [{}], want: [], figs: true, labels: ['main', 'xlab', 'ylab'], style: ['pch'],
+    solution: `lab <- read.csv("data/lab.csv")
+plot(lab$age, lab$chol,                    # 第一個是 x（橫軸），第二個是 y（縱軸）
+     main = "Age and cholesterol",         # 標題
+     xlab = "Age (years)",                 # x 軸標籤（含單位）
+     ylab = "Cholesterol (mg/dL)",         # y 軸標籤（含單位）
+     pch = 16, col = "tomato")             # 16 = 實心圓` },
+  ex2: { tests: [{}], want: ['med', 's'], figs: true, labels: ['main', 'xlab'], lows: ['abline'],
+    solution: `lab <- read.csv("data/lab.csv")
+med <- median(lab$chol)        # 中位數
+s <- sd(lab$chol)              # 標準差
+hist(lab$chol, breaks = 8, main = "Total cholesterol", xlab = "Cholesterol (mg/dL)")
+abline(v = med, col = "red", lwd = 2)   # v = 垂直線，畫在中位數的位置
+med
+s` },
+  ex3: { tests: [{}], want: ['tab', 'pct'], figs: true, labels: ['main', 'ylab'],
+    solution: `lab <- read.csv("data/lab.csv")
+tab <- table(lab$group)                      # 每組幾個人
+pct <- round(prop.table(tab) * 100, 1)       # prop.table 變成比例，×100 變百分比，取 1 位
+barplot(tab, col = c("steelblue", "tomato"), main = "Group size", ylab = "Count")
+tab
+pct` },
+  ex4: { tests: [{}], want: ['med', 'p'], figs: true, labels: ['ylab'],
+    solution: `lab <- read.csv("data/lab.csv")
+boxplot(hba1c ~ sex, data = lab, ylab = "HbA1c (%)")   # hba1c 依照 sex 分組
+med <- tapply(lab$hba1c, lab$sex, median)              # 每個性別的中位數
+p <- t.test(hba1c ~ sex, data = lab)$p.value           # t.test 的結果是 list，$p.value 拿出 p 值
+med
+p` },
+  ex5: { tests: [{}], want: ['r'], wantLm: 'fit', figs: true, lows: ['abline'],
+    solution: `lab <- read.csv("data/lab.csv")
+plot(chol ~ age, data = lab, pch = 16)       # y ~ x：chol 在縱軸、age 在橫軸
+fit <- lm(chol ~ age, data = lab)            # 迴歸：chol = a + b × age
+abline(fit, col = "red")                     # 把迴歸線畫上去
+r <- round(cor(lab$age, lab$chol), 2)        # 相關係數，取 2 位
+r` },
+  ex6: { tests: [{}], want: [], figs: true, lows: ['lines', 'abline', 'legend'],
+    solution: `og <- read.csv("data/ogtt.csv")
+plot(og$time, og$P01, type = "b", ylim = c(80, 200), pch = 16, col = "steelblue",
+     xlab = "Time (min)", ylab = "Glucose (mg/dL)")       # 先畫 P01，ylim 要容得下兩條線
+lines(og$time, og$P03, type = "b", pch = 17, col = "tomato")   # 再把 P03 加上去
+abline(h = 140, lty = 2)                                   # 水平參考線
+legend("topright", legend = c("P01", "P03"), col = c("steelblue", "tomato"), pch = c(16, 17), lty = 1)` },
 };
-const resolveTest = t => { const o = typeof t === 'function' ? t() : t; return { vars: o.vars || '', files: o.files || {}, dirs: o.dirs || [], pkgs: o.pkgs || [] }; };
-function diskFor(t){
-  const d = defaultDisk();
-  const addDir = p => { for (let q = PROJECT + '/' + p; q && !d.dirs[q]; q = q.slice(0, q.lastIndexOf('/'))) d.dirs[q] = 1; };
-  for (const [f, text] of Object.entries(t.files)) { addDir(f.slice(0, f.lastIndexOf('/'))); d.files[PROJECT + '/' + f] = { text }; }
-  t.dirs.forEach(addDir);
-  return d;
-}
+const resolveTest = t => ({ vars: '', files: {}, dirs: [], pkgs: [], ...t });
+const diskFor = () => defaultDisk();
 for (const X of Object.values(EX)) X.setups = X.tests.map(resolveTest);
 BASE_DISK = defaultDisk();
-for (const X of Object.values(EX)) { const d = diskFor({ ...X.setups[0], dirs: [] }); for (const [k, v] of Object.entries(d.files)) BASE_DISK.files[k] = v; for (const k of Object.keys(d.dirs)) BASE_DISK.dirs[k] = 1; }
 loadPC();
 
 /* ---------- example cells ---------- */
@@ -3235,157 +3512,107 @@ $$('script.cell').forEach(sc => {
   const ed = makeEditor(code, run);
   cell.append(ed.el, out);
   cell.querySelector('.run').onclick = run;
-  cell.querySelector('.reset').onclick = () => { ed.set(code); out.hidden = true; let nx = out.nextElementSibling; while (nx && (nx.classList.contains('envrow') || nx.classList.contains('chg'))) { const t = nx.nextElementSibling; nx.remove(); nx = t; } };
+  cell.querySelector('.reset').onclick = () => { ed.set(code); out.hidden = true; clearAfter(out); };
   sc.replaceWith(cell);
 });
+const plotHTML = (code, pre = {}, H) => { const r = execute(code, pre, { fs: clone(BASE_DISK) }); return r.plots.map(p => renderPlotSVG(p, 504, H || 378)).join('') || `<pre class="out">${esc(r.error ? r.error.message : '')}</pre>`; };
+const segPick = (el, fn) => { el.addEventListener('click', e => { const b = e.target.closest('button[data-v]'); if (!b) return; $$('button', b.parentElement).forEach(x => x.setAttribute('aria-pressed', String(x === b))); fn(b.dataset.v, b.parentElement.dataset.k); }); };
 
-function fly(fromEl, toEl, html, cls){
-  if (reduceMotion || !fromEl || !toEl) return Promise.resolve();
-  const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
-  const f = document.createElement('div'); f.className = 'flyer ' + cls; f.innerHTML = html;
-  f.style.cssText = `position:fixed;z-index:60;pointer-events:none;margin:0;left:${a.left}px;top:${a.top}px;box-shadow:0 8px 24px rgba(0,0,0,.18)`;
-  document.body.appendChild(f);
-  const dx = b.left + 12 - a.left, dy = b.top + b.height / 2 - a.top - 10;
-  const anim = f.animate([{ transform: 'translate(0,0)' }, { transform: `translate(${dx}px,${dy}px)` }], { duration: 560, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
-  return Promise.race([anim.finished.catch(() => {}), new Promise(r => setTimeout(r, 900))]).then(() => f.remove());
-}
-
-/* ================= widget 1: the bookshelf ================= */
+/* ================= widget 1: tune a plot ================= */
 (() => {
-  const W = $('#shelf'), PK = ['stringr', 'dplyr', 'ggplot2', 'readxl'];
-  const COLOR = { stringr: '#2f6fe0', dplyr: '#0f8a7e', ggplot2: '#c2410c', readxl: '#7c3aed' };
-  const USE = { stringr: ['str_length("ATGC")', '[1] 4'], dplyr: ['filter(df, ct > 20)', '✓ R 找到了 dplyr 的 filter()（網頁版只模擬到這裡）'], ggplot2: ['ggplot(df)', '✓ R 找到了 ggplot()（網頁版只模擬到這裡）'], readxl: ['read_excel("lab.xlsx")', '✓ R 找到了 read_excel()（網頁版只模擬到這裡）'] };
-  const FN = { stringr: 'str_length', dplyr: 'filter', ggplot2: 'ggplot', readxl: 'read_excel' };
-  let sel = 'stringr', busy = false; const desk = new Set();
-  const pick = $('#shelfPick');
-  PK.forEach(p => pick.insertAdjacentHTML('beforeend', `<button type="button" data-p="${p}" aria-pressed="${p === sel}">${p}</button>`));
-  pick.onclick = e => { const b = e.target.closest('button'); if (!b) return; sel = b.dataset.p; $$('button', pick).forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); con(`選了 <b>${sel}</b>：${esc(CRAN[sel].title)}`); };
-  const Z = z => $(`.zone[data-z="${z}"] .books`, W);
-  const book = (p, extra = '') => `<span class="book${p === sel ? ' sel' : ''}${extra}" data-b="${p}" style="--bc:${COLOR[p]}">${p}</span>`;
-  function draw(newIn){
-    Z('cran').innerHTML = PK.map(p => book(p)).join('') + '<span class="book base">…還有兩萬多個</span>';
-    const inst = PK.filter(p => pkgs.has(p)), deps = [...pkgs].filter(p => !PK.includes(p)).length;
-    Z('lib').innerHTML = '<span class="book base">base R 內建 14 個</span>' + inst.map(p => book(p, p === newIn ? ' in' : '')).join('') + (deps ? `<span class="book base">相依套件 ${deps} 個</span>` : '');
-    for (const p of [...desk]) if (!pkgs.has(p)) desk.delete(p);
-    Z('desk').innerHTML = '<span class="book base">stats、utils… 6 個</span>' + [...desk].map(p => book(p, p === newIn ? ' in' : '')).join('');
-  }
-  const con = h => { $('#shelfCon').innerHTML = h; };
-  const cmd = c => `<span class="p">&gt; ${esc(c)}</span>\n`;
-  window.shelfSync = () => draw();
-  async function act(a){
-    if (busy) return; busy = true;
-    try {
-      if (a === 'install') {
-        const had = pkgs.has(sel);
-        await fly($(`[data-b="${sel}"]`, Z('cran')), Z('lib'), sel, 'book');
-        const r = runOnPC(`install.packages("${sel}")`), deps = r.newPkgs.filter(p => p !== sel).length;
-        draw(sel);
-        con(cmd(`install.packages("${sel}")`) + `下載 ${sel}${deps ? ` 和 ${deps} 個相依套件` : ''}……\n✓ 裝好了，放上書架。` + (had ? '\n（其實已經裝過了：再裝一次只是重新下載覆蓋，平常不需要）' : '\n這台電腦以後都不用再裝了。'));
-      } else if (a === 'library') {
-        if (!pkgs.has(sel)) { con(cmd(`library(${sel})`) + `<span class="e">Error in library(${sel}) : there is no package called ‘${sel}’</span>\n書架上沒有這本書，要先 install.packages("${sel}")。`); return; }
-        if (desk.has(sel)) { con(cmd(`library(${sel})`) + '（已經在桌上了，再 library 一次不會怎樣）'); return; }
-        await fly($(`[data-b="${sel}"]`, Z('lib')), Z('desk'), sel, 'book');
-        desk.add(sel); draw(sel);
-        con(cmd(`library(${sel})`) + (sel === 'dplyr' ? '<span class="w">Attaching package: ‘dplyr’\nThe following objects are masked from ‘package:stats’: filter, lag …</span>\n' : '') + `✓ ${sel} 拿到桌上了，這次的 R 可以用它的函式。`);
-      } else if (a === 'use') {
-        const [c, o] = USE[sel];
-        con(cmd(c) + (desk.has(sel) ? esc(o) : `<span class="e">Error in ${FN[sel]}(…) : could not find function "${FN[sel]}"</span>\n${pkgs.has(sel) ? `書架上有，但還沒拿到桌上：先 library(${sel})。` : `連書架上都沒有：先 install.packages("${sel}")，再 library(${sel})。`}`));
-      } else if (a === 'restart') {
-        const n = desk.size; desk.clear(); draw();
-        con('<span class="p">（關掉 RStudio，再打開）</span>\n' + (n ? `桌上的 ${n} 本書都收回書架了。書架上的還在，下次只要 library()，不用重新 install。` : '桌上本來就沒有拿出來的書。'));
-      } else if (a === 'remove') {
-        if (!pkgs.has(sel)) { con(cmd(`remove.packages("${sel}")`) + `<span class="e">書架上本來就沒有 ${sel}。</span>`); return; }
-        runOnPC(`remove.packages("${sel}")`); desk.delete(sel); draw();
-        con(cmd(`remove.packages("${sel}")`) + `Removing package from ‘…/library’\n${sel} 從書架上拿掉了（相依套件還留著）。`);
-      }
-    } finally { busy = false; }
-  }
-  $$('.wctl button', W).forEach(b => { b.onclick = () => act(b.dataset.act); });
-  draw();
-  con('選一本書，按「install.packages()」開始。');
-})();
-
-/* ================= widget 2: path navigator ================= */
-(() => {
-  let nwd = PROJECT;
-  const tree = $('#navTree'), inp = $('#navIn'), steps = $('#navSteps');
-  const EXS = ['data/qpcr.csv', 'qpcr.csv', 'data/samples/S02.csv', './R/helpers.R', '../Downloads', '~/Desktop', '/Users/rbao/bio_project/data/notes.txt', 'data\\qpcr.csv'];
-  $('#navEx').innerHTML = EXS.map(x => `<button type="button">${esc(x)}</button>`).join('');
-  $('#navEx').onclick = e => { const b = e.target.closest('button'); if (!b) return; inp.value = b.textContent; navRender(); };
-  inp.addEventListener('input', () => navRender());
-  tree.onclick = e => { const n = e.target.closest('.n.dir'); if (!n) return; nwd = n.dataset.p; navRender(`setwd("${nwd}")`); };
-  const isD = p => !!disk.dirs[p], isF = p => !!disk.files[p];
-  const up = p => p === '/' ? '/' : (p.slice(0, p.lastIndexOf('/')) || '/');
-  function resolve(path){
-    const out = { msgs: [], trail: [], hit: null, ok: false };
-    if (!path.trim()) { out.msgs.push('打一個路徑試試看。'); return out; }
-    if (path.includes('\\')) { out.msgs.push('<span class="no">✗ 有反斜線 \\</span>：在 R 的字串裡 \\ 是跳脫字元，"data\\qpcr.csv" 會出錯。路徑一律用 / 分隔。'); return out; }
-    let cur, segs;
-    if (path.startsWith('/')) { cur = '/'; segs = path.split('/'); out.msgs.push('以 / 開頭 → <b>絕對路徑</b>，從根目錄 / 出發'); }
-    else if (path.startsWith('~')) { cur = HOME; segs = path.slice(1).split('/'); out.msgs.push(`以 ~ 開頭 → 從家目錄 ${HOME} 出發`); }
-    else { cur = nwd; segs = path.split('/'); out.msgs.push(`<b>相對路徑</b> → 從工作目錄 ${esc(nwd)} 出發`); }
-    segs = segs.filter(s => s !== '');
-    out.trail.push(cur);
-    for (let i = 0; i < segs.length; i++) {
-      const s = segs[i], last = i === segs.length - 1;
-      if (s === '.') { out.msgs.push('.  → 留在這一層'); continue; }
-      if (s === '..') { cur = up(cur); out.trail.push(cur); out.msgs.push(`.. → 回到上一層 ${esc(cur)}`); continue; }
-      const nx = (cur === '/' ? '' : cur) + '/' + s;
-      if (isD(nx)) { cur = nx; out.trail.push(cur); out.msgs.push(`進入 ${esc(s)}/`); continue; }
-      if (isF(nx) && last) { cur = nx; out.trail.push(cur); out.msgs.push(`找到檔案 ${esc(s)}`); out.hit = cur; out.ok = true; return out; }
-      out.msgs.push(`<span class="no">✗ ${esc(cur)} 裡沒有「${esc(s)}」</span>` + (isF(nx) ? '（它是檔案，不能再往下走）' : ''));
-      out.hit = null; return out;
-    }
-    out.hit = cur; out.ok = true; return out;
-  }
-  window.navRender = (note) => {
-    const path = inp.value, res = resolve(path), trail = new Set(res.trail);
-    const rows = [];
-    const walk = (dir, depth) => {
-      for (const d of Object.keys(disk.dirs).filter(d => d !== dir && up(d) === dir).sort()) { rows.push({ p: d, dir: true, depth }); walk(d, depth + 1); }
-      for (const f of Object.keys(disk.files).filter(f => up(f) === dir).sort()) rows.push({ p: f, dir: false, depth });
-    };
-    rows.push({ p: HOME, dir: true, depth: 0 }); walk(HOME, 1);
-    tree.innerHTML = rows.map(r => {
-      const nm = r.p === HOME ? HOME + '/' : r.p.slice(r.p.lastIndexOf('/') + 1) + (r.dir ? '/' : '');
-      const cls = ['n', r.dir ? 'dir' : '', r.p === nwd ? 'wd' : '', r.p === res.hit && res.ok ? 'hit' : trail.has(r.p) && r.p !== nwd ? 'step' : ''].join(' ');
-      return `<span class="${cls}" data-p="${esc(r.p)}" style="padding-left:${6 + r.depth * 16}px"${r.dir ? ' role="button" tabindex="0"' : ''}>${r.dir ? '📁' : '📄'} ${esc(nm)}</span>`;
-    }).join('');
-    const abs = res.ok ? res.hit : null;
-    steps.innerHTML = (note ? `<span class="ok">${esc(note)}</span>：工作目錄換了\n` : '') + res.msgs.map((m, i) => `${i + 1}. ${m}`).join('\n')
-      + (res.ok ? `\n<span class="ok">✓ file.exists("${esc(path)}") 是 TRUE</span>\n完整路徑：${esc(abs)}` : path.trim() && !path.includes('\\') ? `\n<span class="no">✗ file.exists("${esc(path)}") 是 FALSE</span>` : '');
+  const st = { type: 'p', pch: '1', col: 'black' }, W = $('#tune');
+  const draw = () => {
+    const cex = $('#tuneCex').value, main = $('#tuneMain').value.replace(/["\\]/g, ''), h = $('#tuneH').checked;
+    $('#tuneCexV').textContent = cex;
+    const code = `og <- read.csv("data/ogtt.csv")\nplot(og$time, og$P02,\n     type = "${st.type}", pch = ${st.pch}, col = "${st.col}", cex = ${cex},\n     main = "${main}", xlab = "Time (min)", ylab = "Glucose (mg/dL)")` + (h ? '\nabline(h = 200, lty = 2)' : '');
+    $('#tuneCode').innerHTML = hl(code); $('#tunePlot').innerHTML = plotHTML(code);
   };
-  tree.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.n.dir')) { e.preventDefault(); e.target.click(); } });
+  segPick(W, (v, k) => { st[k] = v; draw(); });
+  ['#tuneCex', '#tuneMain', '#tuneH'].forEach(s => $(s).addEventListener('input', draw));
+  draw();
 })();
 
-/* ================= widget 3: CSV <-> data.frame ================= */
+/* ================= widget 2: distribution microscope ================= */
 (() => {
-  const TEXT = 'sample,gene,ct\nS1,GAPDH,18.2\nS1,IL6,25.1\nS2,GAPDH,18.9\nS2,IL6,NA\nS3,GAPDH,17.8\nS3,IL6,31.4\n';
-  let H = true, S = ',';
-  const raw = $('#csvRaw'), outEl = $('#csvOut'), msg = $('#csvMsg'), W = $('#csvw');
-  function render(){
-    const lines = TEXT.trim().split('\n');
-    raw.innerHTML = lines.map((ln, i) => {
-      const parts = ln.split(S);
-      return parts.map((f, j) => `<span class="f${H && i === 0 ? ' hdr' : ''}" data-r="${i}" data-c="${j}">${esc(f)}</span>`).join('<span class="sep">' + esc(S) + '</span>');
-    }).join('\n');
-    const r = execute(`x <- read.csv(text = ${JSON.stringify(TEXT)}, header = ${H ? 'TRUE' : 'FALSE'}, sep = "${S}")`);
-    const d = r.vars.get('x');
-    if (!d) { outEl.innerHTML = `<pre class="out">${esc(r.error ? r.error.message : '')}</pre>`; return; }
-    const off = H ? 1 : 0, n = dfN(d);
-    let h = '<table class="dft"><thead><tr><th></th>' + d.names.map((nm, j) => `<th${H ? ` data-r="0" data-c="${j}"` : ''}>${esc(nm)}</th>`).join('') + '</tr>';
-    h += '<tr class="ty"><th></th>' + d.vals.map(c => `<th>&lt;${strAbbr(asVec(c))}&gt;</th>`).join('') + '</tr></thead><tbody>';
-    for (let i = 0; i < n; i++) h += `<tr><th>${i + 1}</th>` + d.vals.map((c, j) => { const v = asVec(c)[i]; return `<td data-r="${i + off}" data-c="${j}"${v === undefined ? ' class="na"' : ''}>${v === undefined ? 'NA' : esc(typeof v === 'number' ? fmtNum1(v) : asChar1(v))}</td>`; }).join('') + '</tr>';
-    outEl.innerHTML = h + '</tbody></table>';
-    msg.innerHTML = S !== ',' ? '<b>sep 設錯了</b>：檔案裡根本沒有分號，整行被當成<b>一欄</b>，欄名變成 sample.gene.ct。讀完一定要用 str() 或 ncol() 確認欄數！'
-      : !H ? '<b>header = FALSE</b>：第一行被當成資料，欄名變成 V1、V2、V3；而且 ct 欄混進了文字 "ct"，整欄都變成 chr。'
-      : '第一行是欄名（藍色），逗號（紫色）切開每一欄；NA 自動變成遺漏值，ct 欄是數字（num）。';
-  }
-  const seg = (id, fn) => { $(id).onclick = e => { const b = e.target.closest('button'); if (!b) return; $$('button', $(id)).forEach(x => x.setAttribute('aria-pressed', String(x === b))); fn(b.dataset.v); render(); }; };
-  seg('#csvH', v => { H = v === '1'; }); seg('#csvS', v => { S = v; });
-  const hi = e => { const t = e.target.closest('[data-r]'); $$('.on', W).forEach(x => x.classList.remove('on')); if (!t || !W.contains(t)) return; $$(`[data-r="${t.dataset.r}"][data-c="${t.dataset.c}"]`, W).forEach(x => x.classList.add('on')); };
-  W.addEventListener('mouseover', hi); W.addEventListener('click', hi);
-  W.addEventListener('mouseleave', () => $$('.on', W).forEach(x => x.classList.remove('on')));
+  const draw = () => {
+    const b = +$('#distB').value, o = $('#distO').checked;
+    $('#distBV').textContent = b ? b : '預設';
+    const code = `lab <- read.csv("data/lab.csv")\ng <- lab$glucose${o ? '\ng <- c(g, 400)' : ''}\npar(mfrow = c(2, 1))\nhist(g, ${b ? `breaks = ${b}, ` : ''}col = "lightblue", main = "", xlab = "Glucose (mg/dL)")\nabline(v = mean(g), col = "red", lwd = 2)\nabline(v = median(g), col = "blue", lwd = 2, lty = 2)\nlegend("topright", legend = c("mean", "median"), col = c("red", "blue"), lty = c(1, 2), lwd = 2)\nboxplot(g, horizontal = TRUE, col = "lightblue")`;
+    $('#distPlot').innerHTML = plotHTML(code, {}, 560);
+    const r = execute(`lab <- read.csv("data/lab.csv")\ng <- lab$glucose${o ? '\ng <- c(g, 400)' : ''}\ncat("mean   ", round(mean(g), 1), "\\nmedian ", median(g), "\\nsd     ", round(sd(g), 1), "\\nIQR    ", IQR(g), "\\nn      ", length(g), "\\n")`, {}, { fs: clone(BASE_DISK) });
+    $('#distStat').textContent = r.out + (o ? '\n極端值把平均數往右拉、\n標準差變大很多；\n中位數和 IQR 幾乎不動。' : '\n勾選「加入一筆 400」\n看看誰被拉走。');
+  };
+  $('#distB').addEventListener('input', draw); $('#distO').addEventListener('change', draw);
+  draw();
+})();
+
+/* ================= widget 3: what does r look like ================= */
+(() => {
+  let mode = 'lin';
+  const seed = n => { let s = n; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; };
+  const gauss = rnd => () => { const u = rnd() || 1e-9, v = rnd(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  const fmt = v => (Math.round(v * 100) / 100).toFixed(2);
+  const draw = () => {
+    const r = +$('#corR').value; $('#corV').textContent = (+r).toFixed(2);
+    const g = gauss(seed(9001)), n = 50, x = [], y = [];
+    for (let i = 0; i < n; i++) { const a = g(), b = g(); x.push(a); y.push(mode === 'curve' ? a * a + 0.25 * b : r * a + Math.sqrt(Math.max(0, 1 - r * r)) * b); }
+    if (mode === 'out') { for (let i = 0; i < n; i++) y[i] = g(); x.push(8); y.push(8); }
+    const X = x.map(v => +(v * 10 + 50).toFixed(2)), Y = y.map(v => +(v * 10 + 50).toFixed(2));
+    const code = `x <- c(${X.join(', ')})\ny <- c(${Y.join(', ')})\nplot(x, y, pch = 16, col = "steelblue", main = paste("r =", round(cor(x, y), 2)))`;
+    $('#corPlot').innerHTML = plotHTML(code);
+    $('#corR').disabled = mode !== 'lin';
+    const rr = execute(code.split('\nplot')[0] + '\ncat(round(cor(x, y), 2))').out;
+    $('#corMsg').innerHTML = mode === 'curve' ? `<b>r = ${rr}</b>：x 和 y 明明有很強的關係（U 字形），但不是直線，所以 r 接近 0。` : mode === 'out' ? `<b>r = ${rr}</b>：其他 50 個點完全沒關係，只靠右上角一個極端值，r 就變得很大。` : `<b>r = ${rr}</b>：點越接近一條直線，|r| 越接近 1；r 是負的代表一個變大、另一個變小。`;
+  };
+  $('#corR').addEventListener('input', draw);
+  $('#corS').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('#corS button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); mode = b.dataset.v; draw(); });
+  draw();
+})();
+
+/* ================= widget 4: chooser ================= */
+(() => {
+  const C = [
+    { k: '一個數值', code: 'lab <- read.csv("data/lab.csv")\npar(mfrow = c(1, 2))\nhist(lab$glucose, col = "lightblue", main = "hist", xlab = "Glucose (mg/dL)")\nboxplot(lab$glucose, col = "lightblue", main = "boxplot")',
+      why: '<p><b>直方圖</b>看形狀（對稱？偏斜？雙峰？），<b>盒形圖</b>看中位數、四分位距和離群值。</p><p>統計量：mean ± sd（對稱時）或 median、IQR（偏斜時）。</p>', bad: '只報平均數：看不出分布和極端值。' },
+    { k: '一個類別', code: 'lab <- read.csv("data/lab.csv")\nbarplot(sort(table(lab$blood), decreasing = TRUE), col = "steelblue", main = "Blood type", ylab = "Count")',
+      why: '<p>先 <code>table()</code> 數每一類，再畫<b>長條圖</b>；照多到少排序更好讀。</p><p>統計量：個數、百分比（<code>prop.table</code>）。</p>', bad: '類別很多的圓餅圖：角度很難比較大小。' },
+    { k: '數值 × 類別', code: 'lab <- read.csv("data/lab.csv")\nboxplot(glucose ~ group, data = lab, col = c("steelblue", "tomato"), ylab = "Glucose (mg/dL)")',
+      why: '<p>每組一個<b>盒形圖</b>並排，資料不多時把點也畫上去。</p><p>統計量：每組的中位數 / 平均數（<code>tapply</code>）、兩組比較用 <code>t.test</code>。</p>', bad: '只畫平均數 ± SD 的長條圖：看不到分布和樣本數。' },
+    { k: '數值 × 數值', code: 'lab <- read.csv("data/lab.csv")\nplot(glucose ~ hba1c, data = lab, pch = 16, xlab = "HbA1c (%)", ylab = "Glucose (mg/dL)")\nabline(lm(glucose ~ hba1c, data = lab), col = "tomato", lwd = 2)',
+      why: '<p><b>散佈圖</b>：每個人一個點，x、y 各是一個數值。需要時加上迴歸線。</p><p>統計量：<code>cor</code>（相關係數 r）、<code>lm</code>（斜率）。</p>', bad: '只報 r 不畫圖：彎曲的關係、極端值都看不到。' },
+    { k: '數值 × 時間', code: 'og <- read.csv("data/ogtt.csv")\nplot(og$time, og$P02, type = "b", pch = 16, col = "tomato", ylim = c(80, 240), xlab = "Time (min)", ylab = "Glucose (mg/dL)")\nlines(og$time, og$P01, type = "b", pch = 17, col = "steelblue")\nlegend("topright", legend = c("P02", "P01"), col = c("tomato", "steelblue"), pch = c(16, 17), lty = 1)',
+      why: '<p>x 是<b>有順序</b>的時間，用<b>折線圖</b>把點連起來，看上升和下降。多條線要加圖例。</p>', bad: '把沒有順序的類別（例如血型）用線連起來：線的斜率沒有意義。' },
+    { k: '部分與整體', code: 'lab <- read.csv("data/lab.csv")\npar(mfrow = c(1, 2))\npie(table(lab$group), col = c("steelblue", "tomato"), main = "pie (2 groups)")\nbarplot(table(lab$group), col = c("steelblue", "tomato"), main = "barplot")',
+      why: '<p>只有 2–3 類、想強調「佔整體多少」時，<b>圓餅圖</b>可以用；但長條圖幾乎總是一樣好、甚至更好。</p>', bad: '超過 5 塊的圓餅圖、3D 圓餅圖。' },
+  ];
+  const seg = $('#chooseSeg');
+  seg.innerHTML = C.map((c, i) => `<button type="button" data-i="${i}" aria-pressed="${i === 0}">${c.k}</button>`).join('');
+  const show = i => { const c = C[i]; $('#choosePlot').innerHTML = plotHTML(c.code); $('#chooseCode').innerHTML = hl(c.code); $('#chooseWhy').innerHTML = c.why + `<div class="bad"><b>✗ 不推薦：</b>${c.bad}</div>`; };
+  seg.onclick = e => { const b = e.target.closest('button'); if (!b) return; $$('button', seg).forEach(x => x.setAttribute('aria-pressed', String(x === b))); show(+b.dataset.i); };
+  show(0);
+})();
+
+/* ================= quiz ================= */
+(() => {
+  const OPTS = ['直方圖', '盒形圖（分組）', '長條圖', '散佈圖', '折線圖', '圓餅圖'];
+  const Q = [
+    ['檢驗科想看 500 位門診病人的 ALT 數值大致分布在哪、是不是右偏。', 0, '一個數值變數的分布 → 直方圖（盒形圖也可以）。'],
+    ['比較三種治療方式之後的 LDL 膽固醇。', 1, '數值（LDL）× 類別（治療）→ 並排盒形圖。'],
+    ['統計本月送驗檢體的種類：血液、尿液、糞便、痰各有幾件。', 2, '一個類別變數的次數 → 長條圖。'],
+    ['同一批人的 BMI 和收縮壓有沒有關係？', 3, '兩個數值變數 → 散佈圖，再算相關係數。'],
+    ['一位病人住院 14 天每天的 CRP。', 4, 'x 是有順序的時間 → 折線圖。'],
+    ['疫苗接種率：已接種與未接種各佔全體多少（只有兩類）。', 5, '只有兩類、強調部分與整體 → 圓餅圖可以（長條圖也可以）。'],
+    ['兩台血球計數儀測同一批檢體的 WBC，看兩台是否一致。', 3, '同一檢體兩個數值 → 散佈圖，理想上點落在 y = x 附近（可以加 abline(0, 1)）。'],
+    ['男性和女性的血紅素，論文想同時呈現中位數和分布。', 1, '數值 × 類別 → 並排盒形圖，比「平均數長條圖」包含更多資訊。'],
+  ];
+  const box = $('#quiz'), ans = (store.quiz = store.quiz || {});
+  const render = () => {
+    const ok = Q.filter((q, i) => ans[i] === q[1]).length, done = Object.keys(ans).length;
+    box.innerHTML = Q.map((q, i) => `<div class="qz" data-i="${i}"><p>${i + 1}. ${q[0]}</p><div class="opts">${OPTS.map((o, j) => `<button type="button" data-j="${j}" class="${ans[i] === undefined ? '' : j === q[1] ? 'right' : j === ans[i] ? 'wrong' : ''}"${ans[i] !== undefined ? ' disabled' : ''}>${o}</button>`).join('')}</div>${ans[i] !== undefined ? `<div class="fb">${ans[i] === q[1] ? '✓ 答對了！' : '✗ 不對。'}${q[2]}</div>` : ''}</div>`).join('')
+      + `<div class="qz"><span class="qz-score">答對 ${ok} / ${Q.length}</span>${done ? '　<button type="button" class="btn" id="qzReset">重新作答</button>' : ''}</div>`;
+    const r = $('#qzReset'); if (r) r.onclick = () => { for (const k of Object.keys(ans)) delete ans[k]; persist(); render(); };
+  };
+  box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b) return; const i = +b.closest('.qz').dataset.i; ans[i] = +b.dataset.j; persist(); render(); });
   render();
 })();
 
@@ -3401,8 +3628,40 @@ function sameVal(a, b, o = {}){
   if (A.length !== B.length) return false;
   if (!A.length) return true;
   if (!o.ignoreNames && JSON.stringify(namesOf(a) || null) !== JSON.stringify(namesOf(b) || null)) return false;
-  return A.every((x, i) => { const y = B[i]; if (typeof x === 'number' && typeof y === 'number') return Math.abs(x - y) < 1e-9 || (isNaN(x) && isNaN(y)); return x === y; });
+  return A.every((x, i) => { const y = B[i]; if (typeof x === 'number' && typeof y === 'number') return Math.abs(x - y) < 1e-9 * Math.max(1, Math.abs(y)) || (isNaN(x) && isNaN(y)); return x === y; });
 }
+const KIND = { plot: '散佈圖 / 折線圖 plot()', hist: '直方圖 hist()', bar: '長條圖 barplot()', box: '盒形圖 boxplot()', pie: '圓餅圖 pie()', density: '密度圖' };
+const nearArr = (A, B) => A && B && A.length === B.length && A.every((x, i) => (x === null && B[i] === null) || (x !== undefined && B[i] !== undefined && Math.abs(x - B[i]) < 1e-6 * Math.max(1, Math.abs(B[i]))));
+function sigSame(s, r){
+  if (s.kind !== r.kind) return false;
+  if (r.kind === 'plot') return nearArr(s.x, r.x) && nearArr(s.y, r.y);
+  if (r.kind === 'hist') return nearArr(s.breaks, r.breaks) && nearArr(s.counts, r.counts);
+  if (r.kind === 'bar') return nearArr(s.heights, r.heights) && JSON.stringify(s.names) === JSON.stringify(r.names);
+  if (r.kind === 'box') return s.groups.length === r.groups.length && s.groups.every((g, i) => nearArr(g, r.groups[i])) && JSON.stringify(s.names) === JSON.stringify(r.names);
+  if (r.kind === 'pie') return nearArr(s.values, r.values);
+  return true;
+}
+function checkPlots(X, r, ref){
+  const F = r.plots.flatMap(p => p.figs), RF = ref.plots.flatMap(p => p.figs);
+  if (!F.length) return '程式沒有畫出任何圖。';
+  for (let i = 0; i < RF.length; i++) {
+    const f = F[i], g = RF[i];
+    if (!f) return `應該要有 ${RF.length} 張圖，你只畫了 ${F.length} 張。`;
+    if (f.sig.kind !== g.sig.kind) return `第 ${i + 1} 張圖應該是<b>${KIND[g.sig.kind]}</b>，你畫的是 ${KIND[f.sig.kind]}。`;
+    if (!sigSame(f.sig, g.sig)) return g.sig.kind === 'plot' ? '圖的資料不對：檢查 x 和 y 有沒有放對（第一個是橫軸、第二個是縱軸），或公式 y ~ x 的順序。'
+      : g.sig.kind === 'hist' ? '直方圖的資料或 breaks 不對：要用題目指定的欄位和 breaks。' : g.sig.kind === 'bar' ? '長條的高度或名稱不對：檢查 table() 用的欄位。' : g.sig.kind === 'box' ? '盒形圖的資料或分組不對：檢查公式 數值 ~ 組別。' : '圖的資料不對。';
+    for (const k of X.labels || []) if ((f[k] || '') !== (g[k] || '')) return `<code>${k}</code> 應該是 "${esc(g[k] || '')}"，你的是 "${esc(f[k] || '')}"。`;
+    for (const k of X.style || []) if (JSON.stringify(f.sig[k]) !== JSON.stringify(g.sig[k])) return `<code>${k}</code> 應該是 ${esc(JSON.stringify(g.sig[k]))}，你的是 ${esc(JSON.stringify(f.sig[k]))}。`;
+    for (const low of X.lows || []) {
+      const want = g.layers.filter(it => it.low === low).map(PL_CHECK_LOW[low]), got = f.layers.filter(it => it.low === low).map(PL_CHECK_LOW[low]);
+      for (const w of want) if (!got.some(x => Object.keys(w).every(k => w[k] === null ? x[k] === null || x[k] === undefined : Array.isArray(w[k]) ? (typeof w[k][0] === 'string' ? JSON.stringify(x[k]) === JSON.stringify(w[k]) : nearArr(x[k], w[k])) : Math.abs((x[k] ?? NaN) - w[k]) < 1e-6 * Math.max(1, Math.abs(w[k])))))
+        return low === 'abline' ? `少了（或畫錯了）<code>abline()</code> 的線：應該是 ${w.h ? 'h = ' + w.h.map(fmtNum1).join(', ') : w.v ? 'v = ' + w.v.map(fmtNum1).join(', ') : `a = ${fmtNum1(w.a)}, b = ${fmtNum1(w.b)}（迴歸線）`}。`
+          : low === 'legend' ? `少了（或寫錯了）圖例：legend 的文字應該是 ${esc(w.legend.map(s => '"' + s + '"').join('、'))}。` : `少了 <code>${low}()</code> 加上去的那條線，或資料放錯了。`;
+    }
+  }
+  return null;
+}
+
 const showVal = v => esc(fmtPrint(v === undefined ? undefined : v));
 const SOL_PASS = '0901';   // classroom speed bump only: the answers ship with the page
 const unlocked = new Set();
@@ -3433,7 +3692,7 @@ function askPass(pass, then){
 function updateToc(){
   let n = 0;
   $$('#toc a[data-ex]').forEach(a => { const d = !!store.done[a.dataset.ex]; a.classList.toggle('done', d); n += d; });
-  $('#prog').textContent = `練習完成 ${n} / 8`;
+  $('#prog').textContent = `練習完成 ${n} / 6`;
 }
 const tokensOf = code => { try { return tokenize(code).filter(t => t.t !== 'str').map(t => t.v ?? t.t); } catch (e) { return []; } };
 const setupVars = setup => setup ? Object.fromEntries(execute(setup).vars) : {};
@@ -3441,8 +3700,9 @@ const fileOf = (d, f) => { const e = d.files[PROJECT + '/' + f]; return !e ? nul
 const describe = t => [t.vars, ...Object.keys(t.files).length ? ['# 硬碟上的檔案：' + Object.keys(t.files).join('、')] : [], ...(t.dirs.length ? ['# 已經存在的資料夾：' + t.dirs.join('、')] : [])].filter(Boolean).join('\n');
 const head = s => { const L = String(s).split('\n'); return esc(L.slice(0, 10).join('\n') + (L.length > 11 ? '\n…' : '')); };
 
+
 $$('.ex').forEach(box => {
-  const id = box.dataset.ex, X = EX[id], sc = $('script.starter', box), setups = X.setups;
+  const id = box.dataset.ex, X = EX[id], sc = $('script.starter', box);
   const starter = sc.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n';
   const cell = document.createElement('div'); cell.className = 'cell';
   cell.innerHTML = `<div class="cell-h"><span class="lab">你的程式</span><button type="button" class="reset">還原</button><button type="button" class="sol">看解答</button><button type="button" class="run">▶ 執行並檢查</button></div>`;
@@ -3452,55 +3712,25 @@ $$('.ex').forEach(box => {
   const run = () => {
     const code = ed.get();
     store.code[id] = code; persist();
-    const t0 = setups[0], pv0 = setupVars(t0.vars);
-    // the visible run happens on R 寶's computer (so the files show up), with the test's packages lent for this run
-    const tmpPk = new Set([...pkgs, ...t0.pkgs]), before = new Set(pkgs);
-    const r0 = execute(code, pv0, { fs: disk, pkgs: tmpPk });
-    for (const p of tmpPk) if (!t0.pkgs.includes(p) || before.has(p)) pkgs.add(p);
-    r0.newPkgs = [...pkgs].filter(p => !before.has(p)); savePC(); pcRefresh(r0);
     out.hidden = false;
-    renderOut(out, r0, true, pv0);
-    if (describe(t0)) out.insertAdjacentHTML('afterbegin', `<span class="dim">${esc(describe(t0).replace(/^(?!#)/gm, '# '))}\n</span>`);
+    renderOut(out, runOnPC(code), true, {});
     verdict.hidden = false;
-    const bad = msg => { verdict.className = 'verdict no'; verdict.innerHTML = msg; };
-    const toks = tokensOf(code);
-    const hit = (X.ban || []).find(b => toks.includes(b));
-    if (hit) return bad(`<b>還不行</b>　${esc(X.banMsg)}（找到了 <code>${esc(hit)}</code>）`);
-    const miss = (X.need || []).find(n => !n.split('|').some(w => toks.includes(w)));
-    if (miss) return bad(`<b>還不行</b>　這題要用 <code>${esc(miss.split('|').join('</code> 或 <code>'))}</code> 完成。`);
-    for (let k = 0; k < setups.length; k++) {
-      const t = setups[k], pv = setupVars(t.vars), dS = diskFor(t), dR = diskFor(t);
-      const r = execute(code, pv, { fs: dS, pkgs: new Set(t.pkgs) }), ref = execute(X.solution, pv, { fs: dR, pkgs: new Set(t.pkgs) });
-      const where = describe(t) ? `<pre>${esc(describe(t))}</pre>` : '';
-      const tag = `<b>測資 ${k + 1} / ${setups.length} 沒通過</b>${where}`;
-      if (r.error) return bad(`${tag}程式出錯：${esc(r.error.message)}`);
-      for (const v of X.want) {
-        if (!r.vars.has(v)) return bad(`${tag}找不到變數 <code>${esc(v)}</code>。`);
-        if (!sameVal(r.vars.get(v), ref.vars.get(v))) {
-          const h = X.hint && X.hint[v] && X.hint[v](ref.vars.get(v), r.vars.get(v));
-          return bad(`${tag}<code>${esc(v)}</code> 應該是：<pre>${showVal(ref.vars.get(v))}</pre>你的是：<pre>${showVal(r.vars.get(v))}</pre>${h ? `💡 ${esc(h)}` : ''}`);
-        }
-      }
-      for (const d of X.wantDirs || []) if (!dS.dirs[PROJECT + '/' + d]) return bad(`${tag}執行完之後，硬碟上沒有 <code>${esc(d)}</code> 資料夾。`);
-      for (const f of X.wantFiles || []) {
-        const want = fileOf(dR, f), got = fileOf(dS, f);
-        if (got === null) return bad(`${tag}執行完之後，硬碟上找不到 <code>${esc(f)}</code>。檢查檔名和資料夾。`);
-        if (typeof want === 'string') {
-          if (typeof got !== 'string') return bad(`${tag}<code>${esc(f)}</code> 應該是文字檔。`);
-          if (got !== want) { const h = X.fileHint && X.fileHint(want, got); return bad(`${tag}<code>${esc(f)}</code> 的內容不對。應該是：<pre>${head(want)}</pre>你寫出的是：<pre>${head(got)}</pre>${h ? `💡 ${esc(h)}` : ''}`); }
-        } else {
-          const a = execute(`x <- readRDS("${f}")`, {}, { fs: dS }).vars.get('x'), b = execute(`x <- readRDS("${f}")`, {}, { fs: dR }).vars.get('x');
-          if (a === undefined || !sameVal(a, b)) return bad(`${tag}<code>${esc(f)}</code> 裡存的東西不對。應該是：<pre>${showVal(b)}</pre>你的是：<pre>${showVal(a)}</pre>`);
-        }
-      }
+    const bad = msg => { verdict.className = 'verdict no'; verdict.innerHTML = '<b>還不行</b>　' + msg; };
+    const r = execute(code, {}, { fs: defaultDisk() }), ref = execute(X.solution, {}, { fs: defaultDisk() });
+    if (r.error) return bad(`程式出錯：${esc(r.error.message)}`);
+    for (const v of X.want) {
+      if (!r.vars.has(v)) return bad(`找不到變數 <code>${esc(v)}</code>。`);
+      if (!sameVal(r.vars.get(v), ref.vars.get(v))) return bad(`<code>${esc(v)}</code> 應該是：<pre>${showVal(ref.vars.get(v))}</pre>你的是：<pre>${showVal(r.vars.get(v))}</pre>`);
     }
-    verdict.className = 'verdict ok'; verdict.innerHTML = `<b>✓ 全部 ${setups.length} 組測資都通過！</b>${id === 'ex8' ? '　大魔王打倒了 🎉' : ''}`;
+    if (X.wantLm) { const f = r.vars.get(X.wantLm), g = ref.vars.get(X.wantLm); if (!f || !isList(f) || f.cls !== 'lm') return bad(`找不到 <code>${X.wantLm}</code>，或它不是 lm() 的結果。`); if (!sameVal(f.vals[0], g.vals[0])) return bad(`<code>${X.wantLm}</code> 的係數不對：檢查公式是不是 chol ~ age（y 在前面）。<pre>${showVal(g.vals[0])}</pre>`); }
+    if (X.figs) { const m = checkPlots(X, r, ref); if (m) return bad(m); }
+    verdict.className = 'verdict ok'; verdict.innerHTML = '<b>✓ 通過！</b>圖和數字都對了。';
     store.done[id] = 1; persist(); mark(true); updateToc();
   };
   const ed = makeEditor(store.code[id] ?? starter, run);
   cell.append(ed.el, out);
   cell.querySelector('.run').onclick = run;
-  cell.querySelector('.reset').onclick = () => { ed.set(starter); out.hidden = true; verdict.hidden = true; let nx = out.nextElementSibling; while (nx && (nx.classList.contains('envrow') || nx.classList.contains('chg'))) { const t = nx.nextElementSibling; nx.remove(); nx = t; } };
+  cell.querySelector('.reset').onclick = () => { ed.set(starter); out.hidden = true; verdict.hidden = true; clearAfter(out); };
   cell.querySelector('.sol').onclick = () => askPass(X.pass || SOL_PASS, () => {
     const { m, close } = modal(`<h3>${esc($('.ex-h h3', box).textContent)}：詳解</h3>
       <p style="margin:0;color:var(--muted)">每一行右邊的 # 是說明。</p>
@@ -3514,7 +3744,6 @@ $$('.ex').forEach(box => {
 });
 updateToc();
 
-/* highlight the chapter in view */
 const links = $$('#toc a');
 const io = new IntersectionObserver(es => {
   es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + e.target.id))); });
