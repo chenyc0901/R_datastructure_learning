@@ -541,6 +541,8 @@ const MAX_STEPS = 3000;
 class RErr extends Error { constructor(msg, line, kind){ super(msg); this.line = line; this.kind = kind; } }
 class BreakSig { constructor(l){ this.line = l; } }
 class NextSig { constructor(l){ this.line = l; } }
+class ReturnSig { constructor(v, l){ this.v = v; this.line = l; } }
+class RFun { constructor(params, body, env){ this.params = params; this.body = body; this.env = env; } }   // a closure: parameters, body, and where it was defined
 const KWS = new Set(['if','else','for','while','repeat','in','break','next','TRUE','FALSE','NULL','NA','function']);
 const FULLWIDTH = {'（':'(', '）':')', '，':',', '｛':'{', '｝':'}', '；':';', '＝':'=', '＜':'<', '＞':'>', '“':'"', '”':'"', '：':':'};
 
@@ -572,7 +574,7 @@ function tokenize(src){
       toks.push({ t: 'str', v: s, line, s: i, e: j + 1 }); i = j + 1; continue;
     }
     if (FULLWIDTH[c]) throw new RErr(`這裡用了全形符號「${c}」，請改成半形的「${FULLWIDTH[c]}」`, line);
-    let op = ['%in%', '<-', '<=', '>=', '==', '!=', '&&', '||', '%%'].find(o => src.startsWith(o, i));
+    let op = ['%in%', '<<-', '<-', '<=', '>=', '==', '!=', '&&', '||', '%%'].find(o => src.startsWith(o, i));
     if (!op && '+-*/^<>!&|=(){}[],:;$'.includes(c)) op = c;
     if (!op) throw new RErr(`unexpected input「${c}」`, line);
     toks.push({ t: op, line, s: i, e: i + op.length }); i += op.length;
@@ -632,7 +634,6 @@ function parse(src){
       case 'break': case 'next': next(); return { k: t.t, line: t.line };
       case '{': { next(); depth++; const b = stmts('}'); depth--; next(); return { k: 'block', body: b, line: t.line }; }
       case 'else': throw err(t, "unexpected 'else'：else 要緊接在 if 區塊的 } 後面");
-      case 'function': throw err(t, '這個遊戲還不支援自訂函式');
     }
     return { k: 'expr', e: expr(), line: t.line };
   }
@@ -644,12 +645,12 @@ function parse(src){
   function expr(){ return assign(); }
   function assign(){
     const left = orE();
-    if (peek().t === '<-' || peek().t === '=') {
+    if (peek().t === '<-' || peek().t === '=' || peek().t === '<<-') {
       const op = next();
       if ((left.k === 'index' || left.k === 'index2') && left.a.k === 'var') { skipNLonly(); return { k: 'assignIdx', name: left.a.name, i: left.i, val: assign(), line: op.line }; }
       if (left.k !== 'var') throw err(op, '只能把值存進變數，例如 x <- 3');
       skipNLonly();
-      return { k: 'assign', name: left.name, val: assign(), line: op.line };
+      return { k: 'assign', name: left.name, val: assign(), line: op.line, up: op.t === '<<-' };
     }
     return left;
   }
@@ -698,7 +699,20 @@ function parse(src){
       case 'TRUE': return { k: 'lit', v: true };
       case 'FALSE': return { k: 'lit', v: false };
       case 'NULL': return { k: 'lit', v: null };
-      case 'NA': return { k: 'lit', v: undefined };   // NA is represented as undefined
+      case 'NA': return { k: 'lit', v: undefined };
+      case 'function': {
+        expect('(', 'function 後面要接 (，例如 function(n) { … }');
+        const params = []; skipNLonly();
+        if (peek().t !== ')') for (;;) {
+          const nm = expect('id', 'function( ) 裡面要寫參數名稱，例如 function(n)').v; let def = null;
+          if (peek().t === '=') { next(); def = expr(); }
+          params.push({ name: nm, def }); skipNLonly();
+          if (peek().t === ',') { next(); skipNLonly(); continue; }
+          break;
+        }
+        expect(')', 'function 的參數少了 )');
+        return { k: 'fn', params, body: body(), line: t.line };
+      }   // NA is represented as undefined
       case 'if': {   // if used as a value: y <- if (x > 5) "high" else "low"
         const c = condExpr('if'); const then = body();
         const save = p; skipNLonly(); let els = null;
@@ -721,12 +735,14 @@ const LIST_HINT = '這是 list（盒子），要先用 $ 或 [[ ]] 把裡面的�
 const asVec = v => Array.isArray(v) ? v : v === null ? [] : [v];
 const norm = r => r.length === 1 ? r[0] : r;
 const fmtNum = x => Number.isInteger(x) ? String(x) : String(Number(x.toPrecision(7)));
-const fmtEl = x => isList(x) ? `List of ${x.vals.length}` : typeof x === 'string' ? `"${x}"` : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : x === null || x === undefined ? 'NA' : fmtNum(x);
+const fmtFun = f => `function(${f.params.map(p => p.name).join(', ')})`;
+const fmtEl = x => x instanceof RFun ? fmtFun(x) : isList(x) ? `List of ${x.vals.length}` : typeof x === 'string' ? `"${x}"` : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : x === null || x === undefined ? 'NA' : fmtNum(x);
 const fmtCat = x => typeof x === 'string' ? x : fmtEl(x);
 const dispW = t => [...t].reduce((n, ch) => n + (/[\u2E80-\uFFEF]/.test(ch) ? 2 : 1), 0);
 // like R's print(): numbers share one number of decimals, and every element is padded to the same width
 function fmtPrint(v){
   if (v === null) return 'NULL';
+  if (v instanceof RFun) return fmtFun(v) + ' { … }';
   if (isList(v)) return v.vals.map((x, i) => `$${v.names[i] || `[[${i + 1}]]`}\n${fmtPrint(x)}\n`).join('\n');
   const V = asVec(v); if (!V.length) return 'numeric(0)';
   let S;
@@ -737,7 +753,7 @@ function fmtPrint(v){
   const w = Math.max(...S.map(dispW)), str = V.some(x => typeof x === 'string');
   return '[1] ' + S.map(t => str ? t + ' '.repeat(w - dispW(t)) : ' '.repeat(w - dispW(t)) + t).join(' ').replace(/\s+$/, '');
 }
-const fmtShort = v => { if (isList(v)) return `List of ${v.vals.length}`; const V = asVec(v); if (v === null) return 'NULL'; if (V.length === 1) return fmtEl(V[0]); const s = V.slice(0, 8).map(fmtEl).join(' '); return V.length > 8 ? s + ' …' : s; };
+const fmtShort = v => { if (v instanceof RFun) return fmtFun(v); if (isList(v)) return `List of ${v.vals.length}`; const V = asVec(v); if (v === null) return 'NULL'; if (V.length === 1) return fmtEl(V[0]); const s = V.slice(0, 8).map(fmtEl).join(' '); return V.length > 8 ? s + ' …' : s; };
 
 function makeWorld(def){
   const walls = new Set(), D = { E: 0, N: 1, W: 2, S: 3 };
@@ -756,10 +772,17 @@ function isBlocked(w, x, y, d){
 
 function execute(src, def){
   const w = makeWorld(def), steps = [], vars = new Map(Object.entries(def.vars || {}));
+  const LIMIT = def.maxSteps || MAX_STEPS;
+  let frame = null, depth = 0, callVis = null;   // frame: the running function's local variables { vars, parent, name }
+  const findVar = name => { for (let f = frame; f; f = f.parent) if (f.vars.has(name)) return f.vars; return vars.has(name) ? vars : null; };
+  const hasVar = name => !!findVar(name);
+  const getVar = name => findVar(name).get(name);
+  const setVar = (name, v) => (frame ? frame.vars : vars).set(name, v);
+  const setUp = (name, v) => { for (let f = frame && frame.parent; f; f = f.parent) if (f.vars.has(name)) return f.vars.set(name, v); vars.set(name, v); };
   const snap = (line, act, extra) => {
-    if (steps.length >= MAX_STEPS) throw new RErr(`已經執行超過 ${MAX_STEPS} 步，可能是無限迴圈！`, line, 'inf');
+    if (steps.length >= LIMIT) throw new RErr(`已經執行超過 ${LIMIT} 步，可能是無限迴圈（或無限遞迴）！`, line, 'inf');
     steps.push({ line, act, x: w.x, y: w.y, dir: w.dir, rot: w.rot, beepers: { ...w.beepers }, picked: w.picked, placed: w.placed,
-      vars: [...vars].map(([k, v]) => [k, fmtShort(v)]), ...extra });
+      vars: [...vars].map(([k, v]) => [k, fmtShort(v)]).concat(frame ? [...frame.vars].map(([k, v]) => [`${k} ⟨${frame.name} 裡⟩`, fmtShort(v)]) : []), ...extra });
   };
   const blocked = d => isBlocked(w, w.x, w.y, d);
   const here = () => w.beepers[`${w.x},${w.y}`] || 0;
@@ -786,10 +809,12 @@ function execute(src, def){
     facing_east: () => w.dir === 0, facing_north: () => w.dir === 1, facing_west: () => w.dir === 2, facing_south: () => w.dir === 3,
   };
   const num = (x, line) => {
+    if (x instanceof RFun) throw new RErr('這是一個 function，要加括號呼叫它，例如 f()', line);
     if (isList(x)) throw new RErr(LIST_HINT, line);
-    if (Array.isArray(x)) x = x[0];
+    if (Array.isArray(x)) x = x.length ? x[0] : null;
     if (typeof x === 'string') throw new RErr('non-numeric argument：這裡需要數字，不是文字', line);
-    if (x === null || x === undefined) throw new RErr('這裡需要一個數字', line);
+    if (x === null) throw new RErr('這裡需要一個數字，但拿到的是 NULL（空的）。如果它來自 function，是不是忘了回傳值（return）？', line);
+    if (x === undefined) throw new RErr('這裡需要一個數字，但拿到的是 NA', line);
     return +x;
   };
   const condV = (v, line) => {
@@ -818,7 +843,39 @@ function execute(src, def){
     x = +x; y = +y;
     switch (op) { case '+': return x + y; case '-': return x - y; case '*': return x * y; case '/': return x / y; case '^': return Math.pow(x, y); default: return ((x % y) + y) % y; }
   }
+  function callUser(f, n){
+    const name = n.name;
+    if (depth >= 150) throw new RErr('evaluation nested too deeply：遞迴太深了，是不是少了停止的條件？', n.line, 'inf');
+    const args = n.args.map(a => ({ name: a.name, v: ev(a.e) })), local = new Map(), pn = f.params.map(q => q.name);
+    for (const a of args.filter(a => a.name)) {
+      if (!pn.includes(a.name)) throw new RErr(`unused argument (${a.name} = …)：${name}() 沒有叫 ${a.name} 的參數`, n.line);
+      local.set(a.name, a.v);
+    }
+    const rest = args.filter(a => !a.name); let k = 0;
+    for (const q of f.params) if (!local.has(q.name) && k < rest.length) local.set(q.name, rest[k++].v);
+    if (k < rest.length) throw new RErr(`unused argument：${name}() 只有 ${pn.length} 個參數，你給了 ${args.length} 個`, n.line);
+    const saved = frame; frame = { vars: local, parent: f.env, name };
+    depth++;
+    try {
+      for (const q of f.params) if (!local.has(q.name)) {
+        if (!q.def) throw new RErr(`argument "${q.name}" is missing, with no default：呼叫 ${name}() 時要給 ${q.name} 一個值`, n.line);
+        local.set(q.name, ev(q.def));   // defaults are evaluated inside the function
+      }
+      snap(n.line, 'call', { say: `呼叫 ${name}(${[...local].map(([a, v]) => `${a} = ${fmtShort(v)}`).join(', ')})${depth > 1 ? `（第 ${depth} 層）` : ''}` });
+      let r, vis;
+      try { [r, vis] = valueOf(f.body); }
+      catch (e) {
+        if (e instanceof ReturnSig) { r = e.v; vis = true; }
+        else if (e instanceof BreakSig || e instanceof NextSig) throw new RErr('break / next 只能寫在迴圈裡面，不能用來離開 function（要離開請用 return）', e.line);
+        else throw e;
+      }
+      snap(n.line, 'ret', { say: r === null ? `${name}() 結束` : `${name}() 回傳 ${fmtShort(r)}` });
+      callVis = vis;   // like R: a function whose last line is an assignment returns invisibly
+      return r;
+    } finally { frame = saved; depth--; }
+  }
   function call(n){
+    { const fv = findVar(n.name); if (fv && fv.get(n.name) instanceof RFun) return callUser(fv.get(n.name), n); }
     if (ROBOT[n.name]) { if (n.args.length) throw new RErr(`${n.name}() 不需要參數：unused argument`, n.line); ROBOT[n.name](n); return null; }
     if (SENSE[n.name]) { if (n.args.length) throw new RErr(`${n.name}() 不需要參數：unused argument`, n.line); return SENSE[n.name](); }
     if (n.name === 'switch') {
@@ -873,21 +930,23 @@ function execute(src, def){
         return norm(T.map((t, i) => condV(t, n.line) ? Y[i % Y.length] : N[i % N.length]));
       }
       case 'continue': throw new RErr('R 沒有 continue，要跳過這一圈請用 next', n.line);
+      case 'return': if (!frame) throw new RErr('return() 只能寫在 function 裡面', n.line); throw new ReturnSig(pos.length ? pos[0] : null, n.line);
     }
-    if (vars.has(n.name)) throw new RErr(`attempt to apply non-function：${n.name} 是變數，不是函式`, n.line);
+    if (hasVar(n.name)) throw new RErr(`attempt to apply non-function：${n.name} 是變數，不是函式`, n.line);
     throw new RErr(`could not find function "${n.name}"：沒有這個函式，檢查一下拼字`, n.line);
   }
   function ev(n){
     switch (n.k) {
       case 'lit': return n.v;
       case 'var':
-        if (!vars.has(n.name)) {
+        if (!hasVar(n.name)) {
           if (n.name === 'continue') throw new RErr("object 'continue' not found：R 沒有 continue，要跳過這一圈請用 next", n.line);
           if (ROBOT[n.name] || SENSE[n.name]) throw new RErr(`呼叫函式要加括號：${n.name}()`, n.line);
           throw new RErr(`object '${n.name}' not found：還沒有這個變數`, n.line);
         }
-        return vars.get(n.name);
-      case 'assign': { const v = ev(n.val); vars.set(n.name, v); snap(n.line, 'assign', { say: `${n.name} = ${fmtShort(v)}` }); return v; }
+        return getVar(n.name);
+      case 'assign': { const v = ev(n.val); if (n.up) setUp(n.name, v); else setVar(n.name, v); snap(n.line, 'assign', { say: `${n.name} ${n.up ? '<<-' : '='} ${fmtShort(v)}` }); return v; }
+      case 'fn': return new RFun(n.params, n.body, frame);
       case 'call': return call(n);
       case 'ifx': {
         const c = condV(ev(n.cond), n.line);
@@ -895,19 +954,19 @@ function execute(src, def){
         return c ? valueOf(n.then)[0] : n.els ? valueOf(n.els)[0] : null;
       }
       case 'assignIdx': {
-        if (!vars.has(n.name)) throw new RErr(`object '${n.name}' not found：要先建立 ${n.name}，例如 ${n.name} <- numeric(5)`, n.line);
-        const cur = vars.get(n.name), I = ev(n.i), v = ev(n.val);
+        if (!hasVar(n.name)) throw new RErr(`object '${n.name}' not found：要先建立 ${n.name}，例如 ${n.name} <- numeric(5)`, n.line);
+        const cur = getVar(n.name), I = ev(n.i), v = ev(n.val);
         if (isList(cur)) {
           const names = [...cur.names], vals = [...cur.vals];
           let k = typeof I === 'string' ? names.indexOf(I) : num(I, n.line) - 1;
           if (k < 0) { k = vals.length; names.push(typeof I === 'string' ? I : ''); }
-          vals[k] = v; vars.set(n.name, new RList(names, vals));
+          vals[k] = v; setVar(n.name, new RList(names, vals));
         } else {
           const A = [...asVec(cur)], k = num(I, n.line), sv = asVec(v);
           if (k < 1) throw new RErr('位置要從 1 開始：R 的第一個元素是 x[1]', n.line);
           if (sv.length !== 1) throw new RErr(`x[i] 一次只能放一個值，右邊有 ${sv.length} 個`, n.line);
           while (A.length < k - 1) A.push(undefined);   // R pads the gap with NA
-          A[k - 1] = sv[0]; vars.set(n.name, norm(A));
+          A[k - 1] = sv[0]; setVar(n.name, norm(A));
         }
         snap(n.line, 'assign', { say: `${n.name}[${fmtEl(I)}] = ${fmtShort(v)}` });
         return v;
@@ -977,7 +1036,7 @@ function execute(src, def){
   const QUIET = e => e.k === 'assign' || e.k === 'assignIdx' || (e.k === 'call' && (ROBOT[e.name] || e.name === 'print' || e.name === 'cat'));
   function valueOf(st){   // -> [value, visible]
     switch (st.k) {
-      case 'expr': { const v = ev(st.e); return [v, !QUIET(st.e) && !(v === null && (st.e.k === 'ifx' || (st.e.k === 'call' && st.e.name === 'switch')))]; }
+      case 'expr': { callVis = null; const v = ev(st.e); const uv = st.e.k === 'call' ? callVis : null; return [v, !QUIET(st.e) && uv !== false && !(v === null && (st.e.k === 'ifx' || st.e.k === 'call'))]; }
       case 'block': { let r = [null, false]; for (const b of st.body) r = valueOf(b); return r; }
       case 'if': {
         const c = condV(ev(st.cond), st.line);
@@ -1002,7 +1061,7 @@ function execute(src, def){
         const seq = asVec(ev(n.seq));
         if (!seq.length) snap(n.line, 'check', { say: `${n.text} 是空的，跳過`, ok: false });
         for (const v of seq) {
-          vars.set(n.v, v); snap(n.line, 'assign', { say: `${n.v} = ${fmtEl(v)}` });
+          setVar(n.v, v); snap(n.line, 'assign', { say: `${n.v} = ${fmtEl(v)}` });
           if (loopBody(n.body) === 'break') break;
         }
         return;
@@ -1032,6 +1091,7 @@ function execute(src, def){
     }
   } catch (e) {
     if (e instanceof BreakSig || e instanceof NextSig) error = new RErr('break / next 只能寫在迴圈裡面', e.line);
+    else if (e instanceof ReturnSig) error = new RErr('return() 只能寫在 function 裡面', e.line);
     else if (e instanceof RErr) error = e;
     else error = new RErr('程式出錯：' + e.message, null);
   }

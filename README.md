@@ -7,6 +7,7 @@
 | 封面 | `index.html` |
 | 01 記憶體裡的 R 物件 | `memory.html` |
 | 02 R 寶的奇幻旅程 | `loops.html` |
+| 03 R 寶的演算法學院 | `algo.html` |
 | ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
@@ -72,6 +73,26 @@ Karel 風格的程式遊戲：寫 R 程式指揮機器人「R 寶」走迷宮、
 | ★ | 預測挑戰 | 讀程式碼、預測輸出 |
 
 會隨機產生地圖的關卡，過關後會再用其他幾張地圖測試，寫死步數的程式會被抓出來。進度存在瀏覽器的 localStorage。
+
+## 第三部分：R 寶的演算法學院（`algo.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/algo.html
+
+和第二部分同一個機器人與直譯器，改成練習自己寫 `function`，再用 function 組出演算法。執行時 Environment 會標出 function 裡的區域變數，遞迴時對話框會顯示第幾層。
+
+| # | 主題 | 重點 |
+|---|---|---|
+| 1 | function | 定義與呼叫：自己做 `turn_around()` |
+| 2 | 參數 | `move_n(n)`、引數、`seq_len(n)` 處理 0 |
+| 3 | return | 回傳值、最後一行自動回傳；量走廊找中點 |
+| 4 | 區域變數 | function 裡改不到外面的變數，用回傳值帶出結果 |
+| 5 | 預設值 | `function(len, n = 1)`、具名參數 |
+| 6 | 分解問題 | 由上而下設計：`harvest_row()` 收割整片田 |
+| 7 | 線性搜尋 | `return` 立刻離開 function、最差 n 步 |
+| 8 | 最大值 | 記住目前最大值與位置 |
+| 9 | 遞迴 | 停止條件、呼叫堆疊；不准用迴圈 |
+| 10 | 💀 氣泡排序 | 相鄰比較、n − 1 輪 |
+| ★ | 預測挑戰 | 作用域、預設值、提早 return、遞迴的輸出順序 |
 
 ## 補充教材：控制流程（`extras.html`）
 

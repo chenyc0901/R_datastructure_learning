@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="寫 R 程式指揮機器人走迷宮、撿寶石，練習 for、while、repeat、if、%in%、!、&&、break、next、ifelse、巢狀迴圈與 list。">
-<meta property="og:title" content="R 寶的奇幻旅程">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E">
-<title>R 寶的奇幻旅程</title>
+<meta name="description" content="寫 R 的 function 指揮機器人：參數、回傳值、區域變數、分解問題，再完成線性搜尋、找最大值、遞迴與氣泡排序。">
+<meta property="og:title" content="R 寶的演算法學院">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<title>R 寶的演算法學院</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
@@ -271,9 +271,9 @@ table.sol tr.com td{color:var(--muted);font-style:italic}
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <a class="back" href="./">← 大數據分析與實踐 · 課程首頁</a>　<a class="back" href="extras.html">控制流程補充教材 →</a>　<a class="back" href="algo.html">下一單元：R 寶的演算法學院 →</a>
-      <h1><span class="r">R</span>寶的奇幻旅程</h1>
-      <p>寫 R 程式指揮機器人 R 寶走迷宮、撿寶石。用 <code>for</code>、<code>while</code>、<code>if</code> 和巢狀迴圈，讓程式越短越好。</p>
+      <a class="back" href="./">← 大數據分析與實踐 · 課程首頁</a>　<a class="back" href="loops.html">← 上一單元：R 寶的奇幻旅程</a>
+      <h1><span class="r">R</span>寶的演算法學院</h1>
+      <p>把重複的動作包成 <code>function</code>，再用 function 組出演算法：搜尋、找最大值、遞迴、排序。</p>
     </div>
     <div class="stats" aria-live="polite">
       <span class="lv" id="lv">Lv.1</span>
@@ -889,314 +889,211 @@ function hbbWorld(pid, muts){
     vars: { ref: [...HBB_REF], patient: new RList(['id', 'gene', 'seq'], [pid, 'HBB', seq]) } };
 }
 
-const SOL_NOTES = {"seq": {"idea": "R 寶在第 1 格，寶石在第 4 格：走 3 步，再撿起來。", "lines": ["往前走一格，到第 2 格", "再走一格，到第 3 格", "再走一格，到第 4 格（寶石所在）", "撿起腳下的寶石"], "traps": ["函式一定要加括號：寫 move 不會動，要寫 move()。", "走太多步會撞牆，程式會在那一行停下來。"]}, "for": {"idea": "從第 1 格到第 9 格要走 8 步，用 for 重複 8 次 move()。", "lines": ["1:8 產生 c(1, 2, …, 8)，i 依序取每個值，大括號裡的程式跑 8 次", "每一圈往前走一格", "for 迴圈結束", "迴圈跑完已經在第 9 格，撿起寶石"], "traps": ["寫成 1:9 會多走一步撞牆：9 格之間只有 8 步。", "pick_beeper() 放在迴圈裡面會在每一格都撿，沒寶石的格子會出錯。"]}, "fence": {"idea": "7 個格子、6 段路：迴圈「放 → 走」跑 6 次，最後一格在迴圈外補放。", "lines": ["重複 6 次（格子之間的 6 段路）", "在目前這一格放一顆寶石", "往前走到下一格", "for 迴圈結束，這時站在第 7 格，但還沒放", "補上最後一格的寶石（柵欄問題）"], "traps": ["改成 1:7 會在第 7 格之後還要 move()，撞牆。", "忘記最後一行，第 7 格會是空的。"]}, "while": {"idea": "不知道走廊多長，就用「前面有路就走」的 while，走到牆邊自然停下。", "lines": ["每一圈開始前檢查：前面有路（TRUE）就進迴圈，沒路（FALSE）就結束", "往前走一格", "while 迴圈結束，此時前面是牆", "撿起盡頭的寶石"], "traps": ["迴圈裡忘了 move()，條件永遠不變，就是無限迴圈。", "寫死成 for (i in 1:5)，換一張地圖就失敗。"]}, "not": {"idea": "「腳下沒有寶石」就繼續走：用 ! 把 beepers_present() 反過來。", "lines": ["!beepers_present()：腳下沒寶石時是 TRUE，就繼續走；踩到寶石變 FALSE，迴圈結束", "往前走一格", "while 迴圈結束，此時腳下有寶石", "撿起寶石"], "traps": ["少了 !，一開始腳下沒寶石，條件就是 FALSE，迴圈一次都不跑。"]}, "if": {"idea": "每走一格就檢查一次：有寶石才撿。", "lines": ["走 7 步（第 1 格到第 8 格）", "先往前走一格", "if：這一格有寶石（TRUE）才執行 pick_beeper()，沒有就跳過", "for 迴圈結束"], "traps": ["沒有 if 直接 pick_beeper()，遇到空格子就會出錯。"]}, "in": {"idea": "i 代表 R 寶現在站的格子編號，用 %in% 判斷它是不是在 spots 這個清單裡。", "lines": ["建立向量 spots：要放寶石的格子編號", "i 從 2 跑到 8，對應 R 寶走到的格子", "先走到第 i 格", "i %in% spots：i 在清單裡是 TRUE 才放寶石", "for 迴圈結束"], "traps": ["for 的 in 和 %in% 不一樣：前者是「依序取值」，後者是「是否屬於」。", "寫成 i == spots 會得到 3 個 TRUE/FALSE，if 會出錯（the condition has length > 1）。"]}, "sweep": {"idea": "while 一路走，每一格先檢查再走；迴圈結束後最後一格還要再檢查一次。", "lines": ["前面有路就繼續", "這一格有寶石就撿", "往前走一格", "while 結束，站在最後一格，但這一格還沒檢查", "補檢查最後一格（柵欄問題）"], "traps": ["少了最後一行，最後一格的寶石會漏掉。", "把 move() 放在 if 前面，第一格的寶石會漏掉。"]}, "and": {"idea": "有兩個停下來的理由（到牆邊、踩到寶石），用 && 把「繼續走」的兩個條件接起來。", "lines": ["前面有路「而且」腳下沒寶石，兩個都 TRUE 才繼續走；任何一個變 FALSE 就停", "往前走一格", "while 結束：不是到牆邊，就是踩到寶石", "如果是因為踩到寶石而停，就撿起來；沒寶石的地圖就什麼都不做"], "traps": ["用 || 的話，只要前面有路就會一直走，會走過寶石。", "最後直接 pick_beeper()，沒寶石的地圖會出錯。"]}, "break": {"idea": "for 最多跑 9 圈，但一找到寶石就用 break 提早離開。", "lines": ["最多走 9 步", "往前走一格", "檢查這一格有沒有寶石", "有的話立刻結束整個 for 迴圈，剩下的圈數不跑", "if 結束", "for 結束（break 會直接跳到這後面）", "撿起寶石"], "traps": ["把 pick_beeper() 放在 break 後面（同一個大括號裡），它永遠不會執行。"]}, "repeat": {"idea": "repeat 沒有條件，自己決定在哪裡檢查：「放 → 檢查 → 走」，一個迴圈就處理所有格子。", "lines": ["repeat：無條件重複，一定要靠裡面的 break 才能離開", "先在目前這一格放寶石（最後一格也會放到）", "再檢查：前面是牆就 break 離開迴圈", "還沒到牆邊才往前走", "repeat 結束，回到第一行再來一圈"], "traps": ["move() 放在 break 前面：最後一格還沒放就撞牆或離開。", "忘了 break：永遠停不下來（無限迴圈）。"]}, "next": {"idea": "已經有寶石的格子用 next 跳過這一圈剩下的程式，不要重複放。", "lines": ["走 7 格（第 2 到第 8 格）", "先走到下一格", "這一格已經有寶石 → next：跳過下面的 put_beeper()，直接進下一圈", "能跑到這行代表格子是空的，放一顆", "for 迴圈結束"], "traps": ["用 break 會整個迴圈結束，後面的格子都不會補。", "R 沒有 continue，要寫 next。"]}, "square": {"idea": "外層跑 4 個邊，內層每個邊走 4 步；每到一個角落就檢查寶石，再左轉。", "lines": ["外層：4 個邊", "內層：每邊走 4 步（5 × 5 場地，角到角是 4 步）", "往前走一格（總共執行 4 × 4 = 16 次）", "內層 for 結束，現在在角落", "角落有寶石就撿", "左轉，準備走下一個邊", "外層 for 結束，繞完一圈回到起點"], "traps": ["內層寫成 1:5，每邊會多走一步撞牆。"]}, "pyramid": {"idea": "內層的次數用外層的變數 i：第 i 格放 i 顆。", "lines": ["外層：i 從 1 到 5，代表第幾格", "內層：k 從 1 到 i，第 i 格就跑 i 次", "放一顆寶石", "內層結束：這一格放了 i 顆", "往前走到下一格", "外層結束"], "traps": ["內層寫成 1:5，每格都會放 5 顆。"]}, "ifelse": {"idea": "ifelse 一次對整個向量判斷，得到每一格要放幾顆，再用巢狀迴圈照著放。", "lines": ["5 格的高度", "ifelse 逐一判斷 heights > 5：TRUE 給 2、FALSE 給 1，n 是 c(1, 2, 1, 2, 1)", "外層：第 i 格", "內層：放 n[i] 顆（取出向量 n 的第 i 個值）", "放一顆寶石", "內層結束", "往前走到下一格", "外層結束"], "traps": ["寫成 if (heights > 5) 會出錯：if 只能判斷一個值，heights 有 5 個。"]}, "maze": {"idea": "右手扶牆法：能右轉就右轉，不行就直走，再不行就左轉，一直到踩到寶石。", "lines": ["腳下沒有寶石就繼續找", "第一優先：右邊有路", "右轉", "往右邊那條路走一格", "第二優先：右邊不通，但前面有路", "直走一格", "右邊和前面都不通", "左轉（原地轉向，下一圈再判斷）", "if 結束", "while 結束：腳下有寶石了", "撿起寶石"], "traps": ["else if 的順序很重要：只會執行第一個成立的分支。", "else 裡如果也寫 move()，可能會撞牆。"]}, "boss": {"idea": "拆成三步：① 用內層 repeat 掃完一列、② 用 facing_east() 決定往哪邊換列（蛇行）、③ 用 seq_len(total) 把撿到的數量放回去。", "lines": ["計數器：一開始撿了 0 顆", "外層 repeat：一列一列處理，直到沒有上一列", "（註解）", "內層 repeat：掃這一列", "用 while 不是 if：一格可能疊好幾顆，要撿光", "撿一顆", "計數器加 1", "這一格撿光了", "走到這一列盡頭就 break（只跳出內層 repeat）", "還沒到盡頭就往前走", "內層 repeat 結束：這一列掃完了", "（註解）", "現在朝東：上一列在左手邊", "左邊（北方）是牆 → 已經是最上面一列，break 跳出外層 repeat", "左轉，面向北", "上樓一格", "再左轉，面向西，準備往回掃", "否則（現在朝西）：上一列在右手邊", "右邊是牆 → 最上面一列，break", "右轉，面向北", "上樓一格", "再右轉，面向東", "if / else 結束", "外層 repeat 結束", "（註解）", "seq_len(total)：total 是 0 時會是空的，迴圈一次都不跑；1:total 會變成 c(1, 0) 跑 2 次"], "traps": ["while 寫成 if：疊了 3 顆的格子只會撿 1 顆。", "break 只會跳出最近的那一層迴圈。", "1:total 在空倉庫會多放 2 顆。"]}, "hbb": {"idea": "逐一比對 patient$seq 和 ref 的每個鹼基；不一樣就放寶石，並把位置接到 pos 後面。最後用 %in% 判斷第 8 個位置。", "lines": ["建立空的 vector（NULL），用來收集突變位置", "seq_along(ref) 產生 1:12，i 是第幾個鹼基", "patient$seq 從 list 取出序列（打開盒子），[i] 取第 i 個，和 ref[i] 比較", "不一樣 → 在這格放寶石標記突變", "把 i 接到 pos 後面，pos 變長一格", "if 結束", "最後一格不要再 move()，否則會撞牆（柵欄問題）", "for 結束", "第 8 個鹼基在突變清單裡嗎？TRUE / FALSE", "印出病人編號和所有突變位置", "印出 HbS 判讀結果"], "traps": ["patient[\"seq\"] 拿到的還是 list（盒子），要用 $ 或 [[ ]] 打開。", "寫成 hbs <- TRUE 會在其他病人身上判斷錯誤。"]}};
+const SOL_NOTES = {"fn": {"idea": "把「左轉兩次」包成 turn_around()，之後一行就能向後轉。", "lines": ["定義 turn_around：沒有參數的 function", "左轉一次", "再左轉一次 = 向後轉", "function 結束", "走到走廊盡頭", "撿起寶石", "呼叫自己做的 function：向後轉", "走回起點（另一頭的牆）", "把寶石放在起點"], "traps": ["定義時的 () 和呼叫時的 () 都不能省：寫 turn_around 不會動，要寫 turn_around()。", "function 要先定義（執行過那幾行）才能呼叫。"]}, "param": {"idea": "move_n(n) 的 n 每次呼叫都可以不同；用 for (g in gaps) 依序把間距交給它。", "lines": ["n 是參數：呼叫時給的數字會放進 n", "走 n 步；n 是 0 時 seq_len(0) 是空的，一步都不走", "function 結束", "g 依序拿到 gaps 裡的每個值", "把 g 當作引數交給 move_n，走 g 步", "放一顆寶石", "迴圈結束"], "traps": ["寫成 for (i in 1:n)，n 是 0 時會走 2 步撞牆。", "move_n 裡的 n 和外面的變數無關，是呼叫時才放進去的值。"]}, "return": {"idea": "walk_to_wall() 一邊走一邊數，用 return 把步數交出來；往回走一半就是中點。", "lines": ["定義 turn_around：沒有參數的 function", "左轉一次", "再左轉一次 = 向後轉", "function 結束", "上一關的 move_n", "走 n 步", "function 結束", "走到牆邊並回傳步數", "區域變數：計步器", "前面有路就繼續", "走一步", "計步器加 1", "while 結束，已經在牆邊", "把步數交回給呼叫的人", "function 結束", "呼叫並把回傳值存進 n（走廊長度 − 1）", "向後轉", "往回走一半；長度是奇數，n 一定是偶數", "在正中間放寶石"], "traps": ["忘了 return(steps)：function 最後一行是 while，回傳的是 NULL，n 就不是數字。", "steps 是區域變數，function 外面讀不到，一定要靠回傳值拿出來。"]}, "scope": {"idea": "pick_all() 的 n 是區域變數；用「回傳值」把數量帶出來，再加到外面的 total。", "lines": ["全域變數：總數", "撿光腳下的寶石，回傳數量", "區域變數 n：只活在這次呼叫裡", "還有寶石就繼續撿", "撿一顆", "區域計數加 1", "撿光了", "最後一行的值就是回傳值", "function 結束，n 跟著消失", "一格一格處理", "回傳值才是把資訊帶出 function 的正確方法", "到牆邊就停", "往前一格", "repeat 結束", "在牆邊放下 total 顆"], "traps": ["在 pick_all 裡寫 total <- total + 1：改到的是 function 裡的「新」total，外面的 total 還是 0。"]}, "default": {"idea": "plant_row(len, n = 1)：一個 function 處理一整段，n 沒給就用 1。", "lines": ["len 必填；n 有預設值 1，沒給就用 1", "處理 len 格", "這一格放 n 顆", "最後一格不要再走（柵欄問題）", "迴圈結束", "function 結束", "只給 len = 3，n 用預設值 1", "走到下一段", "len = 2，n 指定為 3", "走到下一段", "具名參數可以不照順序"], "traps": ["有預設值的參數放後面：function(len, n = 1)。", "plant_row(2, 3) 也可以，但 plant_row(2, n = 3) 比較好讀。"]}, "decomp": {"idea": "先把大問題拆成「收一列」和「上樓」，主程式就只剩幾行。", "lines": ["定義 turn_around：沒有參數的 function", "左轉一次", "再左轉一次 = 向後轉", "function 結束", "子問題：收完一整列，再回到西邊", "先收第一格", "往東走到底", "走一格", "有就收", "到東邊牆了", "向後轉", "走回西邊，最後面向西", "function 結束", "主程式：一列一列處理", "收這一列", "面向西時北方在右手邊；上面沒路就是最後一列", "面向北", "上樓一列", "面向東，準備收下一列", "repeat 結束"], "traps": ["harvest_row 結束時一定要面向西、在西邊，主程式的「上樓」動作才會對。", "一個 function 只做一件事，名字要說清楚它做了什麼。"]}, "search": {"idea": "從頭一格一格找，找到就用 return 立刻結束；全部找完都沒有就回傳 0。", "lines": ["線性搜尋：從頭一格一格找", "現在在第 1 格", "一直找", "找到了：return 立刻離開整個 function", "走到底都沒找到：回傳 0", "往下一格", "位置加 1", "repeat 結束（其實一定會先 return）", "function 結束", "把搜尋結果存起來", "印出結果"], "traps": ["用 break 只會離開 repeat，還要再寫回傳；return 直接結束整個 function。", "先檢查寶石、再檢查牆：寶石在最後一格時才不會漏掉。"]}, "max": {"idea": "看過每一堆，記住「目前最大」和「它在哪」；看完再走回那一格。", "lines": ["定義 turn_around：沒有參數的 function", "左轉一次", "再左轉一次 = 向後轉", "function 結束", "數腳下有幾顆，數完放回去", "計數器", "撿光", "撿一顆", "數一顆", "撿光了", "原封不動放回去", "回傳數量", "function 結束", "目前看過最大的數量", "最大那堆在第幾格", "現在在第 1 格", "每一格都看一次", "這一格有幾顆", "比目前最大的還大（用 > 而不是 >=，一樣大時保留前面那一堆）", "更新最大值", "記下位置", "if 結束", "看完最後一格就停", "往下一格", "位置加 1", "repeat 結束，R 寶在第 i 格（最後一格）", "向後轉", "往回走 i − best_pos 步，停在最大那堆"], "traps": ["best 從 0 開始：每一堆至少 1 顆，第一堆一定會更新它。", "用 >= 會在一樣大時改成後面那一堆。"]}, "recur": {"idea": "每一層 function 負責「去一步、回一步」，牆邊是停止條件，回程靠呼叫堆疊自動完成。", "lines": ["定義 turn_around：沒有參數的 function", "左轉一次", "再左轉一次 = 向後轉", "function 結束", "遞迴 function：會呼叫自己", "還沒到牆邊", "往前一步", "交給「下一個自己」處理剩下的路；它做完才會回到這裡", "回程：每一層各走回一步，步數自動對上", "到牆邊了：停止條件（base case）", "撿起寶石", "向後轉，開始回程", "if 結束", "function 結束", "從起點出發", "回到起點，放下寶石"], "traps": ["少了停止條件（else 那一段），會一直呼叫自己直到撞牆或遞迴太深。", "第二個 move() 是在「下一個自己」做完之後才執行，這就是回程。"]}, "sort": {"idea": "每一輪從左到右比較相鄰兩堆，大的往右換；做 n − 1 輪就排好了。", "lines": ["定義 turn_around：沒有參數的 function", "左轉一次", "再左轉一次 = 向後轉", "function 結束", "撿光這一格，回傳數量", "計數器", "撿光", "撿一顆", "數一顆", "撿光了", "回傳數量", "function 結束", "放 k 顆", "放 k 次", "function 結束", "回到第 1 格、面向東", "向後轉", "走到西邊牆", "再轉回面向東", "function 結束", "把第 i 格和第 i+1 格排好", "左邊那堆的數量", "走到右邊", "右邊那堆的數量", "右邊放比較大的", "向後轉", "回到左邊", "左邊放比較小的", "轉回面向東", "站到第 i+1 格，準備比下一對", "function 結束", "一共 n − 1 輪", "每一輪都從第 1 格開始", "第 pass 輪比較 n − pass 對：右邊 pass − 1 格已經排好了", "比較並排好相鄰的兩堆", "這一輪結束：最大的已經「浮」到最右邊", "排序完成"], "traps": ["內層寫成 1:(n - 1) 也會對，但每一輪都多比已經排好的部分。", "put_n 的順序：先放右邊（大的），回到左邊再放小的。"]}};
+const sumB = b => Object.values(b).reduce((a, x) => a + x, 0);
+const pilesOf = (w, W) => Array.from({ length: W }, (_, i) => w.beepers[`${i + 1},1`] || 0);
+const pileWorld = hs => corridor(hs.length, Object.fromEntries(hs.map((h, i) => [`${i + 1},1`, h]).filter(([, h]) => h > 0)));
+const gapWorld = gaps => {
+  let x = 1; const t = {};
+  for (const g of gaps) { x += g; t[x] = (t[x] || 0) + 1; }
+  return corridor(x, {}, { targets: Object.entries(t).map(([k, n]) => [+k, 1, n]), vars: { gaps: gaps.length === 1 ? gaps[0] : [...gaps] }, gaps });
+};
+const field = (W, H, gems) => ({ W, H, robot: [1, 1, 0], beepers: Object.fromEntries(gems.map(([x, y]) => [`${x},${y}`, 1])), walls: [] });
+const sortWorld = hs => ({ ...pileWorld(hs), vars: { n: hs.length }, maxSteps: 6000 });
+
 const LEVELS = [
-  { id: 'seq', tag: '順序', title: '第一步',
-    goal: 'R 寶要走到寶石那一格，把寶石撿起來。',
-    concept: `<p>程式由上往下，一行一行執行。每個指令都是一個<b>函式呼叫</b>，名稱後面一定要加括號，例如 <code>move()</code>。</p>
-      <p>R 寶看得懂：<code>move()</code> 往前一格、<code>turn_left()</code> 左轉、<code>turn_right()</code> 右轉、<code>pick_beeper()</code> 撿寶石、<code>put_beeper()</code> 放寶石。</p>`,
-    starter: '# 每一行是一個指令，R 會由上往下執行\nmove()\nmove()\n',
-    hint: '寶石在第 4 格，R 寶在第 1 格，要走 3 步。走到之後再用 <code>pick_beeper()</code> 撿起來。',
-    solution: 'move()\nmove()\nmove()\npick_beeper()\n', par: 4, req: [],
-    def: () => corridor(5, gemsAt([4])),
-    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '寶石還在地上，記得用 pick_beeper() 撿起來。' } },
-
-  { id: 'for', tag: 'for', title: '長長的走廊',
-    goal: '寶石在走廊盡頭（第 9 格）。用 for 迴圈走過去，不要寫 8 次 move()。',
-    concept: `<p><code>for (i in 1:8)</code> 會把大括號裡的程式重複 8 次。<code>1:8</code> 會產生向量 <code>c(1, 2, …, 8)</code>，每一圈 <code>i</code> 依序取出其中一個值，看右邊的 Environment 就能看到 i 在變。</p>
-      <p>序列也可以倒數：<code>3:1</code> 就是 <code>c(3, 2, 1)</code>；或跳著數：<code>seq(1, 9, by = 2)</code> 是 <code>c(1, 3, 5, 7, 9)</code>。</p>`,
-    starter: 'for (i in 1:___) {\n  move()\n}\npick_beeper()\n',
-    hint: '從第 1 格走到第 9 格，要走 9 − 1 = 8 步。',
-    solution: 'for (i in 1:8) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['for', 1]],
-    def: () => corridor(9, gemsAt([9])),
-    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: `R 寶停在第 ${w.x} 格，寶石在第 9 格。` } },
-
-  { id: 'fence', tag: 'for', title: '種一排寶石',
-    goal: '在 7 個格子上各放 1 顆寶石（虛線是要放的位置）。',
-    concept: `<p>7 個格子要放 7 顆寶石，但只需要走 6 步。迴圈次數和格子數差一，這叫「柵欄問題」（fencepost problem），是寫迴圈最常見的錯誤之一。</p>
-      <p>另一個陷阱：<code>1:0</code> 不是空的，而是 <code>c(1, 0)</code>。次數可能是 0 時，改用 <code>seq_len(n)</code>。</p>`,
-    starter: 'for (i in 1:6) {\n  put_beeper()\n  move()\n}\n',
-    hint: '先執行一次看看，最後一格是不是空的？迴圈結束後，再補一行 <code>put_beeper()</code>。',
-    solution: 'for (i in 1:6) {\n  put_beeper()\n  move()\n}\nput_beeper()\n', par: 4, req: [['for', 1]],
-    def: () => corridor(7, {}, { targets: [1, 2, 3, 4, 5, 6, 7].map(x => [x, 1, 1]) }),
-    check: w => {
-      for (let x = 1; x <= 7; x++) {
-        const n = w.beepers[`${x},1`] || 0;
-        if (n === 0) return { ok: false, msg: x === 7 ? '第 7 格還是空的！7 個格子只需要走 6 步，最後一格要在迴圈外另外放。' : `第 ${x} 格還是空的。` };
-        if (n > 1) return { ok: false, msg: `第 ${x} 格放了 ${n} 顆，每格只要 1 顆。` };
-      }
-      return { ok: true };
-    } },
-
-  { id: 'while', tag: 'while', title: '看不見盡頭',
-    goal: '走廊長度每次都不一樣。走到盡頭，撿起寶石。按「換地圖」可以換一張試試。',
-    concept: `<p>不知道要跑幾次時，用 <code>while (條件)</code>。每一圈開始前先檢查條件：<code>TRUE</code> 就再跑一圈，<code>FALSE</code> 就停下來。</p>
-      <p><code>front_is_clear()</code> 會回答「前面有沒有路」，正好拿來當條件。如果條件永遠不會變成 FALSE，就會變成停不下來的無限迴圈。</p>`,
-    starter: 'while (front_is_clear()) {\n  \n}\npick_beeper()\n',
-    hint: '大括號裡只需要一行：前面有路，就往前走。',
-    solution: 'while (front_is_clear()) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['while', 1]],
-    random: true, def: () => { const L = randInt(4, 10); return corridor(L, gemsAt([L])); },
-    tests: [4, 7, 10].map(L => corridor(L, gemsAt([L]))),
+  { id: 'fn', tag: 'function', title: '第一個 function：向後轉',
+    goal: '走廊長度不固定。走到盡頭撿起寶石，再走回起點把寶石放下。R 寶沒有「向後轉」的指令，請自己做一個 <code>turn_around()</code>。',
+    concept: `<p><b>function（函式）</b>就是把一串動作包起來、取一個名字。之後只要寫名字加括號，就會執行裡面全部的動作。</p>
+      <pre class="snippet">名字 &lt;- function() {
+  要做的事
+}</pre>
+      <p>例如 <code>hop &lt;- function() { move(); move() }</code> 之後，寫 <code>hop()</code> 就會走兩步。<code>move()</code>、<code>turn_left()</code> 其實也是 function，只是別人先幫你做好了。</p>
+      <p>好處：<b>重複的動作只寫一次</b>，而且程式讀起來像在說話：「走到底、撿起來、向後轉、走回來、放下」。</p>`,
+    starter: "# 1. 定義 function：左轉兩次 = 向後轉\nturn_around <- function() {\n\n}\n\n# 2. 使用它\nwhile (front_is_clear()) move()\npick_beeper()\nturn_around()\nwhile (front_is_clear()) move()\nput_beeper()\n", solution: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\nwhile (front_is_clear()) move()\npick_beeper()\nturn_around()\nwhile (front_is_clear()) move()\nput_beeper()\n",
+    hint: '在 turn_around 的大括號裡寫兩行 <code>turn_left()</code>。',
+    par: 8, req: [['function', 1, 'function'], ['turn_around', 2, '自己定義並使用 turn_around()']],
+    random: true, def: () => { const L = randInt(4, 9); return corridor(L, gemsAt([L])); },
+    tests: [4, 7, 9].map(L => corridor(L, gemsAt([L]))),
     describe: d => `長度 ${d.W} 的走廊`,
-    check: (w, d) => w.picked >= 1 ? { ok: true } : { ok: false, msg: `R 寶停在第 ${w.x} 格，寶石在第 ${d.W} 格。` } },
+    check: w => !w.picked ? { ok: false, msg: '還沒撿到盡頭的寶石。' } : (w.beepers['1,1'] || 0) !== 1 ? { ok: false, msg: `寶石要放回起點（第 1 格），現在 R 寶在第 ${w.x} 格。turn_around() 有讓 R 寶轉過來嗎？` } : { ok: true } },
 
-  { id: 'not', tag: '! 反轉', title: '找到寶石為止',
-    goal: '寶石藏在走廊的某一格（每次不同）。一直往前走，直到腳下有寶石，再撿起來。',
-    concept: `<p><code>!</code> 是「不是」（NOT），會把 <code>TRUE</code> 變成 <code>FALSE</code>、<code>FALSE</code> 變成 <code>TRUE</code>。</p>
-      <p><code>beepers_present()</code> 回答「腳下有寶石嗎」；前面加上 <code>!</code>，<code>!beepers_present()</code> 就變成「腳下<b>沒有</b>寶石」。我們要在「沒有寶石」的時候繼續走。</p>
-      <p>例如 <code>!TRUE</code> 是 <code>FALSE</code>；<code>!(3 &gt; 5)</code> 是 <code>TRUE</code>。</p>`,
-    starter: '# ! 會把 TRUE 變成 FALSE，FALSE 變成 TRUE\nwhile (___) {\n  move()\n}\npick_beeper()\n',
-    hint: '條件寫 <code>!beepers_present()</code>：腳下沒有寶石，就繼續走。',
-    solution: 'while (!beepers_present()) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['while', 1], ['!', 1, '!']],
-    random: true, def: () => corridor(10, gemsAt([randInt(2, 10)])),
-    tests: [2, 6, 10].map(x => corridor(10, gemsAt([x]))),
-    describe: d => `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格`,
-    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
-
-  { id: 'if', tag: 'if', title: '有寶石才撿',
-    goal: '走到最右邊，沿路把所有寶石撿起來。寶石的位置每次都不同。',
-    concept: `<p><code>if (條件)</code> 只在條件為 <code>TRUE</code> 時才執行後面的程式。<code>beepers_present()</code> 會回答「這一格有沒有寶石」。</p>
-      <p>大括號裡只有一行時，可以寫成一行：<code>if (beepers_present()) pick_beeper()</code></p>
-      <p>常用的比較：<code>==</code> 等於、<code>!=</code> 不等於、<code>&gt;</code>、<code>&lt;=</code>……還有 <code>%%</code> 取餘數：<code>7 %% 2</code> 是 1，所以 <code>i %% 2 == 0</code> 可以判斷 i 是不是偶數。</p>`,
-    starter: 'for (i in 1:7) {\n  move()\n  # 這一格有寶石才撿，沒有就不撿\n  \n}\n',
-    hint: '在空白那行寫：如果 <code>beepers_present()</code>，就 <code>pick_beeper()</code>。',
-    solution: 'for (i in 1:7) {\n  move()\n  if (beepers_present()) pick_beeper()\n}\n', par: 3, req: [['for', 1], ['if', 1]],
-    random: true, def: () => { let xs; do { xs = [2, 3, 4, 5, 6, 7, 8].filter(() => Math.random() < .5); } while (!xs.length); return corridor(8, gemsAt(xs)); },
-    tests: [[2, 3, 4, 5, 6, 7, 8], [8], [2, 5]].map(xs => corridor(8, gemsAt(xs))),
-    describe: d => `寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格`,
-    check: w => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿。` } : w.x !== 8 ? { ok: false, msg: '寶石撿完了，但還沒走到最右邊。' } : { ok: true } },
-
-  { id: 'in', tag: '%in%', title: '只放在指定的格子',
-    goal: '向量 spots 列出要放寶石的格子編號。從第 2 格走到第 8 格，編號在 spots 裡的格子才放一顆寶石。',
-    concept: `<p><code>x %in% v</code> 問的是「x 有沒有出現在向量 v 裡面」，回答 <code>TRUE</code> 或 <code>FALSE</code>：</p>
-      <p><code>5 %in% c(2, 5, 7)</code> → <code>TRUE</code>　　<code>4 %in% c(2, 5, 7)</code> → <code>FALSE</code></p>
-      <p>別跟 for 的 <code>in</code> 搞混：<code>for (i in 2:8)</code> 的 <code>in</code> 是「讓 i 依序取出每個值」；<code>%in%</code> 前後有百分號，是「是否屬於」的判斷，常放在 for 迴圈裡的 <code>if</code> 條件中。</p>
-      <p>左邊放向量也可以，會逐一判斷：<code>c(1, 5) %in% c(2, 5, 7)</code> → <code>[1] FALSE  TRUE</code>。要問「不在裡面」就寫 <code>!(i %in% spots)</code>。</p>`,
-    starter: 'spots <- c(2, 5, 7)\nfor (i in 2:8) {\n  move()          # 現在 R 寶站在第 i 格\n  # i 在 spots 裡面，才放寶石\n  \n}\n',
-    hint: '在空白那行寫 <code>if (i %in% spots) put_beeper()</code>。執行時看 Environment 裡的 i，和對話框裡的 TRUE / FALSE。',
-    solution: 'spots <- c(2, 5, 7)\nfor (i in 2:8) {\n  move()\n  if (i %in% spots) put_beeper()\n}\n', par: 4, req: [['for', 1], ['%in%', 1, '%in%']],
-    def: () => corridor(8, {}, { targets: [[2, 1, 1], [5, 1, 1], [7, 1, 1]] }),
-    check: w => {
-      for (let x = 1; x <= 8; x++) {
-        const n = w.beepers[`${x},1`] || 0, want = [2, 5, 7].includes(x) ? 1 : 0;
-        if (n !== want) return { ok: false, msg: want ? `第 ${x} 格在 spots 裡，應該放 1 顆，現在有 ${n} 顆。` : `第 ${x} 格不在 spots 裡，不應該放寶石。` };
-      }
-      return { ok: true };
-    } },
-
-  { id: 'sweep', tag: 'while+if', title: '清掃走廊',
-    goal: '長度和寶石位置都不固定。走到牆邊，把每一格（包括第一格和最後一格）的寶石都撿起來。',
-    concept: `<p>把 while 和 if 組合起來：一路往前走，每到一格就檢查要不要撿。</p>
-      <p>小心柵欄問題：while 結束時，R 寶站在最後一格，但那一格還沒檢查過。</p>`,
-    starter: 'while (front_is_clear()) {\n  \n}\n',
-    hint: '迴圈裡：先檢查腳下有沒有寶石，再 <code>move()</code>。迴圈結束後，最後一格要再檢查一次。',
-    solution: 'while (front_is_clear()) {\n  if (beepers_present()) pick_beeper()\n  move()\n}\nif (beepers_present()) pick_beeper()\n', par: 4, req: [['while', 1], ['if', 1]],
-    random: true, def: () => { const L = randInt(5, 10); let xs; do { xs = Array.from({ length: L }, (_, i) => i + 1).filter(() => Math.random() < .45); } while (!xs.length); return corridor(L, gemsAt(xs)); },
-    tests: [[5, [1, 5]], [8, [1, 2, 3, 4, 5, 6, 7, 8]], [6, [6]], [9, [3]]].map(([L, xs]) => corridor(L, gemsAt(xs))),
-    describe: d => `長度 ${d.W}、寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格`,
-    check: (w, d) => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿${w.beepers[`${d.W},1`] ? '（最後一格的還在！）' : w.beepers['1,1'] ? '（第一格的還在！）' : ''}。` } : w.x !== d.W ? { ok: false, msg: '還沒走到牆邊。' } : { ok: true } },
-
-  { id: 'and', tag: '&& 而且', title: '先到先停',
-    goal: '走廊上「可能」有一顆寶石，也可能沒有。往前走，碰到寶石或碰到牆就停；有寶石就撿起來。',
-    concept: `<p><code>A &amp;&amp; B</code>（而且）：兩個條件<b>都是</b> TRUE，結果才是 TRUE。<code>A || B</code>（或者）：<b>只要一個</b>是 TRUE，結果就是 TRUE。</p>
-      <p>這關要「前面有路<b>而且</b>腳下沒有寶石」才繼續走，所以寫成 <code>front_is_clear() &amp;&amp; !beepers_present()</code>。任何一個變成 FALSE，迴圈就停。</p>
-      <p>例如 <code>TRUE &amp;&amp; FALSE</code> 是 FALSE；<code>TRUE || FALSE</code> 是 TRUE；<code>x %% 3 == 0 &amp;&amp; x %% 5 == 0</code> 判斷 x 是不是 15 的倍數。</p>`,
-    starter: '# 前面有路「而且」腳下沒有寶石，才繼續走\nwhile (front_is_clear() ___ !beepers_present()) {\n  move()\n}\nif (beepers_present()) pick_beeper()\n',
-    hint: '把 ___ 換成「而且」的符號 <code>&amp;&amp;</code>。',
-    solution: 'while (front_is_clear() && !beepers_present()) {\n  move()\n}\nif (beepers_present()) pick_beeper()\n', par: 3, req: [['while', 1], ['&&', 1, '&&']],
-    random: true, def: () => { const L = randInt(5, 10); return corridor(L, Math.random() < .65 ? gemsAt([randInt(2, L)]) : {}); },
-    tests: [[6, [3]], [7, []], [5, [5]], [9, [2]]].map(([L, xs]) => corridor(L, gemsAt(xs))),
-    describe: d => `長度 ${d.W}、${Object.keys(d.beepers).length ? `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格` : '沒有寶石'}`,
-    check: (w, d) => {
-      const g = Object.keys(d.beepers)[0];
-      if (g) { const gx = Number(g.split(',')[0]); return w.picked < 1 ? { ok: false, msg: `寶石在第 ${gx} 格，還沒撿到。` } : w.x !== gx ? { ok: false, msg: '撿到寶石後就要停下來。' } : { ok: true }; }
-      return w.x !== d.W ? { ok: false, msg: '這張地圖沒有寶石，要一路走到牆邊才停。' } : { ok: true };
-    } },
-
-  { id: 'break', tag: 'break', title: '找到就收工',
-    goal: '寶石藏在某一格。用 for 迴圈往前走，一找到寶石就用 break 提早離開迴圈，然後撿起來。',
-    concept: `<p><code>break</code> 會<b>立刻結束整個迴圈</b>，剩下的圈數都不跑了，直接跳到迴圈後面的程式。</p>
-      <p>寫在巢狀迴圈裡時，break 只跳出離它最近的那一層。下一關會介紹 <code>repeat</code>：一種沒有條件、一定要靠 break 才能離開的迴圈。</p>`,
-    starter: 'for (i in 1:9) {\n  move()\n  if (beepers_present()) {\n    # 找到了！提早離開迴圈\n    \n  }\n}\npick_beeper()\n',
-    hint: '在空白那行寫 <code>break</code>。執行時注意看 Environment 裡的 i：break 之後 i 就不再增加。',
-    solution: 'for (i in 1:9) {\n  move()\n  if (beepers_present()) {\n    break\n  }\n}\npick_beeper()\n', par: 5, req: [['for', 1], ['break', 1]],
-    random: true, def: () => corridor(10, gemsAt([randInt(2, 9)])),
-    tests: [2, 5, 10].map(x => corridor(10, gemsAt([x]))),
-    describe: d => `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格`,
-    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
-
-  { id: 'repeat', tag: 'repeat', title: '一路種到牆邊',
-    goal: '走廊長度每次都不一樣。用 repeat 迴圈在<b>每一格</b>（包括第一格和最後一格）都放一顆寶石。',
-    concept: `<p><code>repeat { … }</code> 會<b>無條件一直重複</b>，它本身沒有條件，所以一定要在裡面放 <code>if (…) break</code> 才停得下來，不然就是無限迴圈。</p>
-      <p>三種迴圈的差別在「什麼時候檢查」：</p>
-      <p>• <code>for (i in 1:n)</code>：次數事先知道。<br>• <code>while (條件)</code>：每一圈<b>開始前</b>先檢查。<br>• <code>repeat</code> ＋ <code>break</code>：檢查放在<b>任何你想要的位置</b>，常放在中間或最後。</p>
-      <p>這關的重點：每一格都要放，但最後一格不能再 move()。用 while 會遇到柵欄問題（最後一格要在迴圈外再補一次）；用 repeat 可以把「檢查」放在中間，一個迴圈就處理完所有格子。例如：</p>
-      <pre class="snippet">x &lt;- 1
-repeat {
-  cat(x, "")            # 先做事
-  if (x &gt;= 8) break     # 再檢查：夠大了就離開
-  x &lt;- x * 2            # 還沒就繼續
+  { id: 'param', tag: '參數', title: '參數：走 n 步',
+    goal: '向量 <code>gaps</code>（已經在 Environment）記錄每一顆寶石之間要走幾步。做一個 <code>move_n(n)</code>：往前走 n 步。再依照 gaps，走一段就放一顆寶石。',
+    concept: `<p>function 的小括號裡可以放<b>參數</b>：呼叫時給的值會被放進參數裡。</p>
+      <pre class="snippet">move_n &lt;- function(n) {   # n 是參數
+  …
 }
-# 印出 1 2 4 8</pre>
-      <p>換成 R 寶：每一格都要「放 → 檢查到牆邊了沒 → 走」，順序要排對。</p>`,
-    starter: 'repeat {\n  # ① 放寶石\n\n  # ② 前面被擋住了就 break\n\n  # ③ 往前走\n\n}\n',
-    hint: '照著說明的順序：<code>put_beeper()</code>、<code>if (front_is_blocked()) break</code>、<code>move()</code>。順序換了會怎樣？試試看把 move() 放到 break 前面。',
-    solution: 'repeat {\n  put_beeper()\n  if (front_is_blocked()) break\n  move()\n}\n', par: 4, req: [['repeat', 1], ['break', 1]],
-    random: true, def: () => { const L = randInt(4, 10); return corridor(L, {}, { targets: Array.from({ length: L }, (_, i) => [i + 1, 1, 1]) }); },
-    tests: [1, 4, 9].map(L => corridor(L, {})),
-    describe: d => `長度 ${d.W} 的走廊`,
+move_n(3)                   # 3 是引數：這次 n = 3</pre>
+      <p>同一個 function，給不同的值就做不同的事。執行時看 Environment：呼叫期間會出現 <code>n ⟨move_n 裡⟩</code>，function 結束後它就消失了。</p>
+      <p>小心：gaps 裡可能有 0。<code>for (i in 1:n)</code> 在 n = 0 時會變成 <code>1:0</code> 跑兩次，要用 <code>seq_len(n)</code>。</p>`,
+    starter: "# gaps 已經在 Environment\nmove_n <- function(n) {\n  # 往前走 n 步（n 可能是 0）\n\n}\n\nfor (g in gaps) {\n  move_n(g)\n  put_beeper()\n}\n", solution: "move_n <- function(n) {\n  for (i in seq_len(n)) move()\n}\nfor (g in gaps) {\n  move_n(g)\n  put_beeper()\n}\n",
+    hint: '大括號裡寫 <code>for (i in seq_len(n)) move()</code>。',
+    par: 5, req: [['function', 1, 'function'], ['move_n', 2, '自己定義並使用 move_n()']],
+    random: true, def: () => gapWorld(Array.from({ length: randInt(3, 4) }, () => randInt(1, 3))),
+    tests: [[2, 3, 1], [1, 1, 1, 1], [4], [3, 0, 2]].map(gapWorld),
+    describe: d => `gaps = c(${d.gaps.join(', ')})`,
     check: (w, d) => {
       for (let x = 1; x <= d.W; x++) {
-        const n = w.beepers[`${x},1`] || 0;
-        if (n === 0) return { ok: false, msg: x === d.W ? `最後一格（第 ${x} 格）還是空的！想想看：put_beeper() 和 break 的順序。` : `第 ${x} 格還是空的。` };
-        if (n > 1) return { ok: false, msg: `第 ${x} 格放了 ${n} 顆，每格只要 1 顆。` };
-      }
-      return { ok: true };
-    } },
-
-  { id: 'next', tag: 'next', title: '補滿空格',
-    goal: '第 2 到第 8 格裡，有些已經有寶石了。把空的格子補上一顆，已經有的就跳過。',
-    concept: `<p><code>next</code> 會<b>跳過這一圈剩下的程式</b>，直接進入下一圈。迴圈不會結束，只是這一圈提早收工。</p>
-      <p>Python、C、Java 裡叫做 <code>continue</code>，R 裡叫做 <code>next</code>。（R 沒有 continue，寫了會出錯。）</p>
-      <p>比較：<code>break</code> 是整個迴圈結束；<code>next</code> 只跳過這一圈。</p>`,
-    starter: 'for (i in 1:7) {\n  move()\n  # 已經有寶石，就跳過這一圈\n  if (beepers_present()) ___\n  put_beeper()\n}\n',
-    hint: '把 ___ 換成 <code>next</code>：有寶石就不要執行下面的 <code>put_beeper()</code>。',
-    solution: 'for (i in 1:7) {\n  move()\n  if (beepers_present()) next\n  put_beeper()\n}\n', par: 4, req: [['for', 1], ['next', 1]],
-    random: true, def: () => corridor(8, gemsAt([2, 3, 4, 5, 6, 7, 8].filter(() => Math.random() < .45)), { targets: [2, 3, 4, 5, 6, 7, 8].map(x => [x, 1, 1]) }),
-    tests: [[], [2, 3, 4, 5, 6, 7, 8], [3, 5, 8]].map(xs => corridor(8, gemsAt(xs))),
-    describe: d => Object.keys(d.beepers).length ? `原本寶石在第 ${Object.keys(d.beepers).map(k => k.split(',')[0]).join('、')} 格` : '一開始沒有寶石',
-    check: w => {
-      for (let x = 1; x <= 8; x++) {
-        const n = w.beepers[`${x},1`] || 0, want = x === 1 ? 0 : 1;
-        if (n !== want) return { ok: false, msg: `第 ${x} 格應該有 ${want} 顆，現在有 ${n} 顆${n > 1 ? '（已經有寶石的格子要用 next 跳過）' : ''}。` };
-      }
-      return { ok: true };
-    } },
-
-  { id: 'square', tag: '巢狀', title: '繞場一圈',
-    goal: '沿著場地邊緣走一整圈，撿起三個角落的寶石，最後回到起點。',
-    concept: `<p>迴圈裡面再放一個迴圈，就是巢狀迴圈。外層跑 4 次（4 個邊），外層每跑一次，內層就從頭完整跑一遍（每邊走好幾步）。</p>
-      <p>內層的 <code>move()</code> 總共會執行「外層次數 × 內層次數」次。</p>`,
-    starter: 'for (side in 1:4) {\n  for (step in 1:___) {\n    move()\n  }\n  if (beepers_present()) pick_beeper()\n  turn_left()\n}\n',
-    hint: '場地是 5 × 5，從一個角走到下一個角要幾步？',
-    solution: 'for (side in 1:4) {\n  for (step in 1:4) {\n    move()\n  }\n  if (beepers_present()) pick_beeper()\n  turn_left()\n}\n', par: 5, req: [['for', 2, '巢狀的 for（for 裡面再放 for）']],
-    def: () => ({ W: 5, H: 5, robot: [1, 1, 0], beepers: { '5,1': 1, '5,5': 1, '1,5': 1 }, walls: [[2, 2, 'N'], [3, 2, 'N'], [4, 2, 'N'], [2, 4, 'E'], [3, 3, 'E'], [2, 2, 'E']] }),
-    check: w => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒撿。` } : (w.x !== 1 || w.y !== 1) ? { ok: false, msg: '寶石撿完了，但 R 寶沒有回到起點。' } : { ok: true } },
-
-  { id: 'pyramid', tag: '巢狀', title: '寶石金字塔',
-    goal: '第 1 格放 1 顆、第 2 格放 2 顆……第 5 格放 5 顆。',
-    concept: `<p>內層的次數可以用外層的變數！寫成 <code>for (k in 1:i)</code>：外層 i = 1 時內層跑 1 次，i = 2 時跑 2 次……</p>
-      <p>這樣的巢狀迴圈常用來畫三角形、處理「上三角矩陣」。</p>`,
-    starter: 'for (i in 1:5) {\n  # 在這一格放 i 顆寶石\n  for (k in 1:___) {\n    put_beeper()\n  }\n  move()\n}\n',
-    hint: '內層要跑的次數不是固定的數字，而是外層變數 <code>i</code>。',
-    solution: 'for (i in 1:5) {\n  for (k in 1:i) {\n    put_beeper()\n  }\n  move()\n}\n', par: 4, req: [['for', 2, '巢狀的 for（for 裡面再放 for）']],
-    def: () => corridor(6, {}, { targets: [1, 2, 3, 4, 5].map(x => [x, 1, x]) }),
-    check: w => {
-      for (let x = 1; x <= 6; x++) {
-        const n = w.beepers[`${x},1`] || 0, want = x <= 5 ? x : 0;
+        const want = (d.targets.find(t => t[0] === x) || [0, 0, 0])[2], n = w.beepers[`${x},1`] || 0;
         if (n !== want) return { ok: false, msg: `第 ${x} 格應該有 ${want} 顆，現在有 ${n} 顆。` };
       }
       return { ok: true };
     } },
 
-  { id: 'ifelse', tag: 'ifelse', title: '照著地圖放',
-    goal: '向量 heights 是 5 格的高度。高度大於 5 的格子放 2 顆寶石，其他格子放 1 顆。',
-    concept: `<p><code>if</code> 一次只能判斷<b>一個</b>值。寫 <code>if (heights &gt; 5)</code> 會出錯：<code>the condition has length &gt; 1</code>，因為 heights 有 5 個值。</p>
-      <p><code>ifelse(條件, 是的話, 不是的話)</code> 會對向量的<b>每一個元素</b>分別判斷，回傳一樣長的向量：</p>
-      <p><code>ifelse(c(3, 8, 1) &gt; 5, "高", "低")</code> → <code>[1] "低" "高" "低"</code></p>
-      <p><code>n[i]</code> 會取出向量 n 的第 i 個值（R 從 1 開始數）。</p>`,
-    starter: 'heights <- c(3, 8, 1, 9, 4)\n# 高度大於 5 放 2 顆，否則放 1 顆\nn <- ifelse(___, 2, 1)\nprint(n)\nfor (i in 1:5) {\n  for (k in 1:n[i]) {\n    put_beeper()\n  }\n  move()\n}\n',
-    hint: '條件是 <code>heights &gt; 5</code>。執行後看 Console 印出的 n，再看 Environment。',
-    solution: 'heights <- c(3, 8, 1, 9, 4)\nn <- ifelse(heights > 5, 2, 1)\nfor (i in 1:5) {\n  for (k in 1:n[i]) {\n    put_beeper()\n  }\n  move()\n}\n', par: 7, req: [['ifelse', 1, 'ifelse()']],
-    def: () => corridor(6, {}, { targets: [[1, 1, 1], [2, 1, 2], [3, 1, 1], [4, 1, 2], [5, 1, 1]] }),
-    check: w => {
-      const want = [1, 2, 1, 2, 1, 0];
-      for (let x = 1; x <= 6; x++) {
-        const n = w.beepers[`${x},1`] || 0;
-        if (n !== want[x - 1]) return { ok: false, msg: `第 ${x} 格應該有 ${want[x - 1]} 顆，現在有 ${n} 顆。` };
-      }
-      return { ok: true };
-    } },
-
-  { id: 'maze', tag: '綜合', title: '迷宮',
-    goal: '找到迷宮裡的寶石並撿起來。',
-    concept: `<p><b>右手扶牆法</b>：右邊有路就右轉走過去；不然前面有路就直走；兩邊都不通就左轉。用 while 一直重複，直到腳下有寶石為止。</p>
-      <p><code>if … else if … else</code> 由上往下檢查，只會執行第一個成立的分支。<code>no_beepers_present()</code> 和 <code>!beepers_present()</code> 意思一樣。</p>`,
-    starter: '# 右手扶牆法：一直走，直到腳下有寶石\nwhile (no_beepers_present()) {\n  if (right_is_clear()) {\n    turn_right()\n    move()\n  } else if (___) {\n    move()\n  } else {\n    turn_left()\n  }\n}\npick_beeper()\n',
-    hint: 'else if 要檢查的是「前面有沒有路」。',
-    solution: 'while (no_beepers_present()) {\n  if (right_is_clear()) {\n    turn_right()\n    move()\n  } else if (front_is_clear()) {\n    move()\n  } else {\n    turn_left()\n  }\n}\npick_beeper()\n', par: 9, req: [['while', 1], ['if', 1]],
-    def: () => ({ W: 5, H: 5, robot: [1, 1, 0], beepers: { '5,5': 1 }, walls: MAZE }),
-    check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
-
-  { id: 'boss', tag: '大魔王', title: '寶石倉庫大清倉', boss: true, xp: 150, pass: 'ycc0901',
-    goal: '倉庫的大小、寶石的位置和數量每次都不一樣，一格還可能疊好幾顆。把倉庫裡的寶石全部撿光，用變數 total 記下一共撿了幾顆，最後在 R 寶停下來的那一格，把 total 顆寶石全部放下，堆成一堆。',
-    concept: `<p>這關沒有新語法，要把前面學過的全部組合起來（外層和內層都可以用 <code>repeat</code> ＋ <code>break</code>，就像「一路種到牆邊」那關）。先拆成三個小問題：</p>
-      <p><b>① 掃一列：</b>一路往前走，每到一格就把寶石撿<b>光</b>。一格可能有好幾顆，所以用 <code>while (beepers_present())</code>，不是 <code>if</code>。每撿一顆就 <code>total &lt;- total + 1</code>。</p>
-      <p><b>② 換列（蛇行）：</b>往東掃完，左轉、上樓、再左轉，變成往西掃；往西掃完就右轉、上樓、右轉。用 <code>facing_east()</code> 判斷現在朝哪邊；上面沒有路了就 <code>break</code>。</p>
-      <p><b>③ 放回去：</b>重複 total 次 <code>put_beeper()</code>。</p>
-      <p>過關後，大魔王還會用這些倉庫測試你：<b>一格疊了 3 顆</b>、<b>只有一列</b>、<b>只有一行</b>、<b>完全沒有寶石</b>。（提示：total 是 0 的時候，<code>1:total</code> 會變成什麼？）</p>`,
-    starter: '# 大魔王：寶石倉庫大清倉\ntotal <- 0\n\nrepeat {\n  # ① 掃這一列：每一格把寶石撿光，順便數 total\n\n  # ② 換到上一列（往東和往西要轉不同方向）；沒有上一列就 break\n\n}\n\n# ③ 把 total 顆寶石放在現在這一格\n\n',
-    hint: '外層用 <code>repeat</code> 一列一列處理；裡面再放一個 <code>repeat</code> 掃這一列：先 <code>while (beepers_present())</code> 撿光，<code>if (front_is_blocked()) break</code>，再 <code>move()</code>。換列時：<code>if (facing_east())</code> 就檢查 <code>left_is_blocked()</code>，否則檢查 <code>right_is_blocked()</code>。最後用 <code>for (k in seq_len(total))</code>，不要用 <code>1:total</code>。',
-    solution: 'total <- 0\nrepeat {\n  # ① 掃這一列\n  repeat {\n    while (beepers_present()) {\n      pick_beeper()\n      total <- total + 1\n    }\n    if (front_is_blocked()) break\n    move()\n  }\n  # ② 換到上一列\n  if (facing_east()) {\n    if (left_is_blocked()) break\n    turn_left()\n    move()\n    turn_left()\n  } else {\n    if (right_is_blocked()) break\n    turn_right()\n    move()\n    turn_right()\n  }\n}\n# ③ 放回去（total 可能是 0）\nfor (k in seq_len(total)) put_beeper()\n',
-    par: 19, req: [],
-    random: true, def: () => {
-      const W = randInt(4, 7), H = randInt(2, 4), b = {};
-      for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) if (Math.random() < .35) b[`${x},${y}`] = randInt(1, 3);
-      return { W, H, robot: [1, 1, 0], beepers: b, walls: [] };
-    },
-    tests: [
-      { W: 6, H: 3, robot: [1, 1, 0], beepers: { '1,1': 2, '6,1': 1, '3,2': 1, '6,2': 3, '1,3': 1, '6,3': 2 }, walls: [] },
-      { W: 5, H: 4, robot: [1, 1, 0], beepers: { '5,4': 2, '1,4': 1, '2,2': 3 }, walls: [] },
-      { W: 7, H: 1, robot: [1, 1, 0], beepers: { '1,1': 1, '7,1': 3 }, walls: [] },
-      { W: 1, H: 4, robot: [1, 1, 0], beepers: { '1,2': 1, '1,4': 2 }, walls: [] },
-      { W: 4, H: 3, robot: [1, 1, 0], beepers: {}, walls: [] },
-    ],
-    describe: d => { const t = Object.values(d.beepers).reduce((a, b) => a + b, 0); return `${d.W} × ${d.H} 的倉庫、共 ${t} 顆寶石${t ? '' : '（空倉庫）'}`; },
+  { id: 'return', tag: 'return', title: '回傳值：找走廊中點',
+    goal: '走廊長度是奇數，但每次不一樣。用 <code>walk_to_wall()</code> 走到牆邊並<b>回傳</b>走了幾步，用它量出長度，再走回走廊正中間放一顆寶石。',
+    concept: `<p>function 可以把結果<b>交回來</b>：<code>return(值)</code>。呼叫的地方就能用變數接住：</p>
+      <pre class="snippet">n &lt;- walk_to_wall()   # n 接到回傳的步數</pre>
+      <p>沒寫 return 時，R 會回傳<b>最後一行的值</b>。所以 <code>return(steps)</code> 也可以只寫 <code>steps</code>。</p>
+      <p>為什麼一定要回傳？因為 <code>steps</code> 是 function 裡的<b>區域變數</b>，function 結束它就消失了，外面讀不到。</p>`,
+    starter: "# 工具箱：前兩關做好的 function\nturn_around <- function() {\n  turn_left()\n  turn_left()\n}\nmove_n <- function(n) {\n  for (i in seq_len(n)) move()\n}\n\n# 走到牆邊，回傳走了幾步\nwalk_to_wall <- function() {\n  steps <- 0\n  while (front_is_clear()) {\n    move()\n    steps <- steps + 1\n  }\n  ___\n}\n\nn <- walk_to_wall()\nturn_around()\n# 往回走 n 的一半，放寶石\n\n", solution: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\nmove_n <- function(n) {\n  for (i in seq_len(n)) move()\n}\nwalk_to_wall <- function() {\n  steps <- 0\n  while (front_is_clear()) {\n    move()\n    steps <- steps + 1\n  }\n  return(steps)\n}\nn <- walk_to_wall()\nturn_around()\nmove_n(n / 2)\nput_beeper()\n",
+    hint: '把 ___ 換成 <code>return(steps)</code>。最後兩行：<code>move_n(n / 2)</code>、<code>put_beeper()</code>。',
+    par: 15, req: [['function', 3, 'function'], ['return', 1, 'return()']],
+    random: true, def: () => { const L = 2 * randInt(2, 5) + 1; return corridor(L, {}, { targets: [[(L + 1) / 2, 1, 1]] }); },
+    tests: [5, 7, 11, 3].map(L => corridor(L, {})),
+    describe: d => `長度 ${d.W} 的走廊`,
     check: (w, d) => {
-      const total = Object.values(d.beepers).reduce((a, b) => a + b, 0);
-      const piles = Object.entries(w.beepers), here = w.beepers[`${w.x},${w.y}`] || 0;
-      if (w.picked < total) return { ok: false, msg: `倉庫裡原本有 ${total} 顆寶石，你只撿了 ${w.picked} 顆。是不是有一列沒掃到，或一格只撿了一顆？` };
-      if (!total && piles.length) return { ok: false, msg: `空倉庫的 total 是 0，不該放任何寶石，你卻放了 ${left(w)} 顆。1:0 是 c(1, 0)，會跑 2 圈！改用 seq_len(total)。` };
-      if (piles.length > 1) return { ok: false, msg: `寶石要全部堆在同一格，現在分散在 ${piles.length} 格。` };
-      if (total && !here) return { ok: false, msg: '寶石要堆在 R 寶最後停下來的那一格。' };
-      if (here !== total) return { ok: false, msg: `那一堆有 ${here} 顆，應該是 ${total} 顆（你撿到的總數）。` };
+      const mid = (d.W + 1) / 2, piles = Object.keys(w.beepers);
+      if (!piles.length) return { ok: false, msg: '沒有放寶石。' };
+      if (piles.length > 1 || w.beepers[`${mid},1`] !== 1) return { ok: false, msg: `中點是第 ${mid} 格，寶石放在第 ${piles.map(k => k.split(',')[0]).join('、')} 格。` };
       return { ok: true };
     } },
-  { id: 'hbb', tag: '生資實戰', title: 'HBB 基因突變篩檢', bio: true, xp: 150,
-    goal: '病人的 HBB 基因序列放在 list <code>patient</code> 裡，參考序列是 vector <code>ref</code>（都已經在 Environment 了）。R 寶沿著病人序列走，鹼基和 ref 不一樣的格子放一顆寶石，同時把位置收集到 vector <code>pos</code>；最後用 <code>hbs</code> 記下第 8 個鹼基有沒有突變（TRUE / FALSE）。',
-    goalHtml: true,
-    concept: `<p><b>生物背景：</b>HBB 基因負責製造血紅素的 β 鏈。第 6 個密碼子 <code>GAG</code>（麩胺酸）只要中間的 A 變成 T，變成 <code>GTG</code>（纈胺酸），就會造成<b>鐮刀型貧血（HbS）</b>。地圖上的 12 個鹼基是第 4–7 個密碼子，第 6 個密碼子中間那個鹼基就是第 <b>8</b> 格。上排灰色是 ref，下排是病人。</p>
-      <p><b>資料結構（第一單元學過的）：</b></p>
-      <p>• <code>patient</code> 是 <b>list</b>：<code>list(id = "P07", gene = "HBB", seq = c("A", "C", …))</code>。用 <code>patient$seq</code> 或 <code>patient[["seq"]]</code> 打開盒子拿出序列，再用 <code>[i]</code> 拿第 i 個鹼基：<code>patient$seq[i]</code>。</p>
-      <p>• 小心：<code>patient["seq"]</code> 拿到的還是一個 list（盒子），不能直接拿來比較。<b>[ ] 拿盒子，[[ ]] 打開盒子。</b></p>
-      <p>• <code>pos &lt;- c()</code> 先建一個空的 vector，找到突變就 <code>pos &lt;- c(pos, i)</code> 接在後面（每次都會產生一個新的 vector）。</p>
-      <p>• 最後 <code>8 %in% pos</code> 回答「第 8 個位置在不在突變清單裡」。</p>`,
-    starter: '# 生資實戰：HBB 基因篩檢\n# Environment 已經有：ref（參考序列）、patient（list：id、gene、seq）\npatient$id\npos <- c()          # 空的 vector，用來收集突變位置\nfor (i in seq_along(ref)) {\n  # 病人第 i 個鹼基和 ref[i] 不一樣 → 放寶石，並把 i 加進 pos\n\n  if (i < length(ref)) move()\n}\nhbs <- ___          # 第 8 個位置有突變嗎？\ncat(patient$id, "突變位置：", pos, "\\n")\ncat("HbS 鐮刀型貧血：", hbs, "\\n")\n',
-    hint: '比較寫成 <code>if (patient$seq[i] != ref[i]) { put_beeper(); pos &lt;- c(pos, i) }</code>（大括號裡分兩行寫）。最後 <code>hbs &lt;- 8 %in% pos</code>。',
-    solution: 'pos <- c()\nfor (i in seq_along(ref)) {\n  if (patient$seq[i] != ref[i]) {\n    put_beeper()\n    pos <- c(pos, i)\n  }\n  if (i < length(ref)) move()\n}\nhbs <- 8 %in% pos\ncat(patient$id, "突變位置：", pos, "\\n")\ncat("HbS 鐮刀型貧血：", hbs, "\\n")\n',
-    par: 10, req: [['for', 1], ['%in%', 1, '%in%']],
-    random: true, def: () => {
-      const muts = {};
-      if (Math.random() < .5) muts[8] = 'T';
-      const k = randInt(0, 2);
-      for (let j = 0; j < k; j++) { const q = randInt(1, 12); if (!muts[q]) muts[q] = HBB_REF[q - 1] === 'A' ? 'G' : 'A'; }
-      return hbbWorld(`P${String(randInt(1, 99)).padStart(2, '0')}`, muts);
-    },
-    tests: [hbbWorld('P01', {}), hbbWorld('P02', { 8: 'T' }), hbbWorld('P03', { 7: 'A' }), hbbWorld('P04', { 1: 'G', 8: 'T', 12: 'C' })],
-    describe: d => { const m = d.muts; return `病人 ${d.pid}：${m.length ? `第 ${m.join('、')} 個鹼基突變` : '沒有突變'}`; },
-    check: (w, d, t) => {
-      for (let x = 1; x <= 12; x++) {
-        const n = w.beepers[`${x},1`] || 0, want = d.muts.includes(x) ? 1 : 0;
-        if (n !== want) return { ok: false, msg: want ? `第 ${x} 個鹼基 ref 是 ${HBB_REF[x - 1]}、病人是 ${d.seq[x - 1]}，是突變，應該放 1 顆寶石。` : n > 1 ? `第 ${x} 格放了 ${n} 顆，每個突變只要 1 顆。` : `第 ${x} 個鹼基兩邊都是 ${HBB_REF[x - 1]}，沒有突變，不應該放寶石。` };
-      }
-      const V = t && t.vars;
-      if (!V || !V.has('pos')) return { ok: false, msg: '找不到變數 pos：記得用 pos <- c() 建立，再用 pos <- c(pos, i) 收集突變位置。' };
-      const pos = asVec(V.get('pos')).map(Number);
-      if (pos.join(',') !== d.muts.join(',')) return { ok: false, msg: `pos 應該是 ${d.muts.length ? `c(${d.muts.join(', ')})` : '空的（NULL）'}，你的是 ${fmtShort(V.get('pos'))}。` };
-      if (!V.has('hbs')) return { ok: false, msg: '找不到變數 hbs：用 hbs <- 8 %in% pos 記下第 8 個位置有沒有突變。' };
-      const want = d.muts.includes(8), got = asVec(V.get('hbs'));
-      if (got.length !== 1 || got[0] !== want) return { ok: false, msg: `這位病人第 8 個鹼基${want ? '有' : '沒有'}突變，hbs 應該是 ${want ? 'TRUE' : 'FALSE'}，你的是 ${fmtShort(V.get('hbs'))}。` };
+
+  { id: 'scope', tag: '區域變數', title: '區域變數：數寶石',
+    goal: '每一格可能疊了好幾顆寶石。用 <code>pick_all()</code> 把一格撿光並回傳撿了幾顆，沿路把每一格的數量加到 <code>total</code>，最後在牆邊把 total 顆全部放下。',
+    concept: `<p>function 裡面建立的變數是<b>區域變數</b>：只在這次呼叫裡存在，<b>不會</b>改到外面同名的變數。</p>
+      <pre class="snippet">total &lt;- 0
+add1 &lt;- function() {
+  total &lt;- total + 1   # 這是 function 裡「新的」total
+}
+add1()
+total                  # 還是 0！</pre>
+      <p>正確的做法是讓 function <b>回傳</b>結果，在外面自己加：<code>total &lt;- total + pick_all()</code>。</p>
+      <p>（R 有 <code>&lt;&lt;-</code> 可以改到外面的變數，但會讓程式難以追蹤，初學先不要用。）</p>`,
+    starter: "total <- 0\n\n# 撿光腳下的寶石，回傳撿了幾顆\npick_all <- function() {\n  n <- 0\n  while (beepers_present()) {\n    pick_beeper()\n    n <- n + 1\n  }\n  n              # 最後一行的值就是回傳值\n}\n\nrepeat {\n  # 把這一格撿光，並把撿到的數量加到 total\n\n  if (front_is_blocked()) break\n  move()\n}\nfor (k in seq_len(total)) put_beeper()\n", solution: "total <- 0\npick_all <- function() {\n  n <- 0\n  while (beepers_present()) {\n    pick_beeper()\n    n <- n + 1\n  }\n  n\n}\nrepeat {\n  total <- total + pick_all()\n  if (front_is_blocked()) break\n  move()\n}\nfor (k in seq_len(total)) put_beeper()\n",
+    hint: '空白那行寫 <code>total &lt;- total + pick_all()</code>。',
+    par: 15, req: [['function', 1, 'function'], ['pick_all', 2, '使用 pick_all() 的回傳值']],
+    random: true, def: () => { const W = randInt(4, 8), b = {}; for (let x = 1; x <= W; x++) if (Math.random() < .55) b[`${x},1`] = randInt(1, 3); return corridor(W, b); },
+    tests: [[3, 0, 2, 1], [0, 0, 0], [1, 1, 1, 1, 3], [0, 0, 0, 2]].map(pileWorld),
+    describe: d => `寶石堆：${pilesOf({ beepers: d.beepers }, d.W).join(' ')}`,
+    check: (w, d) => {
+      const t = sumB(d.beepers);
+      if (w.picked < t) return { ok: false, msg: `原本有 ${t} 顆，只撿了 ${w.picked} 顆。` };
+      const here = w.beepers[`${d.W},1`] || 0;
+      if (here !== t || Object.keys(w.beepers).length > (t ? 1 : 0)) return { ok: false, msg: `牆邊應該放 ${t} 顆，現在是 ${here} 顆。total 有沒有真的被加到？（在 function 裡改 total 改不到外面的）` };
       return { ok: true };
+    } },
+
+  { id: 'default', tag: '預設值', title: '預設值與具名參數',
+    goal: '完成 <code>plant_row(len, n = 1)</code>：處理 len 格，每格放 n 顆寶石；沒給 n 時每格放 1 顆。下面三次呼叫會種出虛線標示的樣子。',
+    concept: `<p>參數可以有<b>預設值</b>：<code>function(len, n = 1)</code>。呼叫時沒給 n，就用 1。</p>
+      <p>呼叫時可以用<b>具名參數</b>：<code>plant_row(2, n = 3)</code>、<code>plant_row(n = 2, len = 1)</code>。寫了名字，順序就不重要，也比較好讀。</p>
+      <p>你其實早就在用了：<code>seq(1, 9, by = 2)</code> 的 by、<code>round(x, digits = 2)</code> 的 digits、<code>sum(x, na.rm = TRUE)</code> 都是有預設值的具名參數。</p>`,
+    starter: "# 處理 len 格，每格放 n 顆；n 沒給就放 1 顆\nplant_row <- function(len, n = 1) {\n\n}\n\nplant_row(3)                 # 3 格，每格 1 顆（用預設值）\nmove()\nplant_row(2, n = 3)          # 2 格，每格 3 顆\nmove()\nplant_row(n = 2, len = 1)    # 具名參數可以換順序\n", solution: "plant_row <- function(len, n = 1) {\n  for (i in seq_len(len)) {\n    for (k in seq_len(n)) put_beeper()\n    if (i < len) move()\n  }\n}\nplant_row(3)\nmove()\nplant_row(2, n = 3)\nmove()\nplant_row(n = 2, len = 1)\n",
+    hint: '兩層迴圈：外層 <code>for (i in seq_len(len))</code>，內層放 n 顆；格子之間要 move()，但最後一格不要（<code>if (i &lt; len) move()</code>）。',
+    par: 9, req: [['function', 1, 'function']],
+    def: () => corridor(6, {}, { targets: [[1, 1, 1], [2, 1, 1], [3, 1, 1], [4, 1, 3], [5, 1, 3], [6, 1, 2]] }),
+    check: w => {
+      const want = [1, 1, 1, 3, 3, 2];
+      for (let x = 1; x <= 6; x++) { const n = w.beepers[`${x},1`] || 0; if (n !== want[x - 1]) return { ok: false, msg: `第 ${x} 格應該有 ${want[x - 1]} 顆，現在有 ${n} 顆。` }; }
+      return { ok: true };
+    } },
+
+  { id: 'decomp', tag: '分解問題', title: '分解問題：收割整片田',
+    goal: '田地大小每次不同，每格最多 1 顆寶石。完成 <code>harvest_row()</code>：收完一整列，再走回西邊（最後面向西）。主程式用它一列一列往上收，把寶石全部收光。',
+    concept: `<p>遇到大問題，先把它<b>拆成小問題</b>，每個小問題做成一個 function，這叫<b>由上而下設計</b>（top-down design）。</p>
+      <p>這關的主程式只要說：「收一列 → 上面還有路嗎？→ 上樓 → 再收一列」。怎麼收一列，交給 <code>harvest_row()</code> 去煩惱。</p>
+      <p>好的 function：<b>只做一件事</b>、名字說清楚它做了什麼、而且<b>結束時的狀態固定</b>（這裡是「在西邊、面向西」），主程式才能放心接著用。</p>`,
+    starter: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\n\n# 收一整列：往東撿到底，再走回西邊（最後面向西）\nharvest_row <- function() {\n\n}\n\nrepeat {\n  harvest_row()\n  # 面向西時，北方在右手邊：上面沒路就結束\n\n  turn_right()\n  move()\n  turn_right()\n}\n", solution: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\nharvest_row <- function() {\n  if (beepers_present()) pick_beeper()\n  while (front_is_clear()) {\n    move()\n    if (beepers_present()) pick_beeper()\n  }\n  turn_around()\n  while (front_is_clear()) move()\n}\nrepeat {\n  harvest_row()\n  if (right_is_blocked()) break\n  turn_right()\n  move()\n  turn_right()\n}\n",
+    hint: 'harvest_row：先檢查第一格，<code>while (front_is_clear())</code> 走一步檢查一次；到底後 <code>turn_around()</code>、走回牆邊。主程式空白處：<code>if (right_is_blocked()) break</code>。',
+    par: 16, req: [['function', 2, '至少兩個 function']],
+    random: true, def: () => {
+      const W = randInt(3, 6), H = randInt(2, 4), g = [];
+      for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) if (Math.random() < .4) g.push([x, y]);
+      return field(W, H, g);
+    },
+    tests: [field(5, 3, [[1, 1], [5, 1], [3, 2], [1, 3], [5, 3]]), field(6, 1, [[2, 1], [6, 1]]), field(1, 4, [[1, 2], [1, 4]]), field(4, 4, [[4, 4]])],
+    describe: d => `${d.W} × ${d.H} 的田`,
+    check: (w, d) => left(w) ? { ok: false, msg: `還有 ${left(w)} 顆寶石沒收。` } : { ok: true } },
+
+  { id: 'search', tag: '搜尋', title: '線性搜尋',
+    goal: '寶石可能在走廊某一格，也可能根本沒有。完成 <code>find_gem()</code>：從第 1 格開始一格一格找，找到就<b>立刻</b>回傳它在第幾格；走到牆邊都沒找到就回傳 0。',
+    concept: `<p><b>演算法</b>就是「解決問題的步驟」。最簡單的搜尋演算法是<b>線性搜尋</b>：從頭一個一個看，看到就停。</p>
+      <p><code>return()</code> 會<b>立刻結束整個 function</b>，就算在 repeat 或 for 裡面也一樣。比較：<code>break</code> 只離開迴圈；<code>return</code> 離開 function。</p>
+      <p>效率：寶石在第 1 格，看 1 次就找到；在最後一格或沒有寶石，要看完全部 n 格。我們說線性搜尋最差要 <b>n 步</b>。</p>`,
+    starter: "find_gem <- function() {\n  i <- 1                 # R 寶現在在第 1 格\n  repeat {\n    # 腳下有寶石：回傳 i\n\n    # 前面是牆：都沒找到，回傳 0\n\n    move()\n    i <- i + 1\n  }\n}\n\npos <- find_gem()\ncat(\"寶石在第\", pos, \"格\\n\")\n", solution: "find_gem <- function() {\n  i <- 1\n  repeat {\n    if (beepers_present()) return(i)\n    if (front_is_blocked()) return(0)\n    move()\n    i <- i + 1\n  }\n}\npos <- find_gem()\ncat(\"寶石在第\", pos, \"格\\n\")\n",
+    hint: '兩個空白分別寫 <code>if (beepers_present()) return(i)</code> 和 <code>if (front_is_blocked()) return(0)</code>。順序很重要。',
+    par: 9, req: [['function', 1, 'function'], ['return', 2, 'return()']],
+    random: true, def: () => { const W = randInt(6, 10); return corridor(W, Math.random() < .75 ? gemsAt([randInt(1, W)]) : {}); },
+    tests: [[8, 1], [8, 8], [8, 0], [6, 4]].map(([W, g]) => corridor(W, g ? gemsAt([g]) : {})),
+    describe: d => `長度 ${d.W}、${Object.keys(d.beepers).length ? `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格` : '沒有寶石'}`,
+    check: (w, d, t) => {
+      const g = Object.keys(d.beepers).length ? +Object.keys(d.beepers)[0].split(',')[0] : 0;
+      if (!t || !t.vars.has('pos')) return { ok: false, msg: '找不到變數 pos。' };
+      const p = t.vars.get('pos');
+      if (p !== g) return { ok: false, msg: `pos 應該是 ${g}，你的是 ${fmtShort(p)}。` };
+      if (g && w.x !== g) return { ok: false, msg: `找到就要立刻停下來：R 寶應該停在第 ${g} 格。` };
+      return { ok: true };
+    } },
+
+  { id: 'max', tag: '最大值', title: '找最大的寶石堆',
+    goal: '每一格都有一堆寶石。找出最大的那一堆在第幾格（一樣大時取最前面那一堆），存在 <code>best_pos</code>，最後讓 R 寶停在那一格。每一堆都要維持原本的數量。',
+    concept: `<p>「找最大值」的演算法：一路看過去，手上記著<b>目前為止最大的值</b>和<b>它的位置</b>；看到更大的就換掉。</p>
+      <pre class="snippet">best &lt;- 0
+for (每一個 x) {
+  if (x &gt; best) best &lt;- x
+}</pre>
+      <p>R 的 <code>max()</code>、<code>which.max()</code> 內部就是在做這件事。這關的 <code>count_here()</code> 已經幫你寫好：撿光、數完、再放回去，所以寶石堆不會被破壞。</p>`,
+    starter: "# 工具箱\nturn_around <- function() {\n  turn_left()\n  turn_left()\n}\ncount_here <- function() {      # 數腳下有幾顆（數完放回去）\n  n <- 0\n  while (beepers_present()) {\n    pick_beeper()\n    n <- n + 1\n  }\n  for (k in seq_len(n)) put_beeper()\n  n\n}\n\nbest <- 0          # 目前看過最大的數量\nbest_pos <- 0      # 它在第幾格\ni <- 1\nrepeat {\n  c_now <- count_here()\n  # 比目前最大的還大，就更新 best 和 best_pos\n\n  if (front_is_blocked()) break\n  move()\n  i <- i + 1\n}\n\n# 現在在第 i 格：向後轉，走回第 best_pos 格\n\n", solution: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\ncount_here <- function() {\n  n <- 0\n  while (beepers_present()) {\n    pick_beeper()\n    n <- n + 1\n  }\n  for (k in seq_len(n)) put_beeper()\n  n\n}\nbest <- 0\nbest_pos <- 0\ni <- 1\nrepeat {\n  c_now <- count_here()\n  if (c_now > best) {\n    best <- c_now\n    best_pos <- i\n  }\n  if (front_is_blocked()) break\n  move()\n  i <- i + 1\n}\nturn_around()\nfor (k in seq_len(i - best_pos)) move()\n",
+    hint: '更新：<code>if (c_now &gt; best) { best &lt;- c_now; best_pos &lt;- i }</code>（分兩行寫）。走回去：<code>turn_around()</code>，再走 <code>i - best_pos</code> 步。',
+    par: 26, req: [['function', 1, 'function']],
+    random: true, def: () => pileWorld(Array.from({ length: randInt(5, 8) }, () => randInt(1, 5))),
+    tests: [[2, 5, 1, 5, 3], [4, 1, 1, 2], [1, 2, 3, 4, 5, 6], [3, 3, 3]].map(pileWorld),
+    describe: d => `寶石堆：${pilesOf({ beepers: d.beepers }, d.W).join(' ')}`,
+    check: (w, d, t) => {
+      const hs = pilesOf({ beepers: d.beepers }, d.W), now = pilesOf(w, d.W), best = hs.indexOf(Math.max(...hs)) + 1;
+      if (now.join() !== hs.join()) return { ok: false, msg: `寶石堆被改動了：原本 ${hs.join(' ')}，現在 ${now.join(' ')}。` };
+      if (!t || !t.vars.has('best_pos') || t.vars.get('best_pos') !== best) return { ok: false, msg: `best_pos 應該是 ${best}，你的是 ${t && t.vars.has('best_pos') ? fmtShort(t.vars.get('best_pos')) : '（沒有）'}。` };
+      if (w.x !== best) return { ok: false, msg: `R 寶要停在第 ${best} 格（最大那堆），現在在第 ${w.x} 格。` };
+      return { ok: true };
+    } },
+
+  { id: 'recur', tag: '遞迴', title: '遞迴：去了再回來',
+    goal: '寶石在走廊盡頭。完成 <code>there_and_back()</code>：撿到寶石後回到起點放下。<b>不能用 while、for、repeat</b>，也不需要變數記步數，只能讓 function 呼叫自己。',
+    concept: `<p><b>遞迴</b>：function 在自己裡面呼叫自己。每一層只解決「一小步」，剩下的交給「下一個自己」。</p>
+      <pre class="snippet">fact &lt;- function(n) {
+  if (n &lt;= 1) return(1)     # 停止條件
+  n * fact(n - 1)           # 交給下一個自己
+}
+fact(4)    # 4 * 3 * 2 * 1 = 24</pre>
+      <p>一定要有<b>停止條件</b>（base case），否則會無限呼叫下去。</p>
+      <p>這關的祕密：每一層都是「走一步 → 呼叫自己 → <b>等它做完</b>再走一步」。去程走幾步，回程就自動走幾步。執行時注意對話框裡的「第幾層」。</p>`,
+    starter: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\n\nthere_and_back <- function() {\n  if (front_is_clear()) {\n    # 還沒到牆邊：走一步 → 交給「下一個自己」→ 回程再走一步\n\n  } else {\n    # 到牆邊了（停止條件）：撿寶石、向後轉\n\n  }\n}\n\nthere_and_back()\nput_beeper()\n", solution: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\nthere_and_back <- function() {\n  if (front_is_clear()) {\n    move()\n    there_and_back()\n    move()\n  } else {\n    pick_beeper()\n    turn_around()\n  }\n}\nthere_and_back()\nput_beeper()\n",
+    hint: 'if 裡面三行：<code>move()</code>、<code>there_and_back()</code>、<code>move()</code>。else 裡面：<code>pick_beeper()</code>、<code>turn_around()</code>。',
+    par: 13, req: [['there_and_back', 3, '在 there_and_back() 裡面呼叫自己']], ban: ['while', 'for', 'repeat'],
+    random: true, def: () => { const L = randInt(3, 9); return corridor(L, gemsAt([L])); },
+    tests: [2, 5, 9].map(L => corridor(L, gemsAt([L]))),
+    describe: d => `長度 ${d.W} 的走廊`,
+    check: w => !w.picked ? { ok: false, msg: '還沒撿到盡頭的寶石。' } : (w.beepers['1,1'] || 0) !== 1 ? { ok: false, msg: `寶石要放回起點，R 寶現在在第 ${w.x} 格。回程的那一步 move() 寫了嗎？` } : { ok: true } },
+
+  { id: 'sort', tag: '大魔王', title: '氣泡排序', boss: true, xp: 150, pass: 'ycc0901',
+    goal: '每一格有一堆寶石。用<b>氣泡排序</b>把它們由左到右排成「由少到多」。工具箱已經有 <code>take_all()</code>、<code>put_n(k)</code>、<code>go_home()</code>；格子數 <code>n</code> 在 Environment。完成 <code>pair_sort()</code> 和外面的兩層迴圈。',
+    concept: `<p><b>氣泡排序</b>（bubble sort）：從左到右比較<b>相鄰</b>兩堆，左邊比較大就交換。一輪做完，最大的那堆會像氣泡一樣「浮」到最右邊。</p>
+      <p>再做一輪，第二大的會浮到倒數第二格……一共做 <b>n − 1 輪</b>。第 pass 輪只需要比較 <b>n − pass</b> 對，因為右邊已經排好了。</p>
+      <p><code>pair_sort()</code> 不用真的「交換」：兩堆都撿起來，右邊放 <code>max(a, b)</code>、左邊放 <code>min(a, b)</code> 就排好了。</p>
+      <p>效率：n 堆要比較大約 n²/2 次。R 的 <code>sort()</code> 用的是更快的演算法，但想法都是從這裡開始的。（這關步驟很多，可以把速度調快。）</p>`,
+    starter: "# 工具箱\nturn_around <- function() {\n  turn_left()\n  turn_left()\n}\ntake_all <- function() {      # 撿光這一格，回傳數量\n  n <- 0\n  while (beepers_present()) {\n    pick_beeper()\n    n <- n + 1\n  }\n  n\n}\nput_n <- function(k) {        # 放 k 顆\n  for (j in seq_len(k)) put_beeper()\n}\ngo_home <- function() {       # 回到第 1 格、面向東\n  turn_around()\n  while (front_is_clear()) move()\n  turn_around()\n}\n\n# R 寶在第 i 格、面向東：把第 i 和 i+1 格排好（小的在左），做完站在第 i+1 格\npair_sort <- function() {\n  a <- take_all()\n  move()\n  b <- take_all()\n  put_n(___)          # 右邊放比較大的\n  turn_around()\n  move()\n  put_n(___)          # 左邊放比較小的\n  turn_around()\n  move()\n}\n\n# 氣泡排序：n（格子數）已經在 Environment\n# 一共 n - 1 輪；每一輪先回到第 1 格，再從左到右比較 n - pass 對\nfor (pass in 1:(n - 1)) {\n\n}\n", solution: "turn_around <- function() {\n  turn_left()\n  turn_left()\n}\ntake_all <- function() {\n  n <- 0\n  while (beepers_present()) {\n    pick_beeper()\n    n <- n + 1\n  }\n  n\n}\nput_n <- function(k) {\n  for (j in seq_len(k)) put_beeper()\n}\ngo_home <- function() {\n  turn_around()\n  while (front_is_clear()) move()\n  turn_around()\n}\npair_sort <- function() {\n  a <- take_all()\n  move()\n  b <- take_all()\n  put_n(max(a, b))\n  turn_around()\n  move()\n  put_n(min(a, b))\n  turn_around()\n  move()\n}\nfor (pass in 1:(n - 1)) {\n  go_home()\n  for (i in 1:(n - pass)) {\n    pair_sort()\n  }\n}\n",
+    hint: 'pair_sort 的兩個空白：<code>max(a, b)</code>、<code>min(a, b)</code>。外層迴圈裡：先 <code>go_home()</code>，再 <code>for (i in 1:(n - pass)) pair_sort()</code>。',
+    par: 33, req: [['function', 5, 'function'], ['pair_sort', 2, '使用 pair_sort()']],
+    random: true, def: () => { let hs; do { hs = Array.from({ length: randInt(4, 6) }, () => randInt(1, 4)); } while (hs.join() === [...hs].sort((a, b) => a - b).join()); return sortWorld(hs); },
+    tests: [[4, 3, 2, 1], [2, 1, 3, 1, 2], [1, 2, 3, 4], [3, 1, 4, 1, 2, 2]].map(sortWorld),
+    describe: d => `寶石堆：${pilesOf({ beepers: d.beepers }, d.W).join(' ')}`,
+    check: (w, d) => {
+      const hs = pilesOf({ beepers: d.beepers }, d.W), now = pilesOf(w, d.W), want = [...hs].sort((a, b) => a - b);
+      if (now.join() === want.join()) return { ok: true };
+      if ([...now].sort((a, b) => a - b).join() !== want.join()) return { ok: false, msg: `寶石的數量變了：原本 ${hs.join(' ')}，現在 ${now.join(' ')}。` };
+      return { ok: false, msg: `還沒排好：現在是 ${now.join(' ')}，應該是 ${want.join(' ')}。` };
     } },
 ];
 LEVELS.forEach((l, i) => l.n = i + 1);
@@ -1226,7 +1123,7 @@ function hl(src){
 }
 
 /* ---------- progress ---------- */
-const KEY = 'r-loop-karel-v2';
+const KEY = 'r-algo-karel-v1';
 function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 const S = Object.assign({ xp: 0, stars: {}, codes: {}, fails: {}, cur: 'seq', sound: true, bossBest: 0, awarded: {} }, load());
@@ -1391,7 +1288,7 @@ function go(id){
         <div class="codeview" id="codeview" hidden title="點一下回到編輯"></div>
         <div class="snips" id="snips"><span>插入</span>
           ${['move()', 'turn_left()', 'turn_right()', 'pick_beeper()', 'put_beeper()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
-          ${[['for', 'for (i in 1:3) {\n  \n}'], ['while', 'while (front_is_clear()) {\n  \n}'], ['repeat', 'repeat {\n  \n  if (front_is_blocked()) break\n}'], ['if', 'if (beepers_present()) {\n  \n}'], ['else', ' else {\n  \n}']].map(([l, s]) => `<button type="button" class="snip ctl" data-s="${esc(s)}">${l}</button>`).join('')}
+          ${[['for', 'for (i in 1:3) {\n  \n}'], ['while', 'while (front_is_clear()) {\n  \n}'], ['repeat', 'repeat {\n  \n  if (front_is_blocked()) break\n}'], ['if', 'if (beepers_present()) {\n  \n}'], ['else', ' else {\n  \n}'], ['function', 'f <- function() {\n  \n}'], ['return', 'return()']].map(([l, s]) => `<button type="button" class="snip ctl" data-s="${esc(s)}">${l}</button>`).join('')}
           ${['front_is_clear()', 'right_is_clear()', 'beepers_present()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
         </div>
       </div>
@@ -1714,25 +1611,18 @@ function showSolution(){
 
 /* ---------- prediction quiz ---------- */
 const BOSS = [
-  { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) next', '  x <- x + i', '}', 'x'], opts: ['[1] 7', '[1] 10', '[1] 3', '[1] 6'], why: 'next（其他語言叫 continue）跳過 i = 3 這一圈剩下的程式，但迴圈繼續：1 + 2 + 4 = 7。' },
-  { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) break', '  x <- x + i', '}', 'x'], opts: ['[1] 3', '[1] 7', '[1] 6', '[1] 10'], why: 'i = 3 時 break 直接結束迴圈：1 + 2 = 3。' },
-  { code: ['n <- 1', 'count <- 0', 'while (n < 20) {', '  n <- n * 3', '  count <- count + 1', '}', 'count'], opts: ['[1] 3', '[1] 2', '[1] 4', '[1] 27'], why: 'n 依序 1 → 3 → 9 → 27，乘了 3 次。' },
-  { code: ['for (ch in c("R", "真", "好")) {', '  cat(ch)', '}'], opts: ['R真好', '好真R', 'R 真 好', '[1] "R" "真" "好"'], why: 'for 不只能走訪數字，也能走訪文字向量：ch 依序是 "R"、"真"、"好"。cat() 只給一個參數時不會加空格，所以三次連在一起印成 R真好。' },
-  { code: ['x <- 4', 'if (!(x > 5)) {', '  print("小")', '} else {', '  print("大")', '}'], opts: ['[1] "小"', '[1] "大"', 'Error', '什麼都不印'], why: 'x > 5 是 FALSE，前面加上 ! 反轉成 TRUE，所以執行第一個區塊。' },
-  { code: ['spots <- c(2, 5, 7)', 'for (i in 1:6) {', '  if (i %in% spots) cat(i, "")', '}'], opts: ['2 5', '2 5 7', '1 3 4 6', 'TRUE TRUE'], why: 'i 從 1 跑到 6，只有 2 和 5 同時在 spots 裡；7 在 spots 裡，但 i 跑不到 7。' },
-  { code: ['x <- 1', 'repeat {', '  cat(x, "")', '  if (x >= 3) break', '  x <- x + 1', '}'], opts: ['1 2 3', '1 2', '2 3', '1 2 3 4'], why: 'repeat 先印 x，再檢查 x >= 3。印出 1、2 之後 x 變成 3，印出 3 再檢查時成立，break 離開，所以是 1 2 3。' },
-  { code: ['x <- 0', 'if (x > 5 || x == 0) {', '  print("A")', '} else {', '  print("B")', '}'], opts: ['[1] "A"', '[1] "B"', 'Error', '[1] "A" "B"'], why: '|| 是「或者」：x > 5 是 FALSE，但 x == 0 是 TRUE，只要一個成立就是 TRUE。' },
-  { code: ['for (i in 3:1) cat(i, "")'], opts: ['3 2 1', '1 2 3', '3', '什麼都不印'], why: '3:1 會產生倒數的向量 c(3, 2, 1)，所以 i 依序是 3、2、1（不是 1、2、3）。每一圈 cat(i, "") 印出 i 和一個空字串；cat 會在兩個參數之間加一個空格，所以結果是「3 2 1 」，每個數字後面都跟著一個空格。' },
-  { code: ['x <- 15', 'if (x %% 3 == 0 && x %% 5 == 0) {', '  "FizzBuzz"', '} else if (x %% 3 == 0) {', '  "Fizz"', '} else {', '  x', '}'], opts: ['[1] "FizzBuzz"', '[1] "Fizz"', '[1] 15', '[1] "Fizz" "FizzBuzz"'], why: '15 同時是 3 和 5 的倍數，第一個條件就成立，後面不再檢查。' },
-  { code: ['total <- 0', 'for (i in 1:3) {', '  for (j in 1:i) {', '    total <- total + 1', '  }', '}', 'total'], opts: ['[1] 6', '[1] 9', '[1] 3', '[1] 4'], why: '內層的長度跟著 i 變：1 + 2 + 3 = 6 次。' },
-  { code: ['v <- c(3, 8, 1, 9, 4)', 'm <- v[1]', 'for (x in v) {', '  if (x > m) m <- x', '}', 'm'], opts: ['[1] 9', '[1] 4', '[1] 3', '[1] 8'], why: '這是自己寫的 max()：遇到比目前 m 大的值就更新。' },
-  { code: ['n <- 0', 'for (i in 1:n) print(i)'], opts: ['[1] 1\n[1] 0', '什麼都不印', '[1] 0', 'Error'], why: '陷阱題！1:0 是 c(1, 0)，迴圈會跑兩圈。要安全處理 n = 0，用 seq_len(n)。' },
-  { code: ['x <- 5', 'while (TRUE) {', '  x <- x - 2', '  if (x < 0) break', '}', 'x'], opts: ['[1] -1', '[1] 1', '[1] 0', '無限迴圈'], why: 'while (TRUE) 要靠 break 離開。x 依序 3 → 1 → -1，-1 < 0 時 break。' },
-  { code: ['y <- ifelse(c(1, 6, 3) > 2, "大", "小")', 'y'], opts: ['[1] "小" "大" "大"', '[1] "小"', '[1] "大" "大" "小"', 'Error: the condition has length > 1'], why: 'ifelse() 是向量化的，會對每個元素分別判斷，跟 if 不同。' },
-  { code: ['count <- 0', 'for (i in 1:5) {', '  if (i %% 2 == 1) count <- count + i', '}', 'count'], opts: ['[1] 9', '[1] 6', '[1] 15', '[1] 3'], why: '只加奇數：1 + 3 + 5 = 9。' },
-  { q: '哪一段程式會印出 1 到 10 之間的偶數？', code: null,
-    opts: ['for (i in 1:10) if (i %% 2 == 0) print(i)', 'for (i in 1:10) if (i / 2 == 0) print(i)', 'for (i in 1:10) if (i %% 2 == 1) print(i)', 'i <- 1\nwhile (i <= 10) print(i)'], why: '%% 取餘數，餘數 0 代表整除。i / 2 是除法，結果不會等於 0。' },
-  { code: ['i <- 0', 'repeat {', '  i <- i + 2', '  if (i > 5) break', '}', 'i'], opts: ['[1] 6', '[1] 4', '[1] 5', '無限迴圈'], why: 'repeat 是沒有條件的迴圈，只能靠 break 離開。i 依序 2 → 4 → 6，6 > 5 時停。' },
+  { code: ["f <- function(x) {", "  x * 2", "}", "f(3) + 1"], opts: ["[1] 7", "[1] 8", "[1] 6", "Error"], why: "f(3) 回傳最後一行的值 6，再加 1 是 7。" },
+  { code: ["x <- 10", "f <- function() {", "  x <- 1", "}", "f()", "x"], opts: ["[1] 10", "[1] 1", "[1] 11", "Error"], why: "function 裡的 x 是區域變數，改不到外面的 x，所以還是 10。（f() 的最後一行是指派，所以呼叫時不會印東西。）" },
+  { code: ["g <- function(a, b = 2) a * b", "g(5)"], opts: ["[1] 10", "[1] 7", "[1] 5", "Error：少了 b"], why: "b 沒給就用預設值 2：5 * 2 = 10。" },
+  { code: ["g <- function(a, b = 2) a - b", "g(b = 1, a = 5)"], opts: ["[1] 4", "[1] -4", "[1] 3", "[1] 1"], why: "具名參數不看順序：a = 5、b = 1，5 - 1 = 4。" },
+  { code: ["h <- function(n) {", "  if (n > 0) return(\"正\")", "  \"非正\"", "}", "h(-2)"], opts: ["[1] \"非正\"", "[1] \"正\"", "NULL", "Error"], why: "n = -2，if 不成立，不會 return；繼續到最後一行，回傳 \"非正\"。" },
+  { code: ["k <- function() {", "  for (i in 1:5) {", "    if (i * i > 10) return(i)", "  }", "  0", "}", "k()"], opts: ["[1] 4", "[1] 3", "[1] 0", "[1] 16"], why: "i = 4 時 16 > 10，return(4) 立刻結束整個 function，後面的 0 不會執行。" },
+  { code: ["fact <- function(n) {", "  if (n <= 1) return(1)", "  n * fact(n - 1)", "}", "fact(4)"], opts: ["[1] 24", "[1] 10", "[1] 4", "Error：無限遞迴"], why: "4 * fact(3) = 4 * 3 * fact(2) = 4 * 3 * 2 * fact(1) = 24。" },
+  { code: ["r <- function(n) {", "  if (n > 0) {", "    cat(n, \"\")", "    r(n - 1)", "  }", "}", "r(3)"], opts: ["3 2 1", "1 2 3", "3 2 1 0", "3"], why: "先印再呼叫自己：印 3 → r(2) 印 2 → r(1) 印 1 → r(0) 停止。" },
+  { code: ["r2 <- function(n) {", "  if (n > 0) {", "    r2(n - 1)", "    cat(n, \"\")", "  }", "}", "r2(3)"], opts: ["1 2 3", "3 2 1", "0 1 2 3", "3"], why: "先呼叫自己、等它做完才印：最深的 r2(1) 最先印出 1，回到上一層印 2，最後印 3。" },
+  { code: ["s <- function(v) {", "  total <- 0", "  for (x in v) total <- total + x", "  total", "}", "s(c(2, 4, 6))"], opts: ["[1] 12", "[1] 6", "NULL", "[1] 2 4 6"], why: "最後一行 total 是回傳值：2 + 4 + 6 = 12。" },
+  { code: ["s2 <- function(v) {", "  total <- 0", "  for (x in v) total <- total + x", "}", "y <- s2(c(1, 2))", "y"], opts: ["NULL", "[1] 3", "[1] 0", "Error"], why: "最後一行是 for 迴圈，for 的值是 NULL，所以 y 是 NULL。忘了回傳是最常見的錯誤。" },
+  { code: ["count <- 0", "inc <- function() count <<- count + 1", "inc()", "inc()", "count"], opts: ["[1] 2", "[1] 0", "[1] 1", "Error"], why: "<<- 會改到 function 外面的 count，呼叫兩次就是 2。（能用回傳值就盡量不要用 <<-。）" },
 ];
 let B = null;
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };

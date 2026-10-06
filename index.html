@@ -69,7 +69,8 @@ h1 .l2{display:block;background:linear-gradient(90deg,var(--ink) 0%,var(--ink) 3
 .mods-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 20px;margin-bottom:22px}
 .mods-h h2{margin:0;font-size:clamp(22px,2.6vw,30px);font-weight:900}
 .mods-h p{margin:0;color:var(--dim);font-size:14px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.grid .mod:nth-child(3){grid-column:1/-1}}
 @media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
 .mod{position:relative;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;padding:22px;border:1px solid var(--line);
   background:linear-gradient(160deg,color-mix(in srgb,var(--c) 9%,var(--panel)) 0%,var(--panel) 55%);text-decoration:none;
@@ -123,7 +124,7 @@ footer .mono{font-family:var(--f-code)}
       <div class="meta rise d3">
         <div><small>INSTRUCTOR</small><span>陳育辰（YCC）</span></div>
         <div><small>TOOLKIT</small><span>R · RStudio</span></div>
-        <div><small>MATERIALS</small><span>2 個互動單元</span></div>
+        <div><small>MATERIALS</small><span>3 個互動單元</span></div>
       </div>
     </div>
 
@@ -137,7 +138,7 @@ footer .mono{font-family:var(--f-code)}
 <main class="mods">
   <div class="mods-h">
     <h2>互動教材</h2>
-    <p>兩個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用程式處理它；最後用補充教材補齊細節。</p>
+    <p>三個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它，最後用 function 組出演算法；補充教材補齊細節。</p>
   </div>
   <div class="grid">
     <a class="mod rise" style="--c:var(--blue)" href="memory.html">
@@ -202,6 +203,33 @@ footer .mono{font-family:var(--f-code)}
       <div class="foot">
         <div class="tags"><span>for</span><span>while</span><span>repeat</span><span>if</span><span>%in%</span><span>break</span><span>next</span><span>list</span></div>
         <span class="go">18 關 + 預測挑戰 <i>→</i></span>
+      </div>
+    </a>
+    <a class="mod rise d2" style="--c:var(--rose)" href="algo.html">
+      <div class="part"><b>03</b>PART THREE</div>
+      <div>
+        <h3>R 寶的演算法學院</h3>
+        <p>function 與演算法：把動作包成 function，再用它們完成搜尋、找最大值、遞迴與氣泡排序。</p>
+      </div>
+      <div class="prev" aria-label="示意：R 寶用氣泡排序把寶石堆由少到多排好">
+        <svg viewBox="0 0 440 112" role="img">
+          <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="14" fill="var(--ink)">pair_sort <tspan fill="var(--rose)">&lt;-</tspan> <tspan fill="#c792ea">function</tspan>() { … }</text>
+          <g transform="translate(0,34)">
+            <rect x="0" y="0" width="440" height="56" fill="none" stroke="var(--ink)" stroke-width="2" opacity=".6"/>
+            <g stroke="var(--line)"><line x1="55" y1="0" x2="55" y2="56"/><line x1="110" y1="0" x2="110" y2="56"/><line x1="165" y1="0" x2="165" y2="56"/><line x1="220" y1="0" x2="220" y2="56"/><line x1="275" y1="0" x2="275" y2="56"/><line x1="330" y1="0" x2="330" y2="56"/><line x1="385" y1="0" x2="385" y2="56"/></g>
+            <g fill="var(--teal)" stroke="color-mix(in srgb,var(--teal) 50%,#fff)" stroke-width="1"><polygon points="27.5,42 34.5,48 27.5,54 20.5,48"/><polygon points="82.5,42 89.5,48 82.5,54 75.5,48"/><polygon points="137.5,42 144.5,48 137.5,54 130.5,48"/><polygon points="137.5,30 144.5,36 137.5,42 130.5,36"/><polygon points="192.5,42 199.5,48 192.5,54 185.5,48"/><polygon points="192.5,30 199.5,36 192.5,42 185.5,36"/><polygon points="247.5,42 254.5,48 247.5,54 240.5,48"/><polygon points="247.5,30 254.5,36 247.5,42 240.5,36"/><polygon points="247.5,18 254.5,24 247.5,30 240.5,24"/><polygon points="302.5,42 309.5,48 302.5,54 295.5,48"/><polygon points="302.5,30 309.5,36 302.5,42 295.5,36"/><polygon points="302.5,18 309.5,24 302.5,30 295.5,24"/><polygon points="302.5,6 309.5,12 302.5,18 295.5,12"/><polygon points="357.5,42 364.5,48 357.5,54 350.5,48"/><polygon points="357.5,30 364.5,36 357.5,42 350.5,36"/><polygon points="357.5,18 364.5,24 357.5,30 350.5,24"/><polygon points="357.5,6 364.5,12 357.5,18 350.5,12"/></g>
+            <g transform="translate(412.5,28)">
+              <rect x="-17" y="-16" width="34" height="32" rx="10" fill="var(--rose)"/>
+              <rect x="1" y="-11" width="12" height="22" rx="5" fill="var(--bg)"/>
+              <circle cx="8" cy="-5" r="2.6" fill="var(--ink)"/><circle cx="8" cy="5" r="2.6" fill="var(--ink)"/>
+            </g>
+          </g>
+          <text x="0" y="108" font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--faint)">put_n(max(a, b)) → 1 1 2 2 3 4 4</text>
+        </svg>
+      </div>
+      <div class="foot">
+        <div class="tags"><span>function</span><span>return</span><span>搜尋</span><span>遞迴</span><span>排序</span></div>
+        <span class="go">10 關 + 預測挑戰 <i>→</i></span>
       </div>
     </a>
   </div>
