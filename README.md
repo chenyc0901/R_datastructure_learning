@@ -6,7 +6,7 @@
 |---|---|
 | 封面 | `index.html` |
 | 01 記憶體裡的 R 物件 | `memory.html` |
-| 02 R 迴圈闖關 | `loops.html` |
+| 02 R 寶的奇幻旅程 | `loops.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
 
@@ -44,7 +44,7 @@ R 資料結構的互動式教材 —— 從「電腦怎麼擺放 bytes」的角�
 | 11 | 全圖 | 兩個源頭加屬性長出五種結構 |
 | 12 | 隨堂測驗 | 十一題，附解釋 |
 
-## 第二部分：R 迴圈闖關（`loops.html`）
+## 第二部分：R 寶的奇幻旅程（`loops.html`）
 
 **線上版本：** https://chenyc0901.github.io/R_datastructure_learning/loops.html
 
