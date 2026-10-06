@@ -94,8 +94,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* workbench */
 .bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"mission side" "code side";grid-template-rows:auto 1fr;gap:16px;align-items:start}
-.a-mission{grid-area:mission}.a-side{grid-area:side;gap:16px}.a-world{grid-area:world}.a-goal{grid-area:goal}.a-stick{gap:10px}.a-code{grid-area:code}.a-env{grid-area:env}
-@media (max-width:920px){.bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"mission" "world" "goal" "code" "env";grid-template-rows:none}.bench .a-side,.bench .a-stick{display:contents}}
+.a-mission{grid-area:mission}.a-side{grid-area:side;gap:16px}.a-world{grid-area:world}.a-info{grid-area:info}.a-stick{gap:10px}.a-code{grid-area:code}.a-env{grid-area:env}
+@media (max-width:920px){.bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"mission" "world" "info" "code";grid-template-rows:none}.bench .a-side,.bench .a-stick{display:contents}}
 .col{display:flex;flex-direction:column;gap:12px;min-width:0}
 .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--accent);font-weight:700}
 .mission h2{font-family:var(--f-display);font-size:28px;margin:2px 0 6px;line-height:1.2;text-wrap:balance}
@@ -161,6 +161,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #ed:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--accent-soft)}
 .codeview{position:relative;font-family:var(--f-code);font-size:14px;line-height:23.8px;padding-block:10px;overflow:auto;max-height:min(62vh,560px);overscroll-behavior:contain;cursor:text}
 /* long programs: the code box scrolls by itself, and the world column stays in view */
+/* target result, Environment and Console share one tabbed panel under the world */
+.infopane .tabs{display:flex;gap:2px;padding:3px 6px 0;background:var(--sunk);border-bottom:1px solid var(--line)}
+.infopane .tabs button{position:relative;border:0;background:transparent;padding:6px 12px;font-size:12.5px;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.infopane .tabs button:hover{color:var(--ink)}
+.infopane .tabs button[aria-selected="true"]{color:var(--ink);font-weight:600;border-bottom-color:var(--accent)}
+.infopane .tabs button.new::after{content:"";position:absolute;top:5px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--amber)}
+.tabp{height:150px;overflow:auto;overscroll-behavior:contain}
+.tabp .console{min-height:100%;max-height:none;overflow:visible}
+@media (max-width:920px){.tabp{height:auto;max-height:280px}}
 /* world + target result stay pinned together while a long program scrolls by */
 @media (min-width:921px){.a-side{align-self:stretch}.a-stick{position:sticky;top:0;z-index:3;background:var(--bg);padding-block:6px 10px;margin-top:-6px}}
 @media (max-width:920px){.codeview{max-height:42vh}}
@@ -268,7 +277,7 @@ table.sol td.nt{width:100%}
 table.sol tr.com td{color:var(--muted);font-style:italic}
 .sol-traps{margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--bad-soft);font-size:14px;line-height:1.7}
 .sol-traps ul{margin:4px 0 0;padding-left:20px}
-.goalmini{padding:8px 12px;display:flex;justify-content:center;background:var(--sunk)}
+.goalmini{padding:10px 12px;display:flex;justify-content:center;background:var(--sunk)}
 .goalmini svg{display:block;height:auto;max-width:100%}
 .goalcap{padding:5px 14px 7px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
 .goalcap b{color:var(--ink);font-family:var(--f-code);font-weight:600}
@@ -1385,14 +1394,17 @@ function go(id){
       <div class="worldwrap"><div class="world" id="world"></div></div>
       <div class="wstatus" id="wstatus"></div>
     </section>
-    <div class="a-goal pane goalpane"><div class="pane-h"><b>目標結果</b><span>正確程式跑完後應該長這樣</span></div>
-      <div class="goalmini" id="goalmini"></div><div class="goalcap" id="goalcap"></div></div>
+    <div class="a-info pane infopane" id="infopane">
+      <div class="tabs" role="tablist" aria-label="執行資訊">
+        <button type="button" role="tab" data-t="goal">目標結果</button>
+        <button type="button" role="tab" data-t="env">Environment</button>
+        <button type="button" role="tab" data-t="con">Console</button>
+      </div>
+      <div class="tabp" role="tabpanel" data-p="goal"><div class="goalmini" id="goalmini"></div><div class="goalcap" id="goalcap"></div></div>
+      <div class="tabp" role="tabpanel" data-p="env" hidden><table class="env"><thead><tr><th>變數</th><th>值</th></tr></thead><tbody id="env"></tbody></table></div>
+      <div class="tabp" role="tabpanel" data-p="con" hidden><pre class="console" id="console"></pre></div>
     </div>
-    <section class="a-env col">
-      <div class="pane"><div class="pane-h"><b>Environment</b><span>變數</span></div>
-        <table class="env"><thead><tr><th>變數</th><th>值</th></tr></thead><tbody id="env"></tbody></table></div>
-      <div class="pane"><div class="pane-h"><b>Console</b><span>R 4.4</span></div><pre class="console" id="console"></pre></div>
-    </section>
+    </div>
     </div>
     <section class="a-code col">
       <div class="pane">
@@ -1416,6 +1428,7 @@ function go(id){
       <div id="result" hidden></div>
     </section>
   </div>`;
+  setupInfo();
   const ed = $('#ed'); ed.value = code; syncEditor();
   ed.addEventListener('input', () => { syncEditor(); S.codes[L.id] = ed.value; save(); });
   ed.addEventListener('keydown', edKeys);
@@ -1434,6 +1447,28 @@ function go(id){
   showWorld(L.def());
 }
 
+let infoTab = 'goal';   // remembered across levels
+function setupInfo(){
+  const box = $('#infopane'), tab = t => box.querySelector(`[data-t="${t}"]`);
+  const show = t => {
+    infoTab = t;
+    box.querySelectorAll('[role=tab]').forEach(b => { const on = b.dataset.t === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; if (on) b.classList.remove('new'); });
+    box.querySelectorAll('.tabp').forEach(p => { p.hidden = p.dataset.p !== t; });
+  };
+  box.querySelector('.tabs').onclick = e => { const b = e.target.closest('[role=tab]'); if (b) show(b.dataset.t); };
+  box.querySelector('.tabs').onkeydown = e => {
+    const order = ['goal', 'env', 'con'], i = order.indexOf(infoTab);
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const t = order[(i + (e.key === 'ArrowRight' ? 1 : 2)) % 3]; show(t); tab(t).focus();
+  };
+  // while a program runs, flag tabs whose content changed, and keep the console scrolled to its last line
+  const watch = (el, t) => new MutationObserver(() => {
+    if (P.trace && infoTab !== t) tab(t).classList.add('new');
+    if (t === 'con') { const pn = box.querySelector('[data-p="con"]'); pn.scrollTop = pn.scrollHeight; }
+  }).observe(el, { childList: true, subtree: true, characterData: true });
+  watch($('#env'), 'env'); watch($('#console'), 'con');
+  show(infoTab);
+}
 function syncEditor(){
   const ed = $('#ed'); const n = ed.value.split('\n').length;
   $('#gutter').textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
@@ -1475,7 +1510,7 @@ function showWorld(def){
   const wEl = $('#world');
   const maxW = Math.round(440 * def.W / def.H);
   const ar = (def.W / def.H).toFixed(3);   // never so small the robot is hard to see
-  wEl.style.width = `min(100%, ${maxW}px, max(calc((100vh - 490px) * ${ar}), calc(190px * ${ar})))`;
+  wEl.style.width = `min(100%, ${maxW}px, max(calc((100vh - 500px) * ${ar}), calc(180px * ${ar})))`;
   wEl.innerHTML = `<svg class="map-svg" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" role="img" aria-label="${def.W} × ${def.H} 的地圖"><g>${staticLayer(def)}</g><g id="gems">${gemLayer(def.beepers || {}, def.H)}</g></svg>
     <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>
     ${def.labels ? `<svg class="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true">${labelLayer(def)}</svg>` : ''}
@@ -1673,7 +1708,7 @@ function goalPreview(def){
   if (t.error) { box.innerHTML = ''; $('#goalcap').textContent = ''; return; }
   const w = t.world, H = def.H, px = (w.x - 1) * CELL, py = (H - w.y) * CELL;
   const gems = Object.values(w.beepers).reduce((a, b) => a + b, 0);
-  box.innerHTML = `<svg viewBox="0 0 ${def.W * CELL} ${H * CELL}" style="width:min(100%, ${Math.round(96 * def.W / H)}px)" role="img" aria-label="正確程式跑完後的地圖">
+  box.innerHTML = `<svg viewBox="0 0 ${def.W * CELL} ${H * CELL}" style="width:min(100%, ${Math.round(84 * def.W / H)}px)" role="img" aria-label="正確程式跑完後的地圖">
     ${staticLayer({ ...def, targets: [] })}${gemLayer(w.beepers, H)}
     <g transform="translate(${px + 28},${py + 72}) scale(.42) rotate(${-w.dir * 90})">${ROBOT_INNER}</g>${def.labels ? labelLayer(def) : ''}</svg>`;
   $('#goalcap').innerHTML = `R 寶停在 <b>(${w.x}, ${w.y})</b>、面向 <b>${DIR_ZH[w.dir]}</b>　地上寶石 <b>${gems}</b> 顆${w.picked ? `　撿起 <b>${w.picked}</b>` : ''}${w.placed ? `　放下 <b>${w.placed}</b>` : ''}`;
