@@ -79,13 +79,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .node[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .node[aria-current="true"] .num{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .node.done .num{background:var(--ok);border-color:var(--ok);color:var(--panel)}
-.node.boss{border-color:var(--bad);background:var(--bad-soft)}
-.node.boss .num{background:var(--bad);border-color:var(--bad);color:var(--panel);font-size:15px}
-.node.boss .num,.node.bio .num{line-height:1;overflow:hidden}
-.node.boss .tag{color:var(--bad)}
-.node.boss.done .num{background:var(--amber);border-color:var(--amber)}
-.mission.boss .eyebrow{color:var(--bad);font-weight:700}
-.mission.boss h2::before{content:'☠ ';color:var(--bad)}
+.node.lv-boss{border-color:var(--bad);background:var(--bad-soft)}
+.node.lv-boss .num{background:var(--bad);border-color:var(--bad);color:var(--panel);font-size:15px}
+.node.lv-boss .num,.node.bio .num{line-height:1;overflow:hidden}
+.node.lv-boss .tag{color:var(--bad)}
+.node.lv-boss.done .num{background:var(--amber);border-color:var(--amber)}
+.mission.lv-boss .eyebrow{color:var(--bad);font-weight:700}
+.mission.lv-boss h2::before{content:'💀 ';color:var(--bad)}
 .node.bio{border-color:var(--ok);background:var(--ok-soft)}
 .node.bio .num{background:var(--ok);border-color:var(--ok);color:var(--panel);font-size:15px}
 .node.bio .tag{color:var(--ok)}
@@ -239,6 +239,27 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .confetti{position:fixed;width:8px;height:12px;z-index:40;pointer-events:none;border-radius:2px;animation:conf 1.1s cubic-bezier(.2,.6,.4,1) forwards}
 @keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.concept pre.snippet{margin:6px 0 2px;padding:10px 12px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;font-family:var(--f-code);font-size:13px;line-height:1.55;overflow-x:auto;font-variant-ligatures:none}
+.pwform{display:flex;gap:8px}
+.pwform input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
+.pwform input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.pwerr{min-height:1.4em;margin:6px 0 0;color:var(--bad);font-size:14px}
+.card.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.card.wide{max-width:min(860px,calc(100vw - 32px));width:100%;max-height:calc(100vh - 48px);overflow:auto;text-align:left}
+.sol-idea{margin:8px 0 12px;line-height:1.7}
+.sol-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table.sol{width:100%;border-collapse:collapse;font-size:14px}
+table.sol th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 10px;background:var(--sunk);border-bottom:1px solid var(--line)}
+table.sol td{padding:5px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+table.sol tr:last-child td{border-bottom:0}
+table.sol td.ln{color:var(--muted);font-family:var(--f-code);font-size:12px;text-align:right;width:1%}
+table.sol td.cd{white-space:pre;font-family:var(--f-code);font-size:13px;width:1%}
+table.sol td.cd code{background:none;border:0;padding:0;font-variant-ligatures:none}
+table.sol td.nt{width:100%}
+table.sol tr.com td{color:var(--muted);font-style:italic}
+.sol-traps{margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--bad-soft);font-size:14px;line-height:1.7}
+.sol-traps ul{margin:4px 0 0;padding-left:20px}
 </style>
 </head>
 <body>
@@ -716,6 +737,7 @@ function hbbWorld(pid, muts){
     vars: { ref: [...HBB_REF], patient: new RList(['id', 'gene', 'seq'], [pid, 'HBB', seq]) } };
 }
 
+const SOL_NOTES = {"seq": {"idea": "R 寶在第 1 格，寶石在第 4 格：走 3 步，再撿起來。", "lines": ["往前走一格，到第 2 格", "再走一格，到第 3 格", "再走一格，到第 4 格（寶石所在）", "撿起腳下的寶石"], "traps": ["函式一定要加括號：寫 move 不會動，要寫 move()。", "走太多步會撞牆，程式會在那一行停下來。"]}, "for": {"idea": "從第 1 格到第 9 格要走 8 步，用 for 重複 8 次 move()。", "lines": ["1:8 產生 c(1, 2, …, 8)，i 依序取每個值，大括號裡的程式跑 8 次", "每一圈往前走一格", "for 迴圈結束", "迴圈跑完已經在第 9 格，撿起寶石"], "traps": ["寫成 1:9 會多走一步撞牆：9 格之間只有 8 步。", "pick_beeper() 放在迴圈裡面會在每一格都撿，沒寶石的格子會出錯。"]}, "fence": {"idea": "7 個格子、6 段路：迴圈「放 → 走」跑 6 次，最後一格在迴圈外補放。", "lines": ["重複 6 次（格子之間的 6 段路）", "在目前這一格放一顆寶石", "往前走到下一格", "for 迴圈結束，這時站在第 7 格，但還沒放", "補上最後一格的寶石（柵欄問題）"], "traps": ["改成 1:7 會在第 7 格之後還要 move()，撞牆。", "忘記最後一行，第 7 格會是空的。"]}, "while": {"idea": "不知道走廊多長，就用「前面有路就走」的 while，走到牆邊自然停下。", "lines": ["每一圈開始前檢查：前面有路（TRUE）就進迴圈，沒路（FALSE）就結束", "往前走一格", "while 迴圈結束，此時前面是牆", "撿起盡頭的寶石"], "traps": ["迴圈裡忘了 move()，條件永遠不變，就是無限迴圈。", "寫死成 for (i in 1:5)，換一張地圖就失敗。"]}, "not": {"idea": "「腳下沒有寶石」就繼續走：用 ! 把 beepers_present() 反過來。", "lines": ["!beepers_present()：腳下沒寶石時是 TRUE，就繼續走；踩到寶石變 FALSE，迴圈結束", "往前走一格", "while 迴圈結束，此時腳下有寶石", "撿起寶石"], "traps": ["少了 !，一開始腳下沒寶石，條件就是 FALSE，迴圈一次都不跑。"]}, "if": {"idea": "每走一格就檢查一次：有寶石才撿。", "lines": ["走 7 步（第 1 格到第 8 格）", "先往前走一格", "if：這一格有寶石（TRUE）才執行 pick_beeper()，沒有就跳過", "for 迴圈結束"], "traps": ["沒有 if 直接 pick_beeper()，遇到空格子就會出錯。"]}, "in": {"idea": "i 代表 R 寶現在站的格子編號，用 %in% 判斷它是不是在 spots 這個清單裡。", "lines": ["建立向量 spots：要放寶石的格子編號", "i 從 2 跑到 8，對應 R 寶走到的格子", "先走到第 i 格", "i %in% spots：i 在清單裡是 TRUE 才放寶石", "for 迴圈結束"], "traps": ["for 的 in 和 %in% 不一樣：前者是「依序取值」，後者是「是否屬於」。", "寫成 i == spots 會得到 3 個 TRUE/FALSE，if 會出錯（the condition has length > 1）。"]}, "sweep": {"idea": "while 一路走，每一格先檢查再走；迴圈結束後最後一格還要再檢查一次。", "lines": ["前面有路就繼續", "這一格有寶石就撿", "往前走一格", "while 結束，站在最後一格，但這一格還沒檢查", "補檢查最後一格（柵欄問題）"], "traps": ["少了最後一行，最後一格的寶石會漏掉。", "把 move() 放在 if 前面，第一格的寶石會漏掉。"]}, "and": {"idea": "有兩個停下來的理由（到牆邊、踩到寶石），用 && 把「繼續走」的兩個條件接起來。", "lines": ["前面有路「而且」腳下沒寶石，兩個都 TRUE 才繼續走；任何一個變 FALSE 就停", "往前走一格", "while 結束：不是到牆邊，就是踩到寶石", "如果是因為踩到寶石而停，就撿起來；沒寶石的地圖就什麼都不做"], "traps": ["用 || 的話，只要前面有路就會一直走，會走過寶石。", "最後直接 pick_beeper()，沒寶石的地圖會出錯。"]}, "break": {"idea": "for 最多跑 9 圈，但一找到寶石就用 break 提早離開。", "lines": ["最多走 9 步", "往前走一格", "檢查這一格有沒有寶石", "有的話立刻結束整個 for 迴圈，剩下的圈數不跑", "if 結束", "for 結束（break 會直接跳到這後面）", "撿起寶石"], "traps": ["把 pick_beeper() 放在 break 後面（同一個大括號裡），它永遠不會執行。"]}, "repeat": {"idea": "repeat 沒有條件，自己決定在哪裡檢查：「放 → 檢查 → 走」，一個迴圈就處理所有格子。", "lines": ["repeat：無條件重複，一定要靠裡面的 break 才能離開", "先在目前這一格放寶石（最後一格也會放到）", "再檢查：前面是牆就 break 離開迴圈", "還沒到牆邊才往前走", "repeat 結束，回到第一行再來一圈"], "traps": ["move() 放在 break 前面：最後一格還沒放就撞牆或離開。", "忘了 break：永遠停不下來（無限迴圈）。"]}, "next": {"idea": "已經有寶石的格子用 next 跳過這一圈剩下的程式，不要重複放。", "lines": ["走 7 格（第 2 到第 8 格）", "先走到下一格", "這一格已經有寶石 → next：跳過下面的 put_beeper()，直接進下一圈", "能跑到這行代表格子是空的，放一顆", "for 迴圈結束"], "traps": ["用 break 會整個迴圈結束，後面的格子都不會補。", "R 沒有 continue，要寫 next。"]}, "square": {"idea": "外層跑 4 個邊，內層每個邊走 4 步；每到一個角落就檢查寶石，再左轉。", "lines": ["外層：4 個邊", "內層：每邊走 4 步（5 × 5 場地，角到角是 4 步）", "往前走一格（總共執行 4 × 4 = 16 次）", "內層 for 結束，現在在角落", "角落有寶石就撿", "左轉，準備走下一個邊", "外層 for 結束，繞完一圈回到起點"], "traps": ["內層寫成 1:5，每邊會多走一步撞牆。"]}, "pyramid": {"idea": "內層的次數用外層的變數 i：第 i 格放 i 顆。", "lines": ["外層：i 從 1 到 5，代表第幾格", "內層：k 從 1 到 i，第 i 格就跑 i 次", "放一顆寶石", "內層結束：這一格放了 i 顆", "往前走到下一格", "外層結束"], "traps": ["內層寫成 1:5，每格都會放 5 顆。"]}, "ifelse": {"idea": "ifelse 一次對整個向量判斷，得到每一格要放幾顆，再用巢狀迴圈照著放。", "lines": ["5 格的高度", "ifelse 逐一判斷 heights > 5：TRUE 給 2、FALSE 給 1，n 是 c(1, 2, 1, 2, 1)", "外層：第 i 格", "內層：放 n[i] 顆（取出向量 n 的第 i 個值）", "放一顆寶石", "內層結束", "往前走到下一格", "外層結束"], "traps": ["寫成 if (heights > 5) 會出錯：if 只能判斷一個值，heights 有 5 個。"]}, "maze": {"idea": "右手扶牆法：能右轉就右轉，不行就直走，再不行就左轉，一直到踩到寶石。", "lines": ["腳下沒有寶石就繼續找", "第一優先：右邊有路", "右轉", "往右邊那條路走一格", "第二優先：右邊不通，但前面有路", "直走一格", "右邊和前面都不通", "左轉（原地轉向，下一圈再判斷）", "if 結束", "while 結束：腳下有寶石了", "撿起寶石"], "traps": ["else if 的順序很重要：只會執行第一個成立的分支。", "else 裡如果也寫 move()，可能會撞牆。"]}, "boss": {"idea": "拆成三步：① 用內層 repeat 掃完一列、② 用 facing_east() 決定往哪邊換列（蛇行）、③ 用 seq_len(total) 把撿到的數量放回去。", "lines": ["計數器：一開始撿了 0 顆", "外層 repeat：一列一列處理，直到沒有上一列", "（註解）", "內層 repeat：掃這一列", "用 while 不是 if：一格可能疊好幾顆，要撿光", "撿一顆", "計數器加 1", "這一格撿光了", "走到這一列盡頭就 break（只跳出內層 repeat）", "還沒到盡頭就往前走", "內層 repeat 結束：這一列掃完了", "（註解）", "現在朝東：上一列在左手邊", "左邊（北方）是牆 → 已經是最上面一列，break 跳出外層 repeat", "左轉，面向北", "上樓一格", "再左轉，面向西，準備往回掃", "否則（現在朝西）：上一列在右手邊", "右邊是牆 → 最上面一列，break", "右轉，面向北", "上樓一格", "再右轉，面向東", "if / else 結束", "外層 repeat 結束", "（註解）", "seq_len(total)：total 是 0 時會是空的，迴圈一次都不跑；1:total 會變成 c(1, 0) 跑 2 次"], "traps": ["while 寫成 if：疊了 3 顆的格子只會撿 1 顆。", "break 只會跳出最近的那一層迴圈。", "1:total 在空倉庫會多放 2 顆。"]}, "hbb": {"idea": "逐一比對 patient$seq 和 ref 的每個鹼基；不一樣就放寶石，並把位置接到 pos 後面。最後用 %in% 判斷第 8 個位置。", "lines": ["建立空的 vector（NULL），用來收集突變位置", "seq_along(ref) 產生 1:12，i 是第幾個鹼基", "patient$seq 從 list 取出序列（打開盒子），[i] 取第 i 個，和 ref[i] 比較", "不一樣 → 在這格放寶石標記突變", "把 i 接到 pos 後面，pos 變長一格", "if 結束", "最後一格不要再 move()，否則會撞牆（柵欄問題）", "for 結束", "第 8 個鹼基在突變清單裡嗎？TRUE / FALSE", "印出病人編號和所有突變位置", "印出 HbS 判讀結果"], "traps": ["patient[\"seq\"] 拿到的還是 list（盒子），要用 $ 或 [[ ]] 打開。", "寫成 hbs <- TRUE 會在其他病人身上判斷錯誤。"]}};
 const LEVELS = [
   { id: 'seq', tag: '順序', title: '第一步',
     goal: 'R 寶要走到寶石那一格，把寶石撿起來。',
@@ -842,7 +864,7 @@ const LEVELS = [
   { id: 'break', tag: 'break', title: '找到就收工',
     goal: '寶石藏在某一格。用 for 迴圈往前走，一找到寶石就用 break 提早離開迴圈，然後撿起來。',
     concept: `<p><code>break</code> 會<b>立刻結束整個迴圈</b>，剩下的圈數都不跑了，直接跳到迴圈後面的程式。</p>
-      <p>寫在巢狀迴圈裡時，break 只跳出離它最近的那一層。另外 <code>while (TRUE)</code> 和 <code>repeat { }</code> 的條件永遠成立，一定要靠 break 才能離開。</p>`,
+      <p>寫在巢狀迴圈裡時，break 只跳出離它最近的那一層。下一關會介紹 <code>repeat</code>：一種沒有條件、一定要靠 break 才能離開的迴圈。</p>`,
     starter: 'for (i in 1:9) {\n  move()\n  if (beepers_present()) {\n    # 找到了！提早離開迴圈\n    \n  }\n}\npick_beeper()\n',
     hint: '在空白那行寫 <code>break</code>。執行時注意看 Environment 裡的 i：break 之後 i 就不再增加。',
     solution: 'for (i in 1:9) {\n  move()\n  if (beepers_present()) {\n    break\n  }\n}\npick_beeper()\n', par: 5, req: [['for', 1], ['break', 1]],
@@ -850,6 +872,35 @@ const LEVELS = [
     tests: [2, 5, 10].map(x => corridor(10, gemsAt([x]))),
     describe: d => `寶石在第 ${Object.keys(d.beepers)[0].split(',')[0]} 格`,
     check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
+
+  { id: 'repeat', tag: 'repeat', title: '一路種到牆邊',
+    goal: '走廊長度每次都不一樣。用 repeat 迴圈在<b>每一格</b>（包括第一格和最後一格）都放一顆寶石。',
+    concept: `<p><code>repeat { … }</code> 會<b>無條件一直重複</b>，它本身沒有條件，所以一定要在裡面放 <code>if (…) break</code> 才停得下來，不然就是無限迴圈。</p>
+      <p>三種迴圈的差別在「什麼時候檢查」：</p>
+      <p>• <code>for (i in 1:n)</code>：次數事先知道。<br>• <code>while (條件)</code>：每一圈<b>開始前</b>先檢查。<br>• <code>repeat</code> ＋ <code>break</code>：檢查放在<b>任何你想要的位置</b>，常放在中間或最後。</p>
+      <p>這關的重點：每一格都要放，但最後一格不能再 move()。用 while 會遇到柵欄問題（最後一格要在迴圈外再補一次）；用 repeat 可以把「檢查」放在中間，一個迴圈就處理完所有格子。例如：</p>
+      <pre class="snippet">x &lt;- 1
+repeat {
+  cat(x, "")            # 先做事
+  if (x &gt;= 8) break     # 再檢查：夠大了就離開
+  x &lt;- x * 2            # 還沒就繼續
+}
+# 印出 1 2 4 8</pre>
+      <p>換成 R 寶：每一格都要「放 → 檢查到牆邊了沒 → 走」，順序要排對。</p>`,
+    starter: 'repeat {\n  # ① 放寶石\n\n  # ② 前面被擋住了就 break\n\n  # ③ 往前走\n\n}\n',
+    hint: '照著說明的順序：<code>put_beeper()</code>、<code>if (front_is_blocked()) break</code>、<code>move()</code>。順序換了會怎樣？試試看把 move() 放到 break 前面。',
+    solution: 'repeat {\n  put_beeper()\n  if (front_is_blocked()) break\n  move()\n}\n', par: 4, req: [['repeat', 1], ['break', 1]],
+    random: true, def: () => { const L = randInt(4, 10); return corridor(L, {}, { targets: Array.from({ length: L }, (_, i) => [i + 1, 1, 1]) }); },
+    tests: [1, 4, 9].map(L => corridor(L, {})),
+    describe: d => `長度 ${d.W} 的走廊`,
+    check: (w, d) => {
+      for (let x = 1; x <= d.W; x++) {
+        const n = w.beepers[`${x},1`] || 0;
+        if (n === 0) return { ok: false, msg: x === d.W ? `最後一格（第 ${x} 格）還是空的！想想看：put_beeper() 和 break 的順序。` : `第 ${x} 格還是空的。` };
+        if (n > 1) return { ok: false, msg: `第 ${x} 格放了 ${n} 顆，每格只要 1 顆。` };
+      }
+      return { ok: true };
+    } },
 
   { id: 'next', tag: 'next', title: '補滿空格',
     goal: '第 2 到第 8 格裡，有些已經有寶石了。把空的格子補上一顆，已經有的就跳過。',
@@ -927,7 +978,7 @@ const LEVELS = [
 
   { id: 'boss', tag: '大魔王', title: '寶石倉庫大清倉', boss: true, xp: 150,
     goal: '倉庫的大小、寶石的位置和數量每次都不一樣，一格還可能疊好幾顆。把倉庫裡的寶石全部撿光，用變數 total 記下一共撿了幾顆，最後在 R 寶停下來的那一格，把 total 顆寶石全部放下，堆成一堆。',
-    concept: `<p>這關沒有新語法，要把前面學過的全部組合起來。先拆成三個小問題：</p>
+    concept: `<p>這關沒有新語法，要把前面學過的全部組合起來（外層和內層都可以用 <code>repeat</code> ＋ <code>break</code>，就像「一路種到牆邊」那關）。先拆成三個小問題：</p>
       <p><b>① 掃一列：</b>一路往前走，每到一格就把寶石撿<b>光</b>。一格可能有好幾顆，所以用 <code>while (beepers_present())</code>，不是 <code>if</code>。每撿一顆就 <code>total &lt;- total + 1</code>。</p>
       <p><b>② 換列（蛇行）：</b>往東掃完，左轉、上樓、再左轉，變成往西掃；往西掃完就右轉、上樓、右轉。用 <code>facing_east()</code> 判斷現在朝哪邊；上面沒有路了就 <code>break</code>。</p>
       <p><b>③ 放回去：</b>重複 total 次 <code>put_beeper()</code>。</p>
@@ -1080,8 +1131,8 @@ function renderHeader(){
     const st = S.stars[n.id] || [], done = n.id === 'quiz' ? S.bossBest >= 6 : !!st[0];
     const stars = n.id === 'quiz' ? `<span class="stars">${S.bossBest ? `最佳 ${S.bossBest}/8` : '&nbsp;'}</span>`
       : `<span class="stars">${[0, 1, 2].map(i => `<span class="${st[i] ? 'on' : ''}">★</span>`).join('')}</span>`;
-    return `<li><button type="button" class="node ${done ? 'done' : ''} ${n.boss ? 'boss' : ''} ${n.bio ? 'bio' : ''}" data-id="${n.id}" aria-current="${String(S.cur) === String(n.id)}">
-      <span class="num">${n.bio ? '🧬' : n.boss ? (done ? '♛' : '☠') : done ? '✓' : n.id === 'quiz' ? '?' : n.n}</span><span class="tag">${n.tag}</span>${stars}</button></li>`;
+    return `<li><button type="button" class="node ${done ? 'done' : ''} ${n.boss ? 'lv-boss' : ''} ${n.bio ? 'bio' : ''}" data-id="${n.id}" aria-current="${String(S.cur) === String(n.id)}">
+      <span class="num">${n.bio ? '🧬' : n.boss ? (done ? '👑' : '💀') : done ? '✓' : n.id === 'quiz' ? '?' : n.n}</span><span class="tag">${n.tag}</span>${stars}</button></li>`;
   }).join('');
 }
 $('#map').addEventListener('click', e => { const b = e.target.closest('.node'); if (b) go(b.dataset.id); });
@@ -1159,7 +1210,7 @@ function go(id){
   const code = S.codes[L.id] ?? L.starter;
   $('#stage').innerHTML = `
   <div class="bench">
-    <section class="a-mission mission ${L.boss ? 'boss' : ''} ${L.bio ? 'bio' : ''}">
+    <section class="a-mission mission ${L.boss ? 'lv-boss' : ''} ${L.bio ? 'bio' : ''}">
       <div class="eyebrow">第 ${L.n} 關 · ${L.tag}</div>
       <h2>${L.title}</h2>
       <p class="goal">${L.goal}</p>
@@ -1174,12 +1225,12 @@ function go(id){
     <section class="a-code col">
       <div class="pane">
         <div class="pane-h"><b>Source</b><span>level${L.n}.R · 目標 ${L.par} 行以內</span>
-          <span class="acts"><button type="button" id="bHint">提示</button><button type="button" id="bSol" ${(S.fails[L.id] || 0) >= 2 ? '' : 'disabled title="失敗兩次後可以看解答"'}>看解答</button><button type="button" id="bStarter">還原</button></span></div>
+          <span class="acts"><button type="button" id="bHint">提示</button><button type="button" id="bSol">看解答</button><button type="button" id="bStarter">還原</button></span></div>
         <div class="editor" id="editorBox"><div class="gutter" id="gutter">1</div><textarea id="ed" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="R 程式碼"></textarea></div>
         <div class="codeview" id="codeview" hidden title="點一下回到編輯"></div>
         <div class="snips" id="snips"><span>插入</span>
           ${['move()', 'turn_left()', 'turn_right()', 'pick_beeper()', 'put_beeper()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
-          ${[['for', 'for (i in 1:3) {\n  \n}'], ['while', 'while (front_is_clear()) {\n  \n}'], ['if', 'if (beepers_present()) {\n  \n}'], ['else', ' else {\n  \n}']].map(([l, s]) => `<button type="button" class="snip ctl" data-s="${esc(s)}">${l}</button>`).join('')}
+          ${[['for', 'for (i in 1:3) {\n  \n}'], ['while', 'while (front_is_clear()) {\n  \n}'], ['repeat', 'repeat {\n  \n  if (front_is_blocked()) break\n}'], ['if', 'if (beepers_present()) {\n  \n}'], ['else', ' else {\n  \n}']].map(([l, s]) => `<button type="button" class="snip ctl" data-s="${esc(s)}">${l}</button>`).join('')}
           ${['front_is_clear()', 'right_is_clear()', 'beepers_present()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
         </div>
       </div>
@@ -1210,12 +1261,7 @@ function go(id){
   $('#speed').oninput = e => { S.speed = Number(e.target.value); save(); };
   $('#bHint').onclick = () => { $('#hint').hidden = !$('#hint').hidden; };
   $('#bStarter').onclick = () => { ed.value = L.starter; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit(); };
-  $('#bSol').onclick = () => {
-    const b = $('#bSol');
-    if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = '確定看解答？'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = '看解答'; } }, 3000); return; }
-    ed.value = L.solution; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit();
-    b.textContent = '看解答'; delete b.dataset.armed;
-  };
+  $('#bSol').onclick = askSolution;
   $('#bResetWorld').onclick = () => { stopPlay(); toEdit(); showWorld(P.def); };
   if ($('#bReroll')) $('#bReroll').onclick = () => { stopPlay(); toEdit(); showWorld(L.def()); };
   showWorld(L.def());
@@ -1370,7 +1416,6 @@ function finish(){
   const res = $('#result');
   const fail = (html, bubble, extraBtn) => {
     S.fails[L.id] = (S.fails[L.id] || 0) + 1; save();
-    if (S.fails[L.id] >= 2) { const b = $('#bSol'); if (b) { b.disabled = false; b.title = ''; } }
     res.hidden = false; res.className = 'result no'; res.innerHTML = html + (extraBtn || '');
     say(bubble, 'f'); $('#robot').classList.add('sad'); setTimeout(() => $('#robot') && $('#robot').classList.remove('sad'), 1400);
     SFX.fail();
@@ -1443,6 +1488,55 @@ function success(code){
   $('#mNext').focus();
 }
 
+/* ---------- solution (password protected, annotated) ---------- */
+const SOL_PASS = '0901';   // only a classroom speed bump: the answers ship with the page
+let solUnlocked = false;
+function modal(html){
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="card" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(m);
+  const close = () => { m.remove(); document.removeEventListener('keydown', onEsc); };
+  const onEsc = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onEsc);
+  m.onclick = e => { if (e.target === m) close(); };
+  return { m, close };
+}
+function askSolution(){
+  if (solUnlocked) return showSolution();
+  const { m, close } = modal(`<h3>看解答</h3><p style="margin:4px 0 12px;color:var(--muted)">請輸入老師提供的密碼</p>
+    <form id="pwForm" class="pwform"><input id="pw" type="password" inputmode="numeric" autocomplete="off" aria-label="密碼" placeholder="密碼">
+    <button class="btn primary" type="submit">確定</button></form><p class="pwerr" id="pwErr" aria-live="polite"></p>
+    <div class="controls"><button class="btn" type="button" id="pwCancel">取消</button></div>`);
+  const inp = $('#pw', m); inp.focus();
+  $('#pwCancel', m).onclick = close;
+  $('#pwForm', m).onsubmit = e => {
+    e.preventDefault();
+    if (inp.value.trim() === SOL_PASS) { solUnlocked = true; close(); showSolution(); }
+    else { $('#pwErr', m).textContent = '密碼不對，再試一次。'; inp.select(); const c = $('.card', m); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+  };
+}
+function showSolution(){
+  const nt = SOL_NOTES[L.id] || { idea: '', lines: [], traps: [] };
+  const code = L.solution.replace(/\n$/, '').split('\n');
+  const rows = code.map((ln, i) => {
+    const isCom = ln.trim().startsWith('#');
+    const note = isCom ? '' : nt.lines[i] || '';
+    return `<tr class="${isCom ? 'com' : ''}"><td class="ln">${i + 1}</td><td class="cd"><code>${hl(ln) || '&nbsp;'}</code></td><td class="nt">${esc(note)}</td></tr>`;
+  }).join('');
+  const { m, close } = modal(`<h3>第 ${L.n} 關 詳解：${esc(L.title)}</h3>
+    <p class="sol-idea"><b>思路：</b>${esc(nt.idea)}</p>
+    <div class="sol-wrap"><table class="sol"><thead><tr><th>#</th><th>程式碼</th><th>這一行在做什麼</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${nt.traps.length ? `<div class="sol-traps"><b>常見錯誤</b><ul>${nt.traps.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
+    <div class="controls"><button class="btn" type="button" id="solClose">關閉</button><button class="btn primary" type="button" id="solUse">放進編輯器（附註解）</button></div>`);
+  m.querySelector('.card').classList.add('wide');
+  $('#solClose', m).onclick = close;
+  $('#solUse', m).onclick = () => {
+    const w = Math.min(34, Math.max(...code.map(l => l.length)) + 2);
+    const txt = code.map((ln, i) => { const nn = ln.trim().startsWith('#') ? '' : nt.lines[i]; return nn ? ln.padEnd(w) + '# ' + nn : ln; }).join('\n') + '\n';
+    const ed = $('#ed'); ed.value = txt; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit(); close();
+  };
+}
+
 /* ---------- prediction quiz ---------- */
 const BOSS = [
   { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) next', '  x <- x + i', '}', 'x'], opts: ['[1] 7', '[1] 10', '[1] 3', '[1] 6'], why: 'next（其他語言叫 continue）跳過 i = 3 這一圈剩下的程式，但迴圈繼續：1 + 2 + 4 = 7。' },
@@ -1451,6 +1545,7 @@ const BOSS = [
   { code: ['for (ch in c("R", "真", "好")) {', '  cat(ch)', '}'], opts: ['R真好', '好真R', 'R 真 好', '[1] "R" "真" "好"'], why: 'for 不只能走訪數字，也能走訪文字向量：ch 依序是 "R"、"真"、"好"。cat() 只給一個參數時不會加空格，所以三次連在一起印成 R真好。' },
   { code: ['x <- 4', 'if (!(x > 5)) {', '  print("小")', '} else {', '  print("大")', '}'], opts: ['[1] "小"', '[1] "大"', 'Error', '什麼都不印'], why: 'x > 5 是 FALSE，前面加上 ! 反轉成 TRUE，所以執行第一個區塊。' },
   { code: ['spots <- c(2, 5, 7)', 'for (i in 1:6) {', '  if (i %in% spots) cat(i, "")', '}'], opts: ['2 5', '2 5 7', '1 3 4 6', 'TRUE TRUE'], why: 'i 從 1 跑到 6，只有 2 和 5 同時在 spots 裡；7 在 spots 裡，但 i 跑不到 7。' },
+  { code: ['x <- 1', 'repeat {', '  cat(x, "")', '  if (x >= 3) break', '  x <- x + 1', '}'], opts: ['1 2 3', '1 2', '2 3', '1 2 3 4'], why: 'repeat 先印 x，再檢查 x >= 3。印出 1、2 之後 x 變成 3，印出 3 再檢查時成立，break 離開，所以是 1 2 3。' },
   { code: ['x <- 0', 'if (x > 5 || x == 0) {', '  print("A")', '} else {', '  print("B")', '}'], opts: ['[1] "A"', '[1] "B"', 'Error', '[1] "A" "B"'], why: '|| 是「或者」：x > 5 是 FALSE，但 x == 0 是 TRUE，只要一個成立就是 TRUE。' },
   { code: ['for (i in 3:1) cat(i, "")'], opts: ['3 2 1', '1 2 3', '3', '什麼都不印'], why: '3:1 會產生倒數的向量 c(3, 2, 1)，所以 i 依序是 3、2、1（不是 1、2、3）。每一圈 cat(i, "") 印出 i 和一個空字串；cat 會在兩個參數之間加一個空格，所以結果是「3 2 1 」，每個數字後面都跟著一個空格。' },
   { code: ['x <- 15', 'if (x %% 3 == 0 && x %% 5 == 0) {', '  "FizzBuzz"', '} else if (x %% 3 == 0) {', '  "Fizz"', '} else {', '  x', '}'], opts: ['[1] "FizzBuzz"', '[1] "Fizz"', '[1] 15', '[1] "Fizz" "FizzBuzz"'], why: '15 同時是 3 和 5 的倍數，第一個條件就成立，後面不再檢查。' },
