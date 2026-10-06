@@ -79,6 +79,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .node[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .node[aria-current="true"] .num{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .node.done .num{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.node.boss{border-color:var(--bad);background:var(--bad-soft)}
+.node.boss .num{background:var(--bad);border-color:var(--bad);color:var(--panel);font-size:15px}
+.node.boss .num,.node.bio .num{line-height:1;overflow:hidden}
+.node.boss .tag{color:var(--bad)}
+.node.boss.done .num{background:var(--amber);border-color:var(--amber)}
+.mission.boss .eyebrow{color:var(--bad);font-weight:700}
+.mission.boss h2::before{content:'☠ ';color:var(--bad)}
+.node.bio{border-color:var(--ok);background:var(--ok-soft)}
+.node.bio .num{background:var(--ok);border-color:var(--ok);color:var(--panel);font-size:15px}
+.node.bio .tag{color:var(--ok)}
+.mission.bio .eyebrow{color:var(--ok);font-weight:700}
+.mission.bio h2::before{content:'🧬 '}
 
 /* workbench */
 .bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"mission world" "code world" "code env";gap:16px;align-items:start}
@@ -294,7 +306,7 @@ function tokenize(src){
     }
     if (FULLWIDTH[c]) throw new RErr(`這裡用了全形符號「${c}」，請改成半形的「${FULLWIDTH[c]}」`, line);
     let op = ['%in%', '<-', '<=', '>=', '==', '!=', '&&', '||', '%%'].find(o => src.startsWith(o, i));
-    if (!op && '+-*/^<>!&|=(){}[],:;'.includes(c)) op = c;
+    if (!op && '+-*/^<>!&|=(){}[],:;$'.includes(c)) op = c;
     if (!op) throw new RErr(`unexpected input「${c}」`, line);
     toks.push({ t: op, line, s: i, e: i + op.length }); i += op.length;
   }
@@ -395,9 +407,15 @@ function parse(src){
         }
         expect(')', `${a.name}( 少了 )`);
         a = { k: 'call', name: a.name, args, line: a.line };
+      } else if (peek().t === '[' && peek(1).t === '[') {
+        next(); next(); const i = expr(); expect(']', '少了 ]]'); expect(']', '少了 ]]');
+        a = { k: 'index2', a, i, line: a.line };
       } else if (peek().t === '[') {
         next(); const i = expr(); expect(']', '少了 ]');
         a = { k: 'index', a, i, line: a.line };
+      } else if (peek().t === '$') {
+        next(); const nm = peek(); if (nm.t !== 'id' && nm.t !== 'str') throw err(nm, '$ 後面要接名稱，例如 patient$seq');
+        next(); a = { k: 'dollar', a, name: nm.v, line: a.line };
       } else break;
     }
     return a;
@@ -418,14 +436,17 @@ function parse(src){
   return prog;
 }
 
-/* values: scalars are JS values, vectors are arrays */
+/* values: scalars are JS values, vectors are arrays, lists are RList */
+class RList { constructor(names, vals){ this.names = names; this.vals = vals; } }
+const isList = v => v instanceof RList;
+const LIST_HINT = '這是 list（盒子），要先用 $ 或 [[ ]] 把裡面的東西拿出來：[ ] 拿盒子，[[ ]] 打開盒子';
 const asVec = v => Array.isArray(v) ? v : v === null ? [] : [v];
 const norm = r => r.length === 1 ? r[0] : r;
 const fmtNum = x => Number.isInteger(x) ? String(x) : String(Number(x.toPrecision(7)));
-const fmtEl = x => typeof x === 'string' ? `"${x}"` : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : x === null || x === undefined ? 'NA' : fmtNum(x);
+const fmtEl = x => isList(x) ? `List of ${x.vals.length}` : typeof x === 'string' ? `"${x}"` : typeof x === 'boolean' ? (x ? 'TRUE' : 'FALSE') : x === null || x === undefined ? 'NA' : fmtNum(x);
 const fmtCat = x => typeof x === 'string' ? x : fmtEl(x);
-const fmtPrint = v => { if (v === null) return 'NULL'; const V = asVec(v); if (!V.length) return 'numeric(0)'; return '[1] ' + V.map(fmtEl).join(' '); };
-const fmtShort = v => { const V = asVec(v); if (v === null) return 'NULL'; if (V.length === 1) return fmtEl(V[0]); const s = V.slice(0, 8).map(fmtEl).join(' '); return V.length > 8 ? s + ' …' : s; };
+const fmtPrint = v => { if (v === null) return 'NULL'; if (isList(v)) return v.vals.map((x, i) => `$${v.names[i] || `[[${i + 1}]]`}\n${fmtPrint(x)}\n`).join('\n'); const V = asVec(v); if (!V.length) return 'numeric(0)'; return '[1] ' + V.map(fmtEl).join(' '); };
+const fmtShort = v => { if (isList(v)) return `List of ${v.vals.length}`; const V = asVec(v); if (v === null) return 'NULL'; if (V.length === 1) return fmtEl(V[0]); const s = V.slice(0, 8).map(fmtEl).join(' '); return V.length > 8 ? s + ' …' : s; };
 
 function makeWorld(def){
   const walls = new Set(), D = { E: 0, N: 1, W: 2, S: 3 };
@@ -443,7 +464,7 @@ function isBlocked(w, x, y, d){
 }
 
 function execute(src, def){
-  const w = makeWorld(def), steps = [], vars = new Map();
+  const w = makeWorld(def), steps = [], vars = new Map(Object.entries(def.vars || {}));
   const snap = (line, act, extra) => {
     if (steps.length >= MAX_STEPS) throw new RErr(`已經執行超過 ${MAX_STEPS} 步，可能是無限迴圈！`, line, 'inf');
     steps.push({ line, act, x: w.x, y: w.y, dir: w.dir, rot: w.rot, beepers: { ...w.beepers }, picked: w.picked, placed: w.placed,
@@ -474,12 +495,14 @@ function execute(src, def){
     facing_east: () => w.dir === 0, facing_north: () => w.dir === 1, facing_west: () => w.dir === 2, facing_south: () => w.dir === 3,
   };
   const num = (x, line) => {
+    if (isList(x)) throw new RErr(LIST_HINT, line);
     if (Array.isArray(x)) x = x[0];
     if (typeof x === 'string') throw new RErr('non-numeric argument：這裡需要數字，不是文字', line);
     if (x === null || x === undefined) throw new RErr('這裡需要一個數字', line);
     return +x;
   };
   const condV = (v, line) => {
+    if (isList(v)) throw new RErr(LIST_HINT, line);
     const V = asVec(v);
     if (!V.length) throw new RErr('argument is of length zero：條件是空的', line);
     if (V.length > 1) throw new RErr('the condition has length > 1：if / while 的條件只能是一個 TRUE 或 FALSE', line);
@@ -515,8 +538,11 @@ function execute(src, def){
         return norm(r);
       }
       case 'seq_len': { const k = num(pos[0], n.line); return k > 0 ? norm(Array.from({ length: k }, (_, i) => i + 1)) : []; }
-      case 'seq_along': { const V = asVec(pos[0]); return V.length ? norm(V.map((_, i) => i + 1)) : []; }
-      case 'length': return asVec(pos[0]).length;
+      case 'seq_along': { const V = isList(pos[0]) ? pos[0].vals : asVec(pos[0]); return V.length ? norm(V.map((_, i) => i + 1)) : []; }
+      case 'length': return isList(pos[0]) ? pos[0].vals.length : asVec(pos[0]).length;
+      case 'list': return new RList(args.map(a => a.name || ''), args.map(a => a.v));
+      case 'names': return isList(pos[0]) ? norm(pos[0].names) : null;
+      case 'toupper': return norm(asVec(pos[0]).map(x => fmtCat(x).toUpperCase()));
       case 'sum': return pos.flatMap(asVec).reduce((s, x) => s + num(x, n.line), 0);
       case 'max': return Math.max(...pos.flatMap(asVec).map(x => num(x, n.line)));
       case 'min': return Math.min(...pos.flatMap(asVec).map(x => num(x, n.line)));
@@ -525,7 +551,7 @@ function execute(src, def){
       case 'round': return norm(asVec(pos[0]).map(x => Math.round(num(x, n.line))));
       case 'rev': return norm([...asVec(pos[0])].reverse());
       case 'print': { output(n.line, fmtPrint(pos[0]) + '\n'); return pos[0]; }
-      case 'cat': { output(n.line, pos.flatMap(asVec).map(fmtCat).join(named.sep ?? ' ')); return null; }
+      case 'cat': { if (pos.some(isList)) throw new RErr('cat() 不能印 list。' + LIST_HINT, n.line); output(n.line, pos.flatMap(asVec).map(fmtCat).join(named.sep ?? ' ')); return null; }
       case 'paste': return pos.flatMap(asVec).map(fmtCat).join(named.sep ?? ' ');
       case 'paste0': return pos.flatMap(asVec).map(fmtCat).join('');
       case 'ifelse': {
@@ -564,6 +590,7 @@ function execute(src, def){
           return condV(ev(n.b), n.line);
         }
         const a = ev(n.a), b = ev(n.b);
+        if (isList(a) || isList(b)) throw new RErr(`${n.op} 不能直接用在 list 上。` + LIST_HINT, n.line);
         if (n.op === ':') {
           const f = num(a, n.line), t = num(b, n.line), r = [];
           if (f <= t) for (let x = f; x <= t + 1e-9; x++) r.push(x); else for (let x = f; x >= t - 1e-9; x--) r.push(x);
@@ -576,7 +603,34 @@ function execute(src, def){
         for (let k = 0; k < L; k++) r.push(bin1(n.op, A[k % A.length], B[k % B.length], n.line));
         return norm(r);
       }
-      case 'index': { const A = asVec(ev(n.a)); const v = A[num(ev(n.i), n.line) - 1]; return v === undefined ? null : v; }
+      case 'index': {
+        const a = ev(n.a), I = ev(n.i);
+        if (isList(a)) {   // [ ] on a list gives back a smaller list (still a box)
+          const k = typeof I === 'string' ? a.names.indexOf(I) : num(I, n.line) - 1;
+          if (k < 0 || k >= a.vals.length) return new RList([], []);
+          return new RList([a.names[k]], [a.vals[k]]);
+        }
+        const A = asVec(a);
+        if (typeof I === 'string') throw new RErr('這個 vector 沒有名字，請用數字位置，例如 x[1]', n.line);
+        if (Array.isArray(I)) return norm(I.map(j => A[num(j, n.line) - 1] ?? null));
+        const v = A[num(I, n.line) - 1]; return v === undefined ? null : v;
+      }
+      case 'index2': {
+        const a = ev(n.a), I = ev(n.i);
+        if (isList(a)) {
+          const k = typeof I === 'string' ? a.names.indexOf(I) : num(I, n.line) - 1;
+          if (k < 0 || k >= a.vals.length) throw new RErr(`subscript out of bounds：list 裡沒有 ${fmtEl(I)}，有的是 ${a.names.join('、')}`, n.line);
+          return a.vals[k];
+        }
+        const v = asVec(a)[num(I, n.line) - 1];
+        if (v === undefined) throw new RErr('subscript out of bounds：超出範圍了', n.line);
+        return v;
+      }
+      case 'dollar': {
+        const a = ev(n.a);
+        if (!isList(a)) throw new RErr('$ operator is invalid for atomic vectors：$ 只能用在 list（或 data.frame）上', n.line);
+        const k = a.names.indexOf(n.name); return k < 0 ? null : a.vals[k];
+      }
     }
   }
   const loopBody = b => { try { run(b); } catch (e) { if (e instanceof NextSig) return 'next'; if (e instanceof BreakSig) return 'break'; throw e; } };
@@ -626,7 +680,7 @@ function execute(src, def){
     else if (e instanceof RErr) error = e;
     else error = new RErr('程式出錯：' + e.message, null);
   }
-  return { steps, world: w, error };
+  return { steps, world: w, error, vars };
 }
 
 /* ================= levels ================= */
@@ -650,6 +704,17 @@ const MAZE = mazeWalls(5, 5, [
   [4,4,5,4],[3,4,4,4],[2,4,3,4],[1,4,2,4],[1,4,1,5],
   [1,5,2,5],[2,5,3,5],[3,5,4,5],[4,5,5,5],
 ]);
+
+const HBB_REF = ['A', 'C', 'T', 'C', 'C', 'T', 'G', 'A', 'G', 'G', 'A', 'G'];   // HBB codons 4-7: ACT CCT GAG GAG
+function hbbWorld(pid, muts){
+  const seq = HBB_REF.map((b, i) => muts[i + 1] || b);
+  const labels = [];
+  HBB_REF.forEach((b, i) => labels.push([i + 1, 2, b, 'ref']));
+  seq.forEach((b, i) => labels.push([i + 1, 1, b, 'base']));
+  return { W: 12, H: 2, robot: [1, 1, 0], beepers: {}, walls: [], labels, codons: 3, pid, seq,
+    muts: Object.keys(muts).map(Number).sort((a, b) => a - b),
+    vars: { ref: [...HBB_REF], patient: new RList(['id', 'gene', 'seq'], [pid, 'HBB', seq]) } };
+}
 
 const LEVELS = [
   { id: 'seq', tag: '順序', title: '第一步',
@@ -859,6 +924,77 @@ const LEVELS = [
     solution: 'while (no_beepers_present()) {\n  if (right_is_clear()) {\n    turn_right()\n    move()\n  } else if (front_is_clear()) {\n    move()\n  } else {\n    turn_left()\n  }\n}\npick_beeper()\n', par: 9, req: [['while', 1], ['if', 1]],
     def: () => ({ W: 5, H: 5, robot: [1, 1, 0], beepers: { '5,5': 1 }, walls: MAZE }),
     check: w => w.picked >= 1 ? { ok: true } : { ok: false, msg: '還沒撿到寶石。' } },
+
+  { id: 'boss', tag: '大魔王', title: '寶石倉庫大清倉', boss: true, xp: 150,
+    goal: '倉庫的大小、寶石的位置和數量每次都不一樣，一格還可能疊好幾顆。把倉庫裡的寶石全部撿光，用變數 total 記下一共撿了幾顆，最後在 R 寶停下來的那一格，把 total 顆寶石全部放下，堆成一堆。',
+    concept: `<p>這關沒有新語法，要把前面學過的全部組合起來。先拆成三個小問題：</p>
+      <p><b>① 掃一列：</b>一路往前走，每到一格就把寶石撿<b>光</b>。一格可能有好幾顆，所以用 <code>while (beepers_present())</code>，不是 <code>if</code>。每撿一顆就 <code>total &lt;- total + 1</code>。</p>
+      <p><b>② 換列（蛇行）：</b>往東掃完，左轉、上樓、再左轉，變成往西掃；往西掃完就右轉、上樓、右轉。用 <code>facing_east()</code> 判斷現在朝哪邊；上面沒有路了就 <code>break</code>。</p>
+      <p><b>③ 放回去：</b>重複 total 次 <code>put_beeper()</code>。</p>
+      <p>過關後，大魔王還會用這些倉庫測試你：<b>一格疊了 3 顆</b>、<b>只有一列</b>、<b>只有一行</b>、<b>完全沒有寶石</b>。（提示：total 是 0 的時候，<code>1:total</code> 會變成什麼？）</p>`,
+    starter: '# 大魔王：寶石倉庫大清倉\ntotal <- 0\n\nrepeat {\n  # ① 掃這一列：每一格把寶石撿光，順便數 total\n\n  # ② 換到上一列（往東和往西要轉不同方向）；沒有上一列就 break\n\n}\n\n# ③ 把 total 顆寶石放在現在這一格\n\n',
+    hint: '外層用 <code>repeat</code> 一列一列處理；裡面再放一個 <code>repeat</code> 掃這一列：先 <code>while (beepers_present())</code> 撿光，<code>if (front_is_blocked()) break</code>，再 <code>move()</code>。換列時：<code>if (facing_east())</code> 就檢查 <code>left_is_blocked()</code>，否則檢查 <code>right_is_blocked()</code>。最後用 <code>for (k in seq_len(total))</code>，不要用 <code>1:total</code>。',
+    solution: 'total <- 0\nrepeat {\n  # ① 掃這一列\n  repeat {\n    while (beepers_present()) {\n      pick_beeper()\n      total <- total + 1\n    }\n    if (front_is_blocked()) break\n    move()\n  }\n  # ② 換到上一列\n  if (facing_east()) {\n    if (left_is_blocked()) break\n    turn_left()\n    move()\n    turn_left()\n  } else {\n    if (right_is_blocked()) break\n    turn_right()\n    move()\n    turn_right()\n  }\n}\n# ③ 放回去（total 可能是 0）\nfor (k in seq_len(total)) put_beeper()\n',
+    par: 19, req: [],
+    random: true, def: () => {
+      const W = randInt(4, 7), H = randInt(2, 4), b = {};
+      for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) if (Math.random() < .35) b[`${x},${y}`] = randInt(1, 3);
+      return { W, H, robot: [1, 1, 0], beepers: b, walls: [] };
+    },
+    tests: [
+      { W: 6, H: 3, robot: [1, 1, 0], beepers: { '1,1': 2, '6,1': 1, '3,2': 1, '6,2': 3, '1,3': 1, '6,3': 2 }, walls: [] },
+      { W: 5, H: 4, robot: [1, 1, 0], beepers: { '5,4': 2, '1,4': 1, '2,2': 3 }, walls: [] },
+      { W: 7, H: 1, robot: [1, 1, 0], beepers: { '1,1': 1, '7,1': 3 }, walls: [] },
+      { W: 1, H: 4, robot: [1, 1, 0], beepers: { '1,2': 1, '1,4': 2 }, walls: [] },
+      { W: 4, H: 3, robot: [1, 1, 0], beepers: {}, walls: [] },
+    ],
+    describe: d => { const t = Object.values(d.beepers).reduce((a, b) => a + b, 0); return `${d.W} × ${d.H} 的倉庫、共 ${t} 顆寶石${t ? '' : '（空倉庫）'}`; },
+    check: (w, d) => {
+      const total = Object.values(d.beepers).reduce((a, b) => a + b, 0);
+      const piles = Object.entries(w.beepers), here = w.beepers[`${w.x},${w.y}`] || 0;
+      if (w.picked < total) return { ok: false, msg: `倉庫裡原本有 ${total} 顆寶石，你只撿了 ${w.picked} 顆。是不是有一列沒掃到，或一格只撿了一顆？` };
+      if (!total && piles.length) return { ok: false, msg: `空倉庫的 total 是 0，不該放任何寶石，你卻放了 ${left(w)} 顆。1:0 是 c(1, 0)，會跑 2 圈！改用 seq_len(total)。` };
+      if (piles.length > 1) return { ok: false, msg: `寶石要全部堆在同一格，現在分散在 ${piles.length} 格。` };
+      if (total && !here) return { ok: false, msg: '寶石要堆在 R 寶最後停下來的那一格。' };
+      if (here !== total) return { ok: false, msg: `那一堆有 ${here} 顆，應該是 ${total} 顆（你撿到的總數）。` };
+      return { ok: true };
+    } },
+  { id: 'hbb', tag: '生資實戰', title: 'HBB 基因突變篩檢', bio: true, xp: 150,
+    goal: '病人的 HBB 基因序列放在 list <code>patient</code> 裡，參考序列是 vector <code>ref</code>（都已經在 Environment 了）。R 寶沿著病人序列走，鹼基和 ref 不一樣的格子放一顆寶石，同時把位置收集到 vector <code>pos</code>；最後用 <code>hbs</code> 記下第 8 個鹼基有沒有突變（TRUE / FALSE）。',
+    goalHtml: true,
+    concept: `<p><b>生物背景：</b>HBB 基因負責製造血紅素的 β 鏈。第 6 個密碼子 <code>GAG</code>（麩胺酸）只要中間的 A 變成 T，變成 <code>GTG</code>（纈胺酸），就會造成<b>鐮刀型貧血（HbS）</b>。地圖上的 12 個鹼基是第 4–7 個密碼子，第 6 個密碼子中間那個鹼基就是第 <b>8</b> 格。上排灰色是 ref，下排是病人。</p>
+      <p><b>資料結構（第一單元學過的）：</b></p>
+      <p>• <code>patient</code> 是 <b>list</b>：<code>list(id = "P07", gene = "HBB", seq = c("A", "C", …))</code>。用 <code>patient$seq</code> 或 <code>patient[["seq"]]</code> 打開盒子拿出序列，再用 <code>[i]</code> 拿第 i 個鹼基：<code>patient$seq[i]</code>。</p>
+      <p>• 小心：<code>patient["seq"]</code> 拿到的還是一個 list（盒子），不能直接拿來比較。<b>[ ] 拿盒子，[[ ]] 打開盒子。</b></p>
+      <p>• <code>pos &lt;- c()</code> 先建一個空的 vector，找到突變就 <code>pos &lt;- c(pos, i)</code> 接在後面（每次都會產生一個新的 vector）。</p>
+      <p>• 最後 <code>8 %in% pos</code> 回答「第 8 個位置在不在突變清單裡」。</p>`,
+    starter: '# 生資實戰：HBB 基因篩檢\n# Environment 已經有：ref（參考序列）、patient（list：id、gene、seq）\npatient$id\npos <- c()          # 空的 vector，用來收集突變位置\nfor (i in seq_along(ref)) {\n  # 病人第 i 個鹼基和 ref[i] 不一樣 → 放寶石，並把 i 加進 pos\n\n  if (i < length(ref)) move()\n}\nhbs <- ___          # 第 8 個位置有突變嗎？\ncat(patient$id, "突變位置：", pos, "\\n")\ncat("HbS 鐮刀型貧血：", hbs, "\\n")\n',
+    hint: '比較寫成 <code>if (patient$seq[i] != ref[i]) { put_beeper(); pos &lt;- c(pos, i) }</code>（大括號裡分兩行寫）。最後 <code>hbs &lt;- 8 %in% pos</code>。',
+    solution: 'pos <- c()\nfor (i in seq_along(ref)) {\n  if (patient$seq[i] != ref[i]) {\n    put_beeper()\n    pos <- c(pos, i)\n  }\n  if (i < length(ref)) move()\n}\nhbs <- 8 %in% pos\ncat(patient$id, "突變位置：", pos, "\\n")\ncat("HbS 鐮刀型貧血：", hbs, "\\n")\n',
+    par: 10, req: [['for', 1], ['%in%', 1, '%in%']],
+    random: true, def: () => {
+      const muts = {};
+      if (Math.random() < .5) muts[8] = 'T';
+      const k = randInt(0, 2);
+      for (let j = 0; j < k; j++) { const q = randInt(1, 12); if (!muts[q]) muts[q] = HBB_REF[q - 1] === 'A' ? 'G' : 'A'; }
+      return hbbWorld(`P${String(randInt(1, 99)).padStart(2, '0')}`, muts);
+    },
+    tests: [hbbWorld('P01', {}), hbbWorld('P02', { 8: 'T' }), hbbWorld('P03', { 7: 'A' }), hbbWorld('P04', { 1: 'G', 8: 'T', 12: 'C' })],
+    describe: d => { const m = d.muts; return `病人 ${d.pid}：${m.length ? `第 ${m.join('、')} 個鹼基突變` : '沒有突變'}`; },
+    check: (w, d, t) => {
+      for (let x = 1; x <= 12; x++) {
+        const n = w.beepers[`${x},1`] || 0, want = d.muts.includes(x) ? 1 : 0;
+        if (n !== want) return { ok: false, msg: want ? `第 ${x} 個鹼基 ref 是 ${HBB_REF[x - 1]}、病人是 ${d.seq[x - 1]}，是突變，應該放 1 顆寶石。` : n > 1 ? `第 ${x} 格放了 ${n} 顆，每個突變只要 1 顆。` : `第 ${x} 個鹼基兩邊都是 ${HBB_REF[x - 1]}，沒有突變，不應該放寶石。` };
+      }
+      const V = t && t.vars;
+      if (!V || !V.has('pos')) return { ok: false, msg: '找不到變數 pos：記得用 pos <- c() 建立，再用 pos <- c(pos, i) 收集突變位置。' };
+      const pos = asVec(V.get('pos')).map(Number);
+      if (pos.join(',') !== d.muts.join(',')) return { ok: false, msg: `pos 應該是 ${d.muts.length ? `c(${d.muts.join(', ')})` : '空的（NULL）'}，你的是 ${fmtShort(V.get('pos'))}。` };
+      if (!V.has('hbs')) return { ok: false, msg: '找不到變數 hbs：用 hbs <- 8 %in% pos 記下第 8 個位置有沒有突變。' };
+      const want = d.muts.includes(8), got = asVec(V.get('hbs'));
+      if (got.length !== 1 || got[0] !== want) return { ok: false, msg: `這位病人第 8 個鹼基${want ? '有' : '沒有'}突變，hbs 應該是 ${want ? 'TRUE' : 'FALSE'}，你的是 ${fmtShort(V.get('hbs'))}。` };
+      return { ok: true };
+    } },
 ];
 LEVELS.forEach((l, i) => l.n = i + 1);
 </script>
@@ -933,7 +1069,7 @@ function toast(msg, gold){
 function gain(amt, label, gold){ S.xp += amt; save(); toast(`+${amt} XP · ${label}`, gold); renderHeader(); }
 
 /* ---------- header + map ---------- */
-const NODES = [...LEVELS.map(l => ({ id: l.id, n: l.n, tag: l.tag })), { id: 'quiz', tag: '預測挑戰' }];
+const NODES = [...LEVELS.map(l => ({ id: l.id, n: l.n, tag: l.tag, boss: l.boss, bio: l.bio })), { id: 'quiz', tag: '預測挑戰' }];
 const starCount = id => (S.stars[id] || []).filter(Boolean).length;
 function renderHeader(){
   $('#lv').textContent = `Lv.${Math.floor(S.xp / 100) + 1}`;
@@ -944,8 +1080,8 @@ function renderHeader(){
     const st = S.stars[n.id] || [], done = n.id === 'quiz' ? S.bossBest >= 6 : !!st[0];
     const stars = n.id === 'quiz' ? `<span class="stars">${S.bossBest ? `最佳 ${S.bossBest}/8` : '&nbsp;'}</span>`
       : `<span class="stars">${[0, 1, 2].map(i => `<span class="${st[i] ? 'on' : ''}">★</span>`).join('')}</span>`;
-    return `<li><button type="button" class="node ${done ? 'done' : ''}" data-id="${n.id}" aria-current="${String(S.cur) === String(n.id)}">
-      <span class="num">${done ? '✓' : n.id === 'quiz' ? '?' : n.n}</span><span class="tag">${n.tag}</span>${stars}</button></li>`;
+    return `<li><button type="button" class="node ${done ? 'done' : ''} ${n.boss ? 'boss' : ''} ${n.bio ? 'bio' : ''}" data-id="${n.id}" aria-current="${String(S.cur) === String(n.id)}">
+      <span class="num">${n.bio ? '🧬' : n.boss ? (done ? '♛' : '☠') : done ? '✓' : n.id === 'quiz' ? '?' : n.n}</span><span class="tag">${n.tag}</span>${stars}</button></li>`;
   }).join('');
 }
 $('#map').addEventListener('click', e => { const b = e.target.closest('.node'); if (b) go(b.dataset.id); });
@@ -961,6 +1097,22 @@ const ROBOT_SVG = `<svg class="rb-svg" viewBox="-50 -50 100 100" aria-hidden="tr
   <rect class="rb-face" x="2" y="-22" width="24" height="44" rx="11"/>
   <g class="rb-eyes"><circle class="rb-eye" cx="15" cy="-10" r="5.5"/><circle class="rb-eye" cx="15" cy="10" r="5.5"/></g>
 </svg>`;
+const BASE_COL = { A: 'var(--ok)', T: 'var(--bad)', G: 'var(--amber)', C: 'var(--accent)' };
+// base letters sit above the robot so the current base stays readable
+function labelLayer(def){
+  let s = '';
+  for (const [x, y, b, cls] of def.labels || []) {
+    const px = (x - 1) * CELL, py = (def.H - y) * CELL;
+    if (cls === 'ref') {
+      s += `<text x="${px + 50}" y="${py + 64}" text-anchor="middle" font-size="44" font-weight="800" font-family="JetBrains Mono, monospace" fill="var(--muted)" opacity=".8">${b}</text>`;
+      if (x === 1) s += `<text x="${px + 8}" y="${py + 20}" font-size="15" font-family="JetBrains Mono, monospace" fill="var(--muted)">ref</text>`;
+    } else {
+      s += `<text x="${px + 20}" y="${py + 34}" text-anchor="middle" font-size="34" font-weight="800" font-family="JetBrains Mono, monospace" fill="${BASE_COL[b] || 'var(--ink)'}" stroke="var(--panel)" stroke-width="5" paint-order="stroke">${b}</text>`;
+      s += `<text x="${px + 88}" y="${py + 94}" text-anchor="middle" font-size="15" font-family="JetBrains Mono, monospace" fill="var(--muted)">${x}</text>`;
+    }
+  }
+  return s;
+}
 function staticLayer(def){
   const { W, H } = def; let s = '';
   for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) {
@@ -973,6 +1125,7 @@ function staticLayer(def){
     s += `<polygon points="${cx},${cy - 24} ${cx + 20},${cy} ${cx},${cy + 24} ${cx - 20},${cy}" fill="none" stroke="var(--target)" stroke-width="3" stroke-dasharray="6 5"/>`;
     s += `<text x="${cx}" y="${cy + 42}" text-anchor="middle" font-size="16" font-family="JetBrains Mono, monospace" fill="var(--target)">×${n}</text>`;
   }
+  if (def.codons) for (let x = def.codons; x < W; x += def.codons) s += `<line x1="${x * CELL}" y1="6" x2="${x * CELL}" y2="${H * CELL - 6}" stroke="var(--muted)" stroke-width="3" stroke-dasharray="8 7" opacity=".55"/>`;
   for (const [x, y, side] of def.walls || []) {
     const px = (x - 1) * CELL, py = (H - y) * CELL;
     s += side === 'E' ? `<line x1="${px + CELL}" y1="${py}" x2="${px + CELL}" y2="${py + CELL}" stroke="var(--wall)" stroke-width="9" stroke-linecap="round"/>`
@@ -1006,7 +1159,7 @@ function go(id){
   const code = S.codes[L.id] ?? L.starter;
   $('#stage').innerHTML = `
   <div class="bench">
-    <section class="a-mission mission">
+    <section class="a-mission mission ${L.boss ? 'boss' : ''} ${L.bio ? 'bio' : ''}">
       <div class="eyebrow">第 ${L.n} 關 · ${L.tag}</div>
       <h2>${L.title}</h2>
       <p class="goal">${L.goal}</p>
@@ -1110,11 +1263,13 @@ function showWorld(def){
   wEl.style.width = `min(100%, ${maxW}px)`;
   wEl.innerHTML = `<svg class="map-svg" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" role="img" aria-label="${def.W} × ${def.H} 的地圖"><g>${staticLayer(def)}</g><g id="gems">${gemLayer(def.beepers || {}, def.H)}</g></svg>
     <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>
+    ${def.labels ? `<svg class="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true">${labelLayer(def)}</svg>` : ''}
     <svg class="over" id="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true"></svg>`;
   const w = makeWorld(def);
   placeRobot({ x: w.x, y: w.y, rot: w.rot, dir: w.dir, picked: 0, placed: 0 }, true);
   say(L.random ? '這張地圖是隨機的！' : '準備好了！', '');
-  $('#env').innerHTML = `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
+  const pre = Object.entries(def.vars || {});
+  $('#env').innerHTML = pre.length ? pre.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(fmtShort(v))}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
   $('#console').innerHTML = '<span class="prompt">&gt;</span> ';
   $('#result').hidden = true;
 }
@@ -1227,7 +1382,7 @@ function finish(){
     fail(`<b>${e.kind === 'bonk' ? '撞牆了！' : e.kind === 'inf' ? '停不下來！' : '程式出錯了'}</b>　${esc(e.message)}`, e.kind === 'bonk' ? '好痛…' : e.kind === 'inf' ? '頭好暈…' : '我看不懂…');
     return;
   }
-  const r = L.check(tr.world, P.def);
+  const r = L.check(tr.world, P.def, tr);
   if (!r.ok) { con.innerHTML += `<span class="err">✗ ${esc(r.msg)}</span>\n`; fail(`<b>還沒完成</b>　${esc(r.msg)}`, '還沒完成…'); return; }
   const code = $('#ed').value;
   let toks = []; try { toks = tokenize(code); } catch (e) {}
@@ -1238,7 +1393,7 @@ function finish(){
   }
   for (const def of L.tests || []) {
     const t = execute(code, def);
-    const c = t.error ? { ok: false, msg: t.error.message } : L.check(t.world, def);
+    const c = t.error ? { ok: false, msg: t.error.message } : L.check(t.world, def, t);
     if (!c.ok) {
       con.innerHTML += `<span class="err">✗ 換一張地圖（${esc(L.describe(def))}）就失敗了</span>\n`;
       fail(`<b>這張地圖過關了，但換成另一張地圖就失敗了。</b><br>${esc(L.describe(def))}：${esc(c.msg)}<br>好的程式要在每一張地圖都能用。`, '換地圖就不行…',
@@ -1256,10 +1411,10 @@ function success(code){
   const now = [true, lines <= L.par, !(S.fails[L.id] > 0)];
   const prev = S.stars[L.id] || [false, false, false];
   const merged = prev.map((v, i) => v || now[i]);
-  let xp = 0; if (!prev[0]) xp += 50;
+  let xp = 0; if (!prev[0]) xp += L.xp || 50;
   merged.forEach((v, i) => { if (v && !prev[i]) xp += 10; });
   S.stars[L.id] = merged; save();
-  if (xp) gain(xp, `第 ${L.n} 關`, true);
+  if (xp) gain(xp, L.boss ? '打倒大魔王！' : `第 ${L.n} 關`, true);
   renderHeader();
   say('任務完成！', 't'); flash('party', 1000); SFX.win(); confetti($('#robot'), 46);
   const res = $('#result'); res.hidden = false; res.className = 'result ok';
@@ -1267,7 +1422,7 @@ function success(code){
   const nextL = LEVELS[L.n];
   const m = document.createElement('div'); m.className = 'modal';
   m.innerHTML = `<div class="card" role="dialog" aria-modal="true" aria-labelledby="mt">
-    <h3 id="mt">過關！</h3><p style="margin:4px 0 0;color:var(--muted)">第 ${L.n} 關：${L.title}</p>
+    <h3 id="mt">${L.boss ? '打倒大魔王！' : '過關！'}</h3><p style="margin:4px 0 0;color:var(--muted)">第 ${L.n} 關：${L.title}</p>
     <div class="bigstars">
       <div class="${now[0] ? 'on' : ''}"><i>★</i>完成任務</div>
       <div class="${now[1] ? 'on' : ''}"><i>★</i>${lines} 行（目標 ≤ ${L.par}）</div>
