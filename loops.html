@@ -169,6 +169,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .infopane .tabs button.new::after{content:"";position:absolute;top:5px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--amber)}
 .tabp{height:150px;overflow:auto;overscroll-behavior:contain}
 .tabp .console{min-height:100%;max-height:none;overflow:visible}
+.tabp .env thead th{position:sticky;top:0;background:var(--panel);z-index:1}
 @media (max-width:920px){.tabp{height:auto;max-height:280px}}
 /* world + target result stay pinned together while a long program scrolls by */
 @media (min-width:921px){.a-side{align-self:stretch}.a-stick{position:sticky;top:0;z-index:3;background:var(--bg);padding-block:6px 10px;margin-top:-6px}}
@@ -1613,7 +1614,9 @@ function advance(){
   (SFX[st.act] || (() => {}))();
   if (st.out) { P.out += st.out; }
   $('#console').innerHTML = '<span class="prompt">&gt; source("level' + L.n + '.R")</span>\n' + esc(P.out);
-  $('#env').innerHTML = st.vars.length ? st.vars.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
+  // values first (local variables right after globals), function definitions last: they rarely change
+  const isFn = ([, v]) => /^function\(/.test(v);
+  $('#env').innerHTML = st.vars.length ? [...st.vars.filter(e => !isFn(e)), ...st.vars.filter(isFn)].map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
   renderCode(st.line);
   return st;
 }
