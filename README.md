@@ -7,6 +7,7 @@
 | 封面 | `index.html` |
 | 01 記憶體裡的 R 物件 | `memory.html` |
 | 02 R 寶的奇幻旅程 | `loops.html` |
+| ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
 
@@ -71,6 +72,20 @@ Karel 風格的程式遊戲：寫 R 程式指揮機器人「R 寶」走迷宮、
 | ★ | 預測挑戰 | 讀程式碼、預測輸出 |
 
 會隨機產生地圖的關卡，過關後會再用其他幾張地圖測試，寫死步數的程式會被抓出來。進度存在瀏覽器的 localStorage。
+
+## 補充教材：控制流程（`extras.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/extras.html
+
+閱讀式教材，每段程式碼都能直接修改、執行（和遊戲共用同一個 R 直譯器），每章最後有一題用多組測資自動批改的練習。
+
+| 章 | 主題 | 重點 |
+|---|---|---|
+| 01 | if / else 完整版 | `else if` 鏈的順序、`} else` 要同一行、`if` 回傳值 vs `ifelse()` |
+| 02 | 在迴圈裡存結果 | `numeric(n)` 預先配置、`x[i] <- …`、`c()` 接長的代價、超出長度補 NA |
+| 03 | 走訪值還是位置 | `for (b in dna)` vs `seq_along()`、`1:length(x)` 空向量陷阱、迴圈變數 |
+| 04 | 向量化 | `sum` / `mean` / `which` / `any` / `all` / `x[條件]`，什麼時候還是需要迴圈 |
+| 05 | switch、&& 與 NA | `switch()`、`&&` vs `&`、NA 的傳染與 `is.na()`、短路 |
 
 ## 使用
 

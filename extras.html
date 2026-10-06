@@ -3,26 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="寫 R 程式指揮機器人走迷宮、撿寶石，練習 for、while、repeat、if、%in%、!、&&、break、next、ifelse、巢狀迴圈與 list。">
-<meta property="og:title" content="R 寶的奇幻旅程">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E">
-<title>R 寶的奇幻旅程</title>
+<meta name="description" content="R 控制流程補充教材：else if、在迴圈裡存結果、seq_along、向量化、switch、&& 與 NA。可直接執行的範例與自動批改練習。">
+<meta property="og:title" content="控制流程補充教材">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%98%3C/text%3E%3C/svg%3E">
+<title>控制流程補充教材</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 [hidden]{display:none!important}
-html{color-scheme:light}
-.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:6px}
-.back:hover{color:var(--accent)}
-/* Layout: level map strip, then a Karel-style workbench — mission + world on top, R source editor + environment/console below */
+
+/* A reading page: side table of contents + chapters; every code block is an editable, runnable R cell */
 :root{
-  --bg:#e9edf1; --panel:#fbfcfd; --sunk:#f1f4f7; --ink:#16202b; --muted:#5a6776; --line:#d3dae2;
+  --bg:#eef1f4; --panel:#fbfcfd; --sunk:#f1f4f7; --ink:#16202b; --muted:#5a6776; --line:#d3dae2;
   --accent:#1d5fae; --accent-ink:#ffffff; --accent-soft:#dde9f7;
-  --amber:#e0a422; --amber-soft:#fdf1cf; --ok:#1d8656; --ok-soft:#dcf2e6; --bad:#c0392b; --bad-soft:#fbe3e0;
-  --tile:#f4f1e8; --tile2:#ece8dc; --dot:#b9b2a0; --wall:#3a3f4a; --gem:#2fb3a6; --gem-edge:#14776e; --target:#8d97a3;
+  --amber:#b97d06; --amber-soft:#fdf1cf; --ok:#1d8656; --ok-soft:#dcf2e6; --bad:#c0392b; --bad-soft:#fbe3e0;
   --t-kw:#8b2fc9; --t-str:#1d7a3a; --t-num:#b4530a; --t-com:#7f8a96; --t-fn:#1d5fae; --t-op:#a3324b;
   --f-display:"Huninn","Noto Sans TC","PingFang TC",system-ui,sans-serif;
   --f-body:"Noto Sans TC","PingFang TC",system-ui,-apple-system,sans-serif;
@@ -33,7 +30,6 @@ html{color-scheme:light}
     --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
     --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
     --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
-    --tile:#1d252f; --tile2:#19212a; --dot:#3b4756; --wall:#c9d3df; --gem:#45d1c2; --gem-edge:#a6f0e7; --target:#6f7d8d;
     --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
     color-scheme:dark;
   }
@@ -42,254 +38,500 @@ html{color-scheme:light}
   --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
   --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
   --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
-  --tile:#1d252f; --tile2:#19212a; --dot:#3b4756; --wall:#c9d3df; --gem:#45d1c2; --gem-edge:#a6f0e7; --target:#6f7d8d;
   --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;font-variant-ligatures:none}
-textarea,svg text{font-variant-ligatures:none}
-.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:16px}
-code,.mono{font-family:var(--f-code);font-size:.92em}
-p code,li code,.concept code,.goal code,.result code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75;font-variant-ligatures:none}
+textarea,pre,code{font-variant-ligatures:none}
 button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+code{font-family:var(--f-code);font-size:.9em}
+p code,li code,td code,.note code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+
+.page{max-width:1180px;margin:0 auto;padding:24px 16px 80px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:980px){.page{grid-template-columns:minmax(0,1fr);gap:20px}}
 
 /* header */
-.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px}
-.brand h1{font-family:var(--f-display);font-size:clamp(28px,4.6vw,42px);line-height:1.1;margin:0;letter-spacing:.02em;text-wrap:balance}
-.brand h1 .r{display:inline-grid;place-items:center;width:1.15em;height:1.15em;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-family:var(--f-code);font-weight:600;font-size:.82em;margin-right:.18em;vertical-align:.06em}
-.brand p{margin:4px 0 0;color:var(--muted);max-width:62ch}
-.stats{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.lv{font-family:var(--f-display);font-size:20px}
-.xpbar{width:160px;max-width:40vw;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
-.xpbar i{display:block;height:100%;background:var(--accent);transition:width .4s}
-.xptxt{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
-.chipbtn{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:3px 12px;font-size:13px}
+.hero{grid-column:1/-1}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--accent)}
+.hero .eyebrow{margin:18px 0 4px;font-family:var(--f-code);font-size:13px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.hero h1{font-family:var(--f-display);font-size:clamp(30px,5vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+.hero p{margin:10px 0 0;color:var(--muted);max-width:66ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:13px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:2px 12px;color:var(--muted)}
+.pill b{color:var(--ink)}
 
-/* level map */
-.mapwrap{overflow-x:auto;padding-bottom:4px}
-.map{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
-.node{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;border:1px solid var(--line);background:var(--panel);border-radius:10px;transition:border-color .15s,background .15s}
-.node:hover{border-color:var(--accent)}
-.node .num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-code);font-size:13px;font-weight:600;background:var(--sunk);border:1px solid var(--line);color:var(--muted)}
-.node .tag{font-size:12px;font-weight:600;line-height:1.3;white-space:nowrap}
-.node .stars{font-size:11px;letter-spacing:1px;color:var(--line);line-height:1}
-.node .stars .on{color:var(--amber)}
-.node[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
-.node[aria-current="true"] .num{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.node.done .num{background:var(--ok);border-color:var(--ok);color:var(--panel)}
-.node.lv-boss{border-color:var(--bad);background:var(--bad-soft)}
-.node.lv-boss .num{background:var(--bad);border-color:var(--bad);color:var(--panel);font-size:15px}
-.node.lv-boss .num,.node.bio .num{line-height:1;overflow:hidden}
-.node.lv-boss .tag{color:var(--bad)}
-.node.lv-boss.done .num{background:var(--amber);border-color:var(--amber)}
-.mission.lv-boss .eyebrow{color:var(--bad);font-weight:700}
-.mission.lv-boss h2::before{content:'💀 ';color:var(--bad)}
-.node.bio{border-color:var(--ok);background:var(--ok-soft)}
-.node.bio .num{background:var(--ok);border-color:var(--ok);color:var(--panel);font-size:15px}
-.node.bio .tag{color:var(--ok)}
-.mission.bio .eyebrow{color:var(--ok);font-weight:700}
-.mission.bio h2::before{content:'🧬 '}
+/* toc */
+.toc{position:sticky;top:20px;font-size:14px}
+.toc h2{font-size:12px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;border-left:3px solid transparent}
+.toc a:hover{background:var(--panel)}
+.toc a[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.toc .n{font-family:var(--f-code);font-size:12px;color:var(--muted);min-width:1.6em}
+.toc .ck{margin-left:auto;color:var(--ok);font-weight:700;visibility:hidden}
+.toc a.done .ck{visibility:visible}
+.toc .prog{margin-top:12px;font-size:13px;color:var(--muted)}
+@media (max-width:980px){
+  .toc{position:static;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .toc ol{flex-direction:row;flex-wrap:wrap}
+  .toc a{border-left:0;padding:4px 10px}
+}
 
-/* workbench */
-.bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"mission side" "code side";grid-template-rows:auto 1fr;gap:16px;align-items:start}
-.a-mission{grid-area:mission}.a-side{grid-area:side;gap:16px}.a-world{grid-area:world}.a-code{grid-area:code}.a-env{grid-area:env}
-@media (max-width:920px){.bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"mission" "world" "code" "env";grid-template-rows:none}.bench .a-side{display:contents}}
-.col{display:flex;flex-direction:column;gap:12px;min-width:0}
-.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--accent);font-weight:700}
-.mission h2{font-family:var(--f-display);font-size:28px;margin:2px 0 6px;line-height:1.2;text-wrap:balance}
-.goal{margin:0 0 10px;font-weight:500;max-width:62ch}
-.concept{border:1px dashed var(--line);border-radius:8px;padding:10px 12px;background:var(--sunk);font-size:14px}
-.concept p{margin:0 0 6px;max-width:65ch}
-.concept p:last-child{margin-bottom:0}
-.hint{margin-top:10px;padding:8px 12px;border-radius:8px;background:var(--amber-soft);font-size:14px}
+/* chapters */
+main{min-width:0}
+.ch{padding-top:12px;margin-bottom:56px;scroll-margin-top:16px}
+.ch-h{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:18px}
+.ch-h .num{font-family:var(--f-code);font-size:40px;font-weight:600;color:var(--accent);line-height:1}
+.ch-h h2{font-family:var(--f-display);font-size:clamp(24px,3.4vw,30px);margin:0;line-height:1.25}
+.ch-h small{display:block;font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:400}
+h3{font-size:19px;margin:30px 0 8px;line-height:1.4}
+h3 .tag{font-family:var(--f-code);font-size:12px;color:var(--muted);font-weight:400;margin-right:8px}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:22px}
 
-.pane{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden;min-width:0}
-.pane-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;background:var(--sunk);border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);letter-spacing:.04em;flex-wrap:wrap}
-.pane-h b{color:var(--ink);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:11px}
-.pane-h .acts{display:flex;gap:6px}
-.pane-h .acts button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px;font-size:12px}
-.pane-h .acts button:disabled{opacity:.4;cursor:default}
+.note{border-radius:10px;padding:12px 16px;margin:14px 0;border:1px solid var(--line);background:var(--panel);font-size:15px}
+.note > b:first-child{display:block;margin-bottom:2px}
+.note.tip{background:var(--ok-soft);border-color:transparent}
+.note.warn{background:var(--bad-soft);border-color:transparent}
+.note.lab{background:var(--amber-soft);border-color:transparent}
+.note.link{background:var(--accent-soft);border-color:transparent}
 
-/* world */
-.worldpane{overflow:visible}
-.worldwrap{padding:46px 14px 12px}
-.world{position:relative;margin:0 auto;max-width:100%}
-.world svg.map-svg{display:block;width:100%;height:auto}
-.world svg.over{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}
-.under-badge{transform-box:fill-box;transform-origin:center;animation:gempop .35s ease-out}
-.robot{position:absolute;left:0;top:0;transition:transform var(--dur,.45s) ease-in-out;z-index:2;pointer-events:none}
-.robot.instant,.robot.instant .rb-rot{transition:none}
-.rb-rot{width:100%;height:100%;display:grid;place-items:center;transition:transform var(--dur,.45s) ease-in-out}
-.rb-svg{width:82%;height:82%;overflow:visible}
-.rb-body{fill:var(--accent)}
-.rb-face{fill:var(--panel)}
-.rb-eye{fill:var(--ink)}
-.rb-ant{fill:var(--amber)}
-.rb-foot{fill:var(--wall)}
-.rb-svg .ft{transform-box:fill-box;transform-origin:center}
-.robot.walking .f1{animation:foot calc(var(--dur,.45s)/2) ease-in-out infinite alternate}
-.robot.walking .f2{animation:foot calc(var(--dur,.45s)/2) ease-in-out infinite alternate-reverse}
-@keyframes foot{from{transform:translateX(-7px)}to{transform:translateX(7px)}}
-.rb-eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
-@keyframes blink{0%,93%,100%{transform:scaleX(1)}96%{transform:scaleX(.15)}}
-.robot.bonk .rb-svg{animation:bonk .4s ease-out}
-@keyframes bonk{25%{transform:translateX(10%)}50%{transform:translateX(-6%)}75%{transform:translateX(4%)}}
-.robot.hop .rb-svg{animation:hop .5s ease-out}
-@keyframes hop{40%{transform:scale(1.28)}70%{transform:scale(.95)}}
-.robot.party .rb-svg{animation:spin 1s ease-in-out}
-@keyframes spin{50%{transform:scale(1.3) rotate(180deg)}100%{transform:scale(1) rotate(360deg)}}
-.robot.sad .rb-body{fill:var(--bad)}
-.bubble{position:absolute;bottom:88%;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--panel);color:var(--ink);border:1.5px solid var(--ink);border-radius:9px;padding:1px 8px;font-family:var(--f-code);font-size:12px;line-height:1.6;box-shadow:0 2px 0 var(--ink);opacity:0;transition:opacity .15s;z-index:3}
-.bubble.show{opacity:1}
-.bubble.l{left:0;transform:none}.bubble.r{left:auto;right:0;transform:none}
-.bubble.t{border-color:var(--ok);box-shadow:0 2px 0 var(--ok)}
-.bubble.f{border-color:var(--bad);box-shadow:0 2px 0 var(--bad)}
-.gem-pop{transform-box:fill-box;transform-origin:center;animation:gempop .35s ease-out}
-@keyframes gempop{from{transform:scale(0)}70%{transform:scale(1.25)}to{transform:scale(1)}}
-.gem-poof{transform-box:fill-box;transform-origin:center;animation:poof .45s ease-out forwards}
-@keyframes poof{to{transform:translateY(-30px) scale(.4);opacity:0}}
-.wstatus{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-.wstatus b{color:var(--ink);font-family:var(--f-code);font-weight:600}
+table.cmp{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.cmp th,table.cmp td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{background:var(--sunk);font-size:13px;color:var(--muted);font-weight:600}
+table.cmp tr:last-child td{border-bottom:0}
+.tblwrap{overflow-x:auto}
 
-/* editor */
-.editor{display:grid;grid-template-columns:44px minmax(0,1fr);font-family:var(--f-code);font-size:14px;line-height:1.7;background:var(--panel)}
-.gutter{padding:10px 10px 10px 0;text-align:right;color:var(--t-com);font-size:12px;line-height:1.7*14px;user-select:none;background:var(--sunk);border-right:1px solid var(--line);white-space:pre}
-.gutter{line-height:23.8px}
-#ed{width:100%;min-height:200px;resize:none;border:0;outline:none;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:23.8px;padding:10px 12px;white-space:pre;overflow-x:auto;overflow-y:hidden;tab-size:2}
-#ed:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--accent-soft)}
-.codeview{font-family:var(--f-code);font-size:14px;line-height:23.8px;padding-block:10px;overflow-x:auto;cursor:text}
-.ln{display:grid;grid-template-columns:44px max-content;white-space:pre;min-width:max-content}
-.ln .no{text-align:right;padding-right:10px;color:var(--t-com);font-size:12px;user-select:none}
-.ln code{font-size:inherit;padding:0 16px 0 12px}
-.ln.cur{background:var(--amber-soft);box-shadow:inset 3px 0 0 var(--amber)}
-.ln.errl{background:var(--bad-soft);box-shadow:inset 3px 0 0 var(--bad)}
-.ln.cur .no::before{content:"▶ ";color:var(--ok);font-size:10px}
+/* runnable cells */
+.cell{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;overflow:hidden}
+.cell-h{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-bottom:1px solid var(--line);background:var(--sunk);font-size:13px}
+.cell-h .lab{font-weight:600;color:var(--muted);margin-right:auto}
+.cell-h button{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:2px 10px;font-size:13px}
+.cell-h button.run{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.ed{position:relative;font-family:var(--f-code);font-size:14px;line-height:1.6}
+.ed pre,.ed textarea{margin:0;padding:12px 14px;font:inherit;line-height:inherit;white-space:pre;tab-size:2;overflow:hidden;border:0}
+.ed pre{position:absolute;inset:0;pointer-events:none;color:var(--ink)}
+.ed textarea{position:relative;display:block;width:100%;resize:none;background:transparent;color:transparent;caret-color:var(--ink);overflow-x:auto;min-height:3.4em}
+.ed textarea::selection{background:color-mix(in srgb,var(--accent) 30%,transparent);color:transparent}
 .t-kw{color:var(--t-kw);font-weight:600}.t-str{color:var(--t-str)}.t-num{color:var(--t-num)}.t-com{color:var(--t-com);font-style:italic}.t-fn{color:var(--t-fn)}.t-op{color:var(--t-op)}
-.snips{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px;border-top:1px solid var(--line);background:var(--sunk)}
-.snips span{font-size:11px;color:var(--muted);align-self:center;margin-right:2px}
-.snip{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 7px;font-family:var(--f-code);font-size:12px}
-.snip:hover{border-color:var(--accent)}
-.snip.ctl{color:var(--t-kw)}
+.out{margin:0;border-top:1px dashed var(--line);padding:10px 14px;font-family:var(--f-code);font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;background:var(--sunk);min-height:2.4em}
+.out .err{color:var(--bad)}
+.out .dim{color:var(--muted)}
+.envrow{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 10px;border-top:1px solid var(--line);font-family:var(--f-code);font-size:12.5px;background:var(--sunk)}
+.envrow span{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px}
+.envrow span b{color:var(--accent);font-weight:600;margin-right:6px}
 
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px;font-size:14px;line-height:1.4;transition:background .12s,border-color .12s}
-.btn:hover:not(:disabled){border-color:var(--accent)}
-.btn:disabled{opacity:.45;cursor:default}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
-.btn.go{background:var(--ok);border-color:var(--ok);color:var(--panel);font-weight:600;padding-inline:18px}
-.speed{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-left:auto}
-.speed input{width:90px;accent-color:var(--accent)}
-.result{border-radius:8px;padding:10px 12px;font-size:14px}
-.result.no{background:var(--bad-soft)}
-.result.ok{background:var(--ok-soft)}
-.result .btn{margin-top:8px}
-
-.env{width:100%;border-collapse:collapse;font-size:13px}
-.env th{text-align:left;font-weight:500;color:var(--muted);font-size:12px;padding:4px 10px;border-bottom:1px solid var(--line)}
-.env td{padding:4px 10px;border-bottom:1px solid var(--line);font-family:var(--f-code);font-variant-numeric:tabular-nums}
-.env tr:last-child td{border-bottom:0}
-.env .empty{color:var(--muted);font-family:var(--f-body)}
-.console{margin:0;padding:10px 12px;font-family:var(--f-code);font-size:13px;line-height:1.6;min-height:70px;max-height:180px;overflow:auto;white-space:pre-wrap;background:var(--sunk)}
-.console .prompt{color:var(--accent)}
-.console .err{color:var(--bad)}
-.console .good{color:var(--ok)}
+/* exercises */
+.ex{border:2px solid var(--accent);border-radius:14px;padding:16px 18px 6px;margin:26px 0 8px;background:var(--panel)}
+.ex.passed{border-color:var(--ok)}
+.ex-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.ex-h .badge{font-family:var(--f-code);font-size:12px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 8px}
+.ex.passed .ex-h .badge{background:var(--ok)}
+.ex-h h3{margin:0;font-size:18px}
+.ex-h .st{margin-left:auto;font-size:13px;color:var(--ok);font-weight:700}
+.ex .cell{margin:12px 0}
+.ex .cell-h button.sol{margin-left:4px}
+.verdict{margin:0 0 12px;padding:10px 14px;border-radius:10px;font-size:14.5px}
+.verdict.ok{background:var(--ok-soft)}
+.verdict.no{background:var(--bad-soft)}
+.verdict code{background:transparent;border:0}
+.verdict pre{margin:6px 0 0;font-family:var(--f-code);font-size:13px;white-space:pre-wrap}
 
 /* modal */
-.modal{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:grid;place-items:center;z-index:20;padding:16px}
-.card{background:var(--panel);border-radius:16px;padding:24px;max-width:420px;width:100%;text-align:center;border:1px solid var(--line);animation:rise .3s ease-out}
-.card h3{font-family:var(--f-display);font-size:34px;margin:0}
-.bigstars{display:flex;justify-content:center;gap:10px;margin:14px 0 6px}
-.bigstars div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);width:96px}
-.bigstars i{font-style:normal;font-size:40px;line-height:1;color:var(--line)}
-.bigstars .on i{color:var(--amber);animation:starin .5s ease-out backwards}
-.bigstars div:nth-child(2) i{animation-delay:.15s}.bigstars div:nth-child(3) i{animation-delay:.3s}
-@keyframes starin{from{transform:scale(0) rotate(-90deg)}70%{transform:scale(1.3)}}
-.card .controls{justify-content:center;margin-top:14px}
-
-/* quiz (boss) */
-.boss{max-width:760px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:14px}
-.boss h3{font-family:var(--f-display);font-size:24px;margin:0 0 4px}
-.boss .bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:14px;color:var(--muted)}
-.hearts{color:var(--bad);letter-spacing:2px;font-size:18px}
-.hearts .lost{color:var(--line)}
-.q{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.q .qt{font-weight:500}
-.codeblk{margin:0;font-family:var(--f-code);font-size:13px;line-height:1.6;background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:pre}
-.opts{display:flex;flex-direction:column;gap:6px}
-.opt{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 10px;font-family:var(--f-code);font-size:13px;white-space:pre-wrap}
-.opt:hover:not(:disabled){border-color:var(--accent)}
-.opt.right{border-color:var(--ok);background:var(--ok-soft)}
-.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
-.opt:disabled{cursor:default}
-.why{font-size:14px;padding:8px 10px;border-radius:8px;background:var(--sunk)}
-.why.ok{background:var(--ok-soft)}.why.no{background:var(--bad-soft)}
-.big{font-family:var(--f-display);font-size:52px;line-height:1;margin:6px 0}
-.rank{font-family:var(--f-display);font-size:24px;color:var(--accent)}
-.rules{margin:0;padding-left:1.2em}
-
-.foot{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
-.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;padding:0;font-size:13px}
-.linkbtn.armed{color:var(--bad)}
-.toasts{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;z-index:30;pointer-events:none}
-.toast{background:var(--ink);color:var(--panel);padding:7px 14px;border-radius:99px;font-size:14px;font-weight:500;animation:rise .3s ease-out}
-.toast.gold{background:var(--amber);color:#1c1405}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.confetti{position:fixed;width:8px;height:12px;z-index:40;pointer-events:none;border-radius:2px;animation:conf 1.1s cubic-bezier(.2,.6,.4,1) forwards}
-@keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.concept pre.snippet{margin:6px 0 2px;padding:10px 12px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;font-family:var(--f-code);font-size:13px;line-height:1.55;overflow-x:auto;font-variant-ligatures:none}
-.pwform{display:flex;gap:8px}
-.pwform input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
-.pwform input:focus{outline:2px solid var(--accent);outline-offset:1px}
-.pwerr{min-height:1.4em;margin:6px 0 0;color:var(--bad);font-size:14px}
+.modal{position:fixed;inset:0;background:color-mix(in srgb,#000 45%,transparent);display:grid;place-items:center;padding:16px;z-index:50}
+.card{background:var(--panel);border-radius:16px;padding:22px 22px 18px;width:min(420px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:calc(100vh - 32px);overflow:auto}
+.card.wide{width:min(820px,100%)}
+.card h3{margin:0 0 4px;font-family:var(--f-display);font-size:22px}
+.card .row{display:flex;gap:8px;margin-top:12px}
+.card input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.card .err{min-height:1.4em;margin:6px 0 0;color:var(--bad);font-size:14px}
+.card .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.card pre.solcode{margin:10px 0 0;padding:12px 14px;border-radius:10px;background:var(--sunk);border:1px solid var(--line);font-family:var(--f-code);font-size:13.5px;line-height:1.6;overflow-x:auto;white-space:pre}
 .card.shake{animation:shake .35s}
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-.card.wide{max-width:min(860px,calc(100vw - 32px));width:100%;max-height:calc(100vh - 48px);overflow:auto;text-align:left}
-.sol-idea{margin:8px 0 12px;line-height:1.7}
-.sol-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-table.sol{width:100%;border-collapse:collapse;font-size:14px}
-table.sol th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 10px;background:var(--sunk);border-bottom:1px solid var(--line)}
-table.sol td{padding:5px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
-table.sol tr:last-child td{border-bottom:0}
-table.sol td.ln{color:var(--muted);font-family:var(--f-code);font-size:12px;text-align:right;width:1%}
-table.sol td.cd{white-space:pre;font-family:var(--f-code);font-size:13px;width:1%}
-table.sol td.cd code{background:none;border:0;padding:0;font-variant-ligatures:none}
-table.sol td.nt{width:100%}
-table.sol tr.com td{color:var(--muted);font-style:italic}
-.sol-traps{margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--bad-soft);font-size:14px;line-height:1.7}
-.sol-traps ul{margin:4px 0 0;padding-left:20px}
-.goalmini{padding:12px;display:flex;justify-content:center;background:var(--sunk)}
-.goalmini svg{display:block;height:auto;max-width:100%}
-.goalcap{padding:8px 14px 10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
-.goalcap b{color:var(--ink);font-family:var(--f-code);font-weight:600}
+@media (prefers-reduced-motion: reduce){.card.shake{animation:none}}
+
+.next{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.next a{flex:1 1 240px;display:block;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.next a:hover{border-color:var(--accent)}
+.next a span{display:block;font-size:13px;color:var(--muted)}
+.next a b{font-size:17px}
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <a class="back" href="./">← 大數據分析與實踐 · 課程首頁</a>　<a class="back" href="extras.html">控制流程補充教材 →</a>
-      <h1><span class="r">R</span>寶的奇幻旅程</h1>
-      <p>寫 R 程式指揮機器人 R 寶走迷宮、撿寶石。用 <code>for</code>、<code>while</code>、<code>if</code> 和巢狀迴圈，讓程式越短越好。</p>
-    </div>
-    <div class="stats" aria-live="polite">
-      <span class="lv" id="lv">Lv.1</span>
-      <div class="xpbar" aria-hidden="true"><i id="xpfill" style="width:0"></i></div>
-      <span class="xptxt" id="xptxt">0 XP</span>
-      <button class="chipbtn" id="soundBtn" type="button">音效：開</button>
-    </div>
-  </header>
-  <nav class="mapwrap" aria-label="關卡"><ol class="map" id="map"></ol></nav>
-  <main id="stage"></main>
-  <footer class="foot">
-    <span>快捷鍵：在程式碼裡按 <code>Ctrl</code>/<code>⌘</code> + <code>Enter</code> 執行。進度只存在這台瀏覽器。</span>
-    <button class="linkbtn" id="resetAll" type="button">清除所有進度</button>
-  </footer>
+<header class="hero page" style="padding-bottom:0">
+  <div style="grid-column:1/-1">
+    <nav class="crumbs" aria-label="導覽">
+      <a href="./">← 大數據分析與實踐 · 課程首頁</a>
+      <a href="loops.html">R 寶的奇幻旅程（遊戲）</a>
+      <a href="memory.html">記憶體裡的 R 物件</a>
+    </nav>
+    <div class="eyebrow">Supplement · Control Flow</div>
+    <h1>控制流程補充教材</h1>
+    <p>玩完 R 寶的奇幻旅程之後，這裡補上遊戲裡沒有細講、但寫 R 一定會遇到的五件事。每一段程式碼都可以直接修改、按「執行」看結果；每章最後有一題練習，會用好幾組資料自動檢查。</p>
+    <div class="meta"><span class="pill">5 章 · 5 題練習</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span><span class="pill">練習解答需要老師提供的密碼</span></div>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="toc" aria-label="目錄">
+    <h2>目錄</h2>
+    <ol id="toc">
+      <li><a href="#ch1" data-ex="ex1"><span class="n">01</span>if / else 完整版<span class="ck">✓</span></a></li>
+      <li><a href="#ch2" data-ex="ex2"><span class="n">02</span>在迴圈裡存結果<span class="ck">✓</span></a></li>
+      <li><a href="#ch3" data-ex="ex3"><span class="n">03</span>走訪「值」還是「位置」<span class="ck">✓</span></a></li>
+      <li><a href="#ch4" data-ex="ex4"><span class="n">04</span>向量化：不寫迴圈<span class="ck">✓</span></a></li>
+      <li><a href="#ch5" data-ex="ex5"><span class="n">05</span>switch、&amp;&amp; 與 NA<span class="ck">✓</span></a></li>
+      <li><a href="#sum"><span class="n">✦</span>總整理</a></li>
+    </ol>
+    <div class="prog" id="prog"></div>
+  </nav>
+
+  <main>
+<!-- ============ 01 ============ -->
+<section class="ch" id="ch1">
+  <div class="ch-h"><span class="num">01</span><h2>if / else 完整版<small>多條路選一條、else 的位置、if 也會回傳值</small></h2></div>
+
+  <p>遊戲裡大多只用到「條件成立就做」的 <code>if</code>。真正判讀資料時，常常是<b>好幾種情況選一種</b>，這時要用 <code>if … else if … else</code>。</p>
+
+  <h3><span class="tag">1-1</span>多選一：else if 鏈</h3>
+  <div class="note lab"><b>🧪 情境：空腹血糖判讀</b>≥ 126 mg/dL 為糖尿病範圍、100～125 為糖尿病前期、&lt; 100 為正常。</div>
+<script type="text/x-r" class="cell" data-label="範例 1-1">glu <- 110
+if (glu >= 126) {
+  cat("糖尿病範圍\n")
+} else if (glu >= 100) {
+  cat("糖尿病前期\n")
+} else {
+  cat("正常\n")
+}</script>
+  <p>R 會<b>由上往下</b>一個一個檢查，執行<b>第一個</b>成立的分支，其他分支就全部跳過。所以 <code>glu &gt;= 100</code> 那一行其實隱含了「而且 glu &lt; 126」──能走到那裡，代表上一個條件已經是 FALSE。</p>
+  <p>試試把 <code>glu</code> 改成 130、95 再執行。</p>
+
+  <div class="note warn"><b>順序很重要</b>把範圍大的條件放前面，後面的分支永遠輪不到。下面這段把順序寫反了，glu = 130 會被判成什麼？</div>
+<script type="text/x-r" class="cell" data-label="範例 1-2 · 順序寫反">glu <- 130
+if (glu >= 100) {
+  cat("糖尿病前期\n")
+} else if (glu >= 126) {
+  cat("糖尿病範圍\n")    # 永遠走不到這裡
+} else {
+  cat("正常\n")
+}</script>
+
+  <h3><span class="tag">1-2</span>else 一定要接在 } 的同一行</h3>
+  <p>在 RStudio 的 Console 或程式最外層，R 是<b>一行一行</b>讀的。讀到 <code>}</code> 後面換行，R 就以為 if 已經結束了；下一行突然出現 <code>else</code>，它不知道要接在誰後面，就會出錯。執行看看：</p>
+<script type="text/x-r" class="cell" data-label="範例 1-3 · 會出錯">x <- 7
+if (x > 5) {
+  cat("大\n")
+}
+else {
+  cat("小\n")
+}</script>
+  <div class="note tip"><b>習慣寫法</b>永遠寫成 <code>} else {</code>、<code>} else if (…) {</code>，放在同一行。（包在迴圈或大括號裡時不會出錯，但養成同一個習慣最安全。）</div>
+
+  <h3><span class="tag">1-3</span>if 也會「回傳」一個值</h3>
+  <p>在 R 裡，<code>if</code> 本身就是一個運算式，會產生值，可以直接存進變數：</p>
+<script type="text/x-r" class="cell" data-label="範例 1-4" data-env="1">glu <- 140
+label <- if (glu >= 126) "高" else "正常"
+label</script>
+  <p>這和 <code>ifelse()</code> 很像，差別是：</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th></th><th><code>if (…) a else b</code></th><th><code>ifelse(條件, a, b)</code></th></tr>
+    <tr><td>條件可以是</td><td><b>一個</b> TRUE / FALSE</td><td>整個向量，逐一判斷</td></tr>
+    <tr><td>回傳</td><td>a 或 b 其中一個</td><td>和條件一樣長的向量</td></tr>
+    <tr><td>適合</td><td>控制程式要走哪條路</td><td>把一整欄資料分類</td></tr>
+  </table></div>
+<script type="text/x-r" class="cell" data-label="範例 1-5 · 向量要用 ifelse">glus <- c(92, 140, 105)
+ifelse(glus >= 126, "高", "正常")
+if (glus >= 126) "高" else "正常"     # 這行會出錯：條件有 3 個值</script>
+
+  <div class="ex" id="ex1" data-ex="ex1">
+    <div class="ex-h"><span class="badge">練習 1</span><h3>血紅素判讀</h3><span class="st"></span></div>
+    <p>變數 <code>hb</code>（男性血紅素，g/dL）已經準備好了。用 <code>if … else if … else</code> 判讀：<code>hb &lt; 13</code> 印出 <code>貧血</code>；13～17（含 13 和 17）印出 <code>正常</code>；大於 17 印出 <code>偏高</code>。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">檢查時會換 5 個不同的 hb，包含剛好等於 13 和 17 的邊界值。</p>
+<script type="text/x-r" class="starter"># hb 已經在 Environment，不要自己設定 hb
+if (___) {
+  cat("貧血\n")
+}
+</script>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="ch" id="ch2">
+  <div class="ch-h"><span class="num">02</span><h2>在迴圈裡存結果<small>先準備好容器，再用 x[i] &lt;- 一格一格填進去</small></h2></div>
+
+  <p><code>cat()</code> 只是把東西印在螢幕上，印完就沒了。分析資料時，我們通常要把每一圈算出來的結果<b>存起來</b>，之後再畫圖、做統計。R 最常見的寫法是：</p>
+  <ol>
+    <li>先用 <code>numeric(n)</code> 建一個長度 n、全是 0 的向量（容器）。</li>
+    <li>迴圈裡用 <code>結果[i] &lt;- …</code> 把第 i 個答案放進第 i 格。</li>
+  </ol>
+  <div class="note lab"><b>🌡️ 情境：體溫單位換算</b>儀器輸出華氏溫度，要換成攝氏：°C = (°F − 32) × 5 / 9。</div>
+<script type="text/x-r" class="cell" data-label="範例 2-1" data-env="1">f <- c(98.6, 100.4, 102.2, 97.7)
+celsius <- numeric(length(f))     # 先準備 4 格，全是 0
+for (i in seq_along(f)) {
+  celsius[i] <- round((f[i] - 32) * 5 / 9, 1)
+}
+celsius</script>
+  <p>執行後看下面的變數：<code>celsius</code> 從 <code>0 0 0 0</code> 一格一格被填滿。<code>numeric()</code> 之外，還有 <code>character(n)</code>（全是 <code>""</code>）和 <code>logical(n)</code>（全是 FALSE）。</p>
+
+  <h3><span class="tag">2-1</span>為什麼不要一直用 c() 接在後面？</h3>
+  <p>在生資實戰那關，我們用 <code>pos &lt;- c(pos, i)</code> 收集突變位置。這樣寫結果是對的，但每做一次，R 都要<b>建立一個新的、長一格的向量</b>，再把舊的內容整份複製過去。</p>
+  <div class="note link"><b>🔗 回想「記憶體裡的 R 物件」</b>vector 是一排連續的抽屜，長度是固定的。要多一格，只能找一塊新的空間整排搬過去。資料有 10 萬筆時，就會搬 10 萬次。</div>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>寫法</th><th>什麼時候用</th></tr>
+    <tr><td><code>out &lt;- numeric(n)</code> ＋ <code>out[i] &lt;- …</code></td><td><b>事先知道</b>會有幾個結果（例如每個病人一個值）</td></tr>
+    <tr><td><code>out &lt;- c()</code> ＋ <code>out &lt;- c(out, …)</code></td><td><b>不知道</b>會有幾個（例如只收集「突變的位置」），而且資料量不大</td></tr>
+  </table></div>
+
+  <h3><span class="tag">2-2</span>放到超出長度的位置會怎樣？</h3>
+<script type="text/x-r" class="cell" data-label="範例 2-2">x <- c(1, 2)
+x[5] <- 9
+x</script>
+  <p>R 不會報錯，而是自動把向量拉長，中間空出來的位置補上 <code>NA</code>（缺失值）。這常常是 bug 的來源：容器長度和迴圈次數對不上，結果裡就會冒出 NA。</p>
+
+  <div class="ex" id="ex2" data-ex="ex2">
+    <div class="ex-h"><span class="badge">練習 2</span><h3>累積檢體數</h3><span class="st"></span></div>
+    <p>向量 <code>counts</code> 是每天新增的檢體數。做出向量 <code>cum</code>：第 i 格是「到第 i 天為止的累積數量」。例如 <code>c(12, 0, 7, 3)</code> → <code>c(12, 12, 19, 22)</code>。請用 <code>numeric()</code> 預先準備容器，再用 for 迴圈填值。</p>
+<script type="text/x-r" class="starter"># counts 已經在 Environment
+cum <- numeric(length(counts))
+for (i in seq_along(counts)) {
+  # 第 1 天：cum[1] 就是 counts[1]
+  # 之後：cum[i] 是「前一天的累積」加上「今天的數量」
+
+}
+cum
+</script>
+  </div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="ch" id="ch3">
+  <div class="ch-h"><span class="num">03</span><h2>走訪「值」還是「位置」<small>for (b in dna) 和 for (i in seq_along(dna)) 的差別</small></h2></div>
+
+  <p>for 迴圈的 <code>in</code> 後面可以放<b>任何向量</b>，迴圈變數會依序拿到向量裡的每個<b>值</b>，不一定要是 <code>1:n</code>：</p>
+<script type="text/x-r" class="cell" data-label="範例 3-1 · 直接拿值">dna <- c("A", "T", "G", "C", "G")
+for (b in dna) {
+  cat(b, "")
+}</script>
+<script type="text/x-r" class="cell" data-label="範例 3-2 · 拿位置">dna <- c("A", "T", "G", "C", "G")
+for (i in seq_along(dna)) {
+  cat("第", i, "個是", dna[i], "\n")
+}</script>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>寫法</th><th>迴圈變數是</th><th>適合</th></tr>
+    <tr><td><code>for (b in dna)</code></td><td>值：<code>"A"</code>、<code>"T"</code>…</td><td>只需要內容，例如計數、加總</td></tr>
+    <tr><td><code>for (i in seq_along(dna))</code></td><td>位置：1、2、3…</td><td>需要「第幾個」、要同時看兩個向量（像 HBB 那關比對 ref 和病人）、或要把結果存到 <code>out[i]</code></td></tr>
+  </table></div>
+
+  <h3><span class="tag">3-1</span>1:length(x) 的陷阱</h3>
+  <p>很多人寫 <code>for (i in 1:length(x))</code>。平常沒問題，但當 <code>x</code> 是<b>空的</b>：</p>
+<script type="text/x-r" class="cell" data-label="範例 3-3">x <- numeric(0)          # 空的向量，例如篩選後一筆都沒有
+length(x)
+1:length(x)              # 1:0 → c(1, 0)，不是空的！
+for (i in 1:length(x)) {
+  cat("跑了一圈，i =", i, "\n")
+}
+for (i in seq_along(x)) {
+  cat("這行不會出現\n")
+}</script>
+  <div class="note tip"><b>結論</b>要走訪位置，用 <code>seq_along(x)</code>；要跑 n 次，用 <code>seq_len(n)</code>。它們在長度為 0 時會正確地「一圈都不跑」。（大魔王那關的 <code>seq_len(total)</code> 就是同一個道理。）</div>
+
+  <h3><span class="tag">3-2</span>在迴圈裡改迴圈變數，沒有用</h3>
+<script type="text/x-r" class="cell" data-label="範例 3-4">for (i in 1:3) {
+  i <- i * 10
+  cat("i =", i, "\n")
+}
+i      # 迴圈結束後，i 會留下最後一次的值</script>
+  <p>for 會在每一圈開始時，從序列裡拿下一個值<b>重新設定</b> i，所以你在迴圈裡改 i 不會影響下一圈。想要「跳著走」，請改序列本身，例如 <code>seq(1, 9, by = 2)</code>。</p>
+
+  <div class="ex" id="ex3" data-ex="ex3">
+    <div class="ex-h"><span class="badge">練習 3</span><h3>直接拿值來數 GC</h3><span class="st"></span></div>
+    <p>向量 <code>dna</code> 已經準備好了。<b>不要用位置 i</b>，寫 <code>for (b in dna)</code> 讓迴圈變數直接拿到鹼基，數出 G 和 C 一共有幾個，存在 <code>gc</code>。</p>
+    <p class="dim" style="color:var(--muted);font-size:14px">檢查時會換 4 條序列，其中一條是空的。</p>
+<script type="text/x-r" class="starter"># dna 已經在 Environment
+gc <- 0
+for (b in ___) {
+
+}
+gc
+</script>
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="ch" id="ch4">
+  <div class="ch-h"><span class="num">04</span><h2>向量化：不寫迴圈也能做<small>sum()、mean()、which()、any()、all()、x[條件]</small></h2></div>
+
+  <p>R 的運算本來就是對<b>整個向量</b>做的：<code>h &gt; 5</code> 會一次比較每一個元素，得到一排 TRUE / FALSE。很多「用迴圈一個一個檢查」的工作，一行就能完成，而且通常更快、更不容易寫錯。</p>
+<script type="text/x-r" class="cell" data-label="範例 4-1 · 迴圈版">h <- c(3, 8, 1, 9, 4)
+n <- 0
+for (x in h) {
+  if (x > 5) n <- n + 1
+}
+n</script>
+<script type="text/x-r" class="cell" data-label="範例 4-2 · 向量化版">h <- c(3, 8, 1, 9, 4)
+h > 5            # 一次比較全部
+sum(h > 5)       # TRUE 當 1、FALSE 當 0，加起來就是個數</script>
+
+  <h3><span class="tag">4-1</span>常用工具</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>想知道</th><th>寫法</th><th><code>h &lt;- c(3, 8, 1, 9, 4)</code> 的結果</th></tr>
+    <tr><td>有幾個符合</td><td><code>sum(h &gt; 5)</code></td><td><code>2</code></td></tr>
+    <tr><td>符合的比例</td><td><code>mean(h &gt; 5)</code></td><td><code>0.4</code></td></tr>
+    <tr><td>符合的是第幾個</td><td><code>which(h &gt; 5)</code></td><td><code>2 4</code></td></tr>
+    <tr><td>符合的值</td><td><code>h[h &gt; 5]</code></td><td><code>8 9</code></td></tr>
+    <tr><td>有沒有任何一個</td><td><code>any(h &gt; 8)</code></td><td><code>TRUE</code></td></tr>
+    <tr><td>是不是全部都</td><td><code>all(h &gt; 0)</code></td><td><code>TRUE</code></td></tr>
+    <tr><td>逐一分類</td><td><code>ifelse(h &gt; 5, "高", "低")</code></td><td><code>"低" "高" "低" "高" "低"</code></td></tr>
+  </table></div>
+<script type="text/x-r" class="cell" data-label="範例 4-3 · 自己試試">h <- c(3, 8, 1, 9, 4)
+mean(h > 5)
+which(h > 5)
+h[h > 5]
+any(h > 8)
+all(h > 0)</script>
+
+  <h3><span class="tag">4-2</span>生資的例子：一行就完成</h3>
+<script type="text/x-r" class="cell" data-label="範例 4-4">dna <- c("A", "C", "T", "G", "G", "C", "A", "T")
+mean(dna %in% c("G", "C"))          # GC 含量（比例）
+
+ref     <- c("A", "C", "T", "C", "C", "T", "G", "A")
+patient <- c("A", "C", "T", "C", "C", "T", "G", "T")
+which(patient != ref)                # 突變位置：HBB 那關的迴圈，一行搞定
+8 %in% which(patient != ref)         # 第 8 個有沒有突變</script>
+
+  <div class="note tip"><b>那什麼時候還是需要迴圈？</b>
+    <ul>
+      <li>每一步要用到<b>上一步的結果</b>，例如練習 2 的累積數量（R 其實有 <code>cumsum()</code>，但很多計算沒有現成函式）。</li>
+      <li>每一步會<b>改變外面的世界</b>，例如 R 寶走一步、讀一個檔案、畫一張圖。</li>
+      <li>要在中途<b>提早停止</b>（break）。</li>
+    </ul></div>
+
+  <div class="ex" id="ex4" data-ex="ex4">
+    <div class="ex-h"><span class="badge">練習 4</span><h3>血糖報表：不准用迴圈</h3><span class="st"></span></div>
+    <p>向量 <code>glu</code> 是一批病人的空腹血糖。<b>不使用 for / while / repeat</b>，算出：</p>
+    <ul>
+      <li><code>n_high</code>：≥ 126 的人數</li>
+      <li><code>high_idx</code>：這些人是第幾位</li>
+      <li><code>p_normal</code>：&lt; 100 的人所占比例</li>
+    </ul>
+<script type="text/x-r" class="starter"># glu 已經在 Environment
+n_high   <- ___
+high_idx <- ___
+p_normal <- ___
+</script>
+  </div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="ch" id="ch5">
+  <div class="ch-h"><span class="num">05</span><h2>switch、&amp;&amp; 與 NA<small>三個寫 R 一定會踩到的小細節</small></h2></div>
+
+  <h3><span class="tag">5-1</span>switch()：照「名字」選一條路</h3>
+  <p>當你是拿一個值去比對很多個<b>固定選項</b>時，<code>switch()</code> 比一長串 <code>else if</code> 清楚：</p>
+  <div class="note lab"><b>🧪 情境：採血管顏色</b>紫頭 EDTA 做血液常規、藍頭檸檬酸鈉做凝血、灰頭氟化鈉做血糖。</div>
+<script type="text/x-r" class="cell" data-label="範例 5-1">tube <- "藍"
+use <- switch(tube,
+  "紫" = "EDTA：血液常規",
+  "藍" = "檸檬酸鈉：凝血功能",
+  "灰" = "氟化鈉：血糖",
+  "請確認試管顏色"            # 最後一個沒有名字的，是都對不上時的預設值
+)
+use</script>
+  <p>同樣的事用 if 寫：</p>
+<script type="text/x-r" class="cell" data-label="範例 5-2 · if 版本">tube <- "藍"
+if (tube == "紫") {
+  use <- "EDTA：血液常規"
+} else if (tube == "藍") {
+  use <- "檸檬酸鈉：凝血功能"
+} else if (tube == "灰") {
+  use <- "氟化鈉：血糖"
+} else {
+  use <- "請確認試管顏色"
+}
+use</script>
+  <div class="note"><b>用哪個？</b><code>switch</code> 適合「等於某個名字」；要比較大小（例如血糖 ≥ 126）就只能用 <code>if … else if</code>。</div>
+
+  <h3><span class="tag">5-2</span>&amp;&amp; 和 &amp; 不一樣</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th></th><th><code>&amp;&amp;</code>、<code>||</code></th><th><code>&amp;</code>、<code>|</code></th></tr>
+    <tr><td>兩邊可以是</td><td>各<b>一個</b> TRUE / FALSE</td><td>整個向量，逐一比較</td></tr>
+    <tr><td>用在</td><td><code>if ( )</code>、<code>while ( )</code> 的條件</td><td>篩選資料、<code>ifelse()</code>、<code>sum()</code></td></tr>
+    <tr><td>短路</td><td>左邊已經能決定答案，就<b>不看右邊</b></td><td>兩邊都會算</td></tr>
+  </table></div>
+<script type="text/x-r" class="cell" data-label="範例 5-3">x <- c(1, 5, 9)
+x > 2 & x < 8            # 逐一比較：3 個答案
+sum(x > 2 & x < 8)       # 有幾個介於 2 和 8 之間
+x > 2 && x < 8           # 錯誤：&& 只能接一個值</script>
+
+  <h3><span class="tag">5-3</span>NA：缺失值會「傳染」</h3>
+  <p>檢驗資料常有沒測到的項目，R 用 <code>NA</code> 表示。任何和 NA 的計算或比較，結果通常還是 NA，因為「不知道的值」加上任何東西，還是不知道：</p>
+<script type="text/x-r" class="cell" data-label="範例 5-4">v <- c(4.2, NA, 6.8)
+v + 1
+v > 5
+sum(v)
+sum(v, na.rm = TRUE)     # na.rm = TRUE：先移除 NA 再算
+is.na(v)                 # 哪些是 NA</script>
+  <p>NA 放進 <code>if</code> 會直接出錯，因為 if 不知道要走哪邊：</p>
+<script type="text/x-r" class="cell" data-label="範例 5-5 · 會出錯">v <- c(4.2, NA, 6.8)
+if (v[2] > 5) cat("偏高\n")</script>
+  <p>解法是<b>先檢查 NA</b>。這裡就輪到 <code>&amp;&amp;</code> 的「短路」派上用場：左邊 <code>!is.na(x)</code> 是 FALSE 時，右邊根本不會算，就不會出錯。</p>
+<script type="text/x-r" class="cell" data-label="範例 5-6">v <- c(4.2, NA, 6.8)
+for (x in v) {
+  if (!is.na(x) && x > 5) {
+    cat(x, "偏高\n")
+  } else {
+    cat(x, "不是偏高（或沒測）\n")
+  }
+}</script>
+
+  <div class="ex" id="ex5" data-ex="ex5">
+    <div class="ex-h"><span class="badge">練習 5</span><h3>有缺值的檢驗報告</h3><span class="st"></span></div>
+    <p>向量 <code>vals</code> 是一位病人的檢驗值，可能有 <code>NA</code>。逐項印出：</p>
+    <ul>
+      <li>NA → <code>第 i 項：未檢測</code></li>
+      <li>大於 7 → <code>第 i 項：偏高</code></li>
+      <li>其他 → <code>第 i 項：正常</code></li>
+    </ul>
+    <p class="dim" style="color:var(--muted);font-size:14px">例如 <code>cat("第", i, "項：正常\n")</code>。比對時會忽略空白。</p>
+<script type="text/x-r" class="starter"># vals 已經在 Environment
+for (i in seq_along(vals)) {
+
+}
+</script>
+  </div>
+</section>
+
+<!-- ============ summary ============ -->
+<section class="ch" id="sum">
+  <div class="ch-h"><span class="num">✦</span><h2>總整理<small>R 控制流程一頁看完</small></h2></div>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>我想要…</th><th>用</th><th>小心</th></tr>
+    <tr><td>條件成立才做</td><td><code>if (條件) { }</code></td><td>條件只能是一個 TRUE / FALSE，不能是 NA</td></tr>
+    <tr><td>多種情況選一種</td><td><code>if … else if … else</code></td><td>由上往下，只執行第一個成立的；<code>} else</code> 寫同一行</td></tr>
+    <tr><td>照名字選</td><td><code>switch(x, a = …, b = …, 預設)</code></td><td>只能比「等於」</td></tr>
+    <tr><td>知道次數的重複</td><td><code>for (i in seq_len(n))</code>、<code>for (x in 向量)</code></td><td>用 <code>seq_along</code> / <code>seq_len</code>，不要 <code>1:length()</code></td></tr>
+    <tr><td>不知道次數的重複</td><td><code>while (條件)</code></td><td>條件要會變，否則無限迴圈</td></tr>
+    <tr><td>先做再檢查</td><td><code>repeat { …; if (…) break }</code></td><td>一定要有 break</td></tr>
+    <tr><td>提早結束 / 跳過這圈</td><td><code>break</code> / <code>next</code></td><td>只影響最內層的迴圈</td></tr>
+    <tr><td>把結果存起來</td><td><code>out &lt;- numeric(n)</code>；<code>out[i] &lt;- …</code></td><td>長度要對上，否則冒出 NA</td></tr>
+    <tr><td>整個向量一起算</td><td><code>sum</code>、<code>mean</code>、<code>which</code>、<code>any</code>、<code>all</code>、<code>x[條件]</code>、<code>ifelse</code></td><td>向量比較用 <code>&amp;</code>，if 條件用 <code>&amp;&amp;</code></td></tr>
+    <tr><td>處理缺失值</td><td><code>is.na()</code>、<code>na.rm = TRUE</code></td><td>先檢查 NA 再比較大小</td></tr>
+  </table></div>
+  <div class="next">
+    <a href="loops.html"><span>回到遊戲</span><b>R 寶的奇幻旅程 →</b></a>
+    <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
+  </div>
+</section>
+  </main>
 </div>
-<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
 /* ================= R-subset interpreter + Karel world (pure logic) ================= */
@@ -1143,12 +1385,12 @@ LEVELS.forEach((l, i) => l.n = i + 1);
 </script>
 
 <script>
-/* ================= UI ================= */
+/* ================= page ================= */
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const HL_KW = /^(for|while|if|else|in|next|break|repeat|function|TRUE|FALSE|NULL)$/;
+const HL_KW = /^(for|while|if|else|in|next|break|repeat|function|TRUE|FALSE|NULL|NA)$/;
 function hl(src){
-  const re = /(#.*$)|("[^"]*")|(\b\d+(?:\.\d+)?\b)|(%in%|<-|%%|==|<=|>=|!=|&&|\|\|)|([A-Za-z_.][\w.]*)/g;
+  const re = /(#.*$)|("[^"]*")|(\b\d+(?:\.\d+)?\b)|(%in%|<-|%%|==|<=|>=|!=|&&|\|\||&|\|)|([A-Za-z_.][\w.]*)/gm;
   let out = '', last = 0, m;
   while ((m = re.exec(src))) {
     out += esc(src.slice(last, m.index));
@@ -1165,446 +1407,156 @@ function hl(src){
   return out + esc(src.slice(last));
 }
 
-/* ---------- progress ---------- */
-const KEY = 'r-loop-karel-v2';
-function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-const S = Object.assign({ xp: 0, stars: {}, codes: {}, fails: {}, cur: 'seq', sound: true, bossBest: 0, awarded: {} }, load());
-
-/* ---------- sound + fx ---------- */
-let AC = null;
-function tone(f, d = .08, type = 'sine', vol = .05, when = 0){
-  if (!S.sound) return;
-  try {
-    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
-    o.type = type; o.frequency.setValueAtTime(f, t);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
-    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + .02);
-  } catch (e) {}
+const BLANK = { W: 1, H: 1, robot: [1, 1, 0], beepers: {}, walls: [] };
+function runR(code, vars){
+  const t = execute(code, { ...BLANK, vars: vars || {} });
+  return { out: t.steps.filter(s => s.out).map(s => s.out).join(''), error: t.error, vars: t.vars };
 }
-const SFX = {
-  move: () => tone(420 + Math.random() * 60, .05, 'triangle', .035),
-  turn: () => tone(700, .06, 'sine', .03),
-  check: () => tone(880, .03, 'sine', .015),
-  pick: () => { tone(880, .08, 'triangle', .05); tone(1320, .12, 'triangle', .05, .07); },
-  put: () => tone(330, .09, 'triangle', .05),
-  bonk: () => tone(120, .25, 'sawtooth', .05),
-  fail: () => { tone(300, .15, 'square', .03); tone(200, .25, 'square', .03, .14); },
-  win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .18, 'triangle', .05, i * .11)),
-};
-function confetti(el, n = 36){
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  const cs = getComputedStyle(document.documentElement);
-  const cols = ['--accent', '--amber', '--ok', '--gem', '--bad'].map(v => cs.getPropertyValue(v));
-  for (let i = 0; i < n; i++) {
-    const s = document.createElement('i'); s.className = 'confetti';
-    const a = Math.random() * Math.PI * 2, d = 80 + Math.random() * 160;
-    s.style.cssText = `left:${cx}px;top:${cy}px;background:${cols[i % cols.length]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d + 80}px;--r:${Math.random() * 720 - 360}deg`;
-    document.body.appendChild(s); setTimeout(() => s.remove(), 1200);
+function renderOut(el, r, showEnv, preset){
+  let h = r.out ? esc(r.out) : '';
+  if (r.error) h += `<span class="err">Error${r.error.line ? `（第 ${r.error.line} 行）` : ''}: ${esc(r.error.message)}</span>`;
+  el.innerHTML = h || '<span class="dim">（沒有輸出）</span>';
+  const env = el.nextElementSibling;
+  if (env && env.classList.contains('envrow')) env.remove();
+  if (showEnv && r.vars && r.vars.size) {
+    const row = document.createElement('div'); row.className = 'envrow';
+    row.innerHTML = [...r.vars].filter(([k]) => !(preset && k in preset)).map(([k, v]) => `<span><b>${esc(k)}</b>${esc(fmtShort(v))}</span>`).join('');
+    if (row.innerHTML) el.after(row);
   }
 }
-function toast(msg, gold){
-  const t = document.createElement('div'); t.className = 'toast' + (gold ? ' gold' : ''); t.textContent = msg;
-  $('#toasts').appendChild(t); setTimeout(() => t.remove(), 2400);
-}
-function gain(amt, label, gold){ S.xp += amt; save(); toast(`+${amt} XP · ${label}`, gold); renderHeader(); }
 
-/* ---------- header + map ---------- */
-const NODES = [...LEVELS.map(l => ({ id: l.id, n: l.n, tag: l.tag, boss: l.boss, bio: l.bio })), { id: 'quiz', tag: '預測挑戰' }];
-const starCount = id => (S.stars[id] || []).filter(Boolean).length;
-function renderHeader(){
-  $('#lv').textContent = `Lv.${Math.floor(S.xp / 100) + 1}`;
-  $('#xpfill').style.width = `${S.xp % 100}%`;
-  $('#xptxt').textContent = `${S.xp} XP`;
-  $('#soundBtn').textContent = `音效：${S.sound ? '開' : '關'}`;
-  $('#map').innerHTML = NODES.map(n => {
-    const st = S.stars[n.id] || [], done = n.id === 'quiz' ? S.bossBest >= 6 : !!st[0];
-    const stars = n.id === 'quiz' ? `<span class="stars">${S.bossBest ? `最佳 ${S.bossBest}/8` : '&nbsp;'}</span>`
-      : `<span class="stars">${[0, 1, 2].map(i => `<span class="${st[i] ? 'on' : ''}">★</span>`).join('')}</span>`;
-    return `<li><button type="button" class="node ${done ? 'done' : ''} ${n.boss ? 'lv-boss' : ''} ${n.bio ? 'bio' : ''}" data-id="${n.id}" aria-current="${String(S.cur) === String(n.id)}">
-      <span class="num">${n.bio ? '🧬' : n.boss ? (done ? '👑' : '💀') : done ? '✓' : n.id === 'quiz' ? '?' : n.n}</span><span class="tag">${n.tag}</span>${stars}</button></li>`;
-  }).join('');
-}
-$('#map').addEventListener('click', e => { const b = e.target.closest('.node'); if (b) go(b.dataset.id); });
-$('#soundBtn').onclick = () => { S.sound = !S.sound; save(); renderHeader(); if (S.sound) SFX.pick(); };
-
-/* ---------- world rendering ---------- */
-const CELL = 100;
-const gemShape = (cx, cy, s, cls = '') => `<polygon class="${cls}" points="${cx},${cy - s} ${cx + s * .82},${cy} ${cx},${cy + s} ${cx - s * .82},${cy}" fill="var(--gem)" stroke="var(--gem-edge)" stroke-width="4" stroke-linejoin="round"/>`;
-const ROBOT_SVG = `<svg class="rb-svg" viewBox="-50 -50 100 100" aria-hidden="true">
-  <g><ellipse class="ft f1 rb-foot" cx="-4" cy="-31" rx="14" ry="8"/><ellipse class="ft f2 rb-foot" cx="-4" cy="31" rx="14" ry="8"/></g>
-  <rect class="rb-body" x="-33" y="-30" width="64" height="60" rx="20"/>
-  <circle class="rb-ant" cx="-20" cy="0" r="7"/>
-  <rect class="rb-face" x="2" y="-22" width="24" height="44" rx="11"/>
-  <g class="rb-eyes"><circle class="rb-eye" cx="15" cy="-10" r="5.5"/><circle class="rb-eye" cx="15" cy="10" r="5.5"/></g>
-</svg>`;
-const BASE_COL = { A: 'var(--ok)', T: 'var(--bad)', G: 'var(--amber)', C: 'var(--accent)' };
-// base letters sit above the robot so the current base stays readable
-function labelLayer(def){
-  let s = '';
-  for (const [x, y, b, cls] of def.labels || []) {
-    const px = (x - 1) * CELL, py = (def.H - y) * CELL;
-    if (cls === 'ref') {
-      s += `<text x="${px + 50}" y="${py + 64}" text-anchor="middle" font-size="44" font-weight="800" font-family="JetBrains Mono, monospace" fill="var(--muted)" opacity=".8">${b}</text>`;
-      if (x === 1) s += `<text x="${px + 8}" y="${py + 20}" font-size="15" font-family="JetBrains Mono, monospace" fill="var(--muted)">ref</text>`;
-    } else {
-      s += `<text x="${px + 20}" y="${py + 34}" text-anchor="middle" font-size="34" font-weight="800" font-family="JetBrains Mono, monospace" fill="${BASE_COL[b] || 'var(--ink)'}" stroke="var(--panel)" stroke-width="5" paint-order="stroke">${b}</text>`;
-      s += `<text x="${px + 88}" y="${py + 94}" text-anchor="middle" font-size="15" font-family="JetBrains Mono, monospace" fill="var(--muted)">${x}</text>`;
-    }
-  }
-  return s;
-}
-function staticLayer(def){
-  const { W, H } = def; let s = '';
-  for (let x = 1; x <= W; x++) for (let y = 1; y <= H; y++) {
-    const px = (x - 1) * CELL, py = (H - y) * CELL;
-    s += `<rect x="${px}" y="${py}" width="${CELL}" height="${CELL}" fill="${(x + y) % 2 ? 'var(--tile)' : 'var(--tile2)'}"/>`;
-    s += `<circle cx="${px + 50}" cy="${py + 50}" r="4" fill="var(--dot)"/>`;
-  }
-  for (const [x, y, n] of def.targets || []) {
-    const cx = (x - 1) * CELL + 50, cy = (H - y) * CELL + 50;
-    s += `<polygon points="${cx},${cy - 24} ${cx + 20},${cy} ${cx},${cy + 24} ${cx - 20},${cy}" fill="none" stroke="var(--target)" stroke-width="3" stroke-dasharray="6 5"/>`;
-    s += `<text x="${cx}" y="${cy + 42}" text-anchor="middle" font-size="16" font-family="JetBrains Mono, monospace" fill="var(--target)">×${n}</text>`;
-  }
-  if (def.codons) for (let x = def.codons; x < W; x += def.codons) s += `<line x1="${x * CELL}" y1="6" x2="${x * CELL}" y2="${H * CELL - 6}" stroke="var(--muted)" stroke-width="3" stroke-dasharray="8 7" opacity=".55"/>`;
-  for (const [x, y, side] of def.walls || []) {
-    const px = (x - 1) * CELL, py = (H - y) * CELL;
-    s += side === 'E' ? `<line x1="${px + CELL}" y1="${py}" x2="${px + CELL}" y2="${py + CELL}" stroke="var(--wall)" stroke-width="9" stroke-linecap="round"/>`
-                      : `<line x1="${px}" y1="${py}" x2="${px + CELL}" y2="${py}" stroke="var(--wall)" stroke-width="9" stroke-linecap="round"/>`;
-  }
-  s += `<rect x="3" y="3" width="${W * CELL - 6}" height="${H * CELL - 6}" fill="none" stroke="var(--wall)" stroke-width="7" rx="4"/>`;
-  return s;
-}
-function gemLayer(beepers, H, st){
-  let s = '';
-  for (const [k, n] of Object.entries(beepers)) {
-    const [x, y] = k.split(',').map(Number), cx = (x - 1) * CELL + 50, cy = (H - y) * CELL + 50;
-    const pop = st && st.act === 'put' && st.x === x && st.y === y;
-    s += `<g>${gemShape(cx, cy, 20, pop ? 'gem-pop' : '')}`;
-    if (n > 1) s += `<circle cx="${cx + 22}" cy="${cy - 22}" r="13" fill="var(--ink)"/><text x="${cx + 22}" y="${cy - 17}" text-anchor="middle" font-size="15" font-weight="700" font-family="JetBrains Mono, monospace" fill="var(--panel)">${n}</text>`;
-    s += '</g>';
-  }
-  if (st && st.act === 'pick') s += gemShape((st.x - 1) * CELL + 50, (H - st.y) * CELL + 50, 20, 'gem-poof');
-  return s;
-}
-
-/* ---------- level page ---------- */
-let L = null;      // current level
-const P = { def: null, trace: null, k: -1, timer: null, playing: false, mode: 'edit', out: '' };
-
-function go(id){
-  stopPlay();
-  S.cur = id; save(); renderHeader();
-  if (id === 'quiz') { L = null; return renderBossIntro(); }
-  L = LEVELS.find(l => l.id === id) || LEVELS[0];
-  const code = S.codes[L.id] ?? L.starter;
-  $('#stage').innerHTML = `
-  <div class="bench">
-    <section class="a-mission mission ${L.boss ? 'lv-boss' : ''} ${L.bio ? 'bio' : ''}">
-      <div class="eyebrow">第 ${L.n} 關 · ${L.tag}</div>
-      <h2>${L.title}</h2>
-      <p class="goal">${L.goal}</p>
-      <div class="concept">${L.concept}</div>
-      <div class="hint" id="hint" hidden><b>提示：</b>${L.hint}</div>
-    </section>
-    <div class="a-side col">
-    <section class="a-world pane worldpane">
-      <div class="pane-h"><b>World</b><span class="acts">${L.random ? '<button type="button" id="bReroll">換地圖</button>' : ''}<button type="button" id="bResetWorld">重設地圖</button></span></div>
-      <div class="worldwrap"><div class="world" id="world"></div></div>
-      <div class="wstatus" id="wstatus"></div>
-    </section>
-    <section class="a-env col">
-      <div class="pane"><div class="pane-h"><b>目標結果</b><span>正確程式跑完後應該長這樣</span></div>
-        <div class="goalmini" id="goalmini"></div><div class="goalcap" id="goalcap"></div></div>
-      <div class="pane"><div class="pane-h"><b>Environment</b><span>變數</span></div>
-        <table class="env"><thead><tr><th>變數</th><th>值</th></tr></thead><tbody id="env"></tbody></table></div>
-      <div class="pane"><div class="pane-h"><b>Console</b><span>R 4.4</span></div><pre class="console" id="console"></pre></div>
-    </section>
-    </div>
-    <section class="a-code col">
-      <div class="pane">
-        <div class="pane-h"><b>Source</b><span>level${L.n}.R · 目標 ${L.par} 行以內</span>
-          <span class="acts"><button type="button" id="bHint">提示</button><button type="button" id="bSol">看解答</button><button type="button" id="bStarter">還原</button></span></div>
-        <div class="editor" id="editorBox"><div class="gutter" id="gutter">1</div><textarea id="ed" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="R 程式碼"></textarea></div>
-        <div class="codeview" id="codeview" hidden title="點一下回到編輯"></div>
-        <div class="snips" id="snips"><span>插入</span>
-          ${['move()', 'turn_left()', 'turn_right()', 'pick_beeper()', 'put_beeper()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
-          ${[['for', 'for (i in 1:3) {\n  \n}'], ['while', 'while (front_is_clear()) {\n  \n}'], ['repeat', 'repeat {\n  \n  if (front_is_blocked()) break\n}'], ['if', 'if (beepers_present()) {\n  \n}'], ['else', ' else {\n  \n}']].map(([l, s]) => `<button type="button" class="snip ctl" data-s="${esc(s)}">${l}</button>`).join('')}
-          ${['front_is_clear()', 'right_is_clear()', 'beepers_present()'].map(s => `<button type="button" class="snip" data-s="${s}">${s}</button>`).join('')}
-        </div>
-      </div>
-      <div class="controls">
-        <button class="btn go" id="bRun" type="button">▶ 執行</button>
-        <button class="btn" id="bStep" type="button">一步一步</button>
-        <button class="btn" id="bPause" type="button" disabled>⏸ 暫停</button>
-        <button class="btn" id="bEdit" type="button" hidden>✎ 回到編輯</button>
-        <label class="speed" for="speed">速度 <input type="range" id="speed" min="1" max="10" value="${S.speed || 5}"></label>
-      </div>
-      <div id="result" hidden></div>
-    </section>
-  </div>`;
-  const ed = $('#ed'); ed.value = code; syncEditor();
-  ed.addEventListener('input', () => { syncEditor(); S.codes[L.id] = ed.value; save(); });
-  ed.addEventListener('keydown', edKeys);
-  $('#snips').onclick = e => { const b = e.target.closest('.snip'); if (b) insertSnippet(b.dataset.s); };
-  $('#bRun').onclick = () => startRun(false);
-  $('#bStep').onclick = () => stepOnce();
-  $('#bPause').onclick = () => P.playing ? pausePlay() : resumePlay();
-  $('#bEdit').onclick = () => toEdit();
-  $('#codeview').onclick = () => toEdit();
-  $('#speed').oninput = e => { S.speed = Number(e.target.value); save(); };
-  $('#bHint').onclick = () => { $('#hint').hidden = !$('#hint').hidden; };
-  $('#bStarter').onclick = () => { ed.value = L.starter; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit(); };
-  $('#bSol').onclick = askSolution;
-  $('#bResetWorld').onclick = () => { stopPlay(); toEdit(); showWorld(P.def); };
-  if ($('#bReroll')) $('#bReroll').onclick = () => { stopPlay(); toEdit(); showWorld(L.def()); };
-  showWorld(L.def());
-}
-
-function syncEditor(){
-  const ed = $('#ed'); const n = ed.value.split('\n').length;
-  $('#gutter').textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n');
-  ed.style.height = 'auto'; ed.style.height = Math.max(200, ed.scrollHeight) + 'px';
-}
-function edKeys(e){
-  const ed = e.target;
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); startRun(false); return; }
-  if (e.key === 'Tab') { e.preventDefault(); insertAtCursor('  '); return; }
-  if (e.key === 'Enter') {
-    const before = ed.value.slice(0, ed.selectionStart), lineStart = before.lastIndexOf('\n') + 1, cur = before.slice(lineStart);
-    let ind = cur.match(/^\s*/)[0]; if (/\{\s*$/.test(cur)) ind += '  ';
-    e.preventDefault(); insertAtCursor('\n' + ind);
-  }
-}
-function insertAtCursor(text){
-  const ed = $('#ed'); ed.focus();
-  const a = ed.selectionStart, b = ed.selectionEnd;
-  ed.setRangeText(text, a, b, 'end');
-  ed.dispatchEvent(new Event('input'));
-}
-function insertSnippet(s){
-  toEdit();
-  const ed = $('#ed'); const before = ed.value.slice(0, ed.selectionStart);
-  const ind = before.slice(before.lastIndexOf('\n') + 1).match(/^\s*/)[0];
-  const lineHasText = before.slice(before.lastIndexOf('\n') + 1).trim().length > 0;
-  let text = s.replace(/\n/g, '\n' + ind);
-  if (lineHasText && !s.startsWith(' else') && !s.endsWith(')')) text = '\n' + ind + text;
-  else if (lineHasText && s.endsWith(')') && !/[(\s]$/.test(before)) text = '\n' + ind + text;
-  insertAtCursor(text);
-  // put the cursor on the empty line inside a new block
-  const pos = ed.value.lastIndexOf('{\n', ed.selectionStart);
-  if (s.includes('{\n') && pos > -1) { const p2 = ed.value.indexOf('\n', pos + 2); const target = ed.value.indexOf('\n', pos) + 1; const lineEnd = ed.value.indexOf('\n', target); ed.selectionStart = ed.selectionEnd = lineEnd === -1 ? ed.value.length : lineEnd; void p2; }
-}
-
-function showWorld(def){
-  P.def = def; P.trace = null; P.k = -1;
-  goalPreview(def);
-  const wEl = $('#world');
-  const maxW = Math.round(440 * def.W / def.H);
-  wEl.style.width = `min(100%, ${maxW}px)`;
-  wEl.innerHTML = `<svg class="map-svg" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" role="img" aria-label="${def.W} × ${def.H} 的地圖"><g>${staticLayer(def)}</g><g id="gems">${gemLayer(def.beepers || {}, def.H)}</g></svg>
-    <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>
-    ${def.labels ? `<svg class="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true">${labelLayer(def)}</svg>` : ''}
-    <svg class="over" id="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true"></svg>`;
-  const w = makeWorld(def);
-  placeRobot({ x: w.x, y: w.y, rot: w.rot, dir: w.dir, picked: 0, placed: 0 }, true);
-  say(L.random ? '這張地圖是隨機的！' : '準備好了！', '');
-  const pre = Object.entries(def.vars || {});
-  $('#env').innerHTML = pre.length ? pre.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(fmtShort(v))}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
-  $('#console').innerHTML = '<span class="prompt">&gt;</span> ';
-  $('#result').hidden = true;
-}
-function placeRobot(st, instant){
-  const r = $('#robot'), H = P.def.H;
-  if (instant) r.classList.add('instant');
-  r.style.transform = `translate(${(st.x - 1) * 100}%, ${(H - st.y) * 100}%)`;
-  $('#rbrot').style.transform = `rotate(${st.rot}deg)`;
-  if (instant) { void r.offsetWidth; r.classList.remove('instant'); }
-  // the robot hides the gem in its own cell, so show what is underfoot as a badge drawn above the robot
-  const beepers = st.beepers || P.def.beepers || {}, under = beepers[`${st.x},${st.y}`] || 0;
-  const bx = (st.x - 1) * CELL + 52, by = (H - st.y) * CELL + 3, fresh = st.act === 'put' || st.act === 'pick';
-  $('#over').innerHTML = under ? `<g class="${fresh ? 'under-badge' : ''}"><rect x="${bx}" y="${by}" width="46" height="26" rx="13" fill="var(--panel)" stroke="var(--gem-edge)" stroke-width="2.5"/>
-    <polygon points="${bx + 13},${by + 5} ${bx + 21},${by + 13} ${bx + 13},${by + 21} ${bx + 5},${by + 13}" fill="var(--gem)" stroke="var(--gem-edge)" stroke-width="1.5"/>
-    <text x="${bx + 34}" y="${by + 19}" text-anchor="middle" font-size="16" font-weight="700" font-family="JetBrains Mono, monospace" fill="var(--ink)">${under}</text></g>` : '';
-  $('#wstatus').innerHTML = `<span>位置 <b>(${st.x}, ${st.y})</b></span><span>面向 <b>${DIR_ZH[st.dir]}</b></span><span>腳下寶石 <b>${under}</b></span><span>撿起 <b>${st.picked}</b></span><span>放下 <b>${st.placed}</b></span>${P.trace ? `<span>步驟 <b>${P.k + 1}/${P.trace.steps.length}</b></span>` : ''}`;
-}
-function say(text, cls){
-  const b = $('#bubble'); if (!b) return;
-  if (!text) { b.classList.remove('show'); return; }
-  b.textContent = text;
-  const x = P.trace && P.k >= 0 ? P.trace.steps[P.k].x : makeWorld(P.def).x;
-  b.className = 'bubble show ' + (cls || '') + (x <= 1 ? ' l' : x >= P.def.W ? ' r' : '');
-}
-function flash(cls, ms = 520){ const r = $('#robot'); r.classList.remove(cls); void r.offsetWidth; r.classList.add(cls); setTimeout(() => r.classList.remove(cls), ms); }
-
-/* ---------- running ---------- */
-const baseDur = () => 820 - (S.speed || 5) * 74;
-function toEdit(){
-  stopPlay(); P.mode = 'edit';
-  $('#editorBox').hidden = false; $('#codeview').hidden = true; $('#bEdit').hidden = true;
-}
-function toView(){
-  P.mode = 'run';
-  $('#editorBox').hidden = true; $('#codeview').hidden = false; $('#bEdit').hidden = false;
-  renderCode(-1);
-}
-function renderCode(cur, errLine){
-  const hits = {}; if (P.trace) for (let x = 0; x <= P.k; x++) { const l = P.trace.steps[x].line; hits[l] = (hits[l] || 0) + 1; }
-  $('#codeview').innerHTML = $('#ed').value.split('\n').map((l, i) =>
-    `<div class="ln${i + 1 === cur ? ' cur' : ''}${i + 1 === errLine ? ' errl' : ''}"><span class="no">${i + 1}</span><code>${hl(l) || ' '}</code></div>`).join('');
-  const c = $('#codeview .cur, #codeview .errl'); if (c) c.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-}
-function prepare(){
-  stopPlay();
-  if (P.trace && P.k >= 0) showWorld(P.def);      // replay on a fresh copy of the same map
-  const code = $('#ed').value; S.codes[L.id] = code; save();
-  P.trace = execute(code, P.def); P.k = -1; P.out = ''; P.done = false;
-  if (P.trace.error && P.trace.error.kind === 'inf') P.trace.steps = P.trace.steps.slice(0, 36);   // show a few laps, not 3000 steps
-  $('#result').hidden = true;
-  $('#console').innerHTML = '<span class="prompt">&gt; source("level' + L.n + '.R")</span>\n';
-  toView();
-  if (!P.trace.steps.length) { finish(); return false; }
-  return true;
-}
-function startRun(){ if (prepare()) resumePlay(); }
-function stepOnce(){
-  if (!P.trace || P.done || P.mode !== 'run') { if (!prepare()) return; }
-  pausePlay();
-  if (P.k < P.trace.steps.length - 1) advance(); else finish();
-}
-function resumePlay(){
-  if (!P.trace || P.done) return;
-  P.playing = true; $('#bPause').disabled = false; $('#bPause').textContent = '⏸ 暫停'; tick();
-}
-function pausePlay(){ P.playing = false; clearTimeout(P.timer); if ($('#bPause')) { $('#bPause').textContent = '▶ 繼續'; $('#bPause').disabled = !P.trace || P.done; } }
-function stopPlay(){ P.playing = false; clearTimeout(P.timer); if ($('#bPause')) { $('#bPause').disabled = true; $('#bPause').textContent = '⏸ 暫停'; } }
-function tick(){
-  if (!P.playing) return;
-  if (P.k >= P.trace.steps.length - 1) { finish(); return; }
-  const st = advance();
-  const robotAct = ['move', 'turn', 'pick', 'put', 'bonk', 'oops'].includes(st.act);
-  P.timer = setTimeout(tick, robotAct ? baseDur() : baseDur() * .5);
-}
-function advance(){
-  P.k++;
-  const st = P.trace.steps[P.k], d = baseDur();
-  $('#world').style.setProperty('--dur', `${Math.max(80, d * .85)}ms`);
-  placeRobot(st, false);
-  $('#gems').innerHTML = gemLayer(st.beepers, P.def.H, st);
-  const r = $('#robot');
-  if (st.act === 'move') { r.classList.add('walking'); clearTimeout(r._w); r._w = setTimeout(() => r.classList.remove('walking'), d * .85); }
-  if (st.act === 'bonk') flash('bonk', 420);
-  if (st.act === 'pick' || st.act === 'put') flash('hop', 500);
-  if (st.say) say(st.say, st.ok === true ? 't' : st.ok === false ? 'f' : ''); else if (st.act === 'move') say('');
-  (SFX[st.act] || (() => {}))();
-  if (st.out) { P.out += st.out; }
-  $('#console').innerHTML = '<span class="prompt">&gt; source("level' + L.n + '.R")</span>\n' + esc(P.out);
-  $('#env').innerHTML = st.vars.length ? st.vars.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('') : `<tr><td colspan="2" class="empty">Environment is empty</td></tr>`;
-  renderCode(st.line);
-  return st;
-}
-
-function finish(){
-  stopPlay(); P.done = true;
-  const tr = P.trace, con = $('#console');
-  if (P.k < tr.steps.length - 1 && tr.steps.length) { while (P.k < tr.steps.length - 1) { P.k++; } const st = tr.steps[P.k]; placeRobot(st, true); $('#gems').innerHTML = gemLayer(st.beepers, P.def.H); }
-  const res = $('#result');
-  const fail = (html, bubble, extraBtn) => {
-    S.fails[L.id] = (S.fails[L.id] || 0) + 1; save();
-    res.hidden = false; res.className = 'result no'; res.innerHTML = html + (extraBtn || '');
-    say(bubble, 'f'); $('#robot').classList.add('sad'); setTimeout(() => $('#robot') && $('#robot').classList.remove('sad'), 1400);
-    SFX.fail();
+/* editor: transparent textarea over a highlighted <pre> */
+function makeEditor(code, onRun){
+  const box = document.createElement('div'); box.className = 'ed';
+  box.innerHTML = '<pre aria-hidden="true"></pre><textarea spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="R 程式碼"></textarea>';
+  const pre = box.firstChild, ta = box.lastChild;
+  const sync = () => {
+    pre.innerHTML = hl(ta.value) + '\n';
+    ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
   };
-  if (tr.error) {
-    const e = tr.error;
-    con.innerHTML += `<span class="err">Error${e.line ? `（第 ${e.line} 行）` : ''}: ${esc(e.message)}</span>\n`;
-    renderCode(-1, e.line);
-    fail(`<b>${e.kind === 'bonk' ? '撞牆了！' : e.kind === 'inf' ? '停不下來！' : '程式出錯了'}</b>　${esc(e.message)}`, e.kind === 'bonk' ? '好痛…' : e.kind === 'inf' ? '頭好暈…' : '我看不懂…');
-    return;
-  }
-  const r = L.check(tr.world, P.def, tr);
-  if (!r.ok) { con.innerHTML += `<span class="err">✗ ${esc(r.msg)}</span>\n`; fail(`<b>還沒完成</b>　${esc(r.msg)}`, '還沒完成…'); return; }
-  const code = $('#ed').value;
-  let toks = []; try { toks = tokenize(code); } catch (e) {}
-  for (const [kw, n, label] of L.req) {
-    if (toks.filter(t => t.t === kw || (t.t === 'id' && t.v === kw)).length < n) {
-      fail(`<b>結果對了，但……</b>　這一關要練習用 <code>${esc(label || kw)}</code> 完成喔。`, `要用 ${kw} 喔！`); return;
-    }
-  }
-  for (const def of L.tests || []) {
-    const t = execute(code, def);
-    const c = t.error ? { ok: false, msg: t.error.message } : L.check(t.world, def, t);
-    if (!c.ok) {
-      con.innerHTML += `<span class="err">✗ 換一張地圖（${esc(L.describe(def))}）就失敗了</span>\n`;
-      fail(`<b>這張地圖過關了，但換成另一張地圖就失敗了。</b><br>${esc(L.describe(def))}：${esc(c.msg)}<br>好的程式要在每一張地圖都能用。`, '換地圖就不行…',
-        `<br><button class="btn" type="button" id="bShowFail">在那張地圖上執行看看</button>`);
-      $('#bShowFail').onclick = () => { toEdit(); showWorld(def); startRun(); };
-      return;
-    }
-  }
-  con.innerHTML += `<span class="good">✓ 任務完成！</span>\n`;
-  success(code);
+  ta.value = code;
+  ta.addEventListener('input', sync);
+  ta.addEventListener('scroll', () => { pre.scrollLeft = ta.scrollLeft; });
+  ta.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); onRun(); return; }
+    if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); const a = ta.selectionStart; ta.setRangeText('  ', a, ta.selectionEnd, 'end'); sync(); }
+  });
+  requestAnimationFrame(sync);
+  return { el: box, get: () => ta.value, set: v => { ta.value = v; sync(); }, sync };
 }
 
-function success(code){
-  const lines = code.split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#') && !/^[{}]+$/.test(s)).length;
-  const now = [true, lines <= L.par, !(S.fails[L.id] > 0)];
-  const prev = S.stars[L.id] || [false, false, false];
-  const merged = prev.map((v, i) => v || now[i]);
-  let xp = 0; if (!prev[0]) xp += L.xp || 50;
-  merged.forEach((v, i) => { if (v && !prev[i]) xp += 10; });
-  S.stars[L.id] = merged; save();
-  if (xp) gain(xp, L.boss ? '打倒大魔王！' : `第 ${L.n} 關`, true);
-  renderHeader();
-  say('任務完成！', 't'); flash('party', 1000); SFX.win(); confetti($('#robot'), 46);
-  const res = $('#result'); res.hidden = false; res.className = 'result ok';
-  res.innerHTML = `<b>過關！</b>　你用了 ${lines} 行程式（目標 ${L.par} 行以內）。`;
-  const nextL = LEVELS[L.n];
+/* example cells */
+document.querySelectorAll('script.cell').forEach(sc => {
+  const code = sc.textContent.replace(/^\n/, '').replace(/\s+$/, '');
+  const cell = document.createElement('div'); cell.className = 'cell';
+  cell.innerHTML = `<div class="cell-h"><span class="lab">${esc(sc.dataset.label || '範例')}</span><button type="button" class="reset">還原</button><button type="button" class="run">▶ 執行</button></div>`;
+  const out = document.createElement('pre'); out.className = 'out'; out.hidden = true;
+  const run = () => { out.hidden = false; renderOut(out, runR(ed.get()), sc.dataset.env); };
+  const ed = makeEditor(code, run);
+  cell.append(ed.el, out);
+  cell.querySelector('.run').onclick = run;
+  cell.querySelector('.reset').onclick = () => { ed.set(code); out.hidden = true; const e = out.nextElementSibling; if (e) e.remove(); };
+  sc.replaceWith(cell);
+});
+
+/* ================= exercises ================= */
+const vec = v => asVec(v).map(x => x === undefined ? 'NA' : typeof x === 'number' ? +x.toFixed(6) : x);
+const same = (a, b) => JSON.stringify(vec(a)) === JSON.stringify(vec(b));
+const show = v => v === null ? 'NULL' : asVec(v).length === 0 ? '空的' : asVec(v).length === 1 ? fmtEl(asVec(v)[0]) : `c(${asVec(v).map(fmtEl).join(', ')})`;
+const descVars = vs => Object.entries(vs).map(([k, v]) => `${k} = ${show(v)}`).join('、');
+const squash = s => s.replace(/\s+/g, '');
+
+const EX = {
+  ex1: {
+    tests: [12.5, 13, 15.2, 17, 17.8].map(hb => ({ hb })),
+    check: (r, v) => { const want = v.hb < 13 ? '貧血' : v.hb <= 17 ? '正常' : '偏高'; return squash(r.out) === want ? null : `應該印出「${want}」，你的程式印出「${r.out.trim() || '（沒有輸出）'}」`; },
+    solution: `if (hb < 13) {              # 先檢查最低的範圍
+  cat("貧血\\n")             # 小於 13：貧血
+} else if (hb <= 17) {      # 走到這裡代表 hb >= 13，再看是否 <= 17
+  cat("正常\\n")             # 13～17：正常（含兩端）
+} else {                    # 前面都不成立，代表 hb > 17
+  cat("偏高\\n")             # 大於 17：偏高
+}                           # else 都和 } 寫在同一行`,
+  },
+  ex2: {
+    tests: [[12, 0, 7, 3], [5], [1, 1, 1, 1, 1, 1], [3, 10, 2]].map(c => ({ counts: c })),
+    check: (r, v) => {
+      if (!r.vars.has('cum')) return '找不到變數 cum。';
+      let s = 0; const want = v.counts.map(x => s += x);
+      return same(r.vars.get('cum'), want) ? null : `cum 應該是 ${show(want)}，你的是 ${show(r.vars.get('cum'))}`;
+    },
+    solution: `cum <- numeric(length(counts))      # 先準備一樣長、全是 0 的容器
+for (i in seq_along(counts)) {      # i = 1, 2, …（第幾天）
+  if (i == 1) {                     # 第 1 天沒有「前一天」
+    cum[i] <- counts[i]             # 累積數就是當天的數量
+  } else {                          # 第 2 天以後
+    cum[i] <- cum[i - 1] + counts[i] # 前一天的累積 + 今天的數量
+  }
+}
+cum                                 # 印出結果`,
+  },
+  ex3: {
+    tests: [['A', 'T', 'G', 'C', 'G'], ['G', 'G', 'C', 'C'], ['A', 'T', 'A'], []].map(d => ({ dna: d })),
+    pre: code => /for\s*\(\s*[A-Za-z_.][\w.]*\s+in\s+dna\s*\)/.test(code) ? null : '這題要寫成 for (b in dna)，讓迴圈變數直接拿到鹼基，不要用 seq_along 或 1:length。',
+    check: (r, v) => {
+      if (!r.vars.has('gc')) return '找不到變數 gc。';
+      const want = v.dna.filter(b => b === 'G' || b === 'C').length;
+      return same(r.vars.get('gc'), want) ? null : `gc 應該是 ${want}，你的是 ${show(r.vars.get('gc'))}`;
+    },
+    solution: `gc <- 0                          # 計數器從 0 開始
+for (b in dna) {                 # b 直接依序拿到 "A"、"T"、"G"…（是值，不是位置）
+  if (b %in% c("G", "C")) {      # 這個鹼基是 G 或 C 嗎？
+    gc <- gc + 1                 # 是的話計數器加 1
+  }
+}                                # dna 是空的時候，迴圈一圈都不跑，gc 維持 0
+gc                               # 印出 G + C 的個數`,
+  },
+  ex4: {
+    tests: [[92, 130, 105, 88, 141, 99], [80, 85, 90], [126, 200], [110]].map(g => ({ glu: g })),
+    pre: code => { let toks = []; try { toks = tokenize(code); } catch (e) { return null; } return toks.some(t => ['for', 'while', 'repeat'].includes(t.t)) ? '這題不能用 for / while / repeat，試試 sum()、which()、mean()。' : null; },
+    check: (r, v) => {
+      const g = v.glu, want = { n_high: g.filter(x => x >= 126).length, high_idx: g.flatMap((x, i) => x >= 126 ? [i + 1] : []), p_normal: g.filter(x => x < 100).length / g.length };
+      for (const k of ['n_high', 'high_idx', 'p_normal']) {
+        if (!r.vars.has(k)) return `找不到變數 ${k}。`;
+        if (!same(r.vars.get(k), want[k])) return `${k} 應該是 ${show(want[k])}，你的是 ${show(r.vars.get(k))}`;
+      }
+      return null;
+    },
+    solution: `n_high   <- sum(glu >= 126)     # glu >= 126 得到一排 TRUE/FALSE；TRUE 當 1 加起來就是人數
+high_idx <- which(glu >= 126)   # which() 回傳 TRUE 所在的位置（第幾位）
+p_normal <- mean(glu < 100)     # TRUE/FALSE 取平均 = TRUE 所占的比例`,
+  },
+  ex5: {
+    tests: [[5.2, null, 7.8, 6.1], [null, 9], [7, 7.1], [null]].map(x => ({ vals: x.map(v => v === null ? undefined : v) })),
+    check: (r, v) => {
+      const want = v.vals.map((x, i) => `第${i + 1}項：${x === undefined ? '未檢測' : x > 7 ? '偏高' : '正常'}`).join('');
+      if (squash(r.out) === want) return null;
+      const lines = v.vals.map((x, i) => `第 ${i + 1} 項：${x === undefined ? '未檢測' : x > 7 ? '偏高' : '正常'}`).join('\n');
+      return `應該印出：<pre>${esc(lines)}</pre>你的輸出：<pre>${esc(r.out.trim() || '（沒有輸出）')}</pre>`;
+    },
+    html: true,
+    solution: `for (i in seq_along(vals)) {        # 要印「第幾項」，所以走訪位置
+  if (is.na(vals[i])) {             # 一定要先檢查 NA，否則 vals[i] > 7 是 NA，if 會出錯
+    cat("第", i, "項：未檢測\\n")    # NA → 未檢測
+  } else if (vals[i] > 7) {         # 走到這裡已經確定不是 NA，可以安心比大小
+    cat("第", i, "項：偏高\\n")      # 大於 7 → 偏高
+  } else {                          # 其他情況
+    cat("第", i, "項：正常\\n")      # → 正常
+  }
+}`,
+  },
+};
+
+const KEY = 'r-extras-v1';
+const store = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } })();
+store.done = store.done || {}; store.code = store.code || {};
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+
+const SOL_PASS = '0901';   // classroom speed bump only: the answers ship with the page
+let unlocked = false;
+function modal(html, wide){
   const m = document.createElement('div'); m.className = 'modal';
-  m.innerHTML = `<div class="card" role="dialog" aria-modal="true" aria-labelledby="mt">
-    <h3 id="mt">${L.boss ? '打倒大魔王！' : '過關！'}</h3><p style="margin:4px 0 0;color:var(--muted)">第 ${L.n} 關：${L.title}</p>
-    <div class="bigstars">
-      <div class="${now[0] ? 'on' : ''}"><i>★</i>完成任務</div>
-      <div class="${now[1] ? 'on' : ''}"><i>★</i>${lines} 行（目標 ≤ ${L.par}）</div>
-      <div class="${now[2] ? 'on' : ''}"><i>★</i>一次就成功</div>
-    </div>
-    ${!now[1] ? '<p style="font-size:14px;margin:6px 0 0">試試看用迴圈把程式寫得更短，可以拿到第二顆星。</p>' : ''}
-    <div class="controls">
-      <button class="btn" type="button" id="mStay">留在這關</button>
-      <button class="btn primary" type="button" id="mNext">${nextL ? `下一關：${nextL.title} →` : '去預測挑戰 →'}</button>
-    </div></div>`;
-  document.body.appendChild(m);
-  const close = () => { m.remove(); document.removeEventListener('keydown', onEsc); };
-  const onEsc = e => { if (e.key === 'Escape') close(); };
-  document.addEventListener('keydown', onEsc);
-  m.onclick = e => { if (e.target === m) close(); };
-  $('#mStay').onclick = close;
-  $('#mNext').onclick = () => { close(); go(nextL ? nextL.id : 'quiz'); };
-  $('#mNext').focus();
-}
-
-/* ---------- target result: where the correct program ends up ---------- */
-const ROBOT_INNER = ROBOT_SVG.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
-function goalPreview(def){
-  const box = $('#goalmini'); if (!box) return;
-  const t = execute(L.solution, def);
-  if (t.error) { box.innerHTML = ''; $('#goalcap').textContent = ''; return; }
-  const w = t.world, H = def.H, px = (w.x - 1) * CELL, py = (H - w.y) * CELL;
-  const gems = Object.values(w.beepers).reduce((a, b) => a + b, 0);
-  box.innerHTML = `<svg viewBox="0 0 ${def.W * CELL} ${H * CELL}" style="width:min(100%, ${Math.round(190 * def.W / H)}px)" role="img" aria-label="正確程式跑完後的地圖">
-    ${staticLayer({ ...def, targets: [] })}${gemLayer(w.beepers, H)}
-    <g transform="translate(${px + 28},${py + 72}) scale(.42) rotate(${-w.dir * 90})">${ROBOT_INNER}</g>${def.labels ? labelLayer(def) : ''}</svg>`;
-  $('#goalcap').innerHTML = `R 寶停在 <b>(${w.x}, ${w.y})</b>、面向 <b>${DIR_ZH[w.dir]}</b>　地上寶石 <b>${gems}</b> 顆${w.picked ? `　撿起 <b>${w.picked}</b>` : ''}${w.placed ? `　放下 <b>${w.placed}</b>` : ''}`;
-}
-
-/* ---------- solution (password protected, annotated) ---------- */
-const SOL_PASS = '0901';   // only a classroom speed bump: the answers ship with the page
-let solUnlocked = false;
-function modal(html){
-  const m = document.createElement('div'); m.className = 'modal';
-  m.innerHTML = `<div class="card" role="dialog" aria-modal="true">${html}</div>`;
+  m.innerHTML = `<div class="card${wide ? ' wide' : ''}" role="dialog" aria-modal="true">${html}</div>`;
   document.body.appendChild(m);
   const close = () => { m.remove(); document.removeEventListener('keydown', onEsc); };
   const onEsc = e => { if (e.key === 'Escape') close(); };
@@ -1612,130 +1564,76 @@ function modal(html){
   m.onclick = e => { if (e.target === m) close(); };
   return { m, close };
 }
-function askSolution(){
-  if (solUnlocked) return showSolution();
-  const { m, close } = modal(`<h3>看解答</h3><p style="margin:4px 0 12px;color:var(--muted)">請輸入老師提供的密碼</p>
-    <form id="pwForm" class="pwform"><input id="pw" type="password" inputmode="numeric" autocomplete="off" aria-label="密碼" placeholder="密碼">
-    <button class="btn primary" type="submit">確定</button></form><p class="pwerr" id="pwErr" aria-live="polite"></p>
-    <div class="controls"><button class="btn" type="button" id="pwCancel">取消</button></div>`);
-  const inp = $('#pw', m); inp.focus();
-  $('#pwCancel', m).onclick = close;
-  $('#pwForm', m).onsubmit = e => {
+function askPass(then){
+  if (unlocked) return then();
+  const { m, close } = modal(`<h3>看解答</h3><p style="margin:0;color:var(--muted)">請輸入老師提供的密碼</p>
+    <form class="row"><input type="password" inputmode="numeric" autocomplete="off" aria-label="密碼" placeholder="密碼"><button class="btn primary" type="submit">確定</button></form>
+    <p class="err" aria-live="polite"></p><div class="acts"><button class="btn" type="button">取消</button></div>`);
+  const inp = $('input', m); inp.focus();
+  $('.acts .btn', m).onclick = close;
+  $('form', m).onsubmit = e => {
     e.preventDefault();
-    if (inp.value.trim() === SOL_PASS) { solUnlocked = true; close(); showSolution(); }
-    else { $('#pwErr', m).textContent = '密碼不對，再試一次。'; inp.select(); const c = $('.card', m); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
-  };
-}
-function showSolution(){
-  const nt = SOL_NOTES[L.id] || { idea: '', lines: [], traps: [] };
-  const code = L.solution.replace(/\n$/, '').split('\n');
-  const rows = code.map((ln, i) => {
-    const isCom = ln.trim().startsWith('#');
-    const note = isCom ? '' : nt.lines[i] || '';
-    return `<tr class="${isCom ? 'com' : ''}"><td class="ln">${i + 1}</td><td class="cd"><code>${hl(ln) || '&nbsp;'}</code></td><td class="nt">${esc(note)}</td></tr>`;
-  }).join('');
-  const { m, close } = modal(`<h3>第 ${L.n} 關 詳解：${esc(L.title)}</h3>
-    <p class="sol-idea"><b>思路：</b>${esc(nt.idea)}</p>
-    <div class="sol-wrap"><table class="sol"><thead><tr><th>#</th><th>程式碼</th><th>這一行在做什麼</th></tr></thead><tbody>${rows}</tbody></table></div>
-    ${nt.traps.length ? `<div class="sol-traps"><b>常見錯誤</b><ul>${nt.traps.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
-    <div class="controls"><button class="btn" type="button" id="solClose">關閉</button><button class="btn primary" type="button" id="solUse">放進編輯器（附註解）</button></div>`);
-  m.querySelector('.card').classList.add('wide');
-  $('#solClose', m).onclick = close;
-  $('#solUse', m).onclick = () => {
-    const w = Math.min(34, Math.max(...code.map(l => l.length)) + 2);
-    const txt = code.map((ln, i) => { const nn = ln.trim().startsWith('#') ? '' : nt.lines[i]; return nn ? ln.padEnd(w) + '# ' + nn : ln; }).join('\n') + '\n';
-    const ed = $('#ed'); ed.value = txt; syncEditor(); S.codes[L.id] = ed.value; save(); toEdit(); close();
+    if (inp.value.trim() === SOL_PASS) { unlocked = true; close(); then(); return; }
+    $('.err', m).textContent = '密碼不對，再試一次。'; inp.select();
+    const c = $('.card', m); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
   };
 }
 
-/* ---------- prediction quiz ---------- */
-const BOSS = [
-  { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) next', '  x <- x + i', '}', 'x'], opts: ['[1] 7', '[1] 10', '[1] 3', '[1] 6'], why: 'next（其他語言叫 continue）跳過 i = 3 這一圈剩下的程式，但迴圈繼續：1 + 2 + 4 = 7。' },
-  { code: ['x <- 0', 'for (i in 1:4) {', '  if (i == 3) break', '  x <- x + i', '}', 'x'], opts: ['[1] 3', '[1] 7', '[1] 6', '[1] 10'], why: 'i = 3 時 break 直接結束迴圈：1 + 2 = 3。' },
-  { code: ['n <- 1', 'count <- 0', 'while (n < 20) {', '  n <- n * 3', '  count <- count + 1', '}', 'count'], opts: ['[1] 3', '[1] 2', '[1] 4', '[1] 27'], why: 'n 依序 1 → 3 → 9 → 27，乘了 3 次。' },
-  { code: ['for (ch in c("R", "真", "好")) {', '  cat(ch)', '}'], opts: ['R真好', '好真R', 'R 真 好', '[1] "R" "真" "好"'], why: 'for 不只能走訪數字，也能走訪文字向量：ch 依序是 "R"、"真"、"好"。cat() 只給一個參數時不會加空格，所以三次連在一起印成 R真好。' },
-  { code: ['x <- 4', 'if (!(x > 5)) {', '  print("小")', '} else {', '  print("大")', '}'], opts: ['[1] "小"', '[1] "大"', 'Error', '什麼都不印'], why: 'x > 5 是 FALSE，前面加上 ! 反轉成 TRUE，所以執行第一個區塊。' },
-  { code: ['spots <- c(2, 5, 7)', 'for (i in 1:6) {', '  if (i %in% spots) cat(i, "")', '}'], opts: ['2 5', '2 5 7', '1 3 4 6', 'TRUE TRUE'], why: 'i 從 1 跑到 6，只有 2 和 5 同時在 spots 裡；7 在 spots 裡，但 i 跑不到 7。' },
-  { code: ['x <- 1', 'repeat {', '  cat(x, "")', '  if (x >= 3) break', '  x <- x + 1', '}'], opts: ['1 2 3', '1 2', '2 3', '1 2 3 4'], why: 'repeat 先印 x，再檢查 x >= 3。印出 1、2 之後 x 變成 3，印出 3 再檢查時成立，break 離開，所以是 1 2 3。' },
-  { code: ['x <- 0', 'if (x > 5 || x == 0) {', '  print("A")', '} else {', '  print("B")', '}'], opts: ['[1] "A"', '[1] "B"', 'Error', '[1] "A" "B"'], why: '|| 是「或者」：x > 5 是 FALSE，但 x == 0 是 TRUE，只要一個成立就是 TRUE。' },
-  { code: ['for (i in 3:1) cat(i, "")'], opts: ['3 2 1', '1 2 3', '3', '什麼都不印'], why: '3:1 會產生倒數的向量 c(3, 2, 1)，所以 i 依序是 3、2、1（不是 1、2、3）。每一圈 cat(i, "") 印出 i 和一個空字串；cat 會在兩個參數之間加一個空格，所以結果是「3 2 1 」，每個數字後面都跟著一個空格。' },
-  { code: ['x <- 15', 'if (x %% 3 == 0 && x %% 5 == 0) {', '  "FizzBuzz"', '} else if (x %% 3 == 0) {', '  "Fizz"', '} else {', '  x', '}'], opts: ['[1] "FizzBuzz"', '[1] "Fizz"', '[1] 15', '[1] "Fizz" "FizzBuzz"'], why: '15 同時是 3 和 5 的倍數，第一個條件就成立，後面不再檢查。' },
-  { code: ['total <- 0', 'for (i in 1:3) {', '  for (j in 1:i) {', '    total <- total + 1', '  }', '}', 'total'], opts: ['[1] 6', '[1] 9', '[1] 3', '[1] 4'], why: '內層的長度跟著 i 變：1 + 2 + 3 = 6 次。' },
-  { code: ['v <- c(3, 8, 1, 9, 4)', 'm <- v[1]', 'for (x in v) {', '  if (x > m) m <- x', '}', 'm'], opts: ['[1] 9', '[1] 4', '[1] 3', '[1] 8'], why: '這是自己寫的 max()：遇到比目前 m 大的值就更新。' },
-  { code: ['n <- 0', 'for (i in 1:n) print(i)'], opts: ['[1] 1\n[1] 0', '什麼都不印', '[1] 0', 'Error'], why: '陷阱題！1:0 是 c(1, 0)，迴圈會跑兩圈。要安全處理 n = 0，用 seq_len(n)。' },
-  { code: ['x <- 5', 'while (TRUE) {', '  x <- x - 2', '  if (x < 0) break', '}', 'x'], opts: ['[1] -1', '[1] 1', '[1] 0', '無限迴圈'], why: 'while (TRUE) 要靠 break 離開。x 依序 3 → 1 → -1，-1 < 0 時 break。' },
-  { code: ['y <- ifelse(c(1, 6, 3) > 2, "大", "小")', 'y'], opts: ['[1] "小" "大" "大"', '[1] "小"', '[1] "大" "大" "小"', 'Error: the condition has length > 1'], why: 'ifelse() 是向量化的，會對每個元素分別判斷，跟 if 不同。' },
-  { code: ['count <- 0', 'for (i in 1:5) {', '  if (i %% 2 == 1) count <- count + i', '}', 'count'], opts: ['[1] 9', '[1] 6', '[1] 15', '[1] 3'], why: '只加奇數：1 + 3 + 5 = 9。' },
-  { q: '哪一段程式會印出 1 到 10 之間的偶數？', code: null,
-    opts: ['for (i in 1:10) if (i %% 2 == 0) print(i)', 'for (i in 1:10) if (i / 2 == 0) print(i)', 'for (i in 1:10) if (i %% 2 == 1) print(i)', 'i <- 1\nwhile (i <= 10) print(i)'], why: '%% 取餘數，餘數 0 代表整除。i / 2 是除法，結果不會等於 0。' },
-  { code: ['i <- 0', 'repeat {', '  i <- i + 2', '  if (i > 5) break', '}', 'i'], opts: ['[1] 6', '[1] 4', '[1] 5', '無限迴圈'], why: 'repeat 是沒有條件的迴圈，只能靠 break 離開。i 依序 2 → 4 → 6，6 > 5 時停。' },
-];
-let B = null;
-const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const codeBlock = lines => `<pre class="codeblk">${lines.map(hl).join('\n')}</pre>`;
-function renderBossIntro(){
-  $('#stage').innerHTML = `<section class="boss"><div class="pane"><div class="pane-b" style="padding:18px">
-    <h3>預測挑戰：R 會印出什麼？</h3>
-    <p>這次沒有機器人，只有程式碼。在腦中一行一行執行，選出 R 的輸出。</p>
-    <ul class="rules"><li>隨機抽 8 題，你有 3 條命。</li><li>每答對一題 +15 XP，連續答對 3 題以上每題再 +5。</li><li>答對 6 題以上算通關。</li></ul>
-    <p class="xptxt">最佳紀錄：${S.bossBest} / 8</p>
-    <button class="btn primary" type="button" id="bStart">開始挑戰</button></div></div></section>`;
-  $('#bStart').onclick = startBoss;
-}
-function startBoss(){
-  B = { qs: shuffle(BOSS).slice(0, 8).map(q => ({ ...q, order: shuffle(q.opts.map((t, i) => ({ t, ok: i === 0 }))) })), i: 0, lives: 3, right: 0, streak: 0, answered: false };
-  renderBossQ();
-}
-function renderBossQ(){
-  const q = B.qs[B.i];
-  $('#stage').innerHTML = `<section class="boss">
-    <div class="bar"><span>第 <b>${B.i + 1}</b> / ${B.qs.length} 題</span><span class="hearts" aria-label="剩下 ${B.lives} 條命">${'♥'.repeat(B.lives)}<span class="lost">${'♥'.repeat(3 - B.lives)}</span></span><span>答對 ${B.right} 題</span>${B.streak >= 2 ? `<span>連對 ${B.streak} 題</span>` : ''}</div>
-    <div class="q"><div class="qt">${q.q || '這段程式會輸出什麼？'}</div>${q.code ? codeBlock(q.code) : ''}
-      <div class="opts">${q.order.map((o, j) => `<button type="button" class="opt" data-j="${j}">${esc(o.t)}</button>`).join('')}</div>
-      <div class="why" hidden id="bwhy"></div><div><button class="btn primary" type="button" id="bNextQ" hidden>下一題 →</button></div></div></section>`;
-  $('.opts').onclick = e => {
-    const b = e.target.closest('.opt'); if (!b || B.answered) return;
-    B.answered = true;
-    const pick = q.order[Number(b.dataset.j)];
-    document.querySelectorAll('.opt').forEach((el, j) => { el.disabled = true; if (q.order[j].ok) el.classList.add('right'); });
-    const why = $('#bwhy'); why.hidden = false;
-    if (pick.ok) { B.right++; B.streak++; gain(15 + (B.streak >= 3 ? 5 : 0), B.streak >= 3 ? `連對 ${B.streak} 題` : '答對'); SFX.pick(); confetti(b, 16); why.className = 'why ok'; why.innerHTML = '答對了！' + esc(q.why); }
-    else { b.classList.add('wrong'); B.lives--; B.streak = 0; SFX.fail(); why.className = 'why no'; why.innerHTML = '扣一條命。' + esc(q.why); }
-    const last = B.lives === 0 || B.i === B.qs.length - 1;
-    const nx = $('#bNextQ'); nx.hidden = false; nx.textContent = last ? '看結果' : '下一題 →'; nx.focus();
-    nx.onclick = () => { B.answered = false; if (last) renderBossEnd(); else { B.i++; renderBossQ(); } };
-  };
-}
-function renderBossEnd(){
-  const r = B.right, best = r > S.bossBest;
-  if (best) { S.bossBest = r; save(); }
-  if (r >= 6 && !S.awarded.boss) { S.awarded.boss = 1; gain(50, '預測挑戰通關', true); }
-  renderHeader();
-  const rank = r >= 8 ? 'R 迴圈大師' : r >= 6 ? '迴圈高手' : r >= 4 ? '穩定進步中' : '迴圈見習生';
-  $('#stage').innerHTML = `<section class="boss"><div class="pane"><div class="pane-b" style="padding:18px">
-    <h3>${B.lives === 0 ? '命用完了' : '挑戰完成'}</h3>
-    <div class="big" id="bigscore">${r} <span style="font-size:.4em;color:var(--muted)">/ ${B.qs.length}</span></div>
-    <div class="rank">${rank}</div>
-    <p>${best ? '新的最佳紀錄！' : `最佳紀錄：${S.bossBest} / 8`}</p>
-    <div class="controls"><button class="btn primary" type="button" id="bAgain">再挑戰一次</button><button class="btn" type="button" id="bBack">回到第 1 關</button></div>
-  </div></div></section>`;
-  if (r >= 6) { SFX.win(); confetti($('#bigscore'), 50); }
-  $('#bAgain').onclick = startBoss; $('#bBack').onclick = () => go('seq');
+function updateToc(){
+  let n = 0;
+  document.querySelectorAll('#toc a[data-ex]').forEach(a => { const d = !!store.done[a.dataset.ex]; a.classList.toggle('done', d); n += d; });
+  $('#prog').textContent = `練習完成 ${n} / 5`;
 }
 
-/* ---------- global ---------- */
-const resetBtn = $('#resetAll');
-resetBtn.onclick = () => {
-  if (!resetBtn.classList.contains('armed')) {
-    resetBtn.classList.add('armed'); resetBtn.textContent = '再按一次確認清除';
-    setTimeout(() => { resetBtn.classList.remove('armed'); resetBtn.textContent = '清除所有進度'; }, 3000);
-    return;
-  }
-  Object.assign(S, { xp: 0, stars: {}, codes: {}, fails: {}, cur: 1, bossBest: 0, awarded: {} });
-  save(); resetBtn.classList.remove('armed'); resetBtn.textContent = '清除所有進度';
-  toast('進度已清除'); go('seq');
-};
-go(S.cur === 'quiz' ? 'quiz' : (LEVELS.some(l => l.id === S.cur) ? S.cur : 'seq'));
+document.querySelectorAll('.ex').forEach(box => {
+  const id = box.dataset.ex, X = EX[id], sc = $('script.starter', box);
+  const starter = sc.textContent.replace(/^\n/, '').replace(/\s+$/, '') + '\n';
+  const cell = document.createElement('div'); cell.className = 'cell';
+  cell.innerHTML = `<div class="cell-h"><span class="lab">你的程式</span><button type="button" class="reset">還原</button><button type="button" class="sol">看解答</button><button type="button" class="run">▶ 執行並檢查</button></div>`;
+  const out = document.createElement('pre'); out.className = 'out'; out.hidden = true;
+  const verdict = document.createElement('div'); verdict.className = 'verdict'; verdict.hidden = true; verdict.setAttribute('aria-live', 'polite');
+  const mark = ok => { box.classList.toggle('passed', ok); $('.st', box).textContent = ok ? '✓ 已完成' : ''; };
+  const run = () => {
+    const code = ed.get();
+    store.code[id] = code; persist();
+    out.hidden = false;
+    renderOut(out, runR(code, X.tests[0]), true, X.tests[0]);
+    out.insertAdjacentHTML('afterbegin', `<span class="dim"># 測資 1：${esc(descVars(X.tests[0]))}\n</span>`);
+    verdict.hidden = false;
+    const bad = msg => { verdict.className = 'verdict no'; verdict.innerHTML = msg; };
+    const pre = X.pre && X.pre(code);
+    if (pre) return bad(`<b>還不行</b>　${esc(pre)}`);
+    for (let k = 0; k < X.tests.length; k++) {
+      const v = X.tests[k], r = runR(code, v);
+      const msg = r.error ? `程式出錯：${esc(r.error.message)}` : X.check(r, v);
+      if (msg) return bad(`<b>測資 ${k + 1} / ${X.tests.length} 沒通過</b>（${esc(descVars(v))}）<br>${X.html || r.error ? msg : esc(msg)}`);
+    }
+    verdict.className = 'verdict ok'; verdict.innerHTML = `<b>✓ 全部 ${X.tests.length} 組測資都通過！</b>`;
+    store.done[id] = 1; persist(); mark(true); updateToc();
+  };
+  const ed = makeEditor(store.code[id] ?? starter, run);
+  cell.append(ed.el, out);
+  cell.querySelector('.run').onclick = run;
+  cell.querySelector('.reset').onclick = () => { ed.set(starter); out.hidden = true; verdict.hidden = true; };
+  cell.querySelector('.sol').onclick = () => askPass(() => {
+    const { m, close } = modal(`<h3>${esc($('.ex-h h3', box).textContent)}：詳解</h3>
+      <p style="margin:0;color:var(--muted)">每一行右邊的 # 是說明。</p>
+      <pre class="solcode">${hl(X.solution)}</pre>
+      <div class="acts"><button class="btn" type="button" data-a="close">關閉</button><button class="btn primary" type="button" data-a="use">放進編輯器</button></div>`, true);
+    $('[data-a=close]', m).onclick = close;
+    $('[data-a=use]', m).onclick = () => { ed.set(X.solution + '\n'); close(); };
+  });
+  sc.replaceWith(cell); cell.after(verdict);
+  mark(!!store.done[id]);
+});
+updateToc();
+
+/* highlight the chapter in view */
+const links = [...document.querySelectorAll('#toc a')];
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + e.target.id))); });
+}, { rootMargin: '-30% 0px -60% 0px' });
+document.querySelectorAll('section.ch').forEach(s => io.observe(s));
 </script>
 
 </body>

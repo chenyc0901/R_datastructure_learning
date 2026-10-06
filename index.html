@@ -87,6 +87,14 @@ h1 .l2{display:block;background:linear-gradient(90deg,var(--ink) 0%,var(--ink) 3
 .go{font-family:var(--f-code);font-size:13px;color:var(--c);white-space:nowrap}
 .go i{font-style:normal;display:inline-block;transition:transform .2s}
 .mod:hover .go i{transform:translateX(5px)}
+.extra{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:18px;padding:16px 22px;border:1px solid var(--line);text-decoration:none;color:var(--ink);
+  background:linear-gradient(100deg,color-mix(in srgb,var(--amber) 10%,var(--panel)) 0%,var(--panel) 60%);transition:border-color .25s,transform .25s}
+.extra:hover,.extra:focus-visible{border-color:var(--amber);transform:translateY(-2px);outline:none}
+.extra .k{font-family:var(--f-display);font-weight:600;font-size:12px;letter-spacing:.2em;color:var(--amber)}
+.extra b{font-size:19px;font-weight:900}
+.extra .d{color:var(--dim);font-size:14px;flex:1 1 280px}
+.extra .go{color:var(--amber)}
+.extra:hover .go i{transform:translateX(5px)}
 
 footer{max-width:1240px;margin:0 auto;padding-inline:28px;padding-block:18px 36px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 20px;color:var(--faint);font-size:13px}
 footer .mono{font-family:var(--f-code)}
@@ -129,7 +137,7 @@ footer .mono{font-family:var(--f-code)}
 <main class="mods">
   <div class="mods-h">
     <h2>互動教材</h2>
-    <p>兩個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用程式處理它。</p>
+    <p>兩個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用程式處理它；最後用補充教材補齊細節。</p>
   </div>
   <div class="grid">
     <a class="mod rise" style="--c:var(--blue)" href="memory.html">
@@ -197,6 +205,12 @@ footer .mono{font-family:var(--f-code)}
       </div>
     </a>
   </div>
+  <a class="extra rise d2" href="extras.html">
+    <span class="k">＋ SUPPLEMENT</span>
+    <div><b>控制流程補充教材</b></div>
+    <span class="d">else if 鏈、在迴圈裡存結果、走訪值或位置、向量化、switch／&amp;&amp;／NA。每段程式都能直接執行，附 5 題自動批改練習。</span>
+    <span class="go">5 章 + 練習 <i>→</i></span>
+  </a>
 </main>
 
 <footer>
