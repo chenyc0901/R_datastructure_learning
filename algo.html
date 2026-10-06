@@ -94,8 +94,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 /* workbench */
 .bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);grid-template-areas:"mission side" "code side";grid-template-rows:auto 1fr;gap:16px;align-items:start}
-.a-mission{grid-area:mission}.a-side{grid-area:side;gap:16px}.a-world{grid-area:world}.a-code{grid-area:code}.a-env{grid-area:env}
-@media (max-width:920px){.bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"mission" "world" "code" "env";grid-template-rows:none}.bench .a-side{display:contents}}
+.a-mission{grid-area:mission}.a-side{grid-area:side;gap:16px}.a-world{grid-area:world}.a-goal{grid-area:goal}.a-stick{gap:10px}.a-code{grid-area:code}.a-env{grid-area:env}
+@media (max-width:920px){.bench{grid-template-columns:minmax(0,1fr);grid-template-areas:"mission" "world" "goal" "code" "env";grid-template-rows:none}.bench .a-side,.bench .a-stick{display:contents}}
 .col{display:flex;flex-direction:column;gap:12px;min-width:0}
 .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--accent);font-weight:700}
 .mission h2{font-family:var(--f-display);font-size:28px;margin:2px 0 6px;line-height:1.2;text-wrap:balance}
@@ -161,7 +161,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #ed:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--accent-soft)}
 .codeview{position:relative;font-family:var(--f-code);font-size:14px;line-height:23.8px;padding-block:10px;overflow:auto;max-height:min(62vh,560px);overscroll-behavior:contain;cursor:text}
 /* long programs: the code box scrolls by itself, and the world column stays in view */
-@media (min-width:921px){.a-side{align-self:stretch}.a-side>.worldpane{position:sticky;top:0;z-index:3;box-shadow:0 6px 18px -10px rgba(0,0,0,.35)}}
+/* world + target result stay pinned together while a long program scrolls by */
+@media (min-width:921px){.a-side{align-self:stretch}.a-stick{position:sticky;top:0;z-index:3;background:var(--bg);padding-block:6px 10px;margin-top:-6px}}
 @media (max-width:920px){.codeview{max-height:42vh}}
 .ln{display:grid;grid-template-columns:44px max-content;white-space:pre;min-width:max-content}
 .ln .no{text-align:right;padding-right:10px;color:var(--t-com);font-size:12px;user-select:none}
@@ -267,9 +268,9 @@ table.sol td.nt{width:100%}
 table.sol tr.com td{color:var(--muted);font-style:italic}
 .sol-traps{margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--bad-soft);font-size:14px;line-height:1.7}
 .sol-traps ul{margin:4px 0 0;padding-left:20px}
-.goalmini{padding:12px;display:flex;justify-content:center;background:var(--sunk)}
+.goalmini{padding:8px 12px;display:flex;justify-content:center;background:var(--sunk)}
 .goalmini svg{display:block;height:auto;max-width:100%}
-.goalcap{padding:8px 14px 10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+.goalcap{padding:5px 14px 7px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
 .goalcap b{color:var(--ink);font-family:var(--f-code);font-weight:600}
 </style>
 </head>
@@ -1289,14 +1290,16 @@ function go(id){
       <div class="hint" id="hint" hidden><b>提示：</b>${L.hint}</div>
     </section>
     <div class="a-side col">
+    <div class="a-stick col">
     <section class="a-world pane worldpane">
       <div class="pane-h"><b>World</b><span class="acts">${L.random ? '<button type="button" id="bReroll">換地圖</button>' : ''}<button type="button" id="bResetWorld">重設地圖</button></span></div>
       <div class="worldwrap"><div class="world" id="world"></div></div>
       <div class="wstatus" id="wstatus"></div>
     </section>
+    <div class="a-goal pane goalpane"><div class="pane-h"><b>目標結果</b><span>正確程式跑完後應該長這樣</span></div>
+      <div class="goalmini" id="goalmini"></div><div class="goalcap" id="goalcap"></div></div>
+    </div>
     <section class="a-env col">
-      <div class="pane"><div class="pane-h"><b>目標結果</b><span>正確程式跑完後應該長這樣</span></div>
-        <div class="goalmini" id="goalmini"></div><div class="goalcap" id="goalcap"></div></div>
       <div class="pane"><div class="pane-h"><b>Environment</b><span>變數</span></div>
         <table class="env"><thead><tr><th>變數</th><th>值</th></tr></thead><tbody id="env"></tbody></table></div>
       <div class="pane"><div class="pane-h"><b>Console</b><span>R 4.4</span></div><pre class="console" id="console"></pre></div>
@@ -1382,7 +1385,8 @@ function showWorld(def){
   goalPreview(def);
   const wEl = $('#world');
   const maxW = Math.round(440 * def.W / def.H);
-  wEl.style.width = `min(100%, ${maxW}px)`;
+  const ar = (def.W / def.H).toFixed(3);   // never so small the robot is hard to see
+  wEl.style.width = `min(100%, ${maxW}px, max(calc((100vh - 490px) * ${ar}), calc(190px * ${ar})))`;
   wEl.innerHTML = `<svg class="map-svg" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" role="img" aria-label="${def.W} × ${def.H} 的地圖"><g>${staticLayer(def)}</g><g id="gems">${gemLayer(def.beepers || {}, def.H)}</g></svg>
     <div class="robot instant" id="robot" style="width:${100 / def.W}%;height:${100 / def.H}%"><div class="bubble" id="bubble"></div><div class="rb-rot" id="rbrot">${ROBOT_SVG}</div></div>
     ${def.labels ? `<svg class="over" viewBox="0 0 ${def.W * CELL} ${def.H * CELL}" preserveAspectRatio="none" aria-hidden="true">${labelLayer(def)}</svg>` : ''}
@@ -1580,7 +1584,7 @@ function goalPreview(def){
   if (t.error) { box.innerHTML = ''; $('#goalcap').textContent = ''; return; }
   const w = t.world, H = def.H, px = (w.x - 1) * CELL, py = (H - w.y) * CELL;
   const gems = Object.values(w.beepers).reduce((a, b) => a + b, 0);
-  box.innerHTML = `<svg viewBox="0 0 ${def.W * CELL} ${H * CELL}" style="width:min(100%, ${Math.round(190 * def.W / H)}px)" role="img" aria-label="正確程式跑完後的地圖">
+  box.innerHTML = `<svg viewBox="0 0 ${def.W * CELL} ${H * CELL}" style="width:min(100%, ${Math.round(96 * def.W / H)}px)" role="img" aria-label="正確程式跑完後的地圖">
     ${staticLayer({ ...def, targets: [] })}${gemLayer(w.beepers, H)}
     <g transform="translate(${px + 28},${py + 72}) scale(.42) rotate(${-w.dir * 90})">${ROBOT_INNER}</g>${def.labels ? labelLayer(def) : ''}</svg>`;
   $('#goalcap').innerHTML = `R 寶停在 <b>(${w.x}, ${w.y})</b>、面向 <b>${DIR_ZH[w.dir]}</b>　地上寶石 <b>${gems}</b> 顆${w.picked ? `　撿起 <b>${w.picked}</b>` : ''}${w.placed ? `　放下 <b>${w.placed}</b>` : ''}`;
