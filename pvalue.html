@@ -406,15 +406,15 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
   <div style="grid-column:1/-1">
     <nav class="crumbs" aria-label="導覽">
       <a href="./">← 大數據分析與實踐 · 課程首頁</a>
+      <a href="ggplot.html">← 第 8 單元：ggplot2 畫室</a>
       <a href="plot.html">統計圖鑑</a>
-      <a href="tidy.html">tidyverse 完全手冊</a>
     </nav>
-    <div class="eyebrow">Supplement · p values and statistical tests</div>
+    <div class="eyebrow">Part 08 Supplement · p values and statistical tests</div>
     <div class="hero-row">
       <svg class="bot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg>
       <h1>R 寶的 p 值教室</h1>
     </div>
-    <p>「p &lt; 0.05，有顯著差異！」這句話每篇論文都有，但 p 值到底是什麼？什麼樣的資料要用哪一種檢定？只看 p 值夠不夠？這一頁從擲銅板開始，一步一步講清楚，每個例子都可以直接在網頁裡用 R 執行。</p>
+    <p><b>第 8 單元「ggplot2 畫室」的補充教材。</b>「p &lt; 0.05，有顯著差異！」這句話每篇論文都有，但 p 值到底是什麼？什麼樣的資料要用哪一種檢定？只看 p 值夠不夠？這一頁從擲銅板開始，一步一步講清楚，每個例子都可以直接在網頁裡用 R 執行。</p>
     <div class="meta"><span class="pill">9 章 · 4 題練習 · 1 個小測驗</span><span class="pill">這一頁跑的是<b>真正的 R</b>（webR）</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span></div>
   </div>
 </header>
@@ -955,8 +955,8 @@ n_adj</script>
   </table></div>
   <div class="note link"><b>🗺 最後，整個流程</b>① 先想清楚問題，事先決定要用什麼檢定 → ② 畫圖看資料、檢查前提 → ③ 做檢定，算效應量與信賴區間 → ④ 需要時校正多重比較 → ⑤ 用六樣東西寫出結果，並且想一想<b>臨床意義</b>。</div>
   <div class="next">
+    <a href="ggplot.html"><span>回到第 8 單元</span><b>R 寶的 ggplot2 畫室 →</b></a>
     <a href="plot.html"><span>統計圖鑑</span><b>什麼資料用什麼圖 →</b></a>
-    <a href="tidy.html"><span>tidyverse 完全手冊</span><b>整理資料與 ggplot2 →</b></a>
     <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
   </div>
 </section>
@@ -1578,18 +1578,6 @@ clean <- raw |>
          month = month(\`Collect Date\`)) |>                 # lubridate：幾月
   select(id = \`Patient ID\`, sex, glucose, month)           # 選欄順便改名
 clean` },
-  ex9: { plots: ['p'], solution: `p <- ggplot(lab, aes(x = group, y = hba1c, fill = group)) +   # 三個對應都寫在 ggplot()
-  geom_boxplot() +                    # 盒形圖
-  geom_jitter(width = 0.15) +         # 每個人一個點，左右抖開
-  labs(y = "HbA1c (%)")               # y 軸標籤
-p` },
-  ex10: { plots: ['p'], solution: `p <- ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point() +
-  geom_hline(yintercept = 126, linetype = "dashed") +                         # 水平虛線
-  scale_colour_manual(values = c(control = "steelblue", diabetes = "tomato")) +  # 具名向量指定顏色
-  facet_wrap(~ sex) +                                                         # 男女分兩張
-  labs(x = "HbA1c (%)", y = "Glucose (mg/dL)")
-p` },
 };
 const SOL_PASS = '0901';   // classroom speed bump only: the answers ship with the page
 const unlocked = new Set();
