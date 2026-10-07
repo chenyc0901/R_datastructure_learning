@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="大數據分析與實踐 · 以 R 為工具的互動教材：記憶體裡的 R 物件、R 寶的奇幻旅程、演算法學院、apply 工廠、資料倉庫、統計圖鑑。">
+<meta name="description" content="大數據分析與實踐 · 以 R 為工具的互動教材：記憶體裡的 R 物件、R 寶的奇幻旅程、演算法學院、apply 工廠、資料倉庫、統計圖鑑、tidyverse 完全手冊。">
 <meta property="og:title" content="大數據分析與實踐">
 <meta property="og:description" content="中國醫藥大學 醫技系 · R 互動教材">
 <meta name="theme-color" content="#050912">
@@ -22,7 +22,7 @@ body{margin:0}
 :root{
   color-scheme:dark;
   --bg:#050912; --bg2:#08101d; --panel:#0b1422; --line:#18263a; --ink:#eaf1fa; --dim:#8b9db3; --faint:#506279;
-  --blue:#4c8dff; --teal:#35d6c3; --amber:#ffb547; --rose:#ff6b8a; --violet:#a78bfa; --lime:#9be15d; --sky:#5ec8ff;
+  --blue:#4c8dff; --teal:#35d6c3; --amber:#ffb547; --rose:#ff6b8a; --violet:#a78bfa; --lime:#9be15d; --sky:#5ec8ff; --orchid:#e599f7;
   --f-display:"Chakra Petch","Noto Sans TC",system-ui,sans-serif;
   --f-han:"Noto Sans TC","PingFang TC",system-ui,sans-serif;
   --f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -167,7 +167,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <div class="meta rise d3">
         <div><small>INSTRUCTOR</small><span>陳育辰（YCC）</span></div>
         <div><small>TOOLKIT</small><span>R · RStudio</span></div>
-        <div><small>MATERIALS</small><span>6 個互動單元</span></div>
+        <div><small>MATERIALS</small><span>7 個互動單元</span></div>
       </div>
     </div>
 
@@ -181,7 +181,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
 <main class="mods">
   <div class="mods-h">
     <h2>互動教材</h2>
-    <p>六個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法、用 apply 家族把迴圈收起來，接著安裝套件、讀寫真正的資料檔，最後用圖呈現統計結果；補充教材補齊細節。</p>
+    <p>七個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法、用 apply 家族把迴圈收起來，接著安裝套件、讀寫真正的資料檔、用圖呈現統計結果，最後用 tidyverse 把整理資料到 ggplot2 繪圖串成完整的分析流程；補充教材補齊細節。</p>
   </div>
   <div class="grid">
     <a class="mod rise" style="--c:var(--blue)" href="memory.html">
@@ -370,6 +370,39 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <div class="foot">
         <div class="tags"><span>hist</span><span>boxplot</span><span>barplot</span><span>plot</span><span>lines</span><span>legend</span><span>t.test</span><span>cor</span></div>
         <span class="go">7 章 + 動畫 + 練習 <i>→</i></span>
+      </div>
+    </a>
+    <a class="mod wide rise d3" style="--c:var(--orchid)" href="tidy.html">
+      <div class="part"><b>07</b>PART SEVEN</div>
+      <div>
+        <h3>R 寶的 tidyverse 完全手冊</h3>
+        <p>readr、dplyr、tidyr、stringr、forcats、lubridate 整理資料，ggplot2 用圖層畫出報告等級的圖；最後三個實作範例：臨床資料清理、OGTT 曲線、RNA-seq 火山圖與熱圖。網頁裡跑的是真正的 R。</p>
+      </div>
+      <div class="prev" aria-label="示意：資料經過管線整理後畫成圖">
+        <svg viewBox="0 0 600 112" role="img">
+          <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="14" fill="var(--ink)">lab <tspan fill="var(--orchid)">|&gt;</tspan> filter() <tspan fill="var(--orchid)">|&gt;</tspan> summarise() <tspan fill="var(--orchid)">|&gt;</tspan> ggplot() <tspan fill="var(--orchid)">+</tspan> geom_point()</text>
+          <g font-family="JetBrains Mono, monospace" font-size="11">
+            <g transform="translate(0,34)" fill="none" stroke="var(--line)">
+              <rect width="96" height="62" rx="4"/><line x1="0" y1="15" x2="96" y2="15"/><line x1="0" y1="31" x2="96" y2="31"/><line x1="0" y1="47" x2="96" y2="47"/><line x1="32" y1="0" x2="32" y2="62"/><line x1="64" y1="0" x2="64" y2="62"/>
+            </g>
+            <path d="M104 65 H 150" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" fill="none"/>
+            <g transform="translate(160,40)" fill="none">
+              <rect width="60" height="50" rx="4" stroke="var(--orchid)" fill="color-mix(in srgb,var(--orchid) 14%,transparent)"/><line x1="0" y1="16" x2="60" y2="16" stroke="var(--orchid)"/><line x1="30" y1="0" x2="30" y2="50" stroke="var(--line)"/><line x1="0" y1="33" x2="60" y2="33" stroke="var(--line)"/>
+            </g>
+            <path d="M228 65 H 274" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 5" fill="none"/>
+            <g transform="translate(290,28)">
+              <line x1="0" y1="0" x2="0" y2="74" stroke="var(--line)"/><line x1="0" y1="74" x2="170" y2="74" stroke="var(--line)"/>
+              <g fill="var(--orchid)"><circle cx="18" cy="62" r="3.5"/><circle cx="34" cy="55" r="3.5"/><circle cx="52" cy="58" r="3.5"/><circle cx="70" cy="44" r="3.5"/><circle cx="88" cy="40" r="3.5"/></g>
+              <g fill="var(--teal)"><circle cx="96" cy="26" r="3.5"/><circle cx="114" cy="30" r="3.5"/><circle cx="130" cy="16" r="3.5"/><circle cx="148" cy="10" r="3.5"/><circle cx="160" cy="18" r="3.5"/></g>
+              <line x1="8" y1="66" x2="166" y2="8" stroke="var(--amber)" stroke-width="2"/>
+            </g>
+            <g transform="translate(490,34)" fill="var(--dim)"><text y="10">tidy data</text><text y="30">→ transform</text><text y="50" fill="var(--orchid)">→ ggplot2</text></g>
+          </g>
+        </svg>
+      </div>
+      <div class="foot">
+        <div class="tags"><span>read_csv</span><span>filter</span><span>mutate</span><span>summarise</span><span>pivot_longer</span><span>left_join</span><span>ggplot2</span><span>RNA-seq</span></div>
+        <span class="go">13 章 + 3 個實作範例 + 練習 <i>→</i></span>
       </div>
     </a>
   </div>

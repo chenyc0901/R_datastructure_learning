@@ -11,6 +11,7 @@
 | 04 R 寶的 apply 工廠 | `apply.html` |
 | 05 R 寶的資料倉庫 | `io.html` |
 | 06 R 寶的統計圖鑑 | `plot.html` |
+| 07 R 寶的 tidyverse 完全手冊 | `tidy.html` |
 | ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
@@ -173,3 +174,29 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 | 05 | 兩個數值：散佈圖、`cor`、`lm` 與迴歸線；動畫「相關係數直覺」 | 年齡和膽固醇的關係 |
 | 06 | 折線圖：`type = "b"`、`lines`、`legend`、`par(mfrow)`、`png()` 存檔 | 兩位病人的 OGTT |
 | 07 | 總整理：資料類型 → 圖的對照表、選圖器、8 題小測驗、常見的誤導圖 | — |
+
+## 第七部分：R 寶的 tidyverse 完全手冊（`tidy.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/tidy.html
+
+從讀資料、整理、轉換、合併，一路到 ggplot2 繪圖。這一頁執行的是**真正的 R**：用 [webR](https://docs.r-wasm.org/webr/) 在瀏覽器裡跑 R 4.6 與 tidyverse。每一格的輸出都已經在建置時用同一個 webR 預先執行好，所以不用等 R 下載就能閱讀；按「執行」才會下載 R（第一次約 30–60 秒）。
+
+| 章 | 內容 | 練習 |
+|---|---|---|
+| 00 | tidyverse 是什麼、資料分析流程、安裝與載入 | — |
+| 01 | `read_csv`、tibble、`glimpse`、`tribble`、`write_csv` | 讀入回診資料 |
+| 02 | 管線 `\|>`（與 `%>%`） | 改寫成管線 |
+| 03 | `filter`、`arrange`、`select`、`rename`、`distinct`、`slice_*`（動詞實驗室動畫） | 女性糖尿病患者 |
+| 04 | `mutate`、`if_else`、`case_when`、`lag`、`across`、缺值 | 換單位、分三類 |
+| 05 | `group_by` + `summarise`（split–apply–combine 動畫）、`count`、分組 mutate、t 檢定、`p.adjust` | 組別 × 性別 |
+| 06 | tidy data、`pivot_longer` / `pivot_wider`（動畫）、`separate_wider_delim`、`fill` | 血糖高峰 |
+| 07 | join 六種（動畫）、`join_by`、`bind_rows` | 回診資料檢查 |
+| 08 | stringr、regex、`parse_number`、forcats、lubridate | 整理原始匯出檔 |
+| 09 | ggplot2 圖形文法（逐層動畫）、aes 對應與設定、什麼資料用什麼 geom | 盒形圖＋點 |
+| 10 | facet、position、scale、熱圖、主題、參考線與標籤、誤差線、排序、`ggsave` | 分面散佈圖 |
+| 11 | 實作範例：臨床檢驗原始檔 → 清理 → Table 1 → 三張圖 | — |
+| 12 | 實作範例：OGTT 寬變長、平均 ± SE、AUC | — |
+| 13 | 實作範例（生資）：RNA-seq 計數 → CPM → 每基因 t 檢定 + BH → 火山圖、熱圖 | — |
+| 14 | 速查表、常見錯誤訊息、小測驗 | — |
+
+資料（全部為模擬資料）放在 `data/`。

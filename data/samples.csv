@@ -1,0 +1,7 @@
+sample,condition,donor
+C1,control,D1
+C2,control,D2
+C3,control,D3
+L1,LPS,D1
+L2,LPS,D2
+L3,LPS,D3
