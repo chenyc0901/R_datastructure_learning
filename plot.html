@@ -251,6 +251,11 @@ table.cmp tr:last-child td{border-bottom:0}
 .pk small{color:var(--muted);margin-left:auto;font-family:var(--f-code)}
 .pk.base code{color:var(--muted);font-weight:400}
 .dnote{font-size:14px;color:var(--muted);margin:10px 0 0}
+.dlbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);margin-bottom:10px}
+.dlbar button{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:8px;padding:5px 12px;font-size:14px}
+.dlbar span{font-size:13.5px;color:var(--muted);flex:1 1 200px}
+.tree button.dl,.viewer button.dl{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:0 6px;margin-left:4px;font-size:13px;color:var(--accent)}
+.tree button.dl:hover,.viewer button.dl:hover{border-color:var(--accent)}
 
 /* bookshelf widget */
 .shelf-stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px}
@@ -3784,7 +3789,7 @@ function kids(dir){
 function treeHTML(dir){
   return '<ul>' + kids(dir).map(k => {
     const nm = k.p.slice(k.p.lastIndexOf('/') + 1), cls = [k.dir ? 'd' : '', k.p === pcSel ? 'sel' : '', pcNew.has(k.p) ? 'new' : '', k.p === PROJECT ? 'wd' : ''].join(' ');
-    return `<li><button type="button" class="${cls}" data-p="${esc(k.p)}">${k.dir ? '📁' : k.p.endsWith('.rds') || k.p.endsWith('.RData') ? '💾' : '📄'} ${esc(nm)}${k.dir ? '/' : ''}</button>${k.dir ? treeHTML(k.p) : ''}</li>`;
+    return `<li><button type="button" class="${cls}" data-p="${esc(k.p)}">${k.dir ? '📁' : k.p.endsWith('.rds') || k.p.endsWith('.RData') ? '💾' : '📄'} ${esc(nm)}${k.dir ? '/' : ''}</button>${!k.dir && canDL(k.p) ? `<button type="button" class="dl" data-dl="${esc(k.p)}" aria-label="下載 ${esc(nm)}">⬇</button>` : ''}${k.dir ? treeHTML(k.p) : ''}</li>`;
   }).join('') + '</ul>';
 }
 function viewerHTML(p){
@@ -3798,11 +3803,67 @@ function viewerHTML(p){
   const t = f.text, lines = t.split('\n'); if (lines[lines.length - 1] === '') lines.pop();
   return `<div class="viewer"><div class="fh">📄 ${esc(p)}<span style="margin-left:auto">${lines.length} 行${t && !t.endsWith('\n') ? ' · 最後沒有換行' : ''}</span></div><pre>${esc(t.replace(/\t/g, '→   ').replace(/\n$/, '')) || '<span class="dim">（空檔案）</span>'}</pre></div>`;
 }
+const PRACTICE_R = `# R 寶的統計圖鑑：練習檔
+# 1. 解壓縮後，在 RStudio 打開這個檔案
+# 2. 把工作目錄設到這個資料夾：Session → Set Working Directory → To Source File Location
+
+lab <- read.csv("data/lab.csv")
+str(lab)
+summary(lab$glucose)
+hist(lab$glucose, col = "lightblue", xlab = "Glucose (mg/dL)")
+boxplot(glucose ~ group, data = lab)
+
+og <- read.csv("data/ogtt.csv")
+plot(og$time, og$P02, type = "b")
+`;
+/* ---------- downloads: one file, or the whole project folder as a zip (stored, no library needed) ---------- */
+const enc8 = new TextEncoder();
+function saveBlob(blob, name){ const u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function makeZip(files){   // files: [{ name, data: Uint8Array }]
+  const parts = [], central = []; let off = 0;
+  const d = new Date(), dt = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)), dd = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate());
+  const put = (dv, list) => list.forEach(([o, v, n]) => n === 4 ? dv.setUint32(o, v, true) : dv.setUint16(o, v, true));
+  for (const f of files) {
+    const nm = enc8.encode(f.name), c = crc32(f.data), h = new DataView(new ArrayBuffer(30)), cd = new DataView(new ArrayBuffer(46));
+    put(h, [[0, 0x04034b50, 4], [4, 20, 2], [6, 0x0800, 2], [8, 0, 2], [10, dt, 2], [12, dd, 2], [14, c, 4], [18, f.data.length, 4], [22, f.data.length, 4], [26, nm.length, 2], [28, 0, 2]]);
+    put(cd, [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0x0800, 2], [10, 0, 2], [12, dt, 2], [14, dd, 2], [16, c, 4], [20, f.data.length, 4], [24, f.data.length, 4], [28, nm.length, 2], [30, 0, 2], [32, 0, 2], [34, 0, 2], [36, 0, 2], [38, 0, 4], [42, off, 4]]);
+    parts.push(new Uint8Array(h.buffer), nm, f.data); central.push(new Uint8Array(cd.buffer), nm);
+    off += 30 + nm.length + f.data.length;
+  }
+  const csize = central.reduce((s, b) => s + b.length, 0), e = new DataView(new ArrayBuffer(22));
+  put(e, [[0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2], [10, files.length, 2], [12, csize, 4], [16, off, 4], [20, 0, 2]]);
+  return new Blob([...parts, ...central, new Uint8Array(e.buffer)], { type: 'application/zip' });
+}
+/* png() files are kept as SVG in this simulated computer: turn them into a real PNG of the requested size */
+function svgToPng(svg, w, h){
+  return new Promise((ok, bad) => {
+    const im = new Image();
+    im.onload = () => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(im, 0, 0, w, h); c.toBlob(b => b ? b.arrayBuffer().then(a => ok(new Uint8Array(a))) : bad(new Error('png')), 'image/png'); };
+    im.onerror = bad;
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg.includes('xmlns=') ? svg : svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"'));
+  });
+}
+const canDL = p => { const f = disk.files[p]; return !!f && !/\.(xlsx?|rds|RData)$/i.test(p) && (f.text !== undefined || (f.img !== undefined && !!f.img)); };   // the .xlsx here is only a stand-in, not a real Excel file
+async function fileBytes(p){ const f = disk.files[p]; return f.text !== undefined ? enc8.encode(f.text) : svgToPng(f.img, f.w || 480, f.h || 480); }
+async function downloadOne(p){ const name = p.slice(p.lastIndexOf('/') + 1); saveBlob(new Blob([await fileBytes(p)], { type: disk.files[p].img !== undefined ? 'image/png' : 'text/plain' }), name); }
+async function downloadAll(){
+  const root = 'rbao_bio_project/', files = [{ name: root + 'practice.R', data: enc8.encode(PRACTICE_R) }];
+  for (const p of Object.keys(disk.files).sort()) if (p.startsWith(PROJECT + '/') && canDL(p)) files.push({ name: root + p.slice(PROJECT.length + 1), data: await fileBytes(p) });
+  saveBlob(makeZip(files), 'R寶_bio_project.zip');
+}
+const DL_BAR = `<div class="dlbar"><button type="button" class="dlall">⬇ 全部打包下載（zip）</button><span>整個專案資料夾（資料檔、你寫出的檔案和圖）＋ 練習用的 practice.R。解壓縮後用 RStudio 打開 practice.R，把工作目錄設到這個資料夾就能練習。</span></div>`;
+pcBody.addEventListener('click', e => {
+  const d = e.target.closest('[data-dl]'); if (d) { e.stopPropagation(); downloadOne(d.dataset.dl); return; }
+  if (e.target.closest('.dlall')) downloadAll();
+});
+
 function pcRender(){
   $$('#pcTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === pcTab)));
   if (pcTab === 'files') {
-    pcBody.innerHTML = `${pcSel ? viewerHTML(pcSel) : ''}<ul class="tree" style="margin-top:10px"><li><button type="button" class="d" data-p="${HOME}">🏠 ${HOME}/</button>${treeHTML(HOME)}</li></ul>${pcSel ? '' : viewerHTML(null)}
-      <p class="dnote">工作目錄是 <code>${PROJECT}</code>。綠色閃一下的是剛剛被寫入的。</p>
+    pcBody.innerHTML = DL_BAR + `${pcSel ? viewerHTML(pcSel).replace('</div>', canDL(pcSel) ? `<button type="button" class="dl" data-dl="${esc(pcSel)}" style="margin-left:auto">⬇ 下載</button></div>` : '</div>') : ''}<ul class="tree" style="margin-top:10px"><li><button type="button" class="d" data-p="${HOME}">🏠 ${HOME}/</button>${treeHTML(HOME)}</li></ul>${pcSel ? '' : viewerHTML(null)}
+      <p class="dnote">工作目錄是 <code>${PROJECT}</code>。綠色閃一下的是剛剛被寫入的。點 ⬇ 下載單一檔案；png() 存的圖會下載成真正的 PNG。<code>.rds</code>、<code>.RData</code>、<code>.xlsx</code> 是這個網頁模擬的，不能下載，請在 RStudio 用 saveRDS() 自己存。</p>
       <div class="wctl" style="padding:10px 0 0;border:0"><button type="button" id="diskReset">還原硬碟</button><span class="wmsg">刪掉所有你寫的檔案，回到一開始的樣子</span></div>`;
     pcBody.querySelector('.tree').onclick = e => { const b = e.target.closest('button[data-p]'); if (!b) return; pcSel = b.dataset.p; pcRender(); };
     pcBody.scrollTop = 0;
