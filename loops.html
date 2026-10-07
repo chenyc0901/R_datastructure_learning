@@ -929,7 +929,8 @@ const LEVELS = [
   { id: 'for', tag: 'for', title: '長長的走廊',
     goal: '寶石在走廊盡頭（第 9 格）。用 for 迴圈走過去，不要寫 8 次 move()。',
     concept: `<p><code>for (i in 1:8)</code> 會把大括號裡的程式重複 8 次。<code>1:8</code> 會產生向量 <code>c(1, 2, …, 8)</code>，每一圈 <code>i</code> 依序取出其中一個值，看右邊的 Environment 就能看到 i 在變。</p>
-      <p>序列也可以倒數：<code>3:1</code> 就是 <code>c(3, 2, 1)</code>；或跳著數：<code>seq(1, 9, by = 2)</code> 是 <code>c(1, 3, 5, 7, 9)</code>。</p>`,
+      <p>序列也可以倒數：<code>3:1</code> 就是 <code>c(3, 2, 1)</code>；或跳著數：<code>seq(1, 9, by = 2)</code> 是 <code>c(1, 3, 5, 7, 9)</code>。</p>
+      <p>要走訪一個向量的<b>每個位置</b>，用 <code>seq_along(x)</code>：<code>x &lt;- c("A", "T", "G")</code> 時，<code>seq_along(x)</code> 就是 <code>c(1, 2, 3)</code>，迴圈裡用 <code>x[i]</code> 取出第 i 個。它會自動跟著 <code>x</code> 的長度變，不用自己數；<code>x</code> 是空的時候，迴圈一圈都不跑。</p>`,
     starter: 'for (i in 1:___) {\n  move()\n}\npick_beeper()\n',
     hint: '從第 1 格走到第 9 格，要走 9 − 1 = 8 步。',
     solution: 'for (i in 1:8) {\n  move()\n}\npick_beeper()\n', par: 3, req: [['for', 1]],
@@ -1787,6 +1788,7 @@ const BOSS = [
   { code: ['x <- 15', 'if (x %% 3 == 0 && x %% 5 == 0) {', '  "FizzBuzz"', '} else if (x %% 3 == 0) {', '  "Fizz"', '} else {', '  x', '}'], opts: ['[1] "FizzBuzz"', '[1] "Fizz"', '[1] 15', '[1] "Fizz" "FizzBuzz"'], why: '15 同時是 3 和 5 的倍數，第一個條件就成立，後面不再檢查。' },
   { code: ['total <- 0', 'for (i in 1:3) {', '  for (j in 1:i) {', '    total <- total + 1', '  }', '}', 'total'], opts: ['[1] 6', '[1] 9', '[1] 3', '[1] 4'], why: '內層的長度跟著 i 變：1 + 2 + 3 = 6 次。' },
   { code: ['v <- c(3, 8, 1, 9, 4)', 'm <- v[1]', 'for (x in v) {', '  if (x > m) m <- x', '}', 'm'], opts: ['[1] 9', '[1] 4', '[1] 3', '[1] 8'], why: '這是自己寫的 max()：遇到比目前 m 大的值就更新。' },
+  { code: ['dna <- c("A", "T", "G")', 'for (i in seq_along(dna)) {', '  cat(i, dna[i], "")', '}'], opts: ['1 A 2 T 3 G', 'A T G', '1 2 3', 'Error'], why: 'seq_along(dna) 產生 c(1, 2, 3)，i 是「第幾個」；dna[i] 再取出那個位置的鹼基，所以每圈印出位置和鹼基。' },
   { code: ['n <- 0', 'for (i in 1:n) print(i)'], opts: ['[1] 1\n[1] 0', '什麼都不印', '[1] 0', 'Error'], why: '陷阱題！1:0 是 c(1, 0)，迴圈會跑兩圈。要安全處理 n = 0，用 seq_len(n)。' },
   { code: ['x <- 5', 'while (TRUE) {', '  x <- x - 2', '  if (x < 0) break', '}', 'x'], opts: ['[1] -1', '[1] 1', '[1] 0', '無限迴圈'], why: 'while (TRUE) 要靠 break 離開。x 依序 3 → 1 → -1，-1 < 0 時 break。' },
   { code: ['y <- ifelse(c(1, 6, 3) > 2, "大", "小")', 'y'], opts: ['[1] "小" "大" "大"', '[1] "小"', '[1] "大" "大" "小"', 'Error: the condition has length > 1'], why: 'ifelse() 是向量化的，會對每個元素分別判斷，跟 if 不同。' },
