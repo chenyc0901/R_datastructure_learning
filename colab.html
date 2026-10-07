@@ -530,6 +530,13 @@ ol.legend{list-style:none;padding:0;margin:8px 0;display:grid;grid-template-colu
 ol.legend li{display:flex;gap:6px;align-items:flex-start}
 ol.legend .mk-n{margin-top:3px}
 table.nw1 td:first-child{white-space:nowrap}
+.shot.real a{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 8px 28px rgba(15,23,42,.14);background:#1f1f1f}
+.shot.real img{display:block;width:100%;height:auto}
+.out .warn{color:var(--amber)}
+.py .colabout{border-top:1px dashed var(--line);background:#1f1f1f;padding:8px 10px 10px}
+.py .colabout .pre-tag{display:block;color:#bdc1c6;font-size:13px;margin-bottom:6px}
+.py .colabout img{display:block;width:100%;height:auto;border-radius:6px}
+.py .figout .pre-tag{display:block;color:#5f6368;font-size:13px;margin-bottom:4px;font-family:var(--f-body)}
 </style>
 <style id="clarity">
 /* PingFang / JhengHei are hinted for screens and read sharper than the web-loaded Noto subset */
@@ -569,17 +576,17 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <a href="./">← 大數據分析與實踐 · 課程首頁</a>
       <a href="ai.html">← 上一單元：AI 入門</a>
     </nav>
-    <div class="eyebrow">Part 10 · AI × Google Colab hands-on</div>
+    <div class="eyebrow">Part 10 · AI × Google Colab (R) hands-on</div>
     <div class="hero-row">
       <svg class="bot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg>
       <h1>R 寶的 AI × Colab 實戰：鐵達尼號</h1>
     </div>
-    <p>1912 年 4 月，鐵達尼號在處女航撞上冰山沉沒，船上約 2,200 人，超過 1,500 人罹難。誰比較有機會活下來？這一章在 Google Colab 上請 AI 幫忙，從下載資料、清理、探索、畫圖、統計檢定，一直到寫出結論，一步一步完成一份完整的分析。每一步都有：<b>給 AI 的 prompt</b>、<b>AI 寫的程式碼</b>、<b>實際執行的結果</b>，以及<b>你要自己檢查的地方</b>。</p>
-    <div class="meta"><span class="pill">11 個步驟 · 13 個 prompt · 完整 notebook 下載</span><span class="pill">使用 <b>Python</b>（Colab 預設），附錄有 <b>R</b> 版</span><span class="pill">需要：Google 帳號 + 瀏覽器</span></div>
+    <p>1912 年 4 月，鐵達尼號在處女航撞上冰山沉沒，船上約 2,200 人，超過 1,500 人罹難。誰比較有機會活下來？這一章在 Google Colab 上用 <b>R</b> 請 AI 幫忙，從下載資料、清理、探索、畫圖、統計檢定，一直到寫出結論，一步一步完成一份完整的分析。每一步都有：<b>給 AI 的 prompt</b>、<b>AI 寫的 R 程式碼</b>、<b>實際執行的結果</b>，以及<b>你要自己檢查的地方</b>。用到的 tidyverse、ggplot2、統計檢定，都是前面單元學過的。</p>
+    <div class="meta"><span class="pill">11 個步驟 · 13 個 prompt · 完整 notebook 下載</span><span class="pill">使用 <b>R</b>（tidyverse + ggplot2），在 Colab 的 R 執行階段執行</span><span class="pill">需要：Google 帳號 + 瀏覽器</span></div>
     <div class="dlrow">
-      <a class="primary" href="https://colab.research.google.com/github/chenyc0901/R_datastructure_learning/blob/main/notebooks/titanic_ai_practice.ipynb" target="_blank" rel="noopener">▶ 在 Colab 開啟練習用 notebook</a>
-      <a href="notebooks/titanic_ai_practice.ipynb" download>⬇ 練習用 notebook <small>只有 prompt，程式自己請 AI 寫</small></a>
-      <a href="notebooks/titanic_ai_colab.ipynb" download>⬇ 完整 notebook <small>含全部程式碼</small></a>
+      <a class="primary" href="https://colab.research.google.com/github/chenyc0901/R_datastructure_learning/blob/main/notebooks/titanic_ai_practice_r.ipynb" target="_blank" rel="noopener">▶ 在 Colab 開啟練習用 notebook</a>
+      <a href="notebooks/titanic_ai_practice_r.ipynb" download>⬇ 練習用 notebook <small>只有 prompt，程式自己請 AI 寫</small></a>
+      <a href="notebooks/titanic_ai_colab_r.ipynb" download>⬇ 完整 notebook <small>含全部 R 程式碼</small></a>
       <a href="data/titanic.csv" download>⬇ titanic.csv <small>891 位乘客</small></a>
     </div>
   </div>
@@ -590,18 +597,18 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <h2>步驟</h2>
     <ol id="toc">
       <li><a href="#c0"><span class="n">00</span>開始之前</a></li>
-      <li><a href="#c1"><span class="n">01</span>認識 Colab、開新筆記本<span class="ck">✓</span></a></li>
+      <li><a href="#c1"><span class="n">01</span>開新筆記本、切換成 R<span class="ck">✓</span></a></li>
       <li><a href="#c2"><span class="n">02</span>在 Colab 裡使用 AI<span class="ck">✓</span></a></li>
       <li><a href="#c3"><span class="n">03</span>下載資料<span class="ck">✓</span></a></li>
       <li><a href="#c4"><span class="n">04</span>讀進資料、認識欄位<span class="ck">✓</span></a></li>
       <li><a href="#c5"><span class="n">05</span>缺值與清理<span class="ck">✓</span></a></li>
       <li><a href="#c6"><span class="n">06</span>探索：誰活下來了？<span class="ck">✓</span></a></li>
-      <li><a href="#c7"><span class="n">07</span>畫圖<span class="ck">✓</span></a></li>
+      <li><a href="#c7"><span class="n">07</span>用 ggplot2 畫圖<span class="ck">✓</span></a></li>
       <li><a href="#c8"><span class="n">08</span>統計檢定<span class="ck">✓</span></a></li>
       <li><a href="#c9"><span class="n">09</span>多變數分析<span class="ck">✓</span></a></li>
       <li><a href="#c10"><span class="n">10</span>寫結論<span class="ck">✓</span></a></li>
       <li><a href="#c11"><span class="n">11</span>除錯與 prompt 速查<span class="ck">✓</span></a></li>
-      <li><a href="#cR"><span class="n">附</span>用 R 做同樣的分析</a></li>
+      <li><a href="#cP"><span class="n">附</span>同樣的分析用 Python</a></li>
     </ol>
     <div class="prog" id="prog"></div>
   </nav>
@@ -614,92 +621,54 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
   <div class="flow-strip"><span>下載資料</span><i>→</i><span>讀取</span><i>→</i><span>清理</span><i>→</i><span>探索</span><i>→</i><span>畫圖</span><i>→</i><span>統計檢定</span><i>→</i><span>多變數模型</span><i>→</i><span>結論</span></div>
   <div class="lede-grid">
     <div><span class="ic">🔑</span><b>Google 帳號</b>Colab 是 Google 的服務，用 Gmail 或學校的 Google 帳號登入。</div>
-    <div><span class="ic">🌐</span><b>瀏覽器</b>建議用 Chrome。不用安裝任何軟體，程式在 Google 的雲端電腦上執行。</div>
+    <div><span class="ic">🌐</span><b>瀏覽器</b>建議用 Chrome。不用安裝 R 或 RStudio，程式在 Google 的雲端電腦上執行。</div>
     <div><span class="ic">🤖</span><b>一個 AI 助手</b>Colab 內建的 Gemini，或 ChatGPT、Claude、Gemini 網頁版都可以。這一頁的 prompt 每一個都能用。</div>
   </div>
   <h3><span class="tag">0-1</span>這一頁的四種方塊</h3>
   <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>紫色框是要給 AI 的話。按「複製」貼到 AI 對話框。<i>（灰底的括號）</i>表示要換成你自己的內容。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-com"># 灰框是 AI 寫出來、我們檢查過的程式碼，貼到 Colab 的程式碼儲存格執行</span></pre><div class="out"><span class="pre-tag">執行結果</span>下面是在 Colab 實際執行得到的結果，你的結果應該要一樣。</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-com"># 灰框是 AI 寫出來、我們檢查過的 R 程式碼，貼到 Colab 的程式碼儲存格執行</span></pre><div class="out"><span class="pre-tag">在 Colab 執行的結果（截圖）</span>程式碼下面是在 Colab 實際執行的截圖，你的數字應該要一樣。點截圖可以放大。</div></div>
   <div class="check"><b>🔍 自己檢查</b>綠色框是「AI 不會替你做」的事：看結果合不合理、數字對不對得起來。</div>
   <div class="aisay"><b>💬 AI 可能會這樣回答</b>虛線框是 AI 常見回答的重點整理。每次回答的文字都不一樣，看重點就好。</div>
 
-  <h3><span class="tag">0-2</span>為什麼用 Python，不是 R？</h3>
-  <p>Colab 預設的語言是 Python，AI 寫 Python 也最熟練。好消息是：<b>你在 R 學過的觀念，Python 幾乎一一對應</b>，只是寫法不同。看懂這張表，AI 寫的 Python 你就大致看得懂：</p>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>要做的事</th><th>R（tidyverse）</th><th>Python（pandas / seaborn）</th></tr>
-    <tr><td>載入套件</td><td><code>library(tidyverse)</code></td><td><code>import pandas as pd</code></td></tr>
-    <tr><td>讀 CSV</td><td><code>read_csv("x.csv")</code></td><td><code>pd.read_csv("x.csv")</code></td></tr>
-    <tr><td>看前幾列 / 結構</td><td><code>head(df)</code>、<code>glimpse(df)</code></td><td><code>df.head()</code>、<code>df.info()</code></td></tr>
-    <tr><td>取一欄</td><td><code>df$Age</code></td><td><code>df["Age"]</code></td></tr>
-    <tr><td>新增欄位</td><td><code>mutate(fam = SibSp + Parch + 1)</code></td><td><code>df["fam"] = df["SibSp"] + df["Parch"] + 1</code></td></tr>
-    <tr><td>分組統計</td><td><code>group_by(Sex) |&gt; summarise(rate = mean(Survived))</code></td><td><code>df.groupby("Sex")["Survived"].mean()</code></td></tr>
-    <tr><td>交叉表</td><td><code>table(df$Sex, df$Survived)</code></td><td><code>pd.crosstab(df["Sex"], df["Survived"])</code></td></tr>
-    <tr><td>缺值</td><td><code>NA</code>、<code>is.na()</code></td><td><code>NaN</code>、<code>.isna()</code></td></tr>
-    <tr><td>畫圖</td><td><code>ggplot(df, aes(x, y)) + geom_col()</code></td><td><code>sns.barplot(data=df, x=..., y=...)</code></td></tr>
-    <tr><td>卡方檢定 / 秩和檢定</td><td><code>chisq.test()</code> / <code>wilcox.test()</code></td><td><code>chi2_contingency()</code> / <code>mannwhitneyu()</code></td></tr>
-    <tr><td>logistic regression</td><td><code>glm(..., family = binomial)</code></td><td><code>smf.logit(...).fit()</code></td></tr>
+  <h3><span class="tag">0-2</span>這一章會用到、你已經學過的東西</h3>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>要做的事</th><th>R 函式</th><th>在哪裡學過</th></tr>
+    <tr><td>讀 CSV、看結構</td><td><code>read_csv()</code>、<code>glimpse()</code>、<code>summary()</code></td><td><a href="tidy.html#ch1">tidyverse 手冊 01</a></td></tr>
+    <tr><td>挑欄、新增欄位</td><td><code>select()</code>、<code>mutate()</code>、<code>if_else()</code>、<code>cut()</code></td><td><a href="tidy.html#ch3">tidyverse 手冊 03–04</a></td></tr>
+    <tr><td>缺值</td><td><code>is.na()</code>、<code>replace_na()</code>、<code>across()</code></td><td><a href="tidy.html#ch4">tidyverse 手冊 04</a></td></tr>
+    <tr><td>分組統計</td><td><code>group_by()</code> + <code>summarise()</code></td><td><a href="tidy.html#ch5">tidyverse 手冊 05</a></td></tr>
+    <tr><td>長寬轉換、合併</td><td><code>pivot_wider()</code>、<code>pivot_longer()</code>、<code>bind_rows()</code></td><td><a href="tidy.html#ch6">tidyverse 手冊 06–07</a></td></tr>
+    <tr><td>類別（factor）</td><td><code>factor()</code>、<code>fct_inorder()</code>、<code>fct_rev()</code></td><td><a href="tidy.html#ch8">tidyverse 手冊 08</a></td></tr>
+    <tr><td>畫圖</td><td><code>geom_col()</code>、<code>geom_errorbar()</code>、<code>geom_histogram()</code>、<code>facet_wrap()</code></td><td><a href="ggplot.html">ggplot2 畫室</a></td></tr>
+    <tr><td>統計檢定</td><td><code>chisq.test()</code>、<code>wilcox.test()</code>、<code>glm()</code></td><td><a href="pvalue.html">p 值教室</a></td></tr>
   </table></div>
-  <div class="note"><b>⚠ 兩個最容易搞混的地方</b>① Python 的位置從 <b>0</b> 開始數，R 從 <b>1</b> 開始。② Python 用<b>縮排</b>表示程式區塊，空白不能亂刪；R 用大括號。</div>
+  <div class="note"><b>💡 Colab 預設是 Python</b>Colab 一開始是 Python，要先把<b>執行階段</b>換成 R（第 1 步）。AI 也常常預設給你 Python 程式碼，所以每個 prompt 都要講清楚「用 R」。</div>
 </section>
 
 <!-- ============ 01 ============ -->
 <section class="ch" id="c1">
-  <div class="ch-h"><span class="num">01</span><h2>認識 Colab、開新筆記本<small>雲端上的 Jupyter 筆記本</small></h2></div>
-  <p><b>Google Colab</b>（Colaboratory）是 Google 提供的免費線上筆記本：在瀏覽器裡寫程式、執行、看結果和圖，全部放在同一份文件裡。筆記本的檔名是 <code>.ipynb</code>，會自動存到你的 Google 雲端硬碟裡的「Colab Notebooks」資料夾。</p>
+  <div class="ch-h"><span class="num">01</span><h2>開新筆記本、切換成 R<small>雲端上的筆記本，不用安裝 R</small></h2></div>
+  <p><b>Google Colab</b>（Colaboratory）是 Google 提供的免費線上筆記本：在瀏覽器裡寫程式、執行、看結果和圖，全部放在同一份文件裡。筆記本的檔名是 <code>.ipynb</code>，會自動存到你的 Google 雲端硬碟裡的「Colab Notebooks」資料夾。下面的畫面都是實際操作 Colab 的截圖（深色主題；你的畫面可能是淺色，位置一樣）。部分截圖上方的柯基、貓咪、螃蟹是 Colab 設定裡可以開關的趣味動畫，和操作無關。</p>
 
   <h3><span class="tag">1-1</span>打開 Colab，新增筆記本</h3>
-  <ol>
-    <li>到 <a href="https://colab.research.google.com/" target="_blank" rel="noopener">colab.research.google.com</a>，右上角登入 Google 帳號。</li>
-    <li>會跳出「開啟筆記本」視窗，按左下角的 <b>＋ 新增筆記本</b>。（如果沒跳出來：上方選單 <b>檔案 → 新增筆記本</b>。）</li>
-  </ol>
-  <div class="note"><b>📥 用這一頁準備好的 notebook</b>按頁面最上方的「▶ 在 Colab 開啟練習用 notebook」，會直接在 Colab 打開（裡面已經放好每一步的 prompt）。這時它還不是你的檔案，請先按 <b>檔案 → 在雲端硬碟中儲存複本</b>，之後的修改才會存到你的雲端硬碟。下載的 .ipynb 檔則用 <b>檔案 → 上傳筆記本</b> 開啟。</div>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-browser"><span class="dots"><i></i><i></i><i></i></span><span class="url">colab.research.google.com</span></div>
-      <div style="background:#f1f3f4;padding:4px 0 10px">
-        <div class="mk-dialog">
-          <div class="dh">開啟筆記本</div>
-          <div class="tabs"><span>範例</span><span class="on">近期</span><span>Google 雲端硬碟</span><span>GitHub</span><span>上傳</span></div>
-          <div class="rows"><div>📙 Colab 歡迎使用</div><div>📙 Untitled0.ipynb</div></div>
-          <div class="df"><span class="mk-btn blue"><span class="mk-n">1</span>＋ 新增筆記本</span><span class="mk-btn">取消</span></div>
-        </div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 1</b>　開啟 Colab 時出現的視窗，按 <span class="mk-n">1</span>「＋ 新增筆記本」。上方的「上傳」分頁可以開啟電腦裡的 .ipynb 檔（例如這一頁下載的 notebook）。</figcaption>
-  </figure>
+  <p>到 <a href="https://colab.research.google.com/" target="_blank" rel="noopener">colab.research.google.com</a>，用 Google 帳號登入，按左上角的 <b>＋ 新增筆記本</b>。</p>
+  <figure class="shot real"><a href="img/colab/start.jpg" target="_blank" rel="noopener"><img src="img/colab/start.jpg" alt="Colab 首頁。按 ＋ 新增筆記本；「上傳筆記本」可以打開這一頁下載的 .ipynb 檔。" width="1280" height="290" loading="lazy"></a><figcaption><b>Colab 截圖</b>　Colab 首頁。按 ＋ 新增筆記本；「上傳筆記本」可以打開這一頁下載的 .ipynb 檔。</figcaption></figure>
+  <figure class="shot real"><a href="img/colab/newnb.jpg" target="_blank" rel="noopener"><img src="img/colab/newnb.jpg" alt="新的筆記本。左上角是檔名（點一下可以改名），中間是第一個程式碼儲存格，右邊是 Gemini 面板。" width="1280" height="657" loading="lazy"></a><figcaption><b>Colab 截圖</b>　新的筆記本。左上角是檔名（點一下可以改名），中間是第一個程式碼儲存格，右邊是 Gemini 面板。</figcaption></figure>
+  <div class="note"><b>📥 用這一頁準備好的 notebook</b>按頁面最上方的「▶ 在 Colab 開啟」，會直接在 Colab 打開，而且已經是 R、裡面放好每一步的 prompt。它還不是你的檔案，請先按工具列的 <b>複製到雲端硬碟</b>，之後的修改才會存下來。下載的 .ipynb 檔則用首頁的 <b>上傳筆記本</b> 開啟。</div>
+  <figure class="shot real"><a href="img/colab/opengh.jpg" target="_blank" rel="noopener"><img src="img/colab/opengh.jpg" alt="從這一頁的按鈕打開的 notebook：檔名前面是 GitHub 圖示，工具列有「複製到雲端硬碟」。" width="1280" height="330" loading="lazy"></a><figcaption><b>Colab 截圖</b>　從這一頁的按鈕打開的 notebook：檔名前面是 GitHub 圖示，工具列有「複製到雲端硬碟」。</figcaption></figure>
+  <figure class="shot real"><a href="img/colab/warn.jpg" target="_blank" rel="noopener"><img src="img/colab/warn.jpg" alt="第一次執行從 GitHub 打開的 notebook 時會出現這個警告。這是課程自己的 notebook，按「仍要執行」；來路不明的 notebook 則要先看過程式碼。" width="1280" height="430" loading="lazy"></a><figcaption><b>Colab 截圖</b>　第一次執行從 GitHub 打開的 notebook 時會出現這個警告。這是課程自己的 notebook，按「仍要執行」；來路不明的 notebook 則要先看過程式碼。</figcaption></figure>
 
-  <h3><span class="tag">1-2</span>認識畫面</h3>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-browser"><span class="dots"><i></i><i></i><i></i></span><span class="url">colab.research.google.com/drive/…</span></div>
-      <div class="mk-top"><span class="mk-logo">Colab</span><span class="mk-file"><span class="mk-n">1</span><u>Titanic_AI.ipynb</u> ☆</span><span class="sp"></span><span class="mk-btn">分享</span><span class="mk-btn gem"><span class="mk-n">7</span>✦ Gemini</span></div>
-      <div class="mk-menu"><span>檔案</span><span>編輯</span><span>檢視畫面</span><span>插入</span><span>執行階段<span class="mk-n">6</span></span><span>工具</span><span>說明</span></div>
-      <div class="mk-tool"><span class="mk-n">2</span><span class="mk-btn">＋ 程式碼</span><span class="mk-btn">＋ 文字</span><span class="sp"></span><span class="mk-ram">RAM ▬ 磁碟 ▬</span><span class="mk-n">5</span></div>
-      <div class="mk-main">
-        <div class="mk-side"><span>☰</span><span>🔍</span><span>{x}</span><span>🔑</span><span class="on">📁</span><span class="mk-n">4</span></div>
-        <div class="mk-nb">
-          <div class="mk-text">鐵達尼號分析</div>
-          <div class="mk-cell"><span class="mk-run go">▶</span><span class="mk-code focus">print("Hello, Titanic!")</span><span class="mk-n">3</span></div>
-          <div class="mk-out">Hello, Titanic!</div>
-          <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code"><span class="ph">開始編寫程式碼或<a>使用 AI 產生</a>程式碼。</span></span></div>
-        </div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 2</b>　Colab 筆記本的畫面（依照實際介面重畫的示意圖；Colab 改版很快，按鈕的位置和文字可能略有不同）。</figcaption>
-  </figure>
-  <ol class="legend">
-    <li><span class="mk-n">1</span><span><b>檔名</b>：點一下就能改，例如改成 <code>Titanic_AI.ipynb</code>。</span></li>
-    <li><span class="mk-n">2</span><span><b>＋ 程式碼 / ＋ 文字</b>：新增程式碼儲存格，或寫筆記用的文字儲存格。</span></li>
-    <li><span class="mk-n">3</span><span><b>程式碼儲存格</b>：在灰框裡寫程式，按左邊的 ▶ 或 <kbd>Shift</kbd> + <kbd>Enter</kbd> 執行，結果出現在下面。</span></li>
-    <li><span class="mk-n">4</span><span><b>左側工具列</b>：☰ 目錄、{x} 變數、🔑 密鑰、📁 <b>檔案</b>（上傳資料用，第 3 步）。</span></li>
-    <li><span class="mk-n">5</span><span><b>連線狀態</b>：出現 ✓ 和 RAM / 磁碟，代表已經連上雲端電腦。</span></li>
-    <li><span class="mk-n">6</span><span><b>執行階段</b>選單：全部執行、重新啟動、變更執行階段類型（換成 R，見附錄）。</span></li>
-    <li><span class="mk-n">7</span><span><b>Gemini</b>：開啟 AI 對話面板（第 2 步）。</span></li>
-  </ol>
+  <h3><span class="tag">1-2</span>把執行階段換成 R</h3>
+  <p>上方選單 <b>執行階段 → 變更執行階段類型</b>：</p>
+  <figure class="shot real"><a href="img/colab/runtime_menu.jpg" target="_blank" rel="noopener"><img src="img/colab/runtime_menu.jpg" alt="執行階段選單。之後常用的「全部執行」「重新啟動工作階段」也在這裡。" width="1280" height="530" loading="lazy"></a><figcaption><b>Colab 截圖</b>　執行階段選單。之後常用的「全部執行」「重新啟動工作階段」也在這裡。</figcaption></figure>
+  <p>在「執行階段類型」選 <b>R</b>，按<b>儲存</b>：</p>
+  <figure class="shot real"><a href="img/colab/runtime_r.jpg" target="_blank" rel="noopener"><img src="img/colab/runtime_r.jpg" alt="執行階段類型選 R。硬體加速器用預設的 CPU 就好。" width="1280" height="610" loading="lazy"></a><figcaption><b>Colab 截圖</b>　執行階段類型選 R。硬體加速器用預設的 CPU 就好。</figcaption></figure>
 
   <h3><span class="tag">1-3</span>執行第一格程式</h3>
-  <p>在第一個程式碼儲存格輸入下面這行，按 ▶ 執行。第一次執行時，Colab 要先幫你分配一台雲端電腦（「連線中」），等幾秒鐘。</p>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">print</span>(<span class="t-str">"Hello, Titanic!"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>Hello, Titanic!</div></div>
+  <p>在第一個儲存格輸入下面這行，按左邊的 ▶ 或 <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd>。第一次執行時，Colab 要先分配一台雲端電腦（右上角會顯示「正在連線」），等幾秒鐘。</p>
+  <div class="py"><div class="cell-h"><span class="lab">R</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">print</span>(<span class="t-str">"Hello, Titanic!"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>[1] "Hello, Titanic!"</div></div>
+  <figure class="shot real"><a href="img/colab/hello.jpg" target="_blank" rel="noopener"><img src="img/colab/hello.jpg" alt="看到 [1] &quot;Hello, Titanic!&quot;，表示 R 已經可以用了。右上角的 RAM / 磁碟表示已經連上雲端電腦。" width="1280" height="250" loading="lazy"></a><figcaption><b>Colab 截圖</b>　看到 [1] "Hello, Titanic!"，表示 R 已經可以用了。右上角的 RAM / 磁碟表示已經連上雲端電腦。</figcaption></figure>
+  <div class="check"><b>🔍 確認真的是 R</b>輸出前面有 <code>[1]</code> 就是 R（Python 不會有）。如果出現 Python 的結果，表示執行階段還沒換成 R。</div>
   <div class="tblwrap"><table class="cmp nw1">
     <tr><th>快捷鍵</th><th>功能</th></tr>
     <tr><td><kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>執行這一格，並跳到下一格（最常用）</td></tr>
@@ -707,7 +676,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>M</kbd>，再按 <kbd>B</kbd></td><td>在下面新增一格程式碼</td></tr>
     <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>/</kbd></td><td>把選取的程式加上或取消註解（<code>#</code>）</td></tr>
   </table></div>
-  <div class="note warn"><b>⚠ 一定要知道：雲端電腦會「失憶」</b>Colab 的雲端電腦閒置一段時間（或用了很久）會被收回。重新連線後，<b>之前建立的變數和上傳的檔案都會消失</b>，筆記本裡的程式碼還在。看到 <code>NameError: name 'df' is not defined</code> 時，用 <b>執行階段 → 全部執行</b> 從頭跑一次就好。</div>
+  <div class="note warn"><b>⚠ 一定要知道：雲端電腦會「失憶」</b>Colab 的雲端電腦閒置一段時間會被收回。重新連線後，<b>之前建立的變數、載入的套件和上傳的檔案都會消失</b>，但筆記本裡的程式碼還在。看到 <code>object 'df' not found</code> 或 <code>could not find function "read_csv"</code> 時，用 <b>執行階段 → 全部執行</b> 從頭跑一次就好。</div>
   <div class="stepdone"><button type="button" data-step="c1">我完成這一步了</button></div>
 </section>
 
@@ -715,75 +684,37 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
 <section class="ch" id="c2">
   <div class="ch-h"><span class="num">02</span><h2>在 Colab 裡使用 AI<small>三個入口，加上一段開場 prompt</small></h2></div>
   <p>Colab 內建 Google 的 AI 助手 <b>Gemini</b>。有三個常用的入口：</p>
-
   <h3><span class="tag">2-1</span>入口 A：在空白儲存格請 AI 產生程式碼</h3>
-  <p>新增一格空白的程式碼儲存格，裡面會出現灰色的提示文字，點<b>「使用 AI 產生」</b>（或類似的連結），輸入你要做的事，按 Enter，AI 會把程式碼寫進這一格。</p>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-nb" style="padding:16px">
-        <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code focus"><span class="ph">開始編寫程式碼或<a>使用 AI 產生</a><span class="mk-n">1</span>程式碼。</span></span></div>
-        <div class="mk-gen"><span style="color:#5b3fc4;font-weight:700">✦</span><span class="box">讀取 titanic.csv 存成 df，顯示前 5 列<span class="mk-n">2</span></span><span class="mk-btn blue">產生<span class="mk-n">3</span></span></div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 3</b>　<span class="mk-n">1</span> 點提示文字裡的連結 → <span class="mk-n">2</span> 輸入需求 → <span class="mk-n">3</span> 產生。程式碼出現後，<b>先讀過再執行</b>。</figcaption>
-  </figure>
-
-  <h3><span class="tag">2-2</span>入口 B：出錯時按「解釋錯誤」</h3>
-  <p>程式執行出錯時，錯誤訊息下面通常會出現<b>「解釋錯誤」</b>按鈕。按下去，Gemini 會說明錯誤原因並建議修正方式。第 11 步有完整的例子。</p>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-nb" style="padding:16px">
-        <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code">clean.groupby("sex")["Survived"].mean()</span></div>
-        <div class="mk-out err">KeyError                                  Traceback (most recent call last)
-……
-KeyError: 'sex'</div>
-        <div style="margin-left:32px"><span class="mk-btn gem">✦ 解釋錯誤<span class="mk-n">1</span></span></div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 4</b>　出錯時按 <span class="mk-n">1</span>「解釋錯誤」。</figcaption>
-  </figure>
-
+  <p>空白的程式碼儲存格裡有一行灰字「開始使用 AI 編寫或<u>生成</u>程式碼」。點「生成」，右邊會打開 Gemini 面板，並自動附上「空白儲存格」，輸入你要做的事：</p>
+  <figure class="shot real"><a href="img/colab/gemini.jpg" target="_blank" rel="noopener"><img src="img/colab/gemini.jpg" alt="點「生成」後的 Gemini 面板，輸入框上方的「空白儲存格」表示它會把程式碼寫進那一格。" width="1280" height="660" loading="lazy"></a><figcaption><b>Colab 截圖</b>　點「生成」後的 Gemini 面板，輸入框上方的「空白儲存格」表示它會把程式碼寫進那一格。</figcaption></figure>
+  <p>AI 寫好後，程式碼會以紅綠對照的方式出現在儲存格裡，面板下方有<b>接受並執行</b>、<b>接受</b>、<b>取消</b>三個按鈕。<b>一定要先看過再接受</b>。下面是我們實際操作時得到的結果：</p>
+  <figure class="shot real"><a href="img/colab/gen.jpg" target="_blank" rel="noopener"><img src="img/colab/gen.jpg" alt="實際截圖：prompt 明明寫了「請用 R 和 tidyverse」，Gemini 也回答「我已經寫好 R 語言的程式碼」，但儲存格裡出現的是 %%html 和一段說「Colab 預設是 Python」的註解，根本不是可以執行的 R。這時候按「取消」，改用入口 C 或 D。" width="1280" height="660" loading="lazy"></a><figcaption><b>Colab 截圖</b>　實際截圖：prompt 明明寫了「請用 R 和 tidyverse」，Gemini 也回答「我已經寫好 R 語言的程式碼」，但儲存格裡出現的是 %%html 和一段說「Colab 預設是 Python」的註解，根本不是可以執行的 R。這時候按「取消」，改用入口 C 或 D。</figcaption></figure>
+  <div class="note warn"><b>⚠ AI 常常給你 Python</b>Colab 的 AI 功能主要是為 Python 設計的。就算筆記本已經是 R，它有時還是會產生 Python 程式碼（看到 <code>import</code>、<code>pd.</code> 就是 Python）。在 prompt 裡寫清楚「<b>用 R 和 tidyverse</b>」；如果還是給 Python，就改用入口 C 或 D。</div>
+  <h3><span class="tag">2-2</span>入口 B：出錯時按「說明錯誤」</h3>
+  <p>程式執行出錯時，錯誤訊息下面會出現「後續步驟：<b>說明錯誤</b>」按鈕，按下去 Gemini 會說明原因並提出修正。第 11 步有完整的例子。</p>
+  <figure class="shot real"><a href="img/colab/error.jpg" target="_blank" rel="noopener"><img src="img/colab/error.jpg" alt="錯誤訊息下方的「說明錯誤」按鈕。" width="1188" height="315" loading="lazy"></a><figcaption><b>Colab 截圖</b>　錯誤訊息下方的「說明錯誤」按鈕。</figcaption></figure>
   <h3><span class="tag">2-3</span>入口 C：Gemini 對話面板</h3>
-  <p>按右上角（或工具列上）的 <b>Gemini</b> 按鈕，右邊會打開對話面板。可以像聊天一樣問問題、請它寫整段程式。它看得到你的筆記本，產生的程式可以直接加到筆記本裡。</p>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-top"><span class="mk-logo">Colab</span><span class="mk-file">Titanic_AI.ipynb</span><span class="sp"></span><span class="mk-btn gem">✦ Gemini<span class="mk-n">1</span></span></div>
-      <div class="mk-main" style="min-height:240px">
-        <div class="mk-nb">
-          <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code">df = pd.read_csv(url)
-df.head()</span></div>
-          <div class="mk-out">   PassengerId  Survived  Pclass ...</div>
-        </div>
-        <div class="mk-chat">
-          <h5>✦ Gemini</h5>
-          <div class="u">請依性別計算存活率<span class="mk-n">2</span></div>
-          <div class="a">可以用 groupby：<code>df.groupby("Sex")["Survived"].mean()</code><span class="mk-btn" style="font-size:11.5px">＋ 加到筆記本<span class="mk-n">3</span></span></div>
-          <div class="in">輸入提示……</div>
-        </div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 5</b>　<span class="mk-n">1</span> 開啟面板 → <span class="mk-n">2</span> 輸入 prompt → <span class="mk-n">3</span> 把程式碼加到筆記本（或自己複製貼上）。</figcaption>
-  </figure>
-  <div class="note"><b>✦ 也可以叫 Gemini「整份分析幫我做」</b>新版的 Gemini 可以當「資料科學代理」：你說「分析這個檔案」，它會自己規劃步驟、產生好幾格程式並執行。很方便，但初學時<b>建議一步一步來</b>，才知道每一格在做什麼、哪裡可能錯。</div>
-
+  <p>按畫面下方中間的藍色 <b>✦</b> 按鈕，會打開同一個 Gemini 面板，可以像聊天一樣問問題、請它解釋觀念或寫整段程式。面板右下角可以選模型。</p>
+  <div class="note"><b>✦ 也可以叫 Gemini「整份分析幫我做」</b>新版的 Gemini 可以當「代理」：你說「分析這個檔案」，它會自己規劃步驟、產生好幾格程式並執行。很方便，但初學時<b>建議一步一步來</b>，才知道每一格在做什麼、哪裡可能錯。</div>
   <h3><span class="tag">2-4</span>入口 D：用其他 AI 聊天網站</h3>
-  <p>如果你的帳號看不到 Gemini（例如學校帳號的管理員關閉了 AI 功能、或免費額度用完），可以另外開一個分頁使用 ChatGPT、Claude 或 Gemini 網頁版：把 prompt 貼過去，再把它寫的程式碼複製回 Colab。<b>這一頁的每個 prompt 都適用</b>。</p>
-
+  <p>如果你的帳號看不到 Gemini（例如學校帳號的管理員關閉了 AI 功能、或免費額度用完），可以另外開一個分頁使用 ChatGPT、Claude 或 Gemini 網頁版：把 prompt 貼過去，再把它寫的 R 程式碼複製回 Colab。<b>這一頁的每個 prompt 都適用</b>。</p>
   <h3><span class="tag">2-5</span>先給 AI 一段開場 prompt</h3>
-  <p>在開始之前，先告訴 AI 你是誰、資料是什麼、要遵守什麼規則。之後每一步的 prompt 就可以比較短。（用 Gemini 面板或聊天網站時，在同一個對話裡繼續問；如果開了新對話，記得再貼一次。）</p>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>你是一位資料分析助教，熟悉 Python 的 pandas、seaborn、scipy 和 statsmodels。
-我是醫技系的大學生，正在 Google Colab 上分析 Titanic 乘客資料（891 位乘客，欄位有 PassengerId、Survived、Pclass、Name、Sex、Age、SibSp、Parch、Ticket、Fare、Cabin、Embarked）。
+  <p>在開始之前，先告訴 AI 你是誰、用什麼語言、資料是什麼、要遵守什麼規則。之後每一步的 prompt 就可以比較短。（在同一個對話裡繼續問；如果開了新對話，記得再貼一次。）</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>你是一位資料分析助教，熟悉 R 的 tidyverse（readr、dplyr、tidyr、ggplot2）。
+我是醫技系的大學生，正在 Google Colab 的 R 執行階段分析 Titanic 乘客資料（891 位乘客，欄位有 PassengerId、Survived、Pclass、Name、Sex、Age、SibSp、Parch、Ticket、Fare、Cabin、Embarked）。
 接下來我會一步一步請你寫程式，請遵守：
-1. 每次只做我要求的那一步，不要一次做完全部。
-2. 程式碼加上繁體中文註解。
-3. 圖上的文字一律用英文（Colab 預設沒有中文字型）。
-4. 不要自己編造數字；結果以我執行後貼回給你的輸出為準。</pre></div>
+1. 一律用 R，使用 tidyverse 的寫法和 |&gt; 管線，不要給我 Python。
+2. 每次只做我要求的那一步，不要一次做完全部。
+3. 程式碼加上繁體中文註解。
+4. 圖上的文字一律用英文（Colab 預設沒有中文字型）。
+5. 不要自己編造數字；結果以我執行後貼回給你的輸出為準。</pre></div>
   <div class="tblwrap"><table class="cmp nw1">
     <tr><th>這段 prompt 裡的</th><th>作用</th></tr>
-    <tr><td>你是一位資料分析助教……</td><td><b>角色</b>：讓它用教學的口氣、選適合的套件</td></tr>
-    <tr><td>我是醫技系的大學生……欄位有……</td><td><b>背景</b>：它看不到你的資料，欄位名稱一定要給，寫的程式才不會用錯欄名</td></tr>
+    <tr><td>你是一位資料分析助教……</td><td><b>角色</b>：讓它用教學的口氣、選 tidyverse 的寫法</td></tr>
+    <tr><td>Colab 的 R 執行階段……欄位有……</td><td><b>背景</b>：它看不到你的資料，欄位名稱一定要給，寫的程式才不會用錯欄名</td></tr>
+    <tr><td>一律用 R……不要給我 Python</td><td><b>限制</b>：Colab 和很多 AI 預設是 Python，一定要講</td></tr>
     <tr><td>每次只做我要求的那一步</td><td><b>限制</b>：避免一次丟出一大段看不懂的程式</td></tr>
-    <tr><td>圖上的文字一律用英文</td><td>Colab 預設<b>沒有中文字型</b>，中文會變成方塊（第 7 步有圖）</td></tr>
+    <tr><td>圖上的文字一律用英文</td><td>Colab 的雲端電腦<b>沒有中文字型</b>，圖上的中文會變成方塊（第 7 步有圖）</td></tr>
     <tr><td>不要自己編造數字</td><td>提醒它：數字以執行結果為準（AI 入門第 4 節的「幻覺」）</td></tr>
   </table></div>
   <div class="stepdone"><button type="button" data-step="c2">我完成這一步了</button></div>
@@ -791,7 +722,7 @@ df.head()</span></div>
 
 <!-- ============ 03 ============ -->
 <section class="ch" id="c3">
-  <div class="ch-h"><span class="num">03</span><h2>下載資料<small>認識 Titanic 資料集，四種取得方式</small></h2></div>
+  <div class="ch-h"><span class="num">03</span><h2>下載資料<small>認識 Titanic 資料集，三種取得方式</small></h2></div>
   <p>這份資料來自資料科學競賽網站 Kaggle 的入門題目「Titanic – Machine Learning from Disaster」的訓練資料（<code>train.csv</code>），整理自乘客名單等歷史紀錄。它有 <b>891 位乘客</b>，大約是全船人數的四成，不包含船員。我們在課程網站放了一份一模一樣的副本，方便直接下載。</p>
   <h3><span class="tag">3-1</span>資料字典：每一欄是什麼？</h3>
   <div class="tblwrap"><table class="cmp">
@@ -809,46 +740,21 @@ df.head()</span></div>
     <tr><td><code>Cabin</code></td><td>艙房號碼</td><td>文字</td><td><b>大部分是缺值</b></td></tr>
     <tr><td><code>Embarked</code></td><td>登船港口</td><td>C = Cherbourg（法國）、Q = Queenstown（愛爾蘭）、S = Southampton（英國）</td><td>有 2 個缺值</td></tr>
   </table></div>
-
-  <h3><span class="tag">3-2</span>四種取得資料的方式</h3>
-  <div class="tblwrap"><table class="cmp">
+  <h3><span class="tag">3-2</span>三種取得資料的方式</h3>
+  <div class="tblwrap"><table class="cmp nw1">
     <tr><th>方式</th><th>怎麼做</th><th>優點 / 缺點</th></tr>
-    <tr><td><b>A. 直接用網址讀</b>（這一章用這個）</td><td>程式裡寫網址，<code>pd.read_csv(網址)</code></td><td>最簡單，重新連線也不怕；資料要放在公開網址</td></tr>
+    <tr><td><b>A. 直接用網址讀</b>（這一章用這個）</td><td><code>read_csv(網址)</code></td><td>最簡單，重新連線也不怕；資料要放在公開網址</td></tr>
     <tr><td><b>B. 下載後上傳到 Colab</b></td><td>先下載到電腦，再從左側 📁 上傳</td><td>任何檔案都可以；<b>重新連線後檔案會消失</b>，要再上傳</td></tr>
-    <tr><td><b>C. 放在 Google 雲端硬碟</b></td><td>把檔案放進雲端硬碟，在 Colab 掛載</td><td>檔案不會消失；第一次要授權</td></tr>
-    <tr><td><b>D. 從 Kaggle 下載</b></td><td>到 Kaggle 的 Titanic 競賽頁面下載 <code>train.csv</code></td><td>原始出處；要註冊帳號並同意競賽規則</td></tr>
+    <tr><td><b>C. 從 Kaggle 下載</b></td><td>到 Kaggle 的 Titanic 競賽頁面下載 <code>train.csv</code>，再用方式 B 上傳</td><td>原始出處；要註冊帳號並同意競賽規則</td></tr>
   </table></div>
-
   <h4>方式 B：上傳檔案</h4>
   <ol>
     <li>按頁面最上方的 <a href="data/titanic.csv" download>⬇ titanic.csv</a>，存到電腦。</li>
-    <li>在 Colab 左側按 📁（檔案），再按上傳圖示，選剛剛下載的 <code>titanic.csv</code>。會出現「重新連線後檔案會被刪除」的提醒，按確定。</li>
-    <li>檔案出現在清單裡之後，就能用 <code>pd.read_csv("titanic.csv")</code> 讀取。</li>
+    <li>在 Colab 左側按 📁（檔案），再按上傳圖示，選剛剛下載的 <code>titanic.csv</code>。</li>
+    <li>檔案出現在清單裡之後，就能用 <code>read_csv("titanic.csv")</code> 讀取。</li>
   </ol>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-main" style="min-height:190px">
-        <div class="mk-side"><span>☰</span><span>🔍</span><span>{x}</span><span>🔑</span><span class="on">📁<span class="mk-n">1</span></span></div>
-        <div class="mk-panel">
-          <h5>檔案</h5>
-          <div class="icons"><span class="hl">⬆<span class="mk-n">2</span></span><span>⟳</span><span>📂</span></div>
-          <div class="f">📁 ..</div>
-          <div class="f">📁 sample_data</div>
-          <div class="f sel">📄 titanic.csv<span class="mk-n">3</span></div>
-        </div>
-        <div class="mk-nb">
-          <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code">df = pd.read_csv("titanic.csv")</span></div>
-        </div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 6</b>　<span class="mk-n">1</span> 打開檔案面板 → <span class="mk-n">2</span> 上傳 → <span class="mk-n">3</span> 檔案出現後就能讀取。在檔名上按右鍵可以「複製路徑」。</figcaption>
-  </figure>
-
-  <h4>方式 C：掛載 Google 雲端硬碟</h4>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">from</span> google.colab <span class="t-kw">import</span> drive
-drive.<span class="t-fn">mount</span>(<span class="t-str">"/content/drive"</span>)                 <span class="t-com"># 會跳出視窗請你授權</span>
-df = pd.<span class="t-fn">read_csv</span>(<span class="t-str">"/content/drive/MyDrive/titanic.csv"</span>)   <span class="t-com"># 依你放的位置修改路徑</span></pre></div>
-  <div class="note"><b>💡 資料來源要寫清楚</b>正式報告要註明資料從哪裡來、什麼時候下載的。這份資料：Kaggle「Titanic – Machine Learning from Disaster」的 train.csv，891 位乘客。</div>
+  <figure class="shot real"><a href="img/colab/files.jpg" target="_blank" rel="noopener"><img src="img/colab/files.jpg" alt="左側的 📁 檔案面板。上方第一個圖示是上傳，接著是重新整理、新增資料夾；上傳的檔案在重新連線後會消失。" width="1280" height="330" loading="lazy"></a><figcaption><b>Colab 截圖</b>　左側的 📁 檔案面板。上方第一個圖示是上傳，接著是重新整理、新增資料夾；上傳的檔案在重新連線後會消失。</figcaption></figure>
+  <div class="note"><b>💡 資料來源要寫清楚</b>正式報告要註明資料從哪裡來、什麼時候下載的。這份資料：Kaggle「Titanic – Machine Learning from Disaster」的 train.csv，891 位乘客。（Python 執行階段可以掛載 Google 雲端硬碟，R 執行階段沒有這個功能，所以用 A 或 B。）</div>
   <div class="stepdone"><button type="button" data-step="c3">我完成這一步了</button></div>
 </section>
 
@@ -856,70 +762,31 @@ df = pd.<span class="t-fn">read_csv</span>(<span class="t-str">"/content/drive/M
 <section class="ch" id="c4">
   <div class="ch-h"><span class="num">04</span><h2>讀進資料、認識欄位<small>先看清楚資料長什麼樣子</small></h2></div>
   <p>把下面的 prompt 給 AI。AI 寫出來的程式應該跟下面差不多（變數名稱或註解可能不同，沒關係）。貼到 Colab 執行：</p>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請寫 Python 程式：從下面的網址讀取 CSV，存到變數 df，印出它有幾列幾欄，再顯示前 5 列。
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請寫 R 程式：載入 tidyverse，從下面的網址讀取 CSV，存到變數 df，印出它有幾列幾欄，再顯示前幾列。
+另外請設定 Colab 裡圖的大小為寬 8、高 5。
 https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">import</span> pandas <span class="t-kw">as</span> pd                 <span class="t-com"># 表格資料</span>
-<span class="t-kw">import</span> matplotlib.pyplot <span class="t-kw">as</span> plt     <span class="t-com"># 畫圖的底層</span>
-<span class="t-kw">import</span> seaborn <span class="t-kw">as</span> sns               <span class="t-com"># 比較漂亮、好寫的統計圖</span>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">library</span>(tidyverse)                                   <span class="t-com"># 載入 readr、dplyr、tidyr、ggplot2……</span>
+<span class="t-fn">options</span>(repr.plot.width = <span class="t-num">8</span>, repr.plot.height = <span class="t-num">5</span>)   <span class="t-com"># Colab 裡圖的寬、高（英吋）</span>
 
-url = <span class="t-str">"https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv"</span>
-df = pd.<span class="t-fn">read_csv</span>(url)               <span class="t-com"># 讀 CSV，存成 DataFrame</span>
-<span class="t-fn">print</span>(df.shape)                     <span class="t-com"># (列數, 欄數)</span>
-df.<span class="t-fn">head</span>()                           <span class="t-com"># 前 5 列</span></pre><div class="out"><span class="pre-tag">執行結果</span>(891, 12)
-   PassengerId  Survived  Pclass                                               Name     Sex   Age  SibSp  Parch  \
-0            1         0       3                            Braund, Mr. Owen Harris    male  22.0      1      0   
-1            2         1       1  Cumings, Mrs. John Bradley (Florence Briggs Th...  female  38.0      1      0   
-2            3         1       3                             Heikkinen, Miss. Laina  female  26.0      0      0   
-3            4         1       1       Futrelle, Mrs. Jacques Heath (Lily May Peel)  female  35.0      1      0   
-4            5         0       3                           Allen, Mr. William Henry    male  35.0      0      0   
-
-             Ticket     Fare Cabin Embarked  
-0         A/5 21171   7.2500   NaN        S  
-1          PC 17599  71.2833   C85        C  
-2  STON/O2. 3101282   7.9250   NaN        S  
-3            113803  53.1000  C123        S  
-4            373450   8.0500   NaN        S</div></div>
-  <div class="check"><b>🔍 自己檢查</b><ul>
-    <li><code>(891, 12)</code>：891 列（乘客）、12 欄，跟資料字典一樣。</li>
-    <li>最左邊的 0、1、2……是 pandas 自動加的<b>列索引</b>，從 0 開始數，不是資料的一部分。</li>
-    <li><code>NaN</code> 是 Python 的缺值，等於 R 的 <code>NA</code>。前 5 列就看到 Cabin 有缺值了。</li>
+url <span class="t-op">&lt;-</span> <span class="t-str">"https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv"</span>
+df <span class="t-op">&lt;-</span> <span class="t-fn">read_csv</span>(url, show_col_types = <span class="t-kw">FALSE</span>)          <span class="t-com"># 讀 CSV，存成 tibble</span>
+<span class="t-fn">dim</span>(df)                                              <span class="t-com"># 列數、欄數</span>
+<span class="t-fn">head</span>(df)                                             <span class="t-com"># 前 6 列</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_load.jpg" target="_blank" rel="noopener"><img src="img/colab/out_load.jpg" alt="load 在 Colab 的執行結果" width="1188" height="597" loading="lazy"></a></div></div>
+    <div class="check"><b>🔍 自己檢查</b><ul>
+    <li><code>891 · 12</code>：891 列（乘客）、12 欄，跟資料字典一樣。tibble 在 Colab 會顯示成表格，欄名下面標出型態（<code>&lt;dbl&gt;</code> 數字、<code>&lt;chr&gt;</code> 文字），缺值顯示成 NA。</li>
+    <li>載入 tidyverse 時出現的 <code>Conflicts</code>、<code>masks stats::filter()</code> 是正常訊息，不是錯誤：表示之後打 <code>filter()</code> 會用 dplyr 的版本。</li>
+    <li><code>options(repr.plot.width = 8, repr.plot.height = 5)</code> 是 Colab（Jupyter）專用的設定，控制圖的大小；在 RStudio 不需要。</li>
   </ul></div>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 info() 和 describe() 檢查 df：每一欄的資料型態、非缺值的數量，以及數值欄位的摘要統計。
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 glimpse() 和 summary() 檢查 df：每一欄的資料型態、缺值，以及數值欄位的摘要統計。
 執行結果我貼在下面，請用白話說明每一欄代表什麼，以及你看到哪些需要注意的地方。
 <i>（貼上輸出）</i></pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">df.<span class="t-fn">info</span>()                           <span class="t-com"># 每一欄的型態與非缺值數量</span></pre><div class="out"><span class="pre-tag">執行結果</span>&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 891 entries, 0 to 890
-Data columns (total 12 columns):
- #   Column       Non-Null Count  Dtype  
----  ------       --------------  -----  
- 0   PassengerId  891 non-null    int64  
- 1   Survived     891 non-null    int64  
- 2   Pclass       891 non-null    int64  
- 3   Name         891 non-null    object 
- 4   Sex          891 non-null    object 
- 5   Age          714 non-null    float64
- 6   SibSp        891 non-null    int64  
- 7   Parch        891 non-null    int64  
- 8   Ticket       891 non-null    object 
- 9   Fare         891 non-null    float64
- 10  Cabin        204 non-null    object 
- 11  Embarked     889 non-null    object 
-dtypes: float64(2), int64(5), object(5)
-memory usage: 83.7+ KB</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">df.<span class="t-fn">describe</span>().<span class="t-fn">round</span>(<span class="t-num">2</span>)              <span class="t-com"># 數值欄位的摘要統計</span></pre><div class="out"><span class="pre-tag">執行結果</span>       PassengerId  Survived  Pclass     Age   SibSp   Parch    Fare
-count       891.00    891.00  891.00  714.00  891.00  891.00  891.00
-mean        446.00      0.38    2.31   29.70    0.52    0.38   32.20
-std         257.35      0.49    0.84   14.53    1.10    0.81   49.69
-min           1.00      0.00    1.00    0.42    0.00    0.00    0.00
-25%         223.50      0.00    2.00   20.12    0.00    0.00    7.91
-50%         446.00      0.00    3.00   28.00    0.00    0.00   14.45
-75%         668.50      1.00    3.00   38.00    1.00    0.00   31.00
-max         891.00      1.00    3.00   80.00    8.00    6.00  512.33</div></div>
-  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>Name、Sex、Ticket、Cabin、Embarked 是文字（object）；Age 只有 714 筆、Cabin 只有 204 筆、Embarked 有 889 筆，代表有缺值；Survived 的平均 0.38 表示約 38% 的人存活；Fare 的最大值 512 遠大於中位數 14.45，分布很偏斜。</div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">glimpse</span>(df)                    <span class="t-com"># 每一欄的型態和前幾個值</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_glimpse.jpg" target="_blank" rel="noopener"><img src="img/colab/out_glimpse.jpg" alt="glimpse 在 Colab 的執行結果" width="1188" height="291" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">summary</span>(df)                    <span class="t-com"># 數值欄：最小、四分位數、平均、最大、NA 數</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_summary.jpg" target="_blank" rel="noopener"><img src="img/colab/out_summary.jpg" alt="summary 在 Colab 的執行結果" width="1188" height="449" loading="lazy"></a></div></div>
+  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>Name、Sex、Ticket、Cabin、Embarked 是文字（chr）；Age 有 177 個 NA；Survived 的平均 0.3838 表示約 38% 的人存活；Fare 的最大值 512 遠大於中位數 14.45，分布很偏斜；Pclass 雖然是數字，但其實是艙等的類別。</div>
   <div class="check"><b>🔍 自己檢查：AI 的解釋對不對？</b><ul>
-    <li><b>Non-Null Count</b> 是「不是缺值」的數量：Age 714 → 缺 891 − 714 = <b>177</b> 筆；Cabin 只有 204 → 缺 <b>687</b> 筆；Embarked 889 → 缺 <b>2</b> 筆。</li>
-    <li>Survived 是 0/1，平均值 0.38 = 存活的比例。這是很實用的技巧：<b>0/1 變數的平均就是比例</b>。</li>
-    <li><code>Pclass</code> 的平均 2.31 沒有意義，因為它其實是類別（艙等）。<code>describe()</code> 只是把所有數字欄都算一遍，不會判斷該不該算。</li>
+    <li><code>summary()</code> 每一欄最下面的 <b>NAs</b> 就是缺值數：Age <b>177</b>、Cabin <b>687</b>、Embarked <b>2</b>。文字欄顯示的是 Length（長度）、N.unique（有幾種不同的值，例如 Sex 只有 2 種）、N.blank（空字串）和字數。</li>
+    <li>Survived 是 0/1，平均值 0.3838 = 存活的比例。<b>0/1 變數的平均就是比例</b>，這個技巧後面會一直用。</li>
+    <li><code>Pclass</code> 的平均 2.309 沒有意義，因為它其實是類別。<code>summary()</code> 只是把所有數字欄都算一遍，不會判斷該不該算。</li>
     <li>Age 最小 0.42（約 5 個月大的嬰兒）、最大 80，合理；Fare 最小 0，可能是工作人員或招待票，值得留意。</li>
   </ul></div>
   <div class="stepdone"><button type="button" data-step="c4">我完成這一步了</button></div>
@@ -928,22 +795,12 @@ max         891.00      1.00    3.00   80.00    8.00    6.00  512.33</div></div>
 <!-- ============ 05 ============ -->
 <section class="ch" id="c5">
   <div class="ch-h"><span class="num">05</span><h2>缺值與清理<small>讓 AI 列選項，由你做決定</small></h2></div>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請算出 df 每一欄有幾個缺值、佔全部的百分比，整理成一張表。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">na = df.<span class="t-fn">isna</span>().<span class="t-fn">sum</span>()                              <span class="t-com"># 每一欄的缺值數</span>
-pd.<span class="t-fn">DataFrame</span>({<span class="t-str">"n_missing"</span>: na,
-              <span class="t-str">"percent"</span>: (na / <span class="t-fn">len</span>(df) * <span class="t-num">100</span>).<span class="t-fn">round</span>(<span class="t-num">1</span>)})   <span class="t-com"># 佔全部的 %</span></pre><div class="out"><span class="pre-tag">執行結果</span>             n_missing  percent
-PassengerId          0      0.0
-Survived             0      0.0
-Pclass               0      0.0
-Name                 0      0.0
-Sex                  0      0.0
-Age                177     19.9
-SibSp                0      0.0
-Parch                0      0.0
-Ticket               0      0.0
-Fare                 0      0.0
-Cabin              687     77.1
-Embarked             2      0.2</div></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請算出 df 每一欄有幾個缺值、佔全部的百分比，整理成一張表（一欄一列），由多到少排列。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">df <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(<span class="t-fn">across</span>(<span class="t-fn">everything</span>(), \(x) <span class="t-fn">sum</span>(<span class="t-fn">is.na</span>(x)))) <span class="t-op">|&gt;</span>               <span class="t-com"># 每一欄數缺值</span>
+  <span class="t-fn">pivot_longer</span>(<span class="t-fn">everything</span>(), names_to = <span class="t-str">"column"</span>, values_to = <span class="t-str">"n_missing"</span>) <span class="t-op">|&gt;</span>
+  <span class="t-fn">mutate</span>(percent = <span class="t-fn">round</span>(n_missing / <span class="t-fn">nrow</span>(df) * <span class="t-num">100</span>, <span class="t-num">1</span>)) <span class="t-op">|&gt;</span>              <span class="t-com"># 佔全部的 %</span>
+  <span class="t-fn">arrange</span>(<span class="t-fn">desc</span>(n_missing))</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_na.jpg" target="_blank" rel="noopener"><img src="img/colab/out_na.jpg" alt="na 在 Colab 的執行結果" width="1188" height="559" loading="lazy"></a></div></div>
   <p>缺值怎麼處理會影響結果，這是<b>你</b>要做的決定。先請 AI 列出選項，<b>不要直接寫程式</b>：</p>
   <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>Cabin 缺 687 筆、Age 缺 177 筆、Embarked 缺 2 筆。
 請先不要寫程式，列出每一欄可以怎麼處理（刪掉欄位、補值、保留缺值），以及各自的優缺點。</pre></div>
@@ -957,99 +814,69 @@ Embarked             2      0.2</div></div>
       <tr><td>Embarked（缺 0.2%）</td><td>用最常見的港口 S 補</td><td>只有 2 筆，影響極小</td><td>—</td></tr>
     </table></div>
   </div>
-  <p>這次的決定：<b>Age 保留缺值</b>，需要年齡的分析就只用有年齡的 714 人，並在結論寫出這個限制；Cabin 和 Ticket 刪掉；Embarked 用 S 補。另外新增幾個之後會用到的欄位：</p>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>好，請照下面的決定寫程式，結果存成新的 DataFrame clean，不要改動 df：
+  <p>這次的決定：<b>Age 保留缺值</b>，需要年齡的分析就只用有年齡的 714 人，並在結論寫出這個限制；Cabin 和 Ticket 刪掉；Embarked 用最常見的值補。另外新增幾個之後會用到的欄位：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>好，請照下面的決定寫程式，結果存成新的 tibble clean，不要改動 df：
 1. 刪掉 Cabin 和 Ticket 兩欄。
 2. Embarked 用出現最多次的值補。
 3. Age 保留缺值，不要補。
-4. 新增 FamilySize = SibSp + Parch + 1。
-5. 新增 AgeGroup，把 Age 分成 0-12、13-18、19-40、41-60、61-80。
-6. 新增 Outcome，把 Survived 的 0 / 1 換成 "Died" / "Survived"。
+4. Pclass 轉成 factor（它是類別，不是數字）。
+5. 新增 FamilySize = SibSp + Parch + 1。
+6. 新增 AgeGroup，用 cut() 把 Age 分成 0-12、13-18、19-40、41-60、61-80。
+7. 新增 Outcome，把 Survived 的 0 / 1 換成 "Died" / "Survived"。
 最後檢查 clean 每一欄還有幾個缺值。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean = df.<span class="t-fn">drop</span>(columns=[<span class="t-str">"Cabin"</span>, <span class="t-str">"Ticket"</span>])     <span class="t-com"># drop 會回傳新的表，df 不會被改到</span>
-clean[<span class="t-str">"Embarked"</span>] = clean[<span class="t-str">"Embarked"</span>].<span class="t-fn">fillna</span>(clean[<span class="t-str">"Embarked"</span>].<span class="t-fn">mode</span>()[<span class="t-num">0</span>])   <span class="t-com"># 補上最常見的港口</span>
-clean[<span class="t-str">"FamilySize"</span>] = clean[<span class="t-str">"SibSp"</span>] + clean[<span class="t-str">"Parch"</span>] + <span class="t-num">1</span>                   <span class="t-com"># 兄弟姊妹配偶 + 父母子女 + 自己</span>
-clean[<span class="t-str">"AgeGroup"</span>] = pd.<span class="t-fn">cut</span>(clean[<span class="t-str">"Age"</span>],
-                           bins=[<span class="t-num">0</span>, <span class="t-num">12</span>, <span class="t-num">18</span>, <span class="t-num">40</span>, <span class="t-num">60</span>, <span class="t-num">80</span>],                    <span class="t-com"># (0,12]、(12,18]……</span>
-                           labels=[<span class="t-str">"0-12"</span>, <span class="t-str">"13-18"</span>, <span class="t-str">"19-40"</span>, <span class="t-str">"41-60"</span>, <span class="t-str">"61-80"</span>])
-clean[<span class="t-str">"Outcome"</span>] = clean[<span class="t-str">"Survived"</span>].<span class="t-fn">map</span>({<span class="t-num">0</span>: <span class="t-str">"Died"</span>, <span class="t-num">1</span>: <span class="t-str">"Survived"</span>})        <span class="t-com"># 0/1 換成文字，畫圖比較好讀</span>
-clean.<span class="t-fn">isna</span>().<span class="t-fn">sum</span>()</pre><div class="out"><span class="pre-tag">執行結果</span>PassengerId      0
-Survived         0
-Pclass           0
-Name             0
-Sex              0
-Age            177
-SibSp            0
-Parch            0
-Fare             0
-Embarked         0
-FamilySize       0
-AgeGroup       177
-Outcome          0
-dtype: int64</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">most <span class="t-op">&lt;-</span> <span class="t-fn">names</span>(<span class="t-fn">which.max</span>(<span class="t-fn">table</span>(df$Embarked)))      <span class="t-com"># 出現最多次的港口</span>
+most
+
+clean <span class="t-op">&lt;-</span> df <span class="t-op">|&gt;</span>
+  <span class="t-fn">select</span>(-Cabin, -Ticket) <span class="t-op">|&gt;</span>                        <span class="t-com"># 刪掉兩欄（df 本身不會變）</span>
+  <span class="t-fn">mutate</span>(Embarked   = <span class="t-fn">replace_na</span>(Embarked, most),   <span class="t-com"># 只缺 2 筆，補最常見的港口</span>
+         Pclass     = <span class="t-fn">factor</span>(Pclass),               <span class="t-com"># 艙等是類別</span>
+         FamilySize = SibSp + Parch + <span class="t-num">1</span>,            <span class="t-com"># 兄弟姊妹配偶 + 父母子女 + 自己</span>
+         AgeGroup   = <span class="t-fn">cut</span>(Age, breaks = <span class="t-fn">c</span>(<span class="t-num">0</span>, <span class="t-num">12</span>, <span class="t-num">18</span>, <span class="t-num">40</span>, <span class="t-num">60</span>, <span class="t-num">80</span>),
+                          labels = <span class="t-fn">c</span>(<span class="t-str">"0-12"</span>, <span class="t-str">"13-18"</span>, <span class="t-str">"19-40"</span>, <span class="t-str">"41-60"</span>, <span class="t-str">"61-80"</span>)),
+         Outcome    = <span class="t-fn">if_else</span>(Survived == <span class="t-num">1</span>, <span class="t-str">"Survived"</span>, <span class="t-str">"Died"</span>))
+<span class="t-fn">colSums</span>(<span class="t-fn">is.na</span>(clean))                               <span class="t-com"># 每一欄還有幾個缺值</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_clean.jpg" target="_blank" rel="noopener"><img src="img/colab/out_clean.jpg" alt="clean 在 Colab 的執行結果" width="1188" height="320" loading="lazy"></a></div></div>
   <div class="check"><b>🔍 自己檢查</b><ul>
+    <li>最常見的港口是 <code>"S"</code>（Southampton），程式是算出來的，不是 AI 憑記憶寫死的。</li>
     <li>Cabin、Ticket 不見了，Embarked 的缺值變成 0，新增的 FamilySize、AgeGroup、Outcome 都在。</li>
     <li>AgeGroup 缺 177 筆，跟 Age 一樣，表示每一個有年齡的人都分到組了（0.42 歲的嬰兒也落在 0-12）。</li>
-    <li>原本的 <code>df</code> 沒被改到：執行 <code>df.shape</code> 應該還是 <code>(891, 12)</code>。</li>
+    <li>原本的 <code>df</code> 沒被改到：<code>dim(df)</code> 應該還是 <code>891 12</code>。</li>
   </ul></div>
-  <div class="note warn"><b>⚠ AI 常犯的清理錯誤：一行刪掉八成的資料</b>如果只說「把缺值處理掉」，AI 常常會寫 <code>df = df.dropna()</code>。這會刪掉<b>任何一欄</b>有缺值的列，因為 Cabin 大部分都缺，891 人只剩 <b>183</b> 人，而且留下來的大多是有艙房紀錄的頭等艙乘客，結果會完全偏掉。所以清理一定要指定「哪一欄、怎麼處理」。</div>
+  <div class="note warn"><b>⚠ AI 常犯的清理錯誤：一行刪掉八成的資料</b>如果只說「把缺值處理掉」，AI 常常會寫 <code>df |&gt; drop_na()</code> 或 <code>na.omit(df)</code>。這會刪掉<b>任何一欄</b>有缺值的列，因為 Cabin 大部分都缺，891 人只剩 <b>183</b> 人，而且留下來的大多是有艙房紀錄的頭等艙乘客，結果會完全偏掉。所以清理一定要指定「哪一欄、怎麼處理」。</div>
   <div class="stepdone"><button type="button" data-step="c5">我完成這一步了</button></div>
 </section>
 
 <!-- ============ 06 ============ -->
 <section class="ch" id="c6">
-  <div class="ch-h"><span class="num">06</span><h2>探索：誰活下來了？<small>分組算存活率</small></h2></div>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 clean 算出：
-1. 整體存活率。
+  <div class="ch-h"><span class="num">06</span><h2>探索：誰活下來了？<small>group_by + summarise 算存活率</small></h2></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 clean 和 group_by() + summarise() 算出：
+1. 整體的人數、存活人數和存活率。
 2. 依性別（Sex）、艙等（Pclass）各自分組的人數、存活人數與存活率。
-3. 艙等 × 性別交叉的存活率表。
+3. 艙等 × 性別的存活率，用 pivot_wider() 排成艙等一列、性別一欄的表。
 4. 依年齡組（AgeGroup）、家庭人數（FamilySize）分組的人數與存活率。
 每一個結果分開放在不同的儲存格，存活率取到小數 3 位。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">print</span>(<span class="t-str">"總人數："</span>, <span class="t-fn">len</span>(clean))
-<span class="t-fn">print</span>(<span class="t-str">"存活率："</span>, <span class="t-fn">round</span>(clean[<span class="t-str">"Survived"</span>].<span class="t-fn">mean</span>() * <span class="t-num">100</span>, <span class="t-num">1</span>), <span class="t-str">"%"</span>)   <span class="t-com"># 0/1 的平均 = 1 的比例</span>
-clean[<span class="t-str">"Outcome"</span>].<span class="t-fn">value_counts</span>()</pre><div class="out"><span class="pre-tag">執行結果</span>總人數： 891
-存活率： 38.4 %
-Outcome
-Died        549
-Survived    342
-Name: count, dtype: int64</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"Sex"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, survived=<span class="t-str">"sum"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>          n  survived   rate
-Sex                         
-female  314       233  0.742
-male    577       109  0.189</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"Pclass"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, survived=<span class="t-str">"sum"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>          n  survived   rate
-Pclass                      
-1       216       136  0.630
-2       184        87  0.473
-3       491       119  0.242</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Pclass"</span>], clean[<span class="t-str">"Sex"</span>],
-            values=clean[<span class="t-str">"Survived"</span>], aggfunc=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)   <span class="t-com"># 每一格是存活率</span></pre><div class="out"><span class="pre-tag">執行結果</span>Sex     female   male
-Pclass               
-1        0.968  0.369
-2        0.921  0.157
-3        0.500  0.135</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"AgeGroup"</span>, observed=<span class="t-kw">True</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>            n   rate
-AgeGroup            
-0-12       69  0.580
-13-18      70  0.429
-19-40     425  0.388
-41-60     128  0.391
-61-80      22  0.227</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"FamilySize"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>              n   rate
-FamilySize            
-1           537  0.304
-2           161  0.553
-3           102  0.578
-4            29  0.724
-5            15  0.200
-6            22  0.136
-7            12  0.333
-8             6  0.000
-11            7  0.000</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), survived = <span class="t-fn">sum</span>(Survived),
+            rate = <span class="t-fn">round</span>(<span class="t-fn">mean</span>(Survived), <span class="t-num">3</span>))        <span class="t-com"># 0/1 的平均 = 1 的比例</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_overall.jpg" target="_blank" rel="noopener"><img src="img/colab/out_overall.jpg" alt="overall 在 Colab 的執行結果" width="1188" height="212" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(Sex) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), survived = <span class="t-fn">sum</span>(Survived), rate = <span class="t-fn">round</span>(<span class="t-fn">mean</span>(Survived), <span class="t-num">3</span>))</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_bysex.jpg" target="_blank" rel="noopener"><img src="img/colab/out_bysex.jpg" alt="bysex 在 Colab 的執行結果" width="1188" height="240" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(Pclass) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), survived = <span class="t-fn">sum</span>(Survived), rate = <span class="t-fn">round</span>(<span class="t-fn">mean</span>(Survived), <span class="t-num">3</span>))</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_byclass.jpg" target="_blank" rel="noopener"><img src="img/colab/out_byclass.jpg" alt="byclass 在 Colab 的執行結果" width="1188" height="269" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(Pclass, Sex) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(rate = <span class="t-fn">round</span>(<span class="t-fn">mean</span>(Survived), <span class="t-num">3</span>), .groups = <span class="t-str">"drop"</span>) <span class="t-op">|&gt;</span>
+  <span class="t-fn">pivot_wider</span>(names_from = Sex, values_from = rate)     <span class="t-com"># 長變寬：性別變成欄</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_cross.jpg" target="_blank" rel="noopener"><img src="img/colab/out_cross.jpg" alt="cross 在 Colab 的執行結果" width="1188" height="287" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(AgeGroup) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), rate = <span class="t-fn">round</span>(<span class="t-fn">mean</span>(Survived), <span class="t-num">3</span>))</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_byage.jpg" target="_blank" rel="noopener"><img src="img/colab/out_byage.jpg" alt="byage 在 Colab 的執行結果" width="1188" height="353" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(FamilySize) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), rate = <span class="t-fn">round</span>(<span class="t-fn">mean</span>(Survived), <span class="t-num">3</span>))</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_byfam.jpg" target="_blank" rel="noopener"><img src="img/colab/out_byfam.jpg" alt="byfam 在 Colab 的執行結果" width="1188" height="438" loading="lazy"></a></div></div>
   <div class="check"><b>🔍 自己檢查：數字對得起來嗎？</b><ul>
-    <li>549 + 342 = 891 ✓；女性 314 + 男性 577 = 891 ✓；三個艙等 216 + 184 + 491 = 891 ✓。</li>
-    <li>存活人數 233 + 109 = 342 ✓，跟整體的存活人數一樣。</li>
-    <li>年齡組的人數加起來是 714，不是 891，因為缺年齡的 177 人沒有分組。</li>
+    <li>女性 314 + 男性 577 = 891 ✓；三個艙等 216 + 184 + 491 = 891 ✓；存活人數 233 + 109 = 342 ✓。</li>
+    <li>年齡組多了一列 <code>NA</code>：177 位沒有年齡的人，存活率 0.294。<code>group_by()</code> 不會自動丟掉缺值，這一列提醒你缺值的人也有自己的特徵。</li>
     <li>FamilySize = 8 只有 6 人、= 11 只有 7 人（可能各是同一個大家庭），<b>人數太少的組，比例很不穩定</b>，不要過度解讀。</li>
   </ul></div>
   <h3><span class="tag">6-1</span>初步發現</h3>
@@ -1068,51 +895,68 @@ FamilySize
 
 <!-- ============ 07 ============ -->
 <section class="ch" id="c7">
-  <div class="ch-h"><span class="num">07</span><h2>畫圖<small>seaborn：Python 版的 ggplot2</small></h2></div>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 seaborn 畫三張圖，圖上文字用英文：
-1. 性別、艙等各自的存活率長條圖，左右並排，y 軸 0 到 1。
-2. 艙等 × 性別的存活率長條圖，不要誤差線，柱子上標出數值。
-3. 存活與死亡乘客的年齡分布：依 Outcome 上色的堆疊直方圖，每 5 歲一格。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">sns.<span class="t-fn">set_theme</span>(style=<span class="t-str">"whitegrid"</span>)                        <span class="t-com"># 白底加格線</span>
-fig, axes = plt.<span class="t-fn">subplots</span>(<span class="t-num">1</span>, <span class="t-num">2</span>, figsize=(<span class="t-num">9</span>, <span class="t-num">4</span>))          <span class="t-com"># 一列兩張</span>
-sns.<span class="t-fn">barplot</span>(data=clean, x=<span class="t-str">"Sex"</span>, y=<span class="t-str">"Survived"</span>, hue=<span class="t-str">"Sex"</span>, order=[<span class="t-str">"female"</span>, <span class="t-str">"male"</span>],
-            palette={<span class="t-str">"female"</span>: <span class="t-str">"#66c2a5"</span>, <span class="t-str">"male"</span>: <span class="t-str">"#fc8d62"</span>}, legend=<span class="t-kw">False</span>, ax=axes[<span class="t-num">0</span>])   <span class="t-com"># 長條 = 平均（存活率），黑線 = 95% 信賴區間</span>
-axes[<span class="t-num">0</span>].<span class="t-fn">set</span>(title=<span class="t-str">"Survival rate by sex"</span>, xlabel=<span class="t-str">"Sex"</span>, ylabel=<span class="t-str">"Survival rate"</span>, ylim=(<span class="t-num">0</span>, <span class="t-num">1</span>))
-sns.<span class="t-fn">barplot</span>(data=clean, x=<span class="t-str">"Pclass"</span>, y=<span class="t-str">"Survived"</span>, hue=<span class="t-str">"Pclass"</span>,
-            palette=[<span class="t-str">"#1d3557"</span>, <span class="t-str">"#457b9d"</span>, <span class="t-str">"#8ecae6"</span>], legend=<span class="t-kw">False</span>, ax=axes[<span class="t-num">1</span>])
-axes[<span class="t-num">1</span>].<span class="t-fn">set</span>(title=<span class="t-str">"Survival rate by class"</span>, xlabel=<span class="t-str">"Passenger class"</span>, ylabel=<span class="t-str">"Survival rate"</span>, ylim=(<span class="t-num">0</span>, <span class="t-num">1</span>))
-plt.<span class="t-fn">tight_layout</span>()
-plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img/titanic/fig1_0.png" alt="fig1 的圖" width="1771" height="768" loading="lazy"></div></div>
-  <div class="check"><b>🔍 讀圖</b>長條的高度是存活率（0/1 的平均），黑色直線是 seaborn 預設的 <b>95% 信賴區間</b>。女性和男性的區間完全沒有重疊，差異很明確；三個艙等也一樣。</div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">ax = sns.<span class="t-fn">barplot</span>(data=clean, x=<span class="t-str">"Pclass"</span>, y=<span class="t-str">"Survived"</span>, hue=<span class="t-str">"Sex"</span>, hue_order=[<span class="t-str">"female"</span>, <span class="t-str">"male"</span>],
-                 palette={<span class="t-str">"female"</span>: <span class="t-str">"#66c2a5"</span>, <span class="t-str">"male"</span>: <span class="t-str">"#fc8d62"</span>}, errorbar=<span class="t-kw">None</span>)          <span class="t-com"># 不畫誤差線</span>
-<span class="t-kw">for</span> bars <span class="t-kw">in</span> ax.containers:
-    ax.<span class="t-fn">bar_label</span>(bars, fmt=<span class="t-str">"%.2f"</span>, padding=<span class="t-num">2</span>)            <span class="t-com"># 柱子上標數值</span>
-ax.<span class="t-fn">set</span>(title=<span class="t-str">"Survival rate by class and sex"</span>, xlabel=<span class="t-str">"Passenger class"</span>,
-       ylabel=<span class="t-str">"Survival rate"</span>, ylim=(<span class="t-num">0</span>, <span class="t-num">1.08</span>))
-plt.<span class="t-fn">show</span>()</pre><div class="figout"><img src="img/titanic/fig2_0.png" alt="fig2 的圖" width="1143" height="917" loading="lazy"></div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">ax = sns.<span class="t-fn">histplot</span>(data=clean, x=<span class="t-str">"Age"</span>, hue=<span class="t-str">"Outcome"</span>, multiple=<span class="t-str">"stack"</span>,
-                  binwidth=<span class="t-num">5</span>, palette={<span class="t-str">"Died"</span>: <span class="t-str">"#9aa5b1"</span>, <span class="t-str">"Survived"</span>: <span class="t-str">"#2a9d8f"</span>})
-ax.<span class="t-fn">set</span>(title=<span class="t-str">"Age of passengers (age known for 714)"</span>, xlabel=<span class="t-str">"Age (years)"</span>, ylabel=<span class="t-str">"Passengers"</span>)
-plt.<span class="t-fn">show</span>()</pre><div class="figout"><img src="img/titanic/fig3_0.png" alt="fig3 的圖" width="1151" height="917" loading="lazy"></div></div>
-  <div class="check"><b>🔍 讀圖</b>0–5 歲那一格綠色（存活）比例特別高；20–30 歲的人最多，但大部分罹難。圖的標題提醒了只有 714 人有年齡，這是誠實的畫法。</div>
+  <div class="ch-h"><span class="num">07</span><h2>用 ggplot2 畫圖<small>跟 ggplot2 畫室學的一模一樣</small></h2></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 ggplot2 畫三張圖，圖上文字用英文，主題用 theme_bw()：
+1. 性別、艙等各自的存活率長條圖，加上 95% 信賴區間的誤差線，用 facet 左右並排，y 軸 0 到 1。
+2. 艙等 × 性別的存活率長條圖（dodge），柱子上標出數值。
+3. 存活與死亡乘客的年齡分布：依 Outcome 上色的堆疊直方圖，每 5 歲一格。
+female 用綠色、male 用橘色，兩張圖要一致。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-com"># 存活率和 95% 信賴區間：rate ± 1.96 × 標準誤</span>
+rate_ci <span class="t-op">&lt;-</span> <span class="t-kw">function</span>(d) {
+  d <span class="t-op">|&gt;</span>
+    <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), rate = <span class="t-fn">mean</span>(Survived)) <span class="t-op">|&gt;</span>
+    <span class="t-fn">mutate</span>(se = <span class="t-fn">sqrt</span>(rate * (<span class="t-num">1</span> - rate) / n),
+           lo = rate - <span class="t-num">1.96</span> * se,
+           hi = rate + <span class="t-num">1.96</span> * se)
+}
+rates <span class="t-op">&lt;-</span> <span class="t-fn">bind_rows</span>(
+  clean <span class="t-op">|&gt;</span> <span class="t-fn">group_by</span>(group = Sex) <span class="t-op">|&gt;</span> <span class="t-fn">rate_ci</span>() <span class="t-op">|&gt;</span> <span class="t-fn">mutate</span>(by = <span class="t-str">"Sex"</span>),
+  clean <span class="t-op">|&gt;</span> <span class="t-fn">group_by</span>(group = <span class="t-fn">paste</span>(<span class="t-str">"Class"</span>, Pclass)) <span class="t-op">|&gt;</span> <span class="t-fn">rate_ci</span>() <span class="t-op">|&gt;</span> <span class="t-fn">mutate</span>(by = <span class="t-str">"Passenger class"</span>)
+) <span class="t-op">|&gt;</span>
+  <span class="t-fn">mutate</span>(by = <span class="t-fn">fct_inorder</span>(by))                                  <span class="t-com"># 面板順序：Sex 在左</span>
 
+<span class="t-fn">ggplot</span>(rates, <span class="t-fn">aes</span>(x = group, y = rate, fill = group)) +
+  <span class="t-fn">geom_col</span>(show.legend = <span class="t-kw">FALSE</span>) +
+  <span class="t-fn">geom_errorbar</span>(<span class="t-fn">aes</span>(ymin = lo, ymax = hi), width = <span class="t-num">0.2</span>) +       <span class="t-com"># 95% 信賴區間</span>
+  <span class="t-fn">facet_wrap</span>(<span class="t-op">~</span> by, scales = <span class="t-str">"free_x"</span>) +                         <span class="t-com"># 左右兩張</span>
+  <span class="t-fn">scale_fill_manual</span>(values = <span class="t-fn">c</span>(female = <span class="t-str">"#66c2a5"</span>, male = <span class="t-str">"#fc8d62"</span>,
+                               <span class="t-str">"Class 1"</span> = <span class="t-str">"#1d3557"</span>, <span class="t-str">"Class 2"</span> = <span class="t-str">"#457b9d"</span>, <span class="t-str">"Class 3"</span> = <span class="t-str">"#8ecae6"</span>)) +
+  <span class="t-fn">scale_y_continuous</span>(limits = <span class="t-fn">c</span>(<span class="t-num">0</span>, <span class="t-num">1</span>)) +
+  <span class="t-fn">labs</span>(title = <span class="t-str">"Survival rate (with 95% CI)"</span>, x = <span class="t-kw">NULL</span>, y = <span class="t-str">"Survival rate"</span>) +
+  <span class="t-fn">theme_bw</span>()</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_fig1.jpg" target="_blank" rel="noopener"><img src="img/colab/out_fig1.jpg" alt="fig1 在 Colab 的執行結果" width="1188" height="741" loading="lazy"></a></div><div class="figout wide"><span class="pre-tag">同一張圖放大</span><img src="img/titanic_r/fig1_0.png" alt="fig1 的圖" width="1200" height="750" loading="lazy"></div></div>
+  <div class="check"><b>🔍 讀圖、讀程式</b>長條的高度是存活率，誤差線是 <b>95% 信賴區間</b>（rate ± 1.96 × 標準誤，標準誤 = √(p(1−p)/n)）。女性和男性的區間完全沒有重疊，差異很明確。程式裡 AI 自己寫了一個小函式 <code>rate_ci()</code>，再用 <code>bind_rows()</code> 把兩張表接起來、用 <code>facet_wrap()</code> 分成兩個面板，這些都是學過的工具。</div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(Pclass, Sex) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(rate = <span class="t-fn">mean</span>(Survived), .groups = <span class="t-str">"drop"</span>) <span class="t-op">|&gt;</span>
+  <span class="t-fn">ggplot</span>(<span class="t-fn">aes</span>(x = Pclass, y = rate, fill = Sex)) +
+  <span class="t-fn">geom_col</span>(position = <span class="t-str">"dodge"</span>) +
+  <span class="t-fn">geom_text</span>(<span class="t-fn">aes</span>(label = <span class="t-fn">round</span>(rate, <span class="t-num">2</span>)),
+            position = <span class="t-fn">position_dodge</span>(width = <span class="t-num">0.9</span>), vjust = -<span class="t-num">0.4</span>) +   <span class="t-com"># 柱子上標數值</span>
+  <span class="t-fn">scale_fill_manual</span>(values = <span class="t-fn">c</span>(female = <span class="t-str">"#66c2a5"</span>, male = <span class="t-str">"#fc8d62"</span>)) +
+  <span class="t-fn">scale_y_continuous</span>(limits = <span class="t-fn">c</span>(<span class="t-num">0</span>, <span class="t-num">1.05</span>)) +
+  <span class="t-fn">labs</span>(title = <span class="t-str">"Survival rate by class and sex"</span>, x = <span class="t-str">"Passenger class"</span>, y = <span class="t-str">"Survival rate"</span>) +
+  <span class="t-fn">theme_bw</span>()</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_fig2.jpg" target="_blank" rel="noopener"><img src="img/colab/out_fig2.jpg" alt="fig2 在 Colab 的執行結果" width="1188" height="525" loading="lazy"></a></div><div class="figout wide"><span class="pre-tag">同一張圖放大</span><img src="img/titanic_r/fig2_0.png" alt="fig2 的圖" width="1200" height="750" loading="lazy"></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">ggplot</span>(clean, <span class="t-fn">aes</span>(x = Age, fill = Outcome)) +
+  <span class="t-fn">geom_histogram</span>(binwidth = <span class="t-num">5</span>, boundary = <span class="t-num">0</span>, colour = <span class="t-str">"white"</span>) +     <span class="t-com"># 每 5 歲一格，預設就是堆疊</span>
+  <span class="t-fn">scale_fill_manual</span>(values = <span class="t-fn">c</span>(Died = <span class="t-str">"#9aa5b1"</span>, Survived = <span class="t-str">"#2a9d8f"</span>)) +
+  <span class="t-fn">labs</span>(title = <span class="t-str">"Age of passengers"</span>, x = <span class="t-str">"Age (years)"</span>, y = <span class="t-str">"Passengers"</span>) +
+  <span class="t-fn">theme_bw</span>()</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_fig3.jpg" target="_blank" rel="noopener"><img src="img/colab/out_fig3.jpg" alt="fig3 在 Colab 的執行結果" width="1188" height="449" loading="lazy"></a></div><div class="figout wide"><span class="pre-tag">同一張圖放大</span><img src="img/titanic_r/fig3_0.png" alt="fig3 的圖" width="1200" height="750" loading="lazy"></div></div>
+  <div class="check"><b>🔍 讀警告訊息</b><code>Removed 177 rows containing non-finite outside the scale range</code> 是<b>警告，不是錯誤</b>：177 位沒有年齡的人沒辦法畫進直方圖。這是預期中的，但要寫進圖說或報告。0–5 歲那一格綠色（存活）比例特別高；20–30 歲的人最多，但大部分罹難。</div>
   <h3><span class="tag">7-1</span>為什麼圖上要用英文？</h3>
   <p>Colab 的雲端電腦預設沒有安裝中文字型。如果在標題或標籤寫中文，會變成一排方塊（俗稱「豆腐字」）：</p>
   <figure class="svgfig" style="max-width:420px"><img src="img/titanic/tofu.png" alt="圖上的中文全部變成方塊" width="920" height="520" style="width:100%;height:auto;display:block;background:#fff;border-radius:6px"><figcaption>圖上的中文字變成方塊</figcaption></figure>
-  <p>最簡單的解法就是圖上用英文（開場 prompt 已經提醒 AI 了）。如果一定要中文，可以請 AI：「請在 Colab 安裝中文字型並讓 matplotlib 使用它」，它會寫出下載字型的程式。</p>
-
+  <p>最簡單的解法就是圖上用英文（開場 prompt 已經提醒 AI 了）。在自己電腦的 RStudio 畫圖就沒有這個問題。</p>
   <h3><span class="tag">7-2</span>用 prompt 修改圖</h3>
   <p>第一版的圖很少剛好是你要的。直接告訴 AI 要改什麼，一次改一兩件事：</p>
   <div class="tblwrap"><table class="cmp nw1">
     <tr><th>想要</th><th>可以這樣說</th></tr>
-    <tr><td>換顏色</td><td>「把 female 改成綠色、male 改成橘色，兩張圖要一致。」</td></tr>
-    <tr><td>改順序</td><td>「x 軸順序改成 female 在左、male 在右。」</td></tr>
-    <tr><td>標數字</td><td>「在每根長條上標出存活率，取 2 位小數。」</td></tr>
-    <tr><td>存成檔案</td><td>「把這張圖存成 300 dpi 的 PNG，檔名 survival_by_class.png。」</td></tr>
-    <tr><td>改成 R</td><td>「請把這張圖改用 R 的 ggplot2 畫。」</td></tr>
+    <tr><td>換顏色</td><td>「把 female 改成紫色，其他不變。」</td></tr>
+    <tr><td>改順序</td><td>「x 軸順序改成 3、2、1。」（AI 應該用 <code>fct_rev()</code> 或 <code>factor(levels =)</code>）</td></tr>
+    <tr><td>分面</td><td>「依登船港口 Embarked 分成三張小圖。」</td></tr>
+    <tr><td>改主題</td><td>「改用 theme_minimal()，字體放大一點。」</td></tr>
+    <tr><td>存成檔案</td><td>「用 ggsave() 把這張圖存成 300 dpi 的 PNG，寬 8 吋、高 5 吋。」</td></tr>
   </table></div>
-  <div class="note link"><b>🎨 想畫得更好看</b>畫圖的原則（選什麼圖、怎麼配色、標籤怎麼寫）跟語言無關。在 R 裡怎麼畫，看 <a href="ggplot.html">ggplot2 畫室</a>；什麼資料用什麼圖，看<a href="plot.html#ch8">統計圖鑑的選圖決策樹</a>。</div>
+  <div class="note link"><b>🎨 想畫得更好看</b>每一個 geom、尺度、主題的用法，<a href="ggplot.html">ggplot2 畫室</a>都有詳細說明；什麼資料用什麼圖，看<a href="plot.html#ch8">統計圖鑑的選圖決策樹</a>。看懂了，AI 寫錯的地方你一眼就看得出來。</div>
   <div class="stepdone"><button type="button" data-step="c7">我完成這一步了</button></div>
 </section>
 
@@ -1124,118 +968,88 @@ plt.<span class="t-fn">show</span>()</pre><div class="figout"><img src="img/tita
 1. 性別和存活有沒有關係？
 2. 艙等和存活有沒有關係？
 3. 存活者和死亡者的年齡有沒有差別？
-請先說明每個問題適合用哪一種統計檢定、為什麼，再寫程式。p 值用科學記號顯示。</pre></div>
+請先說明每個問題適合用哪一種統計檢定、為什麼，再寫 R 程式。</pre></div>
   <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>
     <div class="tblwrap"><table class="cmp">
       <tr><th>問題</th><th>資料型態</th><th>建議的檢定</th></tr>
-      <tr><td>性別 × 存活</td><td>類別 × 類別（2 × 2）</td><td>卡方檢定（每格期望次數都很大）</td></tr>
+      <tr><td>性別 × 存活</td><td>類別 × 類別（2 × 2）</td><td>卡方檢定 <code>chisq.test()</code>（每格期望次數都很大）</td></tr>
       <tr><td>艙等 × 存活</td><td>類別 × 類別（3 × 2）</td><td>卡方檢定</td></tr>
-      <tr><td>年齡：存活 vs 死亡</td><td>數值 × 兩組</td><td>年齡分布偏斜，用 Mann–Whitney U 檢定（= R 的 Wilcoxon 秩和檢定）；也可以用 Welch t 檢定</td></tr>
+      <tr><td>年齡：存活 vs 死亡</td><td>數值 × 兩組</td><td>年齡分布偏斜，用 Wilcoxon 秩和檢定 <code>wilcox.test()</code>（又叫 Mann–Whitney U）；也可以用 Welch t 檢定</td></tr>
     </table></div>
   </div>
-  <div class="check"><b>🔍 檢查 AI 選的方法</b>對照 <a href="pvalue.html#c4">p 值教室的檢定決策流程圖</a>：兩個類別變數 → 期望次數都 ≥ 5 → 卡方檢定 ✓；數值、兩組獨立、不一定常態 → Wilcoxon / Mann–Whitney ✓。AI 選的跟流程圖一致。</div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">from</span> scipy.stats <span class="t-kw">import</span> chi2_contingency, mannwhitneyu
-
-tab = pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Sex"</span>], clean[<span class="t-str">"Survived"</span>])           <span class="t-com"># 2 × 2 列聯表</span>
-chi2, p, dof, expected = <span class="t-fn">chi2_contingency</span>(tab)
-<span class="t-fn">print</span>(tab)
-<span class="t-fn">print</span>(<span class="t-str">f"性別：chi2 = {chi2:.1f}, df = {dof}, p = {p:.2e}"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>Survived    0    1
-Sex               
-female     81  233
-male      468  109
-性別：chi2 = 260.7, df = 1, p = 1.20e-58</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">tab2 = pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Pclass"</span>], clean[<span class="t-str">"Survived"</span>])       <span class="t-com"># 3 × 2 列聯表</span>
-chi2, p, dof, expected = <span class="t-fn">chi2_contingency</span>(tab2)
-<span class="t-fn">print</span>(tab2)
-<span class="t-fn">print</span>(<span class="t-str">f"艙等：chi2 = {chi2:.1f}, df = {dof}, p = {p:.2e}"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>Survived    0    1
-Pclass            
-1          80  136
-2          97   87
-3         372  119
-艙等：chi2 = 102.9, df = 2, p = 4.55e-23</div></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">age_s = clean.loc[clean[<span class="t-str">"Survived"</span>] == <span class="t-num">1</span>, <span class="t-str">"Age"</span>].<span class="t-fn">dropna</span>()   <span class="t-com"># 存活者的年齡（去掉缺值）</span>
-age_d = clean.loc[clean[<span class="t-str">"Survived"</span>] == <span class="t-num">0</span>, <span class="t-str">"Age"</span>].<span class="t-fn">dropna</span>()   <span class="t-com"># 死亡者的年齡</span>
-<span class="t-fn">print</span>(<span class="t-str">"存活者：n ="</span>, <span class="t-fn">len</span>(age_s), <span class="t-str">" 中位數 ="</span>, age_s.<span class="t-fn">median</span>())
-<span class="t-fn">print</span>(<span class="t-str">"死亡者：n ="</span>, <span class="t-fn">len</span>(age_d), <span class="t-str">" 中位數 ="</span>, age_d.<span class="t-fn">median</span>())
-stat, p = <span class="t-fn">mannwhitneyu</span>(age_s, age_d)
-<span class="t-fn">print</span>(<span class="t-str">f"Mann-Whitney U = {stat:.0f}, p = {p:.3f}"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>存活者：n = 290  中位數 = 28.0
-死亡者：n = 424  中位數 = 28.0
-Mann-Whitney U = 57682, p = 0.160</div></div>
+  <div class="check"><b>🔍 檢查 AI 選的方法</b>對照 <a href="pvalue.html#c4">p 值教室的檢定決策流程圖</a>：兩個類別變數 → 期望次數都 ≥ 5 → 卡方檢定 ✓；數值、兩組獨立、不一定常態 → Wilcoxon ✓。AI 選的跟流程圖一致。</div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">tab <span class="t-op">&lt;-</span> <span class="t-fn">table</span>(clean$Sex, clean$Survived)     <span class="t-com"># 2 × 2 列聯表</span>
+tab
+<span class="t-fn">chisq.test</span>(tab)</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_chisex.jpg" target="_blank" rel="noopener"><img src="img/colab/out_chisex.jpg" alt="chisex 在 Colab 的執行結果" width="1188" height="251" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">tab2 <span class="t-op">&lt;-</span> <span class="t-fn">table</span>(clean$Pclass, clean$Survived)  <span class="t-com"># 3 × 2 列聯表</span>
+tab2
+<span class="t-fn">chisq.test</span>(tab2)</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_chiclass.jpg" target="_blank" rel="noopener"><img src="img/colab/out_chiclass.jpg" alt="chiclass 在 Colab 的執行結果" width="1188" height="267" loading="lazy"></a></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">group_by</span>(Outcome) <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">sum</span>(!<span class="t-fn">is.na</span>(Age)), median_age = <span class="t-fn">median</span>(Age, na.rm = <span class="t-kw">TRUE</span>))
+<span class="t-fn">wilcox.test</span>(Age <span class="t-op">~</span> Survived, data = clean)     <span class="t-com"># = Mann–Whitney U 檢定</span></pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_wilcox.jpg" target="_blank" rel="noopener"><img src="img/colab/out_wilcox.jpg" alt="wilcox 在 Colab 的執行結果" width="1188" height="352" loading="lazy"></a></div></div>
   <h3><span class="tag">8-1</span>怎麼解讀</h3>
-  <div class="tblwrap"><table class="cmp">
+  <div class="tblwrap"><table class="cmp nw1">
     <tr><th>檢定</th><th>結果</th><th>白話</th></tr>
-    <tr><td>性別 × 存活（卡方）</td><td>χ² = 260.7，p = 1.2 × 10⁻⁵⁸</td><td>如果性別和存活真的無關，幾乎不可能看到這麼大的差異。效應量：存活率差 55 個百分點，非常大。</td></tr>
-    <tr><td>艙等 × 存活（卡方）</td><td>χ² = 102.9，p = 4.6 × 10⁻²³</td><td>艙等和存活有關；頭等艙 63% vs 三等艙 24%。</td></tr>
-    <tr><td>年齡（Mann–Whitney）</td><td>p = 0.16，兩組中位數都是 28 歲</td><td>只看年齡，存活和罹難的人整體年齡分布<b>沒有明顯差別</b>。</td></tr>
+    <tr><td>性別 × 存活（卡方）</td><td>X² = 260.72，p &lt; 2.2 × 10⁻¹⁶</td><td>如果性別和存活真的無關，幾乎不可能看到這麼大的差異。效應量：存活率差 55 個百分點，非常大。</td></tr>
+    <tr><td>艙等 × 存活（卡方）</td><td>X² = 102.89，p &lt; 2.2 × 10⁻¹⁶</td><td>艙等和存活有關；頭等艙 63% vs 三等艙 24%。</td></tr>
+    <tr><td>年齡（Wilcoxon）</td><td>W = 65278，p = 0.16，兩組中位數都是 28 歲</td><td>只看年齡，存活和罹難的人整體年齡分布<b>沒有明顯差別</b>。</td></tr>
   </table></div>
-  <div class="note"><b>🤔 等一下，年齡沒關係？</b>可是第 6 步明明看到兒童的存活率比較高。這是因為 Mann–Whitney 比較的是整體分布，兒童只佔一小部分；而且年齡和艙等糾纏在一起：<b>頭等艙乘客的中位數年齡 37 歲、二等艙 29 歲、三等艙 24 歲</b>。年紀大的人比較多在存活率高的頭等艙，把「年紀大比較不利」的效果蓋掉了。要把這些因素分開，就需要下一步的多變數模型。</div>
-  <div class="check"><b>🔍 小細節：跟 R 的結果一樣嗎？</b>Python 的 <code>chi2_contingency</code> 對 2 × 2 表預設會做 Yates 連續性校正，跟 R 的 <code>chisq.test</code> 一樣，所以 χ² 都是 260.7（附錄有 R 的輸出可以對照）。</div>
+  <div class="check"><b>🔍 小細節</b><ul>
+    <li><code>p-value &lt; 2.2e-16</code> 不是「p 等於 2.2e-16」，而是 R 能顯示的最小值，意思是「非常非常小」。報告時寫 <code>p &lt; 0.001</code> 就好。</li>
+    <li>2 × 2 的表，<code>chisq.test()</code> 預設會做 Yates 連續性校正（輸出第一行有寫）；3 × 2 的表不會。</li>
+  </ul></div>
+  <div class="note"><b>🤔 等一下，年齡沒關係？</b>可是第 6 步明明看到兒童的存活率比較高。這是因為 Wilcoxon 比較的是整體分布，兒童只佔一小部分；而且年齡和艙等糾纏在一起：<b>頭等艙乘客的中位數年齡 37 歲、二等艙 29 歲、三等艙 24 歲</b>。年紀大的人比較多在存活率高的頭等艙，把「年紀大比較不利」的效果蓋掉了。要把這些因素分開，就需要下一步的多變數模型。</div>
   <div class="stepdone"><button type="button" data-step="c8">我完成這一步了</button></div>
 </section>
 
 <!-- ============ 09 ============ -->
 <section class="ch" id="c9">
   <div class="ch-h"><span class="num">09</span><h2>多變數分析：logistic regression<small>同時考慮性別、艙等和年齡</small></h2></div>
-  <p>結果是「活 / 死」這種 0/1 的變數時，用 <b>logistic regression</b>（邏輯斯迴歸）。它可以同時放好幾個因素，回答：「<b>在其他因素都一樣的情況下</b>，這個因素跟存活有沒有關係？」</p>
+  <p>結果是「活 / 死」這種 0/1 的變數時，用 <b>logistic regression</b>（邏輯斯迴歸），R 裡是 <code>glm(..., family = binomial)</code>。它可以同時放好幾個因素，回答：「<b>在其他因素都一樣的情況下</b>，這個因素跟存活有沒有關係？」</p>
   <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>性別、艙等、年齡彼此有關（例如頭等艙的乘客年紀比較大），分開檢定可能會互相混淆。
-請用 statsmodels 做 logistic regression：Survived ~ 性別 + 艙等 + 年齡，
-算出每個變數的 odds ratio、95% 信賴區間和 p 值，整理成一張表，並用白話解釋 odds ratio 的意思。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">import</span> numpy <span class="t-kw">as</span> np
-<span class="t-kw">import</span> statsmodels.formula.api <span class="t-kw">as</span> smf
+請用 glm() 做 logistic regression：Survived ~ Sex + Pclass + Age，
+再用 broom::tidy() 算出每個變數的 odds ratio、95% 信賴區間和 p 值，整理成一張表，並用白話解釋 odds ratio 的意思。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">fit <span class="t-op">&lt;-</span> <span class="t-fn">glm</span>(Survived <span class="t-op">~</span> Sex + Pclass + Age, data = clean, family = binomial)
+<span class="t-fn">nobs</span>(fit)                                             <span class="t-com"># 實際用到的乘客數（Age 缺值的列會被排除）</span>
 
-model = smf.<span class="t-fn">logit</span>(<span class="t-str">"Survived ~ C(Sex) + C(Pclass) + Age"</span>, data=clean).<span class="t-fn">fit</span>()   <span class="t-com"># Age 缺值的列會自動排除</span>
-<span class="t-fn">print</span>(<span class="t-str">"用到的乘客數："</span>, <span class="t-fn">int</span>(model.nobs))
-or_table = pd.<span class="t-fn">DataFrame</span>({
-    <span class="t-str">"OR"</span>:      np.<span class="t-fn">exp</span>(model.params),            <span class="t-com"># 係數取 e 次方 = odds ratio</span>
-    <span class="t-str">"CI_low"</span>:  np.<span class="t-fn">exp</span>(model.<span class="t-fn">conf_int</span>()[<span class="t-num">0</span>]),
-    <span class="t-str">"CI_high"</span>: np.<span class="t-fn">exp</span>(model.<span class="t-fn">conf_int</span>()[<span class="t-num">1</span>]),
-}).<span class="t-fn">round</span>(<span class="t-num">3</span>)
-or_table[<span class="t-str">"p"</span>] = model.pvalues.<span class="t-fn">map</span>(<span class="t-kw">lambda</span> v: <span class="t-str">f"{v:.1e}"</span>)   <span class="t-com"># p 值用科學記號，不然會被四捨五入成 0</span>
-or_table</pre><div class="out"><span class="pre-tag">執行結果</span>Optimization terminated successfully.
-         Current function value: 0.453279
-         Iterations 6
-用到的乘客數： 714
-                    OR  CI_low  CI_high        p
-Intercept       43.685  19.902   95.890  4.7e-21
-C(Sex)[T.male]   0.080   0.053    0.120  4.8e-34
-C(Pclass)[T.2]   0.270   0.156    0.465  2.5e-06
-C(Pclass)[T.3]   0.076   0.044    0.131  4.8e-20
-Age              0.964   0.949    0.978  1.4e-06</div></div>
+or_table <span class="t-op">&lt;-</span> broom<span class="t-op">::</span><span class="t-fn">tidy</span>(fit, exponentiate = <span class="t-kw">TRUE</span>, conf.int = <span class="t-kw">TRUE</span>) <span class="t-op">|&gt;</span>   <span class="t-com"># exponentiate：係數取 e 次方 = OR</span>
+  <span class="t-fn">select</span>(term, OR = estimate, conf.low, conf.high, p.value) <span class="t-op">|&gt;</span>
+  <span class="t-fn">mutate</span>(<span class="t-fn">across</span>(<span class="t-fn">c</span>(OR, conf.low, conf.high), \(x) <span class="t-fn">round</span>(x, <span class="t-num">3</span>)))
+or_table</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_logit.jpg" target="_blank" rel="noopener"><img src="img/colab/out_logit.jpg" alt="logit 在 Colab 的執行結果" width="1188" height="413" loading="lazy"></a></div></div>
   <h3><span class="tag">9-1</span>odds ratio 怎麼讀</h3>
   <p><b>勝算（odds）</b>＝ 存活機率 ÷ 死亡機率。例如女性存活率 74.2%，勝算 = 0.742 ÷ 0.258 ≈ 2.9（活下來的機會是死掉的 2.9 倍）。<b>勝算比（odds ratio，OR）</b>就是兩組勝算相除。OR = 1 表示沒差別，小於 1 表示存活機會比較低。</p>
-  <div class="tblwrap"><table class="cmp">
+  <div class="tblwrap"><table class="cmp nw1">
     <tr><th>變數</th><th>OR（95% CI）</th><th>白話（其他兩個因素都一樣時）</th></tr>
-    <tr><td>男性（相對女性）</td><td>0.080（0.053–0.120）</td><td>男性存活的勝算只有女性的 8%，大約 1/12</td></tr>
-    <tr><td>二等艙（相對頭等）</td><td>0.270（0.156–0.465）</td><td>勝算約為頭等艙的 1/4</td></tr>
-    <tr><td>三等艙（相對頭等）</td><td>0.076（0.044–0.131）</td><td>勝算約為頭等艙的 1/13</td></tr>
+    <tr><td>男性（相對女性）</td><td>0.080（0.053–0.119）</td><td>男性存活的勝算只有女性的 8%，大約 1/12</td></tr>
+    <tr><td>二等艙（相對頭等）</td><td>0.270（0.155–0.462）</td><td>勝算約為頭等艙的 1/4</td></tr>
+    <tr><td>三等艙（相對頭等）</td><td>0.076（0.043–0.130）</td><td>勝算約為頭等艙的 1/13</td></tr>
     <tr><td>年齡（每多 1 歲）</td><td>0.964（0.949–0.978）</td><td>每多 1 歲勝算少 3.6%；每多 10 歲，0.964¹⁰ ≈ 0.69，少約 31%</td></tr>
   </table></div>
   <div class="check"><b>🔍 自己檢查</b><ul>
-    <li><b>用到的乘客數是 714</b>，不是 891：缺年齡的 177 人被自動排除了。這要寫進結論的限制。</li>
+    <li><code>nobs(fit)</code> 是 <b>714</b>，不是 891：缺年齡的 177 人被 <code>glm()</code> 自動排除了。這要寫進結論的限制。</li>
+    <li>term 的名字 <code>Sexmale</code>、<code>Pclass2</code>：R 把 factor 的<b>第一個 level</b>（female、1）當參考組，其他組都跟它比。這就是第 5 步把 Pclass 轉成 factor 的原因；如果沒轉，R 會把艙等當成 1、2、3 的連續數字。</li>
     <li>年齡在單獨檢定時 p = 0.16，放進模型後 p = 1.4 × 10⁻⁶：<b>考慮艙等之後，年齡的影響才顯現出來</b>，正好呼應第 8 步的推測。</li>
-    <li>「Intercept」（截距）是三個因素都在參考組（女性、頭等艙、0 歲）時的勝算，本身沒什麼解讀意義。</li>
-    <li>每個 CI 都沒有跨過 1，所以四個變數都達統計顯著。</li>
+    <li><code>(Intercept)</code>（截距）是三個因素都在參考組（女性、頭等艙、0 歲）時的勝算，本身沒什麼解讀意義。每個 CI 都沒有跨過 1，所以四個變數都達統計顯著。</li>
   </ul></div>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請把上面的 odds ratio 畫成森林圖：每個變數一列，點是 OR，橫線是 95% 信賴區間，
-x 軸用對數尺度，在 OR = 1 畫一條虛線，變數名稱改成好讀的英文。</pre></div>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">ors = or_table.<span class="t-fn">drop</span>(<span class="t-str">"Intercept"</span>)                                  <span class="t-com"># 截距不畫</span>
-names = {<span class="t-str">"C(Sex)[T.male]"</span>: <span class="t-str">"Male (vs female)"</span>,
-         <span class="t-str">"C(Pclass)[T.2]"</span>: <span class="t-str">"2nd class (vs 1st)"</span>,
-         <span class="t-str">"C(Pclass)[T.3]"</span>: <span class="t-str">"3rd class (vs 1st)"</span>,
-         <span class="t-str">"Age"</span>: <span class="t-str">"Age (per 1 year)"</span>}
-y = <span class="t-fn">range</span>(<span class="t-fn">len</span>(ors))
-fig, ax = plt.<span class="t-fn">subplots</span>(figsize=(<span class="t-num">7</span>, <span class="t-num">3</span>))
-ax.<span class="t-fn">errorbar</span>(ors[<span class="t-str">"OR"</span>], y,
-            xerr=[ors[<span class="t-str">"OR"</span>] - ors[<span class="t-str">"CI_low"</span>], ors[<span class="t-str">"CI_high"</span>] - ors[<span class="t-str">"OR"</span>]],
-            fmt=<span class="t-str">"o"</span>, color=<span class="t-str">"#264653"</span>, capsize=<span class="t-num">4</span>)
-ax.<span class="t-fn">axvline</span>(<span class="t-num">1</span>, linestyle=<span class="t-str">"--"</span>, color=<span class="t-str">"grey"</span>)                      <span class="t-com"># OR = 1：沒有關係</span>
-ax.<span class="t-fn">set_xscale</span>(<span class="t-str">"log"</span>)
-ax.<span class="t-fn">set_yticks</span>(<span class="t-fn">list</span>(y), [names[i] <span class="t-kw">for</span> i <span class="t-kw">in</span> ors.index])
-ax.<span class="t-fn">invert_yaxis</span>()                                                <span class="t-com"># 第一個變數放最上面</span>
-ax.<span class="t-fn">set</span>(xlabel=<span class="t-str">"Odds ratio of survival (95% CI, log scale)"</span>, title=<span class="t-str">"Logistic regression"</span>)
-plt.<span class="t-fn">tight_layout</span>()
-plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img/titanic/forest_0.png" alt="forest 的圖" width="1378" height="568" loading="lazy"></div></div>
-  <div class="check"><b>🔍 讀圖</b>點越往左，存活機會越低。三個點都離虛線（OR = 1）很遠：性別和艙等的影響都非常大；年齡的點很靠近 1，但因為信賴區間很窄，仍然顯著，只是每 1 歲的效果比較小。用對數座標，0.1 和 10 離 1 的距離才會一樣。森林圖在醫學論文很常見，<a href="ggplot.html#g15">ggplot2 畫室第 15 章</a>有 R 的畫法。</div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 ggplot2 把上面的 odds ratio 畫成森林圖：每個變數一列，點是 OR，橫線是 95% 信賴區間，
+x 軸用對數尺度，在 OR = 1 畫一條虛線，變數名稱改成好讀的英文，不要畫截距。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">or_table <span class="t-op">|&gt;</span>
+  <span class="t-fn">filter</span>(term != <span class="t-str">"(Intercept)"</span>) <span class="t-op">|&gt;</span>                     <span class="t-com"># 截距不畫</span>
+  <span class="t-fn">mutate</span>(term = <span class="t-fn">recode</span>(term,
+                       Sexmale = <span class="t-str">"Male (vs female)"</span>,
+                       Pclass2 = <span class="t-str">"2nd class (vs 1st)"</span>,
+                       Pclass3 = <span class="t-str">"3rd class (vs 1st)"</span>,
+                       Age     = <span class="t-str">"Age (per 1 year)"</span>),
+         term = <span class="t-fn">fct_rev</span>(<span class="t-fn">fct_inorder</span>(term))) <span class="t-op">|&gt;</span>         <span class="t-com"># 第一個變數放最上面</span>
+  <span class="t-fn">ggplot</span>(<span class="t-fn">aes</span>(x = OR, y = term)) +
+  <span class="t-fn">geom_vline</span>(xintercept = <span class="t-num">1</span>, linetype = <span class="t-str">"dashed"</span>, colour = <span class="t-str">"grey50"</span>) +   <span class="t-com"># OR = 1：沒有關係</span>
+  <span class="t-fn">geom_errorbar</span>(<span class="t-fn">aes</span>(xmin = conf.low, xmax = conf.high), width = <span class="t-num">0.2</span>) +
+  <span class="t-fn">geom_point</span>(size = <span class="t-num">3</span>, colour = <span class="t-str">"#264653"</span>) +
+  <span class="t-fn">scale_x_log10</span>() +
+  <span class="t-fn">labs</span>(title = <span class="t-str">"Logistic regression"</span>, x = <span class="t-str">"Odds ratio of survival (95% CI, log scale)"</span>, y = <span class="t-kw">NULL</span>) +
+  <span class="t-fn">theme_bw</span>()</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_forest.jpg" target="_blank" rel="noopener"><img src="img/colab/out_forest.jpg" alt="forest 在 Colab 的執行結果" width="1188" height="597" loading="lazy"></a></div><div class="figout wide"><span class="pre-tag">同一張圖放大</span><img src="img/titanic_r/forest_0.png" alt="forest 的圖" width="1200" height="750" loading="lazy"></div></div>
+  <div class="check"><b>🔍 讀圖</b>點越往左，存活機會越低。性別和艙等的點離虛線（OR = 1）很遠，影響非常大；年齡的點很靠近 1，但信賴區間很窄，仍然顯著，只是每 1 歲的效果比較小。用 <code>scale_x_log10()</code>，0.1 和 10 離 1 的距離才會一樣。森林圖在醫學論文很常見，<a href="ggplot.html#g15">ggplot2 畫室第 15 章</a>有更多變化。</div>
   <div class="stepdone"><button type="button" data-step="c9">我完成這一步了</button></div>
 </section>
 
@@ -1244,25 +1058,25 @@ plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img
   <div class="ch-h"><span class="num">10</span><h2>寫結論<small>AI 寫草稿，你逐句核對</small></h2></div>
   <p>把前面的<b>實際輸出</b>貼給 AI，請它寫結論。重點是限制它只能用你給的數字：</p>
   <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>以下是我所有的分析結果：
-<i>（貼上：整體存活率、性別與艙等的存活率表、卡方檢定與 Mann–Whitney 的結果、logistic regression 的 OR 表）</i>
+<i>（貼上：整體存活率、性別與艙等的存活率表、卡方檢定與 Wilcoxon 檢定的結果、logistic regression 的 OR 表）</i>
 請用繁體中文寫一段約 250 字的結論，給沒有統計背景的人看：
 1. 只能使用我提供的數字，不要自己補數字。
 2. 分成「主要發現」和「這份分析的限制」兩段。
 3. 不要寫出「因為是女性所以活下來」這種因果的說法。</pre></div>
   <p>AI 給的草稿，經過逐句核對、修正後，可以像這樣：</p>
   <div class="note tip"><b>📝 結論範例</b>
-    <p><b>主要發現：</b>本分析使用 Kaggle Titanic 資料中的 891 位乘客，整體存活率為 38.4%。女性的存活率（74.2%）遠高於男性（18.9%）；頭等、二等、三等艙的存活率分別為 63.0%、47.3%、24.2%，兩者與存活的關聯都達統計顯著（卡方檢定，p &lt; 0.001）。單獨比較年齡時，存活者與罹難者的年齡分布沒有明顯差異（Mann–Whitney，p = 0.16）；但在同時考慮性別、艙等與年齡的 logistic regression 中（n = 714），男性存活的勝算約為女性的 0.08 倍（95% CI 0.05–0.12），三等艙約為頭等艙的 0.08 倍（0.04–0.13），年齡每增加 10 歲，存活勝算約減少 31%。</p>
+    <p><b>主要發現：</b>本分析使用 Kaggle Titanic 資料中的 891 位乘客，整體存活率為 38.4%。女性的存活率（74.2%）遠高於男性（18.9%）；頭等、二等、三等艙的存活率分別為 63.0%、47.3%、24.2%，兩者與存活的關聯都達統計顯著（卡方檢定，p &lt; 0.001）。單獨比較年齡時，存活者與罹難者的年齡分布沒有明顯差異（Wilcoxon 秩和檢定，p = 0.16）；但在同時考慮性別、艙等與年齡的 logistic regression 中（n = 714），男性存活的勝算約為女性的 0.08 倍（95% CI 0.05–0.12），三等艙約為頭等艙的 0.08 倍（0.04–0.13），年齡每增加 10 歲，存活勝算約減少 31%。</p>
     <p><b>限制：</b>這份資料只包含約四成的乘客、不含船員；年齡有 177 人（19.9%）缺值，模型只用了有年齡的 714 人；這是觀察性資料，只能說明「關聯」，不能證明性別或艙等「造成」存活差異，艙等也可能同時代表艙房位置、離救生艇的距離等其他因素。</p>
   </div>
   <h3><span class="tag">10-1</span>逐句核對：每個數字都要找得到出處</h3>
   <div class="tblwrap"><table class="cmp">
     <tr><th>結論裡的數字</th><th>出處</th></tr>
-    <tr><td>891 位、38.4%</td><td>第 6 步「整體存活率」</td></tr>
+    <tr><td>891 位、38.4%</td><td>第 6 步整體的 n 和 rate（0.384）</td></tr>
     <tr><td>74.2%、18.9%</td><td>第 6 步依性別的 rate（0.742、0.189）</td></tr>
     <tr><td>63.0%、47.3%、24.2%</td><td>第 6 步依艙等的 rate</td></tr>
-    <tr><td>p &lt; 0.001</td><td>第 8 步卡方檢定（1.2e-58、4.6e-23）</td></tr>
-    <tr><td>p = 0.16</td><td>第 8 步 Mann–Whitney</td></tr>
-    <tr><td>n = 714、0.08（0.05–0.12）、0.08（0.04–0.13）</td><td>第 9 步 OR 表</td></tr>
+    <tr><td>p &lt; 0.001</td><td>第 8 步卡方檢定（p-value &lt; 2.2e-16）</td></tr>
+    <tr><td>p = 0.16</td><td>第 8 步 Wilcoxon（p-value = 0.1605）</td></tr>
+    <tr><td>n = 714、0.08（0.05–0.12）、0.08（0.04–0.13）</td><td>第 9 步 <code>nobs(fit)</code> 和 OR 表</td></tr>
     <tr><td>每 10 歲減少約 31%</td><td>第 9 步：0.964¹⁰ ≈ 0.69（這是自己算的，要寫清楚怎麼來的）</td></tr>
     <tr><td>177 人（19.9%）缺值</td><td>第 5 步缺值表</td></tr>
   </table></div>
@@ -1274,10 +1088,10 @@ plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img
     <li><label><input type="checkbox" id="ck4"><span>檢定方法符合資料型態（對照 p 值教室的流程圖）。</span></label></li>
     <li><label><input type="checkbox" id="ck5"><span>除了 p 值，也寫了效應大小（存活率差、OR 與信賴區間）。</span></label></li>
     <li><label><input type="checkbox" id="ck6"><span>圖的標題、座標軸、圖例都正確，看得懂。</span></label></li>
-    <li><label><input type="checkbox" id="ck7"><span>用「執行階段 → 重新啟動工作階段並全部執行」從頭跑一次，結果一樣、沒有錯誤。</span></label></li>
+    <li><label><input type="checkbox" id="ck7"><span>用「執行階段 → 重新啟動工作階段並執行所有儲存格」從頭跑一次，結果一樣、沒有錯誤。</span></label></li>
     <li><label><input type="checkbox" id="ck8"><span>依照課程規定，說明哪些部分使用了 AI。</span></label></li>
   </ul>
-  <div class="note warn"><b>⚠ AI 寫結論時常見的問題</b>① 數字跟輸出對不上（例如把 74.2% 寫成 74%、或寫出輸出裡沒有的數字）。② 把關聯寫成因果（「身為女性提高了存活率」）。③ 漏掉限制，或加上資料裡沒有的背景知識（例如船上救生艇的數量），這些要另外查證才能寫。</div>
+  <div class="note warn"><b>⚠ AI 寫結論時常見的問題</b>① 數字跟輸出對不上（例如寫出輸出裡沒有的數字）。② 把關聯寫成因果（「身為女性提高了存活率」）。③ 漏掉限制，或加上資料裡沒有的背景知識（例如船上救生艇的數量），這些要另外查證才能寫。</div>
   <div class="stepdone"><button type="button" data-step="c10">我完成這一步了</button></div>
 </section>
 
@@ -1286,135 +1100,124 @@ plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img
   <div class="ch-h"><span class="num">11</span><h2>除錯與 prompt 速查<small>出錯時怎麼辦、AI 常見的錯</small></h2></div>
   <h3><span class="tag">11-1</span>一個錯誤的完整處理過程</h3>
   <p>假設你自己打了下面這行，想算性別的存活率：</p>
-  <div class="py"><div class="cell-h"><span class="lab">🐍 Python</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"sex"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">mean</span>()</pre><div class="out"><span class="pre-tag">執行結果</span><span class="err">---------------------------------------------------------------------------
-KeyError                                  Traceback (most recent call last)
-----&gt; 1 clean.groupby("sex")["Survived"].mean()
-……（中間是很多層 pandas 內部的訊息，可以先跳過）……
-KeyError: 'sex'</span></div></div>
-  <p><b>先看最後一行</b>：<code>KeyError: 'sex'</code>，意思是「找不到叫做 sex 的欄位」。如果看不懂，按 Colab 的「解釋錯誤」，或用這個 prompt：</p>
-  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>我執行下面的程式時出現錯誤：
+  <div class="py"><div class="cell-h"><span class="lab">R · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean <span class="t-op">|&gt;</span> <span class="t-fn">group_by</span>(sex) <span class="t-op">|&gt;</span> <span class="t-fn">summarise</span>(rate = <span class="t-fn">mean</span>(Survived))</pre><div class="colabout"><span class="pre-tag">在 Colab 執行的結果（截圖）</span><a href="img/colab/out_err.jpg" target="_blank" rel="noopener"><img src="img/colab/out_err.jpg" alt="err 在 Colab 的執行結果" width="1188" height="290" loading="lazy"></a></div></div>
+  <p><b>先看 <code>!</code> 和 <code>✖</code> 開頭的那兩行</b>：「找不到叫做 sex 的欄位」。下面的 Traceback 是 R 內部一層一層的呼叫，通常可以跳過。看不懂的話，按「<b>說明錯誤</b>」：</p>
+  <figure class="shot real"><a href="img/colab/explain.jpg" target="_blank" rel="noopener"><img src="img/colab/explain.jpg" alt="實際截圖：Gemini 說明 R 對大小寫很敏感，欄名是大寫的 Sex，並直接在儲存格裡提出修改（紅色是原本的、綠色是修改後的）。" width="1280" height="610" loading="lazy"></a><figcaption><b>Colab 截圖</b>　實際截圖：Gemini 說明 R 對大小寫很敏感，欄名是大寫的 Sex，並直接在儲存格裡提出修改（紅色是原本的、綠色是修改後的）。</figcaption></figure>
+  <figure class="shot real"><a href="img/colab/fixed.jpg" target="_blank" rel="noopener"><img src="img/colab/fixed.jpg" alt="按「接受並執行」之後，程式改成 group_by(Sex)，得到女性 0.742、男性 0.189，和第 6 步的結果一樣。" width="1280" height="610" loading="lazy"></a><figcaption><b>Colab 截圖</b>　按「接受並執行」之後，程式改成 group_by(Sex)，得到女性 0.742、男性 0.189，和第 6 步的結果一樣。</figcaption></figure>
+  <p>如果用的是其他 AI 聊天網站，就用這個 prompt：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>我在 Colab 的 R 執行階段執行下面的程式時出現錯誤：
 <i>（貼上程式碼）</i>
 完整的錯誤訊息是：
-<i>（貼上錯誤訊息，從 Traceback 到最後一行）</i>
-請說明錯誤的原因，並給我修正後的程式碼。</pre></div>
-  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>KeyError 表示 DataFrame 裡沒有 <code>"sex"</code> 這一欄。欄位名稱有分大小寫，資料裡的欄名是 <code>"Sex"</code>（大寫 S）。修正：<code>clean.groupby("Sex")["Survived"].mean()</code>。可以用 <code>clean.columns</code> 查看所有欄名。</div>
-
+<i>（貼上錯誤訊息）</i>
+請說明錯誤的原因，並給我修正後的 R 程式碼。</pre></div>
+  <div class="aisay"><b>💬 AI 的回答（重點）</b>clean 裡沒有 <code>sex</code> 這一欄。R 的欄名有分大小寫，資料裡的欄名是 <code>Sex</code>（大寫 S）。修正：<code>clean |&gt; group_by(Sex) |&gt; summarise(rate = mean(Survived))</code>。可以用 <code>names(clean)</code> 查看所有欄名。</div>
   <h3><span class="tag">11-2</span>常見錯誤訊息</h3>
   <div class="tblwrap"><table class="cmp">
     <tr><th>錯誤訊息</th><th>意思</th><th>怎麼辦</th></tr>
-    <tr><td><code>NameError: name 'pd' is not defined</code></td><td>還沒執行 <code>import</code> 那一格，或雲端電腦重新連線過</td><td>執行階段 → 全部執行</td></tr>
-    <tr><td><code>NameError: name 'clean' is not defined</code></td><td>還沒執行建立 clean 的那一格</td><td>依順序從上往下執行</td></tr>
-    <tr><td><code>FileNotFoundError</code></td><td>找不到檔案：沒上傳、路徑打錯，或重新連線後檔案消失</td><td>重新上傳，或改用網址讀取</td></tr>
-    <tr><td><code>KeyError: '…'</code></td><td>欄位名稱打錯（大小寫、空白）</td><td><code>df.columns</code> 看正確欄名</td></tr>
-    <tr><td><code>ModuleNotFoundError</code></td><td>套件沒有安裝</td><td>在儲存格執行 <code>!pip install 套件名稱</code></td></tr>
-    <tr><td><code>IndentationError</code></td><td>縮排不對（Python 用縮排分區塊）</td><td>對齊同一層的程式；不要混用 Tab 和空白</td></tr>
-    <tr><td><code>SettingWithCopyWarning</code>（警告）</td><td>可能改到的是副本而不是原本的表</td><td>建立新表時加 <code>.copy()</code></td></tr>
-    <tr><td><code>FutureWarning</code>（警告）</td><td>這種寫法以後的版本會改</td><td>通常可以先不理；可以請 AI 改成新寫法</td></tr>
+    <tr><td><code>could not find function "read_csv"</code>（或 ggplot、group_by……）</td><td>還沒執行 <code>library(tidyverse)</code>，或雲端電腦重新連線過</td><td>執行階段 → 全部執行</td></tr>
+    <tr><td><code>object 'clean' not found</code></td><td>還沒執行建立 clean 的那一格</td><td>依順序從上往下執行</td></tr>
+    <tr><td><code>'titanic.csv' does not exist</code></td><td>找不到檔案：沒上傳、檔名打錯，或重新連線後檔案消失</td><td>重新上傳，或改用網址讀取</td></tr>
+    <tr><td><code>Column `sex` is not found</code></td><td>欄位名稱打錯（大小寫、空白）</td><td><code>names(df)</code> 看正確欄名</td></tr>
+    <tr><td><code>there is no package called 'xxx'</code></td><td>套件沒有安裝</td><td><code>install.packages("xxx")</code>（雲端電腦重新連線後要再裝一次）</td></tr>
+    <tr><td><code>Did you use %&gt;% or |&gt; instead of +?</code></td><td>ggplot 的圖層用了管線</td><td><code>ggplot()</code> 之後改用 <code>+</code></td></tr>
+    <tr><td><code>unexpected symbol</code> / <code>unexpected ')'</code></td><td>括號、逗號、引號沒對好</td><td>檢查括號是不是成對</td></tr>
+    <tr><td><code>Removed 177 rows …</code>（警告）</td><td>有缺值，那幾列沒畫</td><td>確認是預期中的缺值就好</td></tr>
   </table></div>
-
   <h3><span class="tag">11-3</span>AI 常犯的錯，以及怎麼發現</h3>
-  <div class="tblwrap"><table class="cmp">
+  <div class="tblwrap"><table class="cmp nw1">
     <tr><th>AI 的錯</th><th>例子</th><th>怎麼發現</th></tr>
-    <tr><td>用不存在的欄位</td><td>寫成 <code>df["age"]</code>、<code>df["Class"]</code></td><td>出現 KeyError；開場 prompt 先給欄位名稱可以避免</td></tr>
-    <tr><td>舊版或不存在的函式</td><td>pandas、seaborn 改版後，參數名稱變了</td><td>出現錯誤或警告時，貼給 AI 並說明版本</td></tr>
-    <tr><td>不聲不響地刪資料</td><td><code>dropna()</code>、<code>inplace=True</code></td><td>每一步之後看 <code>.shape</code>，列數有沒有突然變少</td></tr>
-    <tr><td>選錯統計方法</td><td>把 0/1 結果拿去做一般線性迴歸</td><td>請它說明理由；對照 p 值教室的流程圖</td></tr>
-    <tr><td>解釋跟輸出對不上</td><td>說「p = 0.03」，輸出其實是 0.16</td><td>每個數字回頭對照輸出</td></tr>
+    <tr><td>給你 Python</td><td>出現 <code>import pandas</code>、<code>df.groupby()</code></td><td>開場 prompt 寫「一律用 R」；看到就請它改寫成 R</td></tr>
+    <tr><td>用不存在的欄位</td><td>寫成 <code>age</code>、<code>Class</code></td><td>出現 not found；開場 prompt 先給欄位名稱</td></tr>
+    <tr><td>舊的寫法</td><td><code>gather()</code>、<code>spread()</code>、<code>summarise_each()</code></td><td>能跑但已不建議；請它改成 <code>pivot_longer()</code> 等新寫法</td></tr>
+    <tr><td>不聲不響地刪資料</td><td><code>drop_na()</code>、<code>na.omit()</code></td><td>每一步之後看 <code>nrow()</code>，列數有沒有突然變少</td></tr>
+    <tr><td>選錯統計方法</td><td>把 0/1 結果拿去做 <code>lm()</code></td><td>請它說明理由；對照 p 值教室的流程圖</td></tr>
+    <tr><td>解釋跟輸出對不上</td><td>說「p = 0.03」，輸出其實是 0.1605</td><td>每個數字回頭對照輸出</td></tr>
     <tr><td>過度推論</td><td>「女性存活率較高，證明當時有婦孺優先政策」</td><td>資料能證明什麼、不能證明什麼，自己想一遍</td></tr>
   </table></div>
-
   <h3><span class="tag">11-4</span>Prompt 速查表</h3>
   <div class="tblwrap"><table class="cmp nw1">
     <tr><th>情境</th><th>prompt 範本</th></tr>
-    <tr><td>開場</td><td>你是資料分析助教。我在 Colab 用 Python 分析 <i>（資料名稱）</i>，欄位有 <i>（欄位與意思）</i>。每次只做一步，加中文註解，圖上用英文，不要編造數字。</td></tr>
-    <tr><td>讀資料</td><td>請從 <i>（網址或檔名）</i> 讀取 CSV 存成 df，顯示列數、欄數和前 5 列。</td></tr>
-    <tr><td>認識資料</td><td>這是 df.info() 和 df.describe() 的輸出 <i>（貼上）</i>，請用白話說明每一欄，並指出需要注意的地方。</td></tr>
+    <tr><td>開場</td><td>你是資料分析助教。我在 Colab 的 R 執行階段分析 <i>（資料名稱）</i>，欄位有 <i>（欄位與意思）</i>。一律用 R 和 tidyverse，每次只做一步，加中文註解，圖上用英文，不要編造數字。</td></tr>
+    <tr><td>讀資料</td><td>請用 read_csv() 從 <i>（網址或檔名）</i> 讀取資料存成 df，顯示列數、欄數和前幾列。</td></tr>
+    <tr><td>認識資料</td><td>這是 glimpse() 和 summary() 的輸出 <i>（貼上）</i>，請用白話說明每一欄，並指出需要注意的地方。</td></tr>
     <tr><td>清理（先討論）</td><td>先不要寫程式。<i>（欄位）</i> 有 <i>（數量）</i> 個缺值，有哪些處理方式？各有什麼優缺點？</td></tr>
-    <tr><td>選統計方法</td><td>我想知道 <i>（問題）</i>。<i>（變數）</i> 是 <i>（類別 / 數值）</i>。請建議適合的檢定，說明理由和前提，再寫程式。</td></tr>
+    <tr><td>選統計方法</td><td>我想知道 <i>（問題）</i>。<i>（變數）</i> 是 <i>（類別 / 數值）</i>。請建議適合的檢定，說明理由和前提，再寫 R 程式。</td></tr>
     <tr><td>解釋輸出</td><td>這是 <i>（檢定 / 模型）</i> 的輸出 <i>（貼上）</i>，請用沒有統計背景的人聽得懂的話解釋。</td></tr>
-    <tr><td>修改圖</td><td>請把上一張圖的 <i>（要改的地方）</i> 改成 <i>（想要的樣子）</i>，其他不變。</td></tr>
-    <tr><td>看懂程式</td><td>請逐行解釋這段程式在做什麼 <i>（貼上）</i>，用初學者聽得懂的話。</td></tr>
+    <tr><td>修改圖</td><td>請把上一張 ggplot 的 <i>（要改的地方）</i> 改成 <i>（想要的樣子）</i>，其他不變。</td></tr>
+    <tr><td>看懂程式</td><td>請逐行解釋這段 R 程式在做什麼 <i>（貼上）</i>，用初學者聽得懂的話。</td></tr>
     <tr><td>檢查程式</td><td>請檢查這段程式有沒有可能出錯或讓結果偏差的地方，例如缺值、資料型態、刪掉資料。</td></tr>
-    <tr><td>除錯</td><td>執行 <i>（程式）</i> 出現錯誤 <i>（完整訊息）</i>，請說明原因並修正。</td></tr>
+    <tr><td>除錯</td><td>執行 <i>（程式）</i> 出現錯誤 <i>（完整訊息）</i>，請說明原因並給我修正後的 R 程式。</td></tr>
     <tr><td>寫結論</td><td>根據以下結果 <i>（貼上）</i>，寫 250 字結論，分「主要發現」和「限制」，只能用我給的數字，不要寫因果。</td></tr>
-    <tr><td>換成 R</td><td>請把上面的 Python 程式改寫成 R，使用 tidyverse 和 ggplot2。</td></tr>
+    <tr><td>改寫語言</td><td>這段是 Python，請改寫成 R，使用 tidyverse 和 ggplot2。</td></tr>
   </table></div>
   <h3><span class="tag">11-5</span>換一份資料練習</h3>
   <p>用同樣的流程，換一份資料自己做一次。下面這些都是公開、不含個資的資料：</p>
   <ul>
-    <li><b>企鵝資料</b>：<code>sns.load_dataset("penguins")</code>，三種企鵝的嘴喙長度、體重（比較組別、散佈圖）。</li>
-    <li><b>小費資料</b>：<code>sns.load_dataset("tips")</code>，餐廳帳單與小費（迴歸、分組比較）。</li>
-    <li><b>這門課的資料</b>：<a href="tidy.html">tidyverse 手冊</a>右下角 📁 可以下載 <code>lab.csv</code>（模擬的血糖、HbA1c 資料），試試用 AI + Colab 重做一次 p 值教室的分析。</li>
+    <li><b>企鵝資料</b>：<code>install.packages("palmerpenguins")</code> 後 <code>palmerpenguins::penguins</code>，三種企鵝的嘴喙長度、體重（比較組別、散佈圖）。</li>
+    <li><b>R 內建資料</b>：<code>mtcars</code>（汽車油耗）、<code>airquality</code>（紐約空氣品質，有缺值可以練習清理）。</li>
+    <li><b>這門課的資料</b>：<a href="tidy.html">tidyverse 手冊</a>右下角 📁 可以下載 <code>lab.csv</code>（模擬的血糖、HbA1c 資料），上傳到 Colab，用 AI 重做一次 p 值教室的分析。</li>
   </ul>
   <div class="stepdone"><button type="button" data-step="c11">我完成這一步了</button></div>
 </section>
 
-<!-- ============ R ============ -->
-<section class="ch" id="cR">
-  <div class="ch-h"><span class="num">附</span><h2>用 R 做同樣的分析<small>Colab 也能跑 R</small></h2></div>
-  <p>Colab 可以把語言換成 R：上方選單 <b>執行階段 → 變更執行階段類型</b>，在「執行階段類型」選 <b>R</b>，按儲存。之後這份筆記本的程式碼儲存格就是 R 了。常用的 tidyverse 通常已經裝好，可以直接 <code>library(tidyverse)</code>；如果出現找不到套件的錯誤，先執行 <code>install.packages("tidyverse")</code>。</p>
-  <figure class="shot">
-    <div class="scroll"><div class="mock">
-      <div class="mk-menu" style="padding-top:8px"><span>檔案</span><span>編輯</span><span>檢視畫面</span><span>插入</span><span class="mk-menu-pop"><span class="on">執行階段<span class="mk-n">1</span></span>
-        <span class="mk-pop"><div>全部執行 <small>Ctrl+F9</small></div><div>執行之前的儲存格</div><hr><div>中斷執行</div><div>重新啟動工作階段</div><div>重新啟動工作階段並全部執行</div><hr><div class="hl">變更執行階段類型<span class="mk-n">2</span></div></span></span><span>工具</span><span>說明</span></div>
-      <div style="height:200px;display:flex;align-items:flex-end;justify-content:flex-end;padding:12px">
-        <div class="mk-dialog" style="margin:0;width:260px"><div class="dh" style="font-size:14px">變更執行階段類型</div><div class="rows"><div>執行階段類型：<b style="color:#1a73e8">R ▾</b><span class="mk-n">3</span></div></div><div class="df"><span class="mk-btn">取消</span><span class="mk-btn blue">儲存</span></div></div>
-      </div>
-    </div></div>
-    <figcaption><b>示意圖 7</b>　<span class="mk-n">1</span> 執行階段 → <span class="mk-n">2</span> 變更執行階段類型 → <span class="mk-n">3</span> 選 R，儲存。</figcaption>
-  </figure>
-  <p>也可以直接請 AI 改寫：「請把上面的 Python 程式改寫成 R，使用 tidyverse。」下面是核心分析的 R 版本，結果跟 Python 完全一樣：</p>
-  <div class="py"><div class="cell-h"><span class="lab">R · 同樣的分析</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">library</span>(tidyverse)
+<!-- ============ Python ============ -->
+<section class="ch" id="cP">
+  <div class="ch-h"><span class="num">附</span><h2>同樣的分析用 Python<small>Colab 預設的語言</small></h2></div>
+  <p>以後你可能會遇到只用 Python 的同學或實驗室。同一份分析用 Python（pandas、seaborn、scipy、statsmodels）也做得到，<b>數字完全一樣</b>。把筆記本的執行階段換回 Python 3，或請 AI：「這段是 R，請改寫成 Python 的 pandas。」</p>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>要做的事</th><th>R（tidyverse）</th><th>Python（pandas / seaborn）</th></tr>
+    <tr><td>讀 CSV</td><td><code>read_csv("x.csv")</code></td><td><code>pd.read_csv("x.csv")</code></td></tr>
+    <tr><td>看結構</td><td><code>glimpse(df)</code></td><td><code>df.info()</code></td></tr>
+    <tr><td>取一欄</td><td><code>df$Age</code></td><td><code>df["Age"]</code></td></tr>
+    <tr><td>新增欄位</td><td><code>mutate(fam = SibSp + Parch + 1)</code></td><td><code>df["fam"] = df["SibSp"] + df["Parch"] + 1</code></td></tr>
+    <tr><td>分組統計</td><td><code>group_by(Sex) |&gt; summarise(rate = mean(Survived))</code></td><td><code>df.groupby("Sex")["Survived"].mean()</code></td></tr>
+    <tr><td>交叉表</td><td><code>table(df$Sex, df$Survived)</code></td><td><code>pd.crosstab(df["Sex"], df["Survived"])</code></td></tr>
+    <tr><td>缺值</td><td><code>NA</code>、<code>is.na()</code></td><td><code>NaN</code>、<code>.isna()</code></td></tr>
+    <tr><td>畫圖</td><td><code>ggplot() + geom_col()</code></td><td><code>sns.barplot()</code></td></tr>
+    <tr><td>檢定</td><td><code>chisq.test()</code> / <code>wilcox.test()</code></td><td><code>chi2_contingency()</code> / <code>mannwhitneyu()</code></td></tr>
+    <tr><td>logistic regression</td><td><code>glm(..., family = binomial)</code></td><td><code>smf.logit(...).fit()</code></td></tr>
+  </table></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · 同樣的分析（節錄）</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">import</span> pandas <span class="t-kw">as</span> pd                 <span class="t-com"># 表格資料</span>
+<span class="t-kw">import</span> matplotlib.pyplot <span class="t-kw">as</span> plt     <span class="t-com"># 畫圖的底層</span>
+<span class="t-kw">import</span> seaborn <span class="t-kw">as</span> sns               <span class="t-com"># 比較漂亮、好寫的統計圖</span>
 
-df <span class="t-op">&lt;-</span> <span class="t-fn">read_csv</span>(<span class="t-str">"https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv"</span>,
-               show_col_types = <span class="t-kw">FALSE</span>)
-<span class="t-fn">glimpse</span>(df)
-<span class="t-fn">colSums</span>(is.<span class="t-fn">na</span>(df))                                    <span class="t-com"># 每一欄的缺值數</span>
+url = <span class="t-str">"https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv"</span>
+df = pd.<span class="t-fn">read_csv</span>(url)               <span class="t-com"># 讀 CSV，存成 DataFrame</span>
+<span class="t-fn">print</span>(df.shape)                     <span class="t-com"># (列數, 欄數)</span>
+df.<span class="t-fn">head</span>()                           <span class="t-com"># 前 5 列</span>
 
-clean <span class="t-op">&lt;-</span> df <span class="t-op">|&gt;</span>
-  <span class="t-fn">select</span>(-Cabin, -Ticket) <span class="t-op">|&gt;</span>
-  <span class="t-fn">mutate</span>(Embarked   = <span class="t-fn">replace_na</span>(Embarked, <span class="t-str">"S"</span>),      <span class="t-com"># 最常見的港口</span>
-         FamilySize = SibSp + Parch + <span class="t-num">1</span>,
-         Outcome    = <span class="t-fn">if_else</span>(Survived == <span class="t-num">1</span>, <span class="t-str">"Survived"</span>, <span class="t-str">"Died"</span>))
+clean = df.<span class="t-fn">drop</span>(columns=[<span class="t-str">"Cabin"</span>, <span class="t-str">"Ticket"</span>])     <span class="t-com"># drop 會回傳新的表，df 不會被改到</span>
+clean[<span class="t-str">"Embarked"</span>] = clean[<span class="t-str">"Embarked"</span>].<span class="t-fn">fillna</span>(clean[<span class="t-str">"Embarked"</span>].<span class="t-fn">mode</span>()[<span class="t-num">0</span>])   <span class="t-com"># 補上最常見的港口</span>
+clean[<span class="t-str">"FamilySize"</span>] = clean[<span class="t-str">"SibSp"</span>] + clean[<span class="t-str">"Parch"</span>] + <span class="t-num">1</span>                   <span class="t-com"># 兄弟姊妹配偶 + 父母子女 + 自己</span>
+clean[<span class="t-str">"AgeGroup"</span>] = pd.<span class="t-fn">cut</span>(clean[<span class="t-str">"Age"</span>],
+                           bins=[<span class="t-num">0</span>, <span class="t-num">12</span>, <span class="t-num">18</span>, <span class="t-num">40</span>, <span class="t-num">60</span>, <span class="t-num">80</span>],                    <span class="t-com"># (0,12]、(12,18]……</span>
+                           labels=[<span class="t-str">"0-12"</span>, <span class="t-str">"13-18"</span>, <span class="t-str">"19-40"</span>, <span class="t-str">"41-60"</span>, <span class="t-str">"61-80"</span>])
+clean[<span class="t-str">"Outcome"</span>] = clean[<span class="t-str">"Survived"</span>].<span class="t-fn">map</span>({<span class="t-num">0</span>: <span class="t-str">"Died"</span>, <span class="t-num">1</span>: <span class="t-str">"Survived"</span>})        <span class="t-com"># 0/1 換成文字，畫圖比較好讀</span>
+clean.<span class="t-fn">isna</span>().<span class="t-fn">sum</span>()
 
-clean <span class="t-op">|&gt;</span>
-  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), rate = <span class="t-fn">mean</span>(Survived), .by = <span class="t-fn">c</span>(Pclass, Sex)) <span class="t-op">|&gt;</span>
-  <span class="t-fn">arrange</span>(Pclass, Sex)
+clean.<span class="t-fn">groupby</span>(<span class="t-str">"Sex"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, survived=<span class="t-str">"sum"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)
 
-<span class="t-fn">ggplot</span>(clean, <span class="t-fn">aes</span>(x = <span class="t-fn">factor</span>(Pclass), y = Survived, fill = Sex)) +
-  <span class="t-fn">stat_summary</span>(fun = mean, geom = <span class="t-str">"col"</span>, position = <span class="t-str">"dodge"</span>) +
-  <span class="t-fn">labs</span>(x = <span class="t-str">"Passenger class"</span>, y = <span class="t-str">"Survival rate"</span>)
+<span class="t-kw">from</span> scipy.stats <span class="t-kw">import</span> chi2_contingency, mannwhitneyu
 
-chisq.<span class="t-fn">test</span>(<span class="t-fn">table</span>(clean$Sex, clean$Survived))
-wilcox.<span class="t-fn">test</span>(Age <span class="t-op">~</span> Survived, data = clean)
+tab = pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Sex"</span>], clean[<span class="t-str">"Survived"</span>])           <span class="t-com"># 2 × 2 列聯表</span>
+chi2, p, dof, expected = <span class="t-fn">chi2_contingency</span>(tab)
+<span class="t-fn">print</span>(tab)
+<span class="t-fn">print</span>(<span class="t-str">f"性別：chi2 = {chi2:.1f}, df = {dof}, p = {p:.2e}"</span>)
 
-fit <span class="t-op">&lt;-</span> <span class="t-fn">glm</span>(Survived <span class="t-op">~</span> Sex + <span class="t-fn">factor</span>(Pclass) + Age, data = clean, family = binomial)
-<span class="t-fn">exp</span>(<span class="t-fn">cbind</span>(OR = <span class="t-fn">coef</span>(fit), confint.<span class="t-fn">default</span>(fit)))      <span class="t-com"># odds ratio 與 95% CI</span></pre></div>
-  <div class="out" style="border:1px solid var(--line);border-radius:12px;white-space:pre;overflow-x:auto"><span class="pre-tag">重點輸出（節錄）</span># A tibble: 6 × 4
-  Pclass Sex        n  rate
-   &lt;dbl&gt; &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;
-1      1 female    94 0.968
-2      1 male     122 0.369
-3      2 female    76 0.921
-4      2 male     108 0.157
-5      3 female   144 0.5
-6      3 male     347 0.135
+<span class="t-kw">import</span> numpy <span class="t-kw">as</span> np
+<span class="t-kw">import</span> statsmodels.formula.api <span class="t-kw">as</span> smf
 
-	Pearson's Chi-squared test with Yates' continuity correction
-data:  table(clean$Sex, clean$Survived)
-X-squared = 260.72, df = 1, p-value &lt; 2.2e-16
-
-	Wilcoxon rank sum test with continuity correction
-data:  Age by Survived
-W = 65278, p-value = 0.1605
-
-                         OR       2.5 %     97.5 %
-(Intercept)     43.68534331 19.90210333 95.8898257
-Sexmale          0.08023617  0.05343658  0.1204763
-factor(Pclass)2  0.26987422  0.15648460  0.4654266
-factor(Pclass)3  0.07572664  0.04361991  0.1314657
-Age              0.96369033  0.94933775  0.9782599</div>
-  <div class="check"><b>🔍 對照 Python</b>存活率表、χ² = 260.7、年齡 p = 0.16、OR 與信賴區間都和 Python 版相同（Wilcoxon 的 W 和 Mann–Whitney 的 U 數值不同，是因為兩邊以不同的組當作第一組，p 值一樣）。用哪一種語言不重要，<b>重要的是你看得懂、檢查得了</b>。</div>
+model = smf.<span class="t-fn">logit</span>(<span class="t-str">"Survived ~ C(Sex) + C(Pclass) + Age"</span>, data=clean).<span class="t-fn">fit</span>()   <span class="t-com"># Age 缺值的列會自動排除</span>
+<span class="t-fn">print</span>(<span class="t-str">"用到的乘客數："</span>, <span class="t-fn">int</span>(model.nobs))
+or_table = pd.<span class="t-fn">DataFrame</span>({
+    <span class="t-str">"OR"</span>:      np.<span class="t-fn">exp</span>(model.params),            <span class="t-com"># 係數取 e 次方 = odds ratio</span>
+    <span class="t-str">"CI_low"</span>:  np.<span class="t-fn">exp</span>(model.<span class="t-fn">conf_int</span>()[<span class="t-num">0</span>]),
+    <span class="t-str">"CI_high"</span>: np.<span class="t-fn">exp</span>(model.<span class="t-fn">conf_int</span>()[<span class="t-num">1</span>]),
+}).<span class="t-fn">round</span>(<span class="t-num">3</span>)
+or_table[<span class="t-str">"p"</span>] = model.pvalues.<span class="t-fn">map</span>(<span class="t-kw">lambda</span> v: <span class="t-str">f"{v:.1e}"</span>)   <span class="t-com"># p 值用科學記號，不然會被四捨五入成 0</span>
+or_table</pre></div>
+  <div class="dlrow"><a href="notebooks/titanic_ai_colab.ipynb" download>⬇ Python 版完整 notebook <small>參考用</small></a></div>
+  <div class="check"><b>🔍 對照 R</b>存活率、卡方 X² = 260.7、年齡檢定 p = 0.16、OR 都和 R 版相同（OR 的信賴區間在小數第三位可能差一點：R 的 <code>broom::tidy()</code> 用 profile likelihood，Python 的 statsmodels 用 Wald 法）。用哪一種語言不重要，<b>重要的是你看得懂、檢查得了</b>。</div>
   <div class="next">
     <a href="ai.html"><span>上一單元</span><b>R 寶的 AI 入門 →</b></a>
     <a href="pvalue.html"><span>統計方法複習</span><b>R 寶的 p 值教室 →</b></a>
@@ -1425,7 +1228,7 @@ Age              0.96369033  0.94933775  0.9782599</div>
 </div>
 
 <script>
-window.PAGE_KEY = 'r-ai-colab-v1';
+window.PAGE_KEY = 'r-ai-colab-r-v1';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 let store = {};

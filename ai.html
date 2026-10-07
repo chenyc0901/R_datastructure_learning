@@ -530,6 +530,13 @@ ol.legend{list-style:none;padding:0;margin:8px 0;display:grid;grid-template-colu
 ol.legend li{display:flex;gap:6px;align-items:flex-start}
 ol.legend .mk-n{margin-top:3px}
 table.nw1 td:first-child{white-space:nowrap}
+.shot.real a{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 8px 28px rgba(15,23,42,.14);background:#1f1f1f}
+.shot.real img{display:block;width:100%;height:auto}
+.out .warn{color:var(--amber)}
+.py .colabout{border-top:1px dashed var(--line);background:#1f1f1f;padding:8px 10px 10px}
+.py .colabout .pre-tag{display:block;color:#bdc1c6;font-size:13px;margin-bottom:6px}
+.py .colabout img{display:block;width:100%;height:auto;border-radius:6px}
+.py .figout .pre-tag{display:block;color:#5f6368;font-size:13px;margin-bottom:4px;font-family:var(--f-body)}
 </style>
 <style id="clarity">
 /* PingFang / JhengHei are hinted for screens and read sharper than the web-loaded Noto subset */
@@ -804,7 +811,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <tr><td><b>3. 清理資料</b></td><td>決定缺值、異常值怎麼處理，並寫下理由</td><td>寫清理程式；列出幾種處理方式的優缺點</td><td>AI 可能不聲不響地刪掉資料、補值</td></tr>
     <tr><td><b>4. 探索資料</b></td><td>看結果有沒有不合理的地方</td><td>快速產生摘要表、交叉表</td><td>表格數字要對得起來（例如人數加總）</td></tr>
     <tr><td><b>5. 統計分析</b></td><td>確認方法符合資料型態和前提</td><td>建議檢定方法、寫程式、解釋輸出</td><td>選錯檢定、沒檢查前提、多重比較沒校正</td></tr>
-    <tr><td><b>6. 畫圖</b></td><td>決定圖要傳達什麼訊息</td><td>寫 ggplot2 / seaborn 程式、調整顏色和標籤</td><td>座標軸、單位、圖例要正確</td></tr>
+    <tr><td><b>6. 畫圖</b></td><td>決定圖要傳達什麼訊息</td><td>寫 ggplot2 程式、調整顏色和標籤</td><td>座標軸、單位、圖例要正確</td></tr>
     <tr><td><b>7. 寫結論</b></td><td>為每一句話負責</td><td>草擬文字、潤飾、翻譯</td><td>編造數字、把相關說成因果、過度推論</td></tr>
   </table></div>
   <h3><span class="tag">5-1</span>三條使用原則</h3>
@@ -813,7 +820,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <div><span class="ic">🧐</span><b>看得懂才用</b>AI 給的每一行程式，你都要大概知道在做什麼。看不懂就問它：「請逐行解釋這段程式。」</div>
     <div><span class="ic">🔁</span><b>小步前進、隨時檢查</b>一次只請它做一步，執行、看結果、確認合理，再進下一步。一次要完整份分析，錯了很難找。</div>
   </div>
-  <div class="note"><b>🧑‍🔬 學 R 還有用嗎？</b>有，而且更重要。AI 寫得出程式，但只有看得懂程式的人才能發現它寫錯了。前面八個單元學的觀念（向量、資料框、分組統計、圖形文法、p 值），正是你檢查 AI 的工具。下一章用的是 Python，你會發現觀念幾乎一模一樣。</div>
+  <div class="note"><b>🧑‍🔬 學 R 還有用嗎？</b>有，而且更重要。AI 寫得出程式，但只有看得懂程式的人才能發現它寫錯了。前面八個單元學的觀念（向量、資料框、分組統計、圖形文法、p 值），正是你檢查 AI 的工具。下一章就在 Colab 用 R 實際操作，你會看到這些觀念怎麼幫你抓出 AI 的錯。</div>
 </section>
 
 <!-- ============ 06 ============ -->
@@ -841,7 +848,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
   <p>給 AI 的指令或問題叫做 <b>prompt</b>。AI 不知道你是誰、你的資料長什麼樣、你要什麼格式；你沒說的，它就自己猜。好的 prompt 通常包含這五個要素：</p>
   <div class="tblwrap"><table class="cmp nw1">
     <tr><th>要素</th><th>回答的問題</th><th>例子（Titanic 分析）</th></tr>
-    <tr><td><b>角色</b></td><td>要 AI 用什麼身分回答？</td><td>你是一位資料分析助教，熟悉 Python 的 pandas 和 seaborn。</td></tr>
+    <tr><td><b>角色</b></td><td>要 AI 用什麼身分回答？</td><td>你是一位資料分析助教，熟悉 R 的 tidyverse 和 ggplot2。</td></tr>
     <tr><td><b>背景</b></td><td>你是誰？資料是什麼？做到哪裡了？</td><td>我是醫技系學生，在 Colab 分析 Titanic 資料，欄位有 Survived、Pclass、Sex、Age……，已經讀進變數 df。</td></tr>
     <tr><td><b>任務</b></td><td>這一步具體要做什麼？</td><td>請依性別和艙等計算存活率。</td></tr>
     <tr><td><b>格式</b></td><td>結果要長什麼樣子？</td><td>只給程式碼，加上繁體中文註解；存活率取小數 3 位。</td></tr>
@@ -851,7 +858,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
   <h3><span class="tag">7-1</span>好壞對照</h3>
   <div class="vs">
     <div class="no"><b>✗ 太模糊</b><p>「幫我分析鐵達尼號。」</p><p style="color:var(--muted);font-size:13.5px">AI 不知道你要看什麼、用什麼語言、做到多深，通常會丟給你一大段你看不懂、也不一定對的程式。</p></div>
-    <div class="yes"><b>✓ 具體</b><p>「我在 Colab 用 Python，資料已讀進 df。請算出男性和女性的存活率，存活率取 3 位小數，程式加上中文註解。」</p></div>
+    <div class="yes"><b>✓ 具體</b><p>「我在 Colab 用 R，資料已讀進 df。請算出男性和女性的存活率，存活率取 3 位小數，程式加上中文註解。」</p></div>
   </div>
   <div class="vs">
     <div class="no"><b>✗ 只說「錯了」</b><p>「你的程式不能跑。」</p></div>
@@ -868,11 +875,11 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <div class="wbox-h">🧰 Prompt 組合器 <small>五個要素</small><button type="button" class="copy" style="margin-left:auto">複製 prompt</button></div>
     <div class="wbox-b pb">
       <div>
-        <label>角色 <span>要 AI 用什麼身分回答</span><textarea id="pb_role" rows="2">你是一位資料分析助教，熟悉 Python 的 pandas 和 seaborn。</textarea></label>
-        <label>背景 <span>你是誰、資料是什麼、做到哪裡</span><textarea id="pb_ctx" rows="3">我是醫技系學生，正在 Google Colab 分析 Titanic 乘客資料，已經讀進變數 df，欄位有 Survived（0/1）、Pclass（1/2/3）、Sex、Age。</textarea></label>
+        <label>角色 <span>要 AI 用什麼身分回答</span><textarea id="pb_role" rows="2">你是一位資料分析助教，熟悉 R 的 tidyverse 和 ggplot2。</textarea></label>
+        <label>背景 <span>你是誰、資料是什麼、做到哪裡</span><textarea id="pb_ctx" rows="3">我是醫技系學生，正在 Google Colab 用 R 分析 Titanic 乘客資料，已經讀進變數 df，欄位有 Survived（0/1）、Pclass（1/2/3）、Sex、Age。</textarea></label>
         <label>任務 <span>這一步要做什麼</span><textarea id="pb_task" rows="2">請計算每個艙等中，男性和女性的存活率，再畫成長條圖。</textarea></label>
         <label>格式 <span>結果長什麼樣子</span><textarea id="pb_fmt" rows="2">程式碼加上繁體中文註解；存活率取小數 3 位。</textarea></label>
-        <label>限制 <span>不要做什麼、一定要遵守什麼</span><textarea id="pb_rule" rows="2">不要修改 df；圖上的文字用英文；不要自己編造數字。</textarea></label>
+        <label>限制 <span>不要做什麼、一定要遵守什麼</span><textarea id="pb_rule" rows="2">一律用 R 和 tidyverse；不要修改 df；圖上的文字用英文；不要自己編造數字。</textarea></label>
         <div class="wctl2"><button type="button" class="btn" id="pbReset">恢復範例</button><button type="button" class="btn" id="pbClear">全部清空</button></div>
       </div>
       <div>

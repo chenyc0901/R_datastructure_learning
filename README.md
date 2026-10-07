@@ -15,7 +15,7 @@
 | 08 R 寶的 ggplot2 畫室 | `ggplot.html` |
 | ＋ 08 補充：R 寶的 p 值教室 | `pvalue.html` |
 | 09 R 寶的 AI 入門 | `ai.html` |
-| 10 R 寶的 AI × Colab 實戰：鐵達尼號 | `colab.html`（notebook 在 `notebooks/`，資料 `data/titanic.csv`） |
+| 10 R 寶的 AI × Colab 實戰：鐵達尼號（R） | `colab.html`（notebook 在 `notebooks/`，資料 `data/titanic.csv`） |
 | ＋ 控制流程補充教材 | `extras.html` |
 
 ## 第一部分：記憶體裡的 R 物件（`memory.html`）
@@ -247,6 +247,6 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 ## 第九、十單元：AI 入門與 AI × Colab 實戰（`ai.html`、`colab.html`）
 
 - `ai.html`：AI / 機器學習 / 深度學習 / LLM 的關係、AI 發展時間軸、從資料學切點的互動動畫、下一個 token 預測（溫度）動畫、AI 在資料分析各步驟的角色、風險與個資規範、prompt 五要素與組合器、小測驗。
-- `colab.html`：在 Google Colab 用 AI 分析 Kaggle Titanic `train.csv`（891 位乘客）的 11 個步驟，每一步附 prompt、程式碼、實際輸出與檢查重點；Colab 介面為依實際介面重畫的示意圖。附錄有 R 版本。
-- 頁面上的程式碼、輸出與圖都來自實際執行 `notebooks/titanic_ai_colab.ipynb`（pandas 2.2、seaborn 0.13、statsmodels），R 版本與 Python 結果一致。
-- `notebooks/titanic_ai_practice.ipynb` 只有 prompt，程式碼儲存格留空給學生練習。
+- `colab.html`：在 Google Colab 的 R 執行階段，用 AI（Gemini）分析 Kaggle Titanic `train.csv`（891 位乘客）的 11 個步驟，每一步附 prompt、R 程式碼（tidyverse、ggplot2、chisq.test、wilcox.test、glm + broom）與在 Colab 實際執行的截圖。附錄有 Python 對照。
+- Colab 畫面都是實際操作的截圖（`img/colab/`）；每一格的執行結果截圖來自從 GitHub 開啟 `notebooks/titanic_ai_colab_r.ipynb` 後「全部執行」。高解析度的圖（`img/titanic_r/`）由本機 R 執行同一份程式產生，數字與 Colab 一致。
+- `notebooks/titanic_ai_practice_r.ipynb` 只有 prompt，程式碼儲存格留空給學生練習；`notebooks/titanic_ai_colab.ipynb` 是 Python 版參考。
