@@ -394,7 +394,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <h1>R 寶的 tidyverse 完全手冊</h1>
     </div>
     <p>從讀進一份亂七八糟的資料，到整理、轉換、合併，再用 ggplot2 畫出能放進報告的圖。每一個函式都有可以執行的範例和圖解，最後用三個實作範例（其中一個是生物資訊的 RNA-seq 分析）把全部串起來。</p>
-    <div class="meta"><span class="pill">13 章 + 統計補充 · 11 題練習 · 3 個實作範例</span><span class="pill">這一頁跑的是<b>真正的 R</b>（webR）</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span></div>
+    <div class="meta"><span class="pill">13 章 · 10 題練習 · 3 個實作範例</span><span class="pill">這一頁跑的是<b>真正的 R</b>（webR）</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span></div>
   </div>
 </header>
 
@@ -413,7 +413,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <li><a href="#ch8" data-ex="ex8"><span class="n">08</span>字串、類別、日期<span class="ck">✓</span></a></li>
       <li><a href="#ch9" data-ex="ex9"><span class="n">09</span>ggplot2：圖形文法<span class="ck">✓</span></a></li>
       <li><a href="#ch10" data-ex="ex10"><span class="n">10</span>ggplot2：讓圖會說話<span class="ck">✓</span></a></li>
-      <li><a href="#stat" data-ex="ex11"><span class="n">+</span>補充：p 值與統計檢定<span class="ck">✓</span></a></li>
+      <li><a href="#stat"><span class="n">+</span>補充：p 值教室 ↗</a></li>
       <li><a href="#ex-a"><span class="n">11</span>範例：臨床資料清理</a></li>
       <li><a href="#ex-b"><span class="n">12</span>範例：OGTT 曲線</a></li>
       <li><a href="#ex-c"><span class="n">13</span>範例：RNA-seq 🧬</a></li>
@@ -1506,167 +1506,14 @@ file.exists("fig_scatter.png")</script>
 p</script>
   </div>
 </section>
-<!-- ============ supplement: p values ============ -->
+<!-- ============ supplement pointer ============ -->
 <section class="ch stat-ch" id="stat">
-  <div class="ch-h"><span class="num">+</span><h2>補充：p 值、統計檢定與效應量<small>p 值到底是什麼？怎麼算？該用哪一種檢定？除了 p 值還要報告什麼？</small></h2></div>
-  <p class="lead">畫完圖，下一步通常是「做個檢定，看有沒有顯著差異」。這一章用前面的資料，把 p 值的意思講清楚，整理出<b>什麼問題用什麼檢定</b>（附決策流程圖），以及報告時一定要附上的<b>效應量</b>和<b>信賴區間</b>。</p>
-
-  <h3><span class="tag">S-1</span>p 值是什麼？</h3>
-  <p>想知道糖尿病組和對照組的 HbA1c 是不是真的不一樣。統計檢定的邏輯是「反證」：</p>
-  <ol class="steps">
-    <li>先假設<b>沒有差異</b>，叫做<b>虛無假設 H₀</b>（兩組其實來自同一個母群體，觀察到的差距只是抽樣的運氣）。</li>
-    <li>在 H₀ 成立的世界裡，算出「得到<b>和現在一樣、或更極端</b>的結果」的機率。這個機率就是 <b>p 值</b>。</li>
-    <li>p 值很小，表示「如果真的沒差，這麼極端的結果很少見」，於是我們<b>懷疑 H₀</b>，說差異「達到統計顯著」。習慣上的門檻是 α = 0.05。</li>
-  </ol>
-  <p>「H₀ 成立的世界」可以用電腦模擬出來：如果組別跟數值真的無關，那把組別標籤<b>隨機打亂</b>重新分組，算出來的差距就是「純粹靠運氣」會出現的差距。打亂幾千次，看真正觀察到的差距落在哪裡：</p>
-  <div class="widget" id="perm"></div>
-  <p>同樣的事情用 R 寫，就是<b>置換檢定</b>（permutation test）。<code>sample()</code> 把組別打亂，<code>replicate()</code> 重複 5000 次：</p>
-<script type="text/x-r" class="cell" data-label="範例 S-1 · 置換檢定" data-h="250">set.seed(1)                                            # 固定亂數，每次結果一樣
-obs <- mean(lab$age[lab$group == "diabetes"]) - mean(lab$age[lab$group == "control"])
-perm <- replicate(5000, {
-  g <- sample(lab$group)                               # 把組別標籤打亂
-  mean(lab$age[g == "diabetes"]) - mean(lab$age[g == "control"])
-})
-obs
-mean(abs(perm) >= abs(obs))                            # 雙尾 p 值：一樣或更極端的比例
-
-ggplot(tibble(diff = perm), aes(x = diff)) +
-  geom_histogram(binwidth = 1, fill = "grey75", colour = "white") +
-  geom_vline(xintercept = c(obs, -obs), colour = "tomato", linetype = "dashed") +
-  labs(x = "Difference in mean age if groups were random (years)", y = "Count")
-t.test(age ~ group, data = lab)$p.value                # 和 t 檢定的 p 值很接近</script>
-  <p>糖尿病組平均年輕了 6.8 歲，但這麼大的差距，在「隨機分組」的世界裡也有大約 10% 的機會出現：置換檢定的 p ≈ 0.10，<b>沒有達到 0.05</b>。t 檢定用數學公式（t 分布）直接算出同一件事（p = 0.094），不用真的打亂幾千次；兩者很接近。</p>
-
-  <div class="cards">
-    <div><code>✗ p 是 H₀ 為真的機率</code><p>不是。p 是「<b>假設</b> H₀ 為真時，看到這種資料的機率」。p = 0.03 不代表「只有 3% 的機會沒差異」。</p></div>
-    <div><code>✗ p &gt; 0.05 = 沒有差異</code><p>不是。只代表<b>證據不夠</b>。上面的年齡差了 6.8 歲，可能是樣本太小（每組 20 人左右）看不出來。「沒有證據」不等於「證明沒有」。</p></div>
-    <div><code>✗ p 越小，差異越大、越重要</code><p>不是。p 同時受「差異大小」和「樣本數」影響。樣本夠大，再小的差異都會顯著（見 S-2）。</p></div>
-    <div><code>✗ 0.049 和 0.051 天差地遠</code><p>0.05 只是慣例。報告<b>精確的 p 值</b>（p = 0.049），不要只寫「p &lt; 0.05」或「n.s.」。</p></div>
-    <div><code>✗ 一直換方法直到顯著</code><p>換檢定、刪資料、加變數，試到 p &lt; 0.05 為止，叫做 <b>p-hacking</b>，得到的結論不可信。分析方法要事先決定。</p></div>
-    <div><code>✗ 做 20 個檢定，挑顯著的報告</code><p>每次 5% 偽陽性，20 次預期就有 1 個假的顯著。要做<b>多重比較校正</b>（第 5 章的 <code>p.adjust()</code>）。</p></div>
+  <div class="ch-h"><span class="num">+</span><h2>補充：p 值、統計檢定與效應量<small>畫完圖之後，下一步通常是「做個檢定」</small></h2></div>
+  <p>圖畫好了，常常接著要問：兩組真的不一樣嗎？還是剛好？這時候就會用到統計檢定和 <b>p 值</b>。這部分內容很多，所以獨立成一個補充頁面：</p>
+  <div class="next" style="margin-top:8px">
+    <a href="pvalue.html"><span>補充教材</span><b>R 寶的 p 值教室：p 值是什麼、該用哪一種檢定、要注意什麼 →</b></a>
   </div>
-
-  <h3><span class="tag">S-2</span>效應量與信賴區間：差了「多少」</h3>
-  <p>p 值只回答「有沒有差」，不回答「差多少、重不重要」。下面兩個模擬的研究，哪一個比較重要？</p>
-<script type="text/x-r" class="cell" data-label="範例 S-2 · 同樣的 p 值，完全不同的故事">set.seed(18)
-big   <- tibble(group = rep(c("A", "B"), each = 5000),            # 每組 5000 人
-                glucose = c(rnorm(5000, 100, 15), rnorm(5000, 101, 15)))
-small <- tibble(group = rep(c("A", "B"), each = 8),               # 每組 8 人
-                glucose = c(rnorm(8, 100, 15), rnorm(8, 120, 15)))
-t.test(glucose ~ group, data = big)$p.value      # 只差約 1 mg/dL，卻非常「顯著」
-t.test(glucose ~ group, data = small)$p.value    # 差了十幾 mg/dL，卻「不顯著」</script>
-  <p>大研究兩組只差 1.3 mg/dL，臨床上毫無意義，但因為樣本超大，p 值非常小（1.2 × 10⁻⁵）；小研究差了 16.9 mg/dL，卻因為只有 16 個人，p = 0.12 不顯著。所以報告一定要加上<b>效應量</b>（effect size：差異的大小）和<b>95% 信賴區間</b>（這個大小可能的範圍）。</p>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>情境</th><th>效應量</th><th>怎麼解讀</th><th>R</th></tr>
-    <tr><td>兩組平均</td><td><b>平均差</b>（原本的單位）<br><b>Cohen's d</b> = 平均差 ÷ 合併標準差</td><td>d ≈ 0.2 小、0.5 中、0.8 大（只是參考，臨床意義更重要）</td><td><code>t.test()$conf.int</code>；d 自己算（見下）</td></tr>
-    <tr><td>兩組（無母數）</td><td><b>中位數差</b>、r = Z ÷ √N</td><td>r ≈ 0.1 小、0.3 中、0.5 大</td><td><code>wilcox.test(conf.int = TRUE)</code></td></tr>
-    <tr><td>三組以上</td><td><b>η²</b>（eta squared）= 組間平方和 ÷ 總平方和</td><td>組別解釋了多少比例的變異；0.01 小、0.06 中、0.14 大</td><td><code>summary(aov())</code> 的 Sum Sq</td></tr>
-    <tr><td>兩個數值</td><td><b>相關係數 r</b>、<b>R²</b>、迴歸<b>斜率</b></td><td>|r| 0.1 小、0.3 中、0.5 大；斜率：x 增加 1，y 平均增加多少</td><td><code>cor.test()</code>、<code>lm()</code></td></tr>
-    <tr><td>兩個類別</td><td><b>比例差</b>、<b>勝算比 OR</b>、<b>相對風險 RR</b></td><td>OR = 1 表示沒有關聯；看 95% CI 有沒有跨過 1</td><td><code>fisher.test()</code> 會給 OR 和 CI</td></tr>
-  </table></div>
-<script type="text/x-r" class="cell" data-label="範例 S-3 · 平均差、信賴區間與 Cohen's d">tt <- t.test(hba1c ~ group, data = lab)
-tt$estimate                                   # 兩組的平均
-tt$conf.int                                   # 平均差（control − diabetes）的 95% 信賴區間
-
-lab |>
-  summarise(n = n(), m = mean(hba1c), s = sd(hba1c), .by = group) |>
-  summarise(diff = m[group == "diabetes"] - m[group == "control"],
-            sp   = sqrt(sum((n - 1) * s^2) / (sum(n) - 2)),    # 合併標準差
-            d    = diff / sp)                                  # Cohen's d</script>
-  <p>報告可以這樣寫：<i>糖尿病組的 HbA1c 比對照組高 1.86%（95% CI 1.29–2.43；Welch t 檢定 p &lt; 0.001；Cohen's d = 2.4）。</i>信賴區間沒有包含 0，和「p &lt; 0.05」是同一件事，但它多告訴你<b>差距大概在什麼範圍</b>。</p>
-
-  <h3><span class="tag">S-3</span>在 R 裡計算 p 值</h3>
-  <p>R 的檢定函式名稱都是 <code>xxx.test()</code>，印出來的格式都一樣。以 t 檢定為例，學會讀這幾行，其他檢定也看得懂：</p>
-<script type="text/x-r" class="cell" data-label="範例 S-4 · 讀懂檢定的輸出">t.test(hba1c ~ group, data = lab)</script>
-  <figure class="fig">
-    <svg viewBox="0 0 860 250" role="img" aria-label="t.test 輸出的各部分說明">
-      <rect x="10" y="10" width="470" height="230" rx="10" fill="var(--sunk)" stroke="var(--line)"/>
-      <g class="mono" font-size="12.5" fill="var(--ink)">
-        <text x="24" y="36" fill="var(--c1)" font-weight="600">Welch Two Sample t-test</text>
-        <text x="24" y="62">data:  hba1c by group</text>
-        <text x="24" y="88" fill="var(--c2)" font-weight="600">t = -6.8134, df = 19.794, p-value = 1.339e-06</text>
-        <text x="24" y="114">alternative hypothesis: true difference …</text>
-        <text x="24" y="140" fill="var(--c3)" font-weight="600">95 percent confidence interval:</text>
-        <text x="24" y="162" fill="var(--c3)" font-weight="600"> -2.432605 -1.291638</text>
-        <text x="24" y="188" fill="var(--c4)" font-weight="600">sample estimates:</text>
-        <text x="24" y="210" fill="var(--c4)" font-weight="600">mean in group control  mean in group diabetes</text>
-      </g>
-      <g font-size="13.5">
-        <text x="500" y="36" fill="var(--c1)" font-weight="700">用了哪一種檢定</text><text x="500" y="54" fill="var(--muted)">Welch：不假設兩組變異數相等（R 的預設）</text>
-        <text x="500" y="88" fill="var(--c2)" font-weight="700">檢定統計量、自由度、p 值</text><text x="500" y="106" fill="var(--muted)">1.339e-06 = 0.000001339；報告時寫 p &lt; 0.001</text>
-        <text x="500" y="146" fill="var(--c3)" font-weight="700">平均差的 95% 信賴區間</text><text x="500" y="164" fill="var(--muted)">control − diabetes，所以是負的；不含 0 → 顯著</text>
-        <text x="500" y="196" fill="var(--c4)" font-weight="700">兩組各自的平均</text><text x="500" y="214" fill="var(--muted)">描述統計，報告時一定要附上</text>
-      </g>
-    </svg>
-  </figure>
-  <p>檢定的結果是一個 list，用 <code>$p.value</code>、<code>$conf.int</code> 取出需要的部分。tidyverse 家族的 <b>broom</b> 套件（跟著 tidyverse 一起安裝，但要另外載入）的 <code>tidy()</code>，把任何檢定的結果變成<b>一列的 tibble</b>，就能和第 5 章的分組計算接在一起：</p>
-<script type="text/x-r" class="cell" data-label="範例 S-5 · broom::tidy()：檢定結果變成表格">library(broom)
-t.test(hba1c ~ group, data = lab) |> tidy()
-
-# 一次檢定很多個變數：長格式 → 分組 → 每組做一次檢定 → 校正
-lab |>
-  pivot_longer(c(age, glucose, hba1c, chol), names_to = "test", values_to = "value") |>
-  group_by(test) |>
-  summarise(tidy(t.test(value ~ group))) |>                # 每個變數一列
-  mutate(padj = p.adjust(p.value, method = "BH")) |>
-  select(test, diff = estimate, conf.low, conf.high, p.value, padj)</script>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>檢定</th><th>R</th><th>用在</th></tr>
-    <tr><td>Welch t 檢定 / 配對 t 檢定</td><td><code>t.test(y ~ g, data)</code> / <code>t.test(x2, x1, paired = TRUE)</code></td><td>兩組平均（常態）</td></tr>
-    <tr><td>Wilcoxon 秩和 / 符號等級檢定</td><td><code>wilcox.test(y ~ g, data)</code> / <code>paired = TRUE</code></td><td>兩組（不常態、等級資料）</td></tr>
-    <tr><td>單因子變異數分析 + 事後比較</td><td><code>aov(y ~ g, data)</code> → <code>summary()</code>、<code>TukeyHSD()</code></td><td>三組以上平均</td></tr>
-    <tr><td>Kruskal–Wallis</td><td><code>kruskal.test(y ~ g, data)</code></td><td>三組以上（不常態）</td></tr>
-    <tr><td>相關檢定</td><td><code>cor.test(x, y)</code>；<code>method = "spearman"</code></td><td>兩個數值的關聯</td></tr>
-    <tr><td>線性迴歸</td><td><code>summary(lm(y ~ x, data))</code></td><td>用 x 預測 y、控制其他變數</td></tr>
-    <tr><td>卡方 / Fisher 精確檢定</td><td><code>chisq.test(table(a, b))</code> / <code>fisher.test()</code></td><td>兩個類別的關聯</td></tr>
-    <tr><td>常態檢定</td><td><code>shapiro.test(x)</code></td><td>輔助判斷常態（搭配 Q-Q 圖）</td></tr>
-  </table></div>
-
-  <h3><span class="tag">S-4</span>該用哪一種統計方法？決策流程圖</h3>
-  <p>選檢定和選圖一樣，先問自己：<b>我想回答什麼問題？要比的東西（結果變數）是數值還是類別？有幾組？是不是同一批人？資料接近常態嗎？</b>回答下面的問題，或直接點右邊的檢定，看程式碼、R 的結果、要報告的效應量和該搭配的圖：</p>
-  <div class="widget" id="stree"></div>
-
-  <h3><span class="tag">S-5</span>檢查假設：常態與變異數</h3>
-  <p>t 檢定和 ANOVA 假設每組資料<b>大致常態</b>。最好的檢查方法是<b>畫 Q-Q 圖</b>（ggplot2 的 <code>geom_qq()</code>，第六單元的 <code>qqnorm()</code>）：點貼著直線就好。下面對照組的 Shapiro 檢定 p = 0.016，Q-Q 圖上也看得到兩端各有一個點偏離（血糖 69 和 168）。<code>shapiro.test()</code> 可以輔助，但樣本小時檢定力很低（不顯著也不代表常態），樣本很大時又太敏感（一點點偏差就顯著）。</p>
-<script type="text/x-r" class="cell" data-label="範例 S-6 · 分組的 Q-Q 圖" data-h="250">ggplot(lab, aes(sample = glucose)) +
-  geom_qq() +
-  geom_qq_line(colour = "tomato") +
-  facet_wrap(~ group) +
-  labs(x = "Theoretical quantiles", y = "Glucose (mg/dL)")
-
-lab |> summarise(shapiro_p = shapiro.test(glucose)$p.value, .by = group)</script>
-  <div class="note tip"><b>💡 實務上的原則</b>① <b>樣本大</b>（每組 ≥ 30 左右）時，t 檢定對非常態相當穩健（中央極限定理）。② <b>樣本小又明顯偏斜</b>（例如 CRP、三酸甘油酯），用無母數檢定，或先取 log 再做 t 檢定。③ 兩組變異數不一樣時，R 預設的 <b>Welch</b> t 檢定已經處理了，不需要另外檢定變異數。④ 不論用哪一種，<b>先畫圖</b>。</div>
-
-  <h3><span class="tag">S-6</span>報告的檢查清單</h3>
-  <div class="cards">
-    <div><code>① 描述統計</code><p>每組的 n、mean ± SD（常態）或 median [IQR]（偏斜）。</p></div>
-    <div><code>② 效應量 + 95% CI</code><p>平均差、Cohen's d、OR、r……，加上信賴區間。</p></div>
-    <div><code>③ 檢定名稱與精確 p 值</code><p>「Welch t 檢定，p = 0.032」；非常小時寫 p &lt; 0.001。說明是雙尾。</p></div>
-    <div><code>④ 假設與校正</code><p>怎麼檢查常態；做了多個檢定時，用了哪種多重比較校正。</p></div>
-    <div><code>⑤ 一張好圖</code><p>看得到每個點或分布（第 9–10 章、第六單元），不要只有平均數長條圖。</p></div>
-    <div><code>⑥ 臨床意義</code><p>統計顯著 ≠ 臨床重要。差 1 mg/dL 的血糖，再顯著也改變不了治療決策。</p></div>
-  </div>
-
-  <div class="ex" id="ex11" data-ex="ex11">
-    <div class="ex-h"><span class="badge">練習 11</span><h3>年齡的差異：p 值與效應量</h3><span class="st"></span></div>
-    <p>比較糖尿病組和對照組的年齡 <code>age</code>：</p>
-    <ul>
-      <li><code>p_age</code>：Welch t 檢定的 p 值（<code>t.test()</code> 的預設）。</li>
-      <li><code>diff_age</code>：平均差，<b>糖尿病組 − 對照組</b>。</li>
-      <li><code>d_age</code>：Cohen's d（平均差 ÷ 合併標準差，參考範例 S-3）。</li>
-    </ul>
-    <p>想一想：p 值沒有小於 0.05，可是 d 是多少？可以說「兩組年齡沒有差異」嗎？</p>
-<script type="text/x-r" class="starter">p_age <- t.test(___ ~ ___, data = lab)$p.value
-
-s <- lab |> summarise(n = n(), m = mean(age), s = sd(age), .by = group)
-diff_age <- s$m[s$group == "diabetes"] - ___
-sp <- sqrt(sum((s$n - 1) * s$s^2) / (sum(s$n) - 2))
-d_age <- ___
-
-p_age
-diff_age
-d_age</script>
-  </div>
+  <p class="small">內容包括：p 值在問什麼（擲銅板、打亂組別的動畫）、會犯的兩種錯和檢定力、<b>什麼資料用什麼檢定</b>（決策流程圖與 12 種檢定的 R 寫法）、檢查常態、<b>效應量與信賴區間</b>、<b>多重比較為什麼要校正 p 值</b>、常見誤解，以及報告怎麼寫。</p>
 </section>
 <!-- ============ 11 example A ============ -->
 <section class="ch example-ch" id="ex-a">
@@ -2239,7 +2086,7 @@ const sleep = ms => new Promise(r => setTimeout(r, reduceMotion ? Math.min(ms, 6
 const fnv = s => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); };
 const keyOf = (code, w, h) => fnv(code + '|' + w + 'x' + h);
 const PRERENDER = new URLSearchParams(location.search).has('prerender');
-const KEY = 'r-tidy-v1';
+const KEY = window.PAGE_KEY || 'r-tidy-v1';
 const store = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } })();
 store.done = store.done || {}; store.code = store.code || {};
 const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
@@ -2607,7 +2454,8 @@ $$('#verbLab, #verbLab2').forEach(box => {
 
 /* quiz */
 (() => {
-  const Q = [
+  if (!$('#quiz')) return;
+  const Q = window.PAGE_QUIZ || [
     ['ogtt 有 P01、P02、P03 三欄血糖，想變成一欄 patient、一欄 glucose。', ['pivot_longer()', 'pivot_wider()', 'separate_wider_delim()', 'gather()'], 0, '寬變長：pivot_longer。（gather 是舊版的名字，已不建議使用）'],
     ['只留下 60 歲以上的人。', ['select()', 'filter()', 'arrange()', 'slice_max()'], 1, '挑「列」用 filter；select 挑的是「欄」。'],
     ['每一種血型的平均血糖。', ['mutate()', 'count()', 'group_by() + summarise()', 'arrange()'], 2, '分組算統計量：group_by + summarise（或 summarise(.by = blood)）。'],
@@ -2629,7 +2477,7 @@ $$('#verbLab, #verbLab2').forEach(box => {
 })();
 
 /* ================= exercises ================= */
-const EX = {
+const EX = window.PAGE_EX || {
   ex1: { vars: ['visits', 'cutoff'], solution: `visits <- read_csv("data/visits.csv",     # 檔案路徑（從工作目錄算起）
                    show_col_types = FALSE)  # 不要印出欄位型態的訊息
 glimpse(visits)
@@ -2697,16 +2545,6 @@ clean` },
   geom_jitter(width = 0.15) +         # 每個人一個點，左右抖開
   labs(y = "HbA1c (%)")               # y 軸標籤
 p` },
-  ex11: { vars: ['p_age', 'diff_age', 'd_age'], solution: `p_age <- t.test(age ~ group, data = lab)$p.value      # Welch t 檢定的 p 值
-
-s <- lab |> summarise(n = n(), m = mean(age), s = sd(age), .by = group)   # 每組的 n、平均、標準差
-diff_age <- s$m[s$group == "diabetes"] - s$m[s$group == "control"]     # 糖尿病組 − 對照組
-sp <- sqrt(sum((s$n - 1) * s$s^2) / (sum(s$n) - 2))                    # 合併標準差
-d_age <- diff_age / sp                                                  # Cohen's d
-
-p_age      # 約 0.09：沒有達到 0.05
-diff_age   # 糖尿病組平均年輕約 6.8 歲
-d_age      # 約 -0.54：中等大小的效應！「不顯著」不等於「沒有差異」，可能只是樣本太小` },
   ex10: { plots: ['p'], solution: `p <- ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
   geom_point() +
   geom_hline(yintercept = 126, linetype = "dashed") +                         # 水平虛線
@@ -2796,140 +2634,11 @@ const io = new IntersectionObserver(es => {
 }, { rootMargin: '-30% 0px -60% 0px' });
 $$('section.ch').forEach(s => io.observe(s));
 
-/* ================= supplement: permutation test widget ================= */
-(() => {
-  const box = $('#perm'); if (!box) return;
-  const rows = DATA['lab.csv'].trim().split('\n'), hd = rows[0].split(',');
-  const lab = rows.slice(1).map(r => { const v = r.split(','), o = {}; hd.forEach((h, i) => { o[h] = isNaN(+v[i]) ? v[i] : +v[i]; }); return o; });
-  const CMP = [
-    { k: 'hba1c', g: 'group', a: 'control', b: 'diabetes', lab: 'HbA1c：糖尿病 vs 對照', unit: '%', tp: '1.34e-06', bw: 0.1 },
-    { k: 'age', g: 'group', a: 'control', b: 'diabetes', lab: '年齡：糖尿病 vs 對照', unit: '歲', tp: '0.0938', bw: 1 },
-    { k: 'chol', g: 'sex', a: 'F', b: 'M', lab: '膽固醇：男 vs 女', unit: 'mg/dL', tp: '0.618', bw: 2 },
-  ];
-  let C = CMP[0], labels, perms = [], timer = null;
-  const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
-  const diffOf = L => mean(lab.filter((_, i) => L[i] === C.b).map(r => r[C.k])) - mean(lab.filter((_, i) => L[i] === C.a).map(r => r[C.k]));
-  const shuffle = L => { const a = [...L]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  box.innerHTML = `<div class="widget-h"><span class="ttl">如果組別跟數值無關……</span><div class="seg" role="group">${CMP.map((c, i) => `<button type="button" data-i="${i}" aria-pressed="${i === 0}">${c.lab}</button>`).join('')}</div></div>
-    <div class="perm-stage"><div><div class="perm-cap" id="pmCap1"></div><svg id="pmStrip" viewBox="0 0 420 150"></svg></div><div><div class="perm-cap">打亂之後的平均差（每打亂一次就多一筆）</div><svg id="pmHist" viewBox="0 0 420 170"></svg></div></div>
-    <div class="wctl"><button type="button" class="go" data-n="1">打亂一次</button><button type="button" data-n="100">打亂 100 次</button><button type="button" data-n="2000">打亂 2000 次</button><button type="button" data-n="0">重來</button></div>
-    <div class="wmsg" id="pmMsg"></div>`;
-  const obsOf = () => diffOf(lab.map(r => r[C.g]));
-  const draw = (moved) => {
-    const vals = lab.map(r => r[C.k]), lo = Math.min(...vals), hi = Math.max(...vals), X = v => 30 + (v - lo) / (hi - lo) * 370;
-    const cur = labels, d = diffOf(cur), obs = obsOf();
-    let s = `<line x1="20" x2="410" y1="55" y2="55" stroke="var(--line)"/><line x1="20" x2="410" y1="115" y2="115" stroke="var(--line)"/>
-      <text x="4" y="40" font-size="12" fill="var(--c1)">${C.a}</text><text x="4" y="100" font-size="12" fill="var(--c2)">${C.b}</text>`;
-    const seen = {};
-    lab.forEach((r, i) => { const row = cur[i] === C.a ? 0 : 1, key = row + ':' + Math.round(X(r[C.k]) / 5), k = seen[key] = (seen[key] || 0) + 1;
-      s += `<circle cx="${X(r[C.k]).toFixed(1)}" cy="${(row ? 108 : 48) - (k - 1) * 6}" r="3.2" fill="${row ? 'var(--c2)' : 'var(--c1)'}" ${moved && cur[i] !== r[C.g] ? 'stroke="var(--ink)" stroke-width="1.2"' : ''}/>`; });
-    const ma = mean(lab.filter((_, i) => cur[i] === C.a).map(r => r[C.k])), mb = mean(lab.filter((_, i) => cur[i] === C.b).map(r => r[C.k]));
-    s += `<line x1="${X(ma)}" x2="${X(ma)}" y1="20" y2="58" stroke="var(--c1)" stroke-width="2.5"/><line x1="${X(mb)}" x2="${X(mb)}" y1="80" y2="118" stroke="var(--c2)" stroke-width="2.5"/>`;
-    s += `<text x="210" y="142" font-size="12.5" text-anchor="middle" fill="var(--ink)">平均差（${C.b} − ${C.a}）= ${d.toFixed(2)} ${C.unit}${moved ? '（打亂後）' : '（真正的資料）'}</text>`;
-    $('#pmStrip', box).innerHTML = s;
-    $('#pmCap1', box).textContent = moved ? '最近一次打亂的分組（黑框 = 被換到另一組的人）' : '真正的分組：每個點是一個人，直線是組平均';
-    // histogram
-    const span = Math.max(Math.abs(obs) * 1.25, ...perms.map(Math.abs), C.bw * 5), bw = C.bw, nb = Math.ceil(span / bw), bins = {};
-    perms.forEach(v => { const b = Math.floor(v / bw); bins[b] = (bins[b] || 0) + 1; });
-    const maxc = Math.max(1, ...Object.values(bins)), HX = v => 20 + (v + nb * bw) / (2 * nb * bw) * 380;
-    let h = `<line x1="20" x2="400" y1="140" y2="140" stroke="var(--muted)"/>`;
-    for (const [b, c] of Object.entries(bins)) { const x0 = HX(+b * bw), x1 = HX((+b + 1) * bw), extreme = Math.abs((+b + 0.5) * bw) >= Math.abs(obs); h += `<rect x="${x0.toFixed(1)}" y="${(140 - c / maxc * 115).toFixed(1)}" width="${Math.max(0.5, x1 - x0 - 0.5).toFixed(1)}" height="${(c / maxc * 115).toFixed(1)}" fill="${extreme ? 'var(--bad)' : 'var(--line)'}"/>`; }
-    [obs, -obs].forEach((v, i) => { h += `<line x1="${HX(v)}" x2="${HX(v)}" y1="14" y2="140" stroke="var(--bad)" stroke-dasharray="4 3" stroke-width="2"/>`; if (!i) h += `<text x="${HX(v)}" y="11" font-size="11.5" text-anchor="middle" fill="var(--bad)">真正的差 ${obs.toFixed(2)}</text>`; });
-    h += `<text x="${HX(0)}" y="158" font-size="11.5" text-anchor="middle" fill="var(--muted)">0</text>`;
-    $('#pmHist', box).innerHTML = h;
-    const ext = perms.filter(v => Math.abs(v) >= Math.abs(obs) - 1e-9).length;
-    $('#pmMsg', box).innerHTML = !perms.length ? `真正的平均差是 <b>${obs.toFixed(2)} ${C.unit}</b>。按「打亂」：把組別標籤隨機重新分配，看看<b>純靠運氣</b>會得到多大的差。`
-      : `打亂了 <b>${perms.length}</b> 次，其中 <b>${ext}</b> 次的差距和真正的一樣大或更大（紅色）→ p ≈ ${ext} / ${perms.length} = <b>${(ext / perms.length).toFixed(4)}</b>。　t 檢定算出的 p = ${C.tp}。` + (perms.length >= 1000 ? (ext / perms.length < 0.05 ? '　→ 真正的差距在「隨機世界」裡很少見，懷疑 H₀。' : '　→ 這種差距在「隨機世界」裡並不稀奇，證據不夠。') : '');
-  };
-  const reset = () => { labels = lab.map(r => r[C.g]); perms = []; draw(false); };
-  box.addEventListener('click', e => {
-    const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.i !== undefined) { $$('.seg button', box).forEach(x => x.setAttribute('aria-pressed', String(x === b))); C = CMP[+b.dataset.i]; reset(); return; }
-    const n = +b.dataset.n; clearInterval(timer);
-    if (!n) return reset();
-    if (n === 1) { labels = shuffle(lab.map(r => r[C.g])); perms.push(diffOf(labels)); draw(true); return; }
-    let left = n; const step = n > 200 ? 100 : 5;
-    timer = setInterval(() => { for (let i = 0; i < step && left > 0; i++, left--) { labels = shuffle(lab.map(r => r[C.g])); perms.push(diffOf(labels)); } draw(true); if (left <= 0) clearInterval(timer); }, reduceMotion ? 0 : 30);
-  });
-  reset();
-})();
-
-/* ================= decision trees (shared drawing) ================= */
-function decisionTree(box, title, Q, L, showLeaf){
-  const parent = {}, depth = { start: 0 }, rows = [];
-  const walk = k => { for (const [, c] of Q[k].opts) { parent[c] = k; depth[c] = depth[k] + 1; if (Q[c]) walk(c); else rows.push(c); } };
-  walk('start');
-  const maxD = Math.max(...Object.keys(Q).map(k => depth[k]));
-  const RH = 34, QW = 150, GAP = 22, X = d => 8 + d * (QW + GAP), LX = 8 + (maxD + 1) * (QW + GAP), LW = 470, H = rows.length * RH + 16, pos = {};
-  rows.forEach((c, i) => { pos[c] = 8 + i * RH + RH / 2; });
-  const ypos = k => pos[k] ?? (pos[k] = Q[k].opts.map(([, c]) => ypos(c)).reduce((a, b) => a + b) / Q[k].opts.length);
-  ypos('start');
-  const tagOf = c => (Q[parent[c]].opts.find(o => o[1] === c) || [''])[0];
-  const short = (t, n) => t.length > n ? t.slice(0, n - 1) + '…' : t;
-  let svg = `<svg viewBox="0 0 ${LX + LW + 8} ${H}" role="img" aria-label="${esc(title)}">`;
-  for (const c of Object.keys(parent)) { const p = parent[c], x1 = X(depth[p]) + QW, y1 = pos[p], x2 = Q[c] ? X(depth[c]) : LX, xm = x1 + 10; svg += `<path class="ed" data-e="${c}" d="M${x1} ${y1} H${xm} V${pos[c]} H${x2}"/>`; }
-  for (const k of Object.keys(Q)) { const x = X(depth[k]), y = pos[k]; svg += `<g class="nd q" data-n="${k}"><rect x="${x}" y="${y - 22}" width="${QW}" height="44" rx="10"/>${k === 'start' ? '' : `<text class="t" x="${x + 8}" y="${y - 6}">${esc(short(Q[k].tag, 12))}</text>`}<text x="${x + 8}" y="${y + (k === 'start' ? 5 : 12)}">${esc(short(Q[k].s || Q[k].q, 11))}</text></g>`; }
-  for (const c of rows) { const y = pos[c], l = L[c]; svg += `<g class="nd lf" data-n="${c}" tabindex="0" role="button" aria-label="${esc(l.n)}"><rect x="${LX}" y="${y - 14}" width="${LW}" height="28" rx="8"/><text class="t" x="${LX + 8}" y="${y + 4}">${esc(short(tagOf(c), 12))}</text><text x="${LX + 172}" y="${y + 4}" font-weight="700">${esc(l.s || short(l.n, 9))}</text><text class="f" x="${LX + LW - 8}" y="${y + 4}" text-anchor="end">${esc(l.f)}</text></g>`; }
-  box.innerHTML = `<div class="widget-h"><span class="ttl">${esc(title)}</span><button type="button" class="dt-reset">從頭開始</button></div><div class="dt-chart">${svg}</svg></div><div class="dt-panel"><div class="dt-path"></div><div class="dt-ask"></div></div><div class="dt-result" hidden></div>`;
-  let cur = 'start';
-  const pathTo = k => { const out = []; for (let n = k; n; n = parent[n]) out.unshift(n); return out; };
-  const paint = () => {
-    const on = new Set(pathTo(cur));
-    $$('.nd', box).forEach(g => { g.classList.toggle('on', on.has(g.dataset.n) && !L[g.dataset.n]); g.classList.toggle('pick', g.dataset.n === cur && !!L[cur]); });
-    $$('.ed', box).forEach(e => e.classList.toggle('on', on.has(e.dataset.e)));
-    $('.dt-path', box).innerHTML = pathTo(cur).slice(1).map(n => `<button type="button" data-go="${parent[n]}">${esc(tagOf(n))}</button>`).join('<span>→</span>');
-    const res = $('.dt-result', box);
-    if (Q[cur]) { $('.dt-ask', box).innerHTML = `<p class="dt-q">${esc(Q[cur].q)}</p><div class="dt-opts">${Q[cur].opts.map(([t, c]) => `<button type="button" data-go="${c}">${esc(t)}</button>`).join('')}</div>`; res.hidden = true; }
-    else { $('.dt-ask', box).innerHTML = `<p class="dt-q">✓ 建議：${esc(L[cur].n)}　<code>${esc(L[cur].f)}</code></p>`; res.hidden = false; res.innerHTML = showLeaf(L[cur]); }
-  };
-  box.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) { cur = b.dataset.go; return paint(); } const n = e.target.closest('.nd'); if (n) { cur = n.dataset.n; return paint(); } if (e.target.closest('.dt-reset')) { cur = 'start'; paint(); } });
-  box.addEventListener('keydown', e => { const n = e.target.closest('.nd.lf'); if (n && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); cur = n.dataset.n; paint(); } });
-  paint();
-}
-
-/* ================= supplement: which test? ================= */
-(() => {
-  const box = $('#stree'); if (!box) return;
-  const OG = 'og <- read_csv("data/ogtt_wide.csv", show_col_types = FALSE)\n';
-  const PAIR = 'v <- visits |>\n  filter(visit <= 2) |>\n  select(id, visit, ldl) |>\n  pivot_wider(names_from = visit, values_from = ldl, names_prefix = "v") |>\n  drop_na()                                  # 第 1、2 次都有 LDL 的人\n';
-  const Q = {
-    start: { q: '你想回答什麼問題？', s: '你想回答什麼？', opts: [['比較兩組或多組的「數值」', 'cmp'], ['兩個數值變數有沒有關係', 'rel'], ['兩個類別變數有沒有關聯（比例）', 'cat']] },
-    cmp: { tag: '比較數值', q: '要比較幾組？', opts: [['兩組', 'two'], ['三組以上', 'many']] },
-    two: { tag: '兩組', q: '兩組是同一批人（配對）嗎？', s: '是配對資料嗎？', opts: [['不是：兩群不同的人', 'ind'], ['是：同一人前後測、同一檢體兩種方法', 'pair']] },
-    ind: { tag: '獨立兩組', q: '每組資料接近常態（或每組 n ≥ 30）嗎？', s: '接近常態嗎？', opts: [['是', 't'], ['否：明顯偏斜、極端值、樣本很小', 'w']] },
-    pair: { tag: '配對', q: '「配對差值」接近常態嗎？', s: '差值接近常態？', opts: [['是', 'pt'], ['否', 'pw']] },
-    many: { tag: '三組以上', q: '每組接近常態、變異程度相近嗎？', s: '接近常態嗎？', opts: [['是', 'aov'], ['否', 'kw']] },
-    rel: { tag: '數值 × 數值', q: '兩個變數的關係長什麼樣子？', s: '關係的樣子？', opts: [['大致是直線、沒有極端值', 'pear'], ['有極端值、彎曲但單調、或等級資料', 'spear'], ['想用 x 預測 y（迴歸）', 'lm']] },
-    cat: { tag: '類別 × 類別', q: '交叉表每一格的「期望個數」都 ≥ 5 嗎？', s: '期望個數 ≥ 5？', opts: [['是', 'chi'], ['否（樣本少）', 'fisher']] },
-  };
-  const L = {
-    t: { s: 'Welch t', n: 'Welch t 檢定', f: 't.test(y ~ g)', code: 't.test(hba1c ~ group, data = lab)', eff: '平均差 + 95% CI、Cohen\'s d', plot: '盒形圖 + 每個點（geom_boxplot + geom_jitter）', note: 'R 的預設就是 Welch（不假設兩組變異數相等），通常不需要改。' },
-    w: { s: 'Wilcoxon 秩和', n: 'Wilcoxon 秩和檢定', f: 'wilcox.test(y ~ g)', code: 'wilcox.test(glucose ~ group, data = lab, exact = FALSE)', eff: '中位數差（conf.int = TRUE）、r = Z / √N', plot: '盒形圖 + 點；報告 median [IQR]', note: '又叫 Mann–Whitney U 檢定，比較的是「排名」，不怕極端值。' },
-    pt: { s: '配對 t', n: '配對 t 檢定', f: 't.test(…, paired)', code: PAIR + 't.test(v$v2, v$v1, paired = TRUE)', eff: '平均差值 + 95% CI', plot: '每人一條線連接前後兩點（geom_line(aes(group = id))）', note: '同一個人前後比較，個人差異抵銷掉了，比獨立 t 檢定更敏感。' },
-    pw: { s: 'Wilcoxon 符號', n: 'Wilcoxon 符號等級檢定', f: 'wilcox.test(…, paired)', code: PAIR + 'wilcox.test(v$v2, v$v1, paired = TRUE, exact = FALSE)', eff: '差值的中位數', plot: '前後連線圖', note: '配對資料的無母數版本。' },
-    aov: { s: 'ANOVA', n: '單因子 ANOVA + Tukey', f: 'aov() + TukeyHSD()', code: OG + 'fit <- aov(glu_120 ~ group, data = og)\nsummary(fit)\nTukeyHSD(fit)                    # 事後比較：哪兩組不一樣', eff: 'η² = 組間 Sum Sq ÷ 全部 Sum Sq；各組兩兩的平均差 + CI', plot: '盒形圖 + 點，或平均 ± SE', note: 'ANOVA 只告訴你「至少有一組不一樣」，要用事後比較（TukeyHSD）才知道是哪幾組。不要做好幾次 t 檢定。' },
-    kw: { s: 'Kruskal–Wallis', n: 'Kruskal–Wallis', f: 'kruskal.test(y ~ g)', code: OG + 'kruskal.test(glu_120 ~ group, data = og)', eff: '各組中位數；ε²', plot: '盒形圖 + 點', note: '顯著之後，用 pairwise.wilcox.test() 加上 p 值校正做兩兩比較。' },
-    pear: { s: 'Pearson', n: 'Pearson 相關', f: 'cor.test(x, y)', code: 'cor.test(lab$hba1c, lab$glucose)', eff: 'r + 95% CI（R 會一起算）', plot: '散佈圖 + 迴歸線（geom_point + geom_smooth(method = "lm")）', note: '只量「直線」關係；先畫散佈圖，彎曲或有極端值時 r 會騙人。' },
-    spear: { s: 'Spearman', n: 'Spearman 相關', f: 'cor.test(…, "spearman")', code: 'cor.test(lab$hba1c, lab$glucose, method = "spearman", exact = FALSE)', eff: 'ρ（rho）', plot: '散佈圖', note: '用排名算相關，不怕極端值，只要關係是單調（一直上升或一直下降）。' },
-    lm: { s: '線性迴歸', n: '線性迴歸', f: 'lm(y ~ x)', code: 'fit <- lm(glucose ~ hba1c, data = lab)\nsummary(fit)', eff: '斜率 + 95% CI（confint(fit)）、R²', plot: '散佈圖 + 迴歸線', note: '可以再加入其他變數（例如 + age + sex）控制干擾因子；記得檢查殘差。' },
-    chi: { s: '卡方檢定', n: '卡方檢定', f: 'chisq.test(tab)', code: 'chisq.test(table(lab$group, lab$sex))', eff: '比例差、勝算比 OR', plot: '百分比堆疊長條圖（geom_bar(position = "fill")）', note: '2 × 2 的表 R 會自動做 Yates 校正。期望個數 < 5 時 R 會警告，改用 Fisher。' },
-    fisher: { s: 'Fisher', n: 'Fisher 精確檢定', f: 'fisher.test(tab)', code: 'fisher.test(table(lab$group, lab$sex))', eff: '勝算比 OR + 95% CI（R 會一起算）', plot: '百分比堆疊長條圖', note: '不用近似，樣本小也可以用；2 × 2 的表會直接給 OR。' },
-  };
-  Object.values(L).forEach(l => VARIANTS.push({ code: l.code, w: W0, h: H0 }));   // so the build prerenders their output
-  decisionTree(box, '該用哪一種統計方法？', Q, L, l => {
-    const p = PRE[keyOf(l.code, W0, H0)];
-    const out = p ? p.lines.map(x => x.t === 'out' ? esc(x.s) : `<span class="${x.t}">${esc(x.s)}</span>`).join('\n') : '（按上面任何一格的 ▶ 執行後，這裡也可以直接複製程式到編輯器試）';
-    return `<div class="dt-leaf"><div><pre class="wcode">${hl(l.code)}</pre><pre class="out" style="border:0">${out}</pre></div><div class="dt-notes"><p><b>要報告的效應量：</b>${esc(l.eff)}</p><p><b>搭配的圖：</b>${esc(l.plot)}</p><p>${esc(l.note)}</p></div></div>`;
-  });
-})();
-
-/* the plot chooser of unit 6, as a tree too (so this page has both) */
-
 /* ================= build-time prerender: run every cell once in webR, save the outputs ================= */
 if (PRERENDER) (async () => {
   const out = {}, log = [];
   const enc = c => c.toDataURL('image/webp', 0.9);
-  const save = async name => fetch('/tv/save/' + name, { method: 'POST', body: JSON.stringify(name === 'pre.json' ? out : log) });
+  const save = async name => fetch('/tv/save/' + (window.PAGE_ID || '') + name, { method: 'POST', body: JSON.stringify(name === 'pre.json' ? out : log) });
   const jobs = [...CELLS.map(c => ({ ...c, kind: 'cell' })), ...VARIANTS.map(v => ({ ...v, kind: 'var' }))];
   let k = 0;
   for (const c of jobs) {
@@ -2941,7 +2650,7 @@ if (PRERENDER) (async () => {
       out[keyOf(c.code, c.w, c.h)] = { lines: r.lines, imgs: r.imgs.map(enc) };
       log.push({ code: c.code.slice(0, 70), lines: r.lines, nimg: r.imgs.length });
     } catch (e) { log.push({ code: c.code.slice(0, 70), lines: [{ t: 'JSERR', s: e.message }] }); await save('prelog.json'); }
-    if (k % 10 === 0) await fetch('/tv/save/progress', { method: 'POST', body: window.PR_PROGRESS });
+    if (k % 10 === 0) await fetch('/tv/save/' + (window.PAGE_ID || '') + 'progress', { method: 'POST', body: window.PR_PROGRESS });
   }
   for (const [id, X] of Object.entries(EX)) {
     try { await RT.run(X.solution, { quiet: true }); log.push({ code: 'SOLUTION ' + id, lines: [{ t: 'grade', s: await gradeCode(X, X.solution) }] }); }
