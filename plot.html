@@ -353,6 +353,28 @@ table.cmp tr:last-child td{border-bottom:0}
 .qz .fb{margin-top:8px;font-size:14px;color:var(--muted)}
 .qz-score{font-weight:700}
 table.guide td{font-size:14.5px}
+.dt-chart{padding:12px 10px 4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.dt-chart svg{display:block;width:100%;min-width:720px;max-width:960px;height:auto;margin:0 auto}
+.dt-chart .nd rect{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.dt-chart .nd.q rect{fill:var(--sunk)}
+.dt-chart .nd.lf{cursor:pointer}
+.dt-chart .nd.lf:hover rect{stroke:var(--accent)}
+.dt-chart .nd.on rect{stroke:var(--accent);stroke-width:2.5;fill:var(--accent-soft)}
+.dt-chart .nd.pick rect{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2.5}
+.dt-chart .ed{fill:none;stroke:var(--line);stroke-width:1.5}
+.dt-chart .ed.on{stroke:var(--accent);stroke-width:3}
+.dt-chart text{font-size:13.5px;fill:var(--ink)}
+.dt-chart text.t{fill:var(--muted);font-size:12.5px}
+.dt-chart text.f{font-family:var(--f-code);font-size:12.5px;fill:var(--accent)}
+.dt-panel{padding:12px 14px}
+.dt-path{display:flex;flex-wrap:wrap;gap:6px;font-size:14.5px;margin-bottom:8px}
+.dt-path button{border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:1px 10px;font-size:14px}
+.dt-q{font-weight:700;margin:0 0 8px}
+.dt-opts{display:flex;flex-wrap:wrap;gap:8px}
+.dt-opts button{border:1.5px solid var(--accent);background:var(--panel);color:var(--ink);border-radius:10px;padding:6px 14px;font-size:14.5px}
+.dt-opts button:hover{background:var(--accent-soft)}
+.widget-h .dt-reset{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:2px 10px;font-size:14px}
+#dtResult{border-top:1px solid var(--line)}
 table.guide small{color:var(--muted)}
 @media (max-width:720px){.tune-stage,.dist-stage,.choose-stage{grid-template-columns:minmax(0,1fr)}}
 </style>
@@ -400,7 +422,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <h1>R 寶的統計圖鑑</h1>
     </div>
     <p>算出平均數、p 值之後，還要讓別人一眼看懂。這一章用 R 內建的繪圖函式，把描述統計、組間比較、相關和時間變化畫成圖，最後整理出<b>什麼樣的資料要用什麼樣的圖</b>。</p>
-    <div class="meta"><span class="pill">7 章 · 6 題練習 · 1 個小測驗</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span><span class="pill">右下角 <b>💻 R 寶的電腦</b> 可以看資料檔和存下來的圖</span></div>
+    <div class="meta"><span class="pill">8 章 · 7 題練習 · 選圖決策樹 · 小測驗</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span><span class="pill">右下角 <b>💻 R 寶的電腦</b> 可以看資料檔和存下來的圖</span></div>
   </div>
 </header>
 
@@ -414,7 +436,8 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <li><a href="#ch4" data-ex="ex4"><span class="n">04</span>比較組別<span class="ck">✓</span></a></li>
       <li><a href="#ch5" data-ex="ex5"><span class="n">05</span>兩個數值：散佈圖<span class="ck">✓</span></a></li>
       <li><a href="#ch6" data-ex="ex6"><span class="n">06</span>隨時間變化：折線圖<span class="ck">✓</span></a></li>
-      <li><a href="#ch7"><span class="n">07</span>總整理：資料 → 圖</a></li>
+      <li><a href="#ch7" data-ex="ex7"><span class="n">07</span>更多常用的圖<span class="ck">✓</span></a></li>
+      <li><a href="#ch8"><span class="n">08</span>總整理：資料 → 圖</a></li>
     </ol>
     <div class="prog" id="prog"></div>
   </nav>
@@ -758,37 +781,126 @@ legend(___)
   </div>
 </section>
 
-<!-- ============ 07 ============ -->
+<!-- ============ 07 more plots ============ -->
 <section class="ch" id="ch7">
-  <div class="ch-h"><span class="num">07</span><h2>總整理：什麼資料用什麼圖？<small>先問「我想回答什麼問題」，再看「手上是什麼資料」</small></h2></div>
-  <div class="tblwrap"><table class="cmp guide">
-    <tr><th>手上的資料</th><th>想回答的問題</th><th>用這種圖</th><th>R</th><th>搭配的統計量</th></tr>
-    <tr><td><b>一個數值</b><br><small>血糖、年齡、Ct 值</small></td><td>集中在哪？分散多大？形狀？有沒有極端值？</td><td>直方圖、盒形圖</td><td><code>hist(x)</code><br><code>boxplot(x)</code></td><td><code>summary</code>、<code>mean</code>/<code>sd</code> 或 <code>median</code>/<code>IQR</code></td></tr>
-    <tr><td><b>一個類別</b><br><small>血型、性別</small></td><td>每類有多少？佔多少？</td><td>長條圖（類別很少時才用圓餅圖）</td><td><code>barplot(table(x))</code></td><td><code>table</code>、<code>prop.table</code></td></tr>
-    <tr><td><b>數值 × 類別</b><br><small>兩組的血糖</small></td><td>組和組之間有沒有差？</td><td>並排盒形圖（＋資料點）</td><td><code>boxplot(y ~ g, data)</code></td><td><code>tapply</code>、<code>t.test</code></td></tr>
-    <tr><td><b>數值 × 數值</b><br><small>HbA1c 與血糖</small></td><td>有沒有關係？多強？</td><td>散佈圖（＋迴歸線）</td><td><code>plot(y ~ x, data)</code><br><code>abline(lm(y ~ x))</code></td><td><code>cor</code>、<code>lm</code></td></tr>
-    <tr><td><b>數值 × 時間</b><br><small>OGTT、追蹤</small></td><td>怎麼隨時間變化？</td><td>折線圖</td><td><code>plot(t, y, type = "b")</code><br><code>lines()</code></td><td>每個時間點的平均</td></tr>
-    <tr><td><b>類別 × 類別</b><br><small>組別 × 性別</small></td><td>組成比例一樣嗎？</td><td>並排或堆疊長條圖</td><td><code>barplot(table(a, b), beside = TRUE)</code><br><small>（這個網頁版不支援，請在 RStudio 試）</small></td><td><code>table(a, b)</code>、<code>chisq.test</code></td></tr>
+  <div class="ch-h"><span class="num">07</span><h2>更多常用的基本圖<small>兩個類別、每個點、點圖、常態檢查、散佈圖矩陣</small></h2></div>
+  <p>前六章的圖可以應付大部分的情況。這一章再介紹六種 R 內建、在檢驗和研究報告裡也很常見的圖，每一種都對應一種「資料 × 問題」。第 08 章的決策樹會把它們全部串起來。</p>
+
+  <h3><span class="tag">7-1</span>兩個類別：分組長條圖與堆疊長條圖</h3>
+  <p>先用 <code>table(a, b)</code> 做出<b>交叉表</b>（列聯表），再交給 <code>barplot()</code>。表的<b>列</b>（第一個變數）變成顏色，<b>欄</b>（第二個變數）變成 x 軸上的組：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-1 · 交叉表與分組長條圖">lab <- read.csv("data/lab.csv")
+tab <- table(lab$sex, lab$group)       # 列：sex、欄：group
+tab
+barplot(tab, beside = TRUE,            # beside = TRUE：並排
+        legend.text = TRUE,            # 用列的名字（F、M）當圖例
+        col = c("tomato", "steelblue"), ylab = "Count", main = "Sex by group")</script>
+<script type="text/x-r" class="cell" data-label="範例 7-2 · 堆疊與百分比堆疊">lab <- read.csv("data/lab.csv")
+tab <- table(lab$sex, lab$group)
+pct <- prop.table(tab, 2)              # margin = 2：每一欄（每一組）加起來是 1
+round(pct * 100, 1)
+par(mfrow = c(1, 2))
+barplot(tab, legend.text = TRUE, main = "Stacked", ylab = "Count")         # 不寫 beside：疊起來
+barplot(pct, legend.text = TRUE, main = "100% stacked", ylab = "Proportion")</script>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>畫法</th><th>適合回答</th><th>寫法</th></tr>
+    <tr><td>並排</td><td>每個組合各有幾人？直接比較高度</td><td><code>barplot(tab, beside = TRUE)</code></td></tr>
+    <tr><td>堆疊</td><td>每組總共幾人，裡面怎麼分</td><td><code>barplot(tab)</code></td></tr>
+    <tr><td>百分比堆疊</td><td>兩組的<b>組成比例</b>一樣嗎？（組的人數不一樣時特別有用）</td><td><code>barplot(prop.table(tab, 2))</code></td></tr>
   </table></div>
 
-  <h3><span class="tag">7-1</span>選圖器</h3>
-  <p>選一種資料，看看推薦的圖、程式碼，以及<b>不推薦</b>的畫法為什麼不好。</p>
-  <div class="widget" id="chooser">
-    <div class="widget-h"><span class="ttl">我手上的資料是……</span><div class="seg" role="group" aria-label="資料類型" id="chooseSeg"></div></div>
-    <div class="choose-stage"><div class="plotbox" id="choosePlot"></div><div class="choose-side"><pre class="wcode" id="chooseCode"></pre><div id="chooseWhy"></div></div></div>
+  <h3><span class="tag">7-2</span>馬賽克圖與卡方檢定</h3>
+  <p><code>mosaicplot()</code> 把交叉表畫成一塊塊的磚：<b>寬度</b>是第一個變數各組的人數比例，<b>高度</b>是組內第二個變數的比例，所以<b>面積</b>就是每個組合的人數。如果兩個變數沒有關聯，每一欄裡的切線會差不多對齊。</p>
+<script type="text/x-r" class="cell" data-label="範例 7-3 · mosaicplot + chisq.test">lab <- read.csv("data/lab.csv")
+tab <- table(lab$group, lab$sex)
+mosaicplot(tab, color = TRUE, main = "Sex by group")
+chisq.test(tab)                        # 卡方檢定：兩個類別變數有沒有關聯</script>
+  <p>兩欄的切線高度差不多（對照組 41% 女性、糖尿病組 33%），卡方檢定 p = 0.87，看不出性別比例在兩組有差。2 × 2 的表 R 會自動做 Yates 連續性校正（標題裡的 <i>with Yates' continuity correction</i>）。如果有格子的<b>期望個數小於 5</b>，R 會警告 <code>Chi-squared approximation may be incorrect</code>，這時應該改用 Fisher 精確檢定 <code>fisher.test(tab)</code>（請在 RStudio 試）。</p>
+
+  <h3><span class="tag">7-3</span>每個點都畫出來：stripchart()</h3>
+  <p>每組只有十幾二十個人時，與其畫盒形圖，不如把<b>每個人</b>都畫出來。<code>method = "jitter"</code> 讓點左右稍微抖開，才不會疊在一起：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-4 · stripchart">lab <- read.csv("data/lab.csv")
+stripchart(hba1c ~ group, data = lab, method = "jitter", vertical = TRUE,
+           pch = 16, col = c("steelblue", "tomato"), ylab = "HbA1c (%)")
+abline(h = 6.5, lty = 2)                       # 糖尿病的 HbA1c 切點</script>
+<script type="text/x-r" class="cell" data-label="範例 7-5 · 疊起來的點：點的直方圖">lab <- read.csv("data/lab.csv")
+stripchart(lab$hba1c, method = "stack", pch = 16, offset = 0.5, xlab = "HbA1c (%)")</script>
+  <p><code>method = "stack"</code> 把一樣的值疊起來，看起來像直方圖，但每一個點就是一個人，樣本數一目了然。</p>
+
+  <h3><span class="tag">7-4</span>點圖：dotchart()</h3>
+  <p>要比較很多類別的<b>數值</b>（平均、比例、濃度）時，Cleveland 點圖比長條圖清楚：類別名稱橫著寫不會擠，點的位置也<b>不用從 0 開始</b>（長條圖一定要從 0 開始，記得第 08 章的誤導圖嗎？）。</p>
+<script type="text/x-r" class="cell" data-label="範例 7-6 · dotchart">lab <- read.csv("data/lab.csv")
+m <- sort(tapply(lab$glucose, lab$blood, mean))   # 每種血型的平均血糖，由小到大
+m
+dotchart(m, pch = 16, xlab = "Mean glucose (mg/dL)", main = "Glucose by blood type")</script>
+
+  <h3><span class="tag">7-5</span>是常態分布嗎？Q-Q 圖</h3>
+  <p>t 檢定、平均 ± 標準差都假設資料大致是<b>常態分布</b>。<code>qqnorm()</code> 把資料排序後，和「如果是常態分布應該在哪裡」對照：<b>點落在 <code>qqline()</code> 的直線上 → 接近常態</b>；兩端往上翹或彎曲 → 偏斜或有極端值。</p>
+<script type="text/x-r" class="cell" data-label="範例 7-7 · qqnorm + qqline">lab <- read.csv("data/lab.csv")
+par(mfrow = c(1, 2))
+qqnorm(lab$chol, main = "Cholesterol")      # 大致在直線上：接近常態
+qqline(lab$chol, col = "red")
+qqnorm(lab$glucose, main = "Glucose")       # 右上角往上翹：右偏（有一群很高的值）
+qqline(lab$glucose, col = "red")</script>
+  <p>血糖是兩組混在一起的資料，右邊往上翹；這種時候報告中位數和四分位距、或用無母數檢定比較穩當。Q-Q 圖比直方圖更容易看出「尾巴」是不是太長。</p>
+
+  <h3><span class="tag">7-6</span>好幾個數值兩兩比較：pairs()</h3>
+  <p>手上有好幾個數值變數，想一次看所有兩兩之間的關係，用<b>散佈圖矩陣</b>。第 i 列、第 j 欄的小圖，y 是第 i 個變數、x 是第 j 個變數；對角線寫變數名稱，左下和右上是同一對變數、x 和 y 對調：</p>
+<script type="text/x-r" class="cell" data-label="範例 7-8 · pairs">lab <- read.csv("data/lab.csv")
+pairs(lab[, c("age", "glucose", "hba1c", "chol")],           # 只挑數值欄
+      pch = 16, col = ifelse(lab$group == "diabetes", "tomato", "steelblue"))</script>
+  <p>一眼就能看出：glucose 和 hba1c 幾乎排成一直線（強相關），其他組合都散成一團。在做迴歸分析之前，常常先畫這張圖找出值得深入看的變數。</p>
+
+  <div class="ex" id="ex7" data-ex="ex7">
+    <div class="ex-h"><span class="badge">練習 7</span><h3>血型在兩組的分布</h3><span class="st"></span></div>
+    <ul>
+      <li>做出交叉表 <code>tab</code>：<b>列是血型 blood、欄是組別 group</b>。</li>
+      <li>畫<b>並排</b>的分組長條圖，加上圖例，y 軸標籤 <code>"Count"</code>。</li>
+      <li>算出每一組裡各血型的百分比 <code>pct</code>（每一欄加起來是 100），四捨五入到小數 1 位。</li>
+    </ul>
+<script type="text/x-r" class="starter">lab <- read.csv("data/lab.csv")
+tab <- table(___, ___)
+barplot(tab, ___, legend.text = TRUE, ylab = ___)
+pct <- round(prop.table(tab, ___) * 100, 1)
+tab
+pct
+</script>
+  </div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="ch" id="ch8">
+  <div class="ch-h"><span class="num">08</span><h2>總整理：什麼資料用什麼圖？<small>先問「我想回答什麼問題」，再看「手上是什麼資料」</small></h2></div>
+  <div class="tblwrap"><table class="cmp guide">
+    <tr><th>手上的資料</th><th>想回答的問題</th><th>用這種圖</th><th>R</th><th>搭配的統計量</th></tr>
+    <tr><td><b>一個數值</b><br><small>血糖、年齡、Ct 值</small></td><td>集中在哪？分散多大？形狀？有沒有極端值？</td><td>直方圖、盒形圖；常態嗎 → Q-Q 圖</td><td><code>hist(x)</code><br><code>boxplot(x)</code><br><code>qqnorm(x)</code></td><td><code>summary</code>、<code>mean</code>/<code>sd</code> 或 <code>median</code>/<code>IQR</code></td></tr>
+    <tr><td><b>一個類別</b><br><small>血型、性別</small></td><td>每類有多少？佔多少？</td><td>長條圖（類別很少時才用圓餅圖）；類別很多 → 點圖</td><td><code>barplot(table(x))</code><br><code>dotchart(x)</code></td><td><code>table</code>、<code>prop.table</code></td></tr>
+    <tr><td><b>數值 × 類別</b><br><small>兩組的血糖</small></td><td>組和組之間有沒有差？</td><td>並排盒形圖；資料少 → 點狀圖</td><td><code>boxplot(y ~ g, data)</code><br><code>stripchart(y ~ g, data)</code></td><td><code>tapply</code>、<code>t.test</code></td></tr>
+    <tr><td><b>數值 × 數值</b><br><small>HbA1c 與血糖</small></td><td>有沒有關係？多強？</td><td>散佈圖（＋迴歸線）</td><td><code>plot(y ~ x, data)</code><br><code>abline(lm(y ~ x))</code></td><td><code>cor</code>、<code>lm</code></td></tr>
+    <tr><td><b>數值 × 時間</b><br><small>OGTT、追蹤</small></td><td>怎麼隨時間變化？</td><td>折線圖</td><td><code>plot(t, y, type = "b")</code><br><code>lines()</code></td><td>每個時間點的平均</td></tr>
+    <tr><td><b>類別 × 類別</b><br><small>組別 × 性別</small></td><td>組成比例一樣嗎？</td><td>分組或堆疊長條圖、馬賽克圖</td><td><code>barplot(table(a, b), beside = TRUE)</code><br><code>mosaicplot(table(a, b))</code></td><td><code>table(a, b)</code>、<code>prop.table</code>、<code>chisq.test</code></td></tr>
+    <tr><td><b>三個以上數值</b><br><small>年齡、血糖、HbA1c、膽固醇</small></td><td>哪些變數兩兩有關？</td><td>散佈圖矩陣</td><td><code>pairs(df[, 欄位])</code></td><td><code>cor(df)</code></td></tr>
+  </table></div>
+
+  <h3><span class="tag">8-1</span>選圖決策樹</h3>
+  <p>選圖的時候依序問自己三個問題：<b>有幾個變數？每個變數是數值還是類別？我想回答什麼問題？</b>下面的流程圖把整個單元的圖整理在一起；回答下方的問題，或直接點流程圖右邊的任何一種圖，看推薦的程式碼和畫出來的樣子。</p>
+  <div class="widget" id="dtree">
+    <div class="widget-h"><span class="ttl">選圖決策樹</span><button type="button" class="dt-reset">從頭開始</button></div>
+    <div class="dt-chart" id="dtChart"></div>
+    <div class="dt-panel"><div class="dt-path" id="dtPath"></div><div id="dtAsk"></div></div>
+    <div class="choose-stage" id="dtResult" hidden><div class="plotbox" id="dtPlot"></div><div class="choose-side"><pre class="wcode" id="dtCode"></pre><div id="dtWhy"></div></div></div>
   </div>
 
-  <h3><span class="tag">7-2</span>小測驗：該畫哪一種圖？</h3>
+  <h3><span class="tag">8-2</span>小測驗：該畫哪一種圖？</h3>
   <div class="quiz" id="quiz"></div>
 
-  <h3><span class="tag">7-3</span>常見的誤導圖</h3>
+  <h3><span class="tag">8-3</span>常見的誤導圖</h3>
   <p>同樣的資料，畫法不同，給人的印象就不同。下面每一格左右兩張圖用的是同一份資料：</p>
-<script type="text/x-r" class="cell" data-label="範例 7-1 · y 軸不從 0 開始的長條圖">rate <- c(A = 96.2, B = 97.8)          # 兩台儀器的合格率（%）
+<script type="text/x-r" class="cell" data-label="範例 8-1 · y 軸不從 0 開始的長條圖">rate <- c(A = 96.2, B = 97.8)          # 兩台儀器的合格率（%）
 par(mfrow = c(1, 2))
 barplot(rate, ylim = c(95, 98.5), xpd = FALSE, main = "Misleading", col = "tomato")
 barplot(rate, ylim = c(0, 100), main = "Honest", col = "steelblue")</script>
   <p>左圖看起來 B 是 A 的好幾倍，其實只差 1.6 個百分點。<b>長條圖的長度代表數量，一定要從 0 開始</b>；如果想強調小差異，改用點圖或直接寫出數字。</p>
-<script type="text/x-r" class="cell" data-label="範例 7-2 · 平均數一樣，分布不一樣">a <- c(98, 99, 100, 100, 101, 102, 100, 100)
+<script type="text/x-r" class="cell" data-label="範例 8-2 · 平均數一樣，分布不一樣">a <- c(98, 99, 100, 100, 101, 102, 100, 100)
 b <- c(60, 140, 62, 138, 100, 61, 139, 100)
 c(mean(a), mean(b))                    # 平均數一模一樣
 par(mfrow = c(1, 2))
@@ -1065,7 +1177,7 @@ function mk(arr, names, dim, dimnames){   // attach attributes; a bare length-1 
   if (dim) { r.dim = dim; if (dimnames && (dimnames[0] || dimnames[1])) r.dimnames = dimnames; }
   return r.names || r.dim ? r : (r.length === 1 ? r[0] : r);
 }
-const keepAttrs = (src, arr) => { if (!(Array.isArray(src) && arr.length === src.length)) return mk(arr); const r = mk(arr, src.names, src.dim, src.dimnames); if (src.tbl && Array.isArray(r)) r.tbl = true; return r; };
+const keepAttrs = (src, arr) => { if (!(Array.isArray(src) && arr.length === src.length)) return mk(arr); const r = mk(arr, src.names, src.dim, src.dimnames); if (src.tbl && Array.isArray(r)) { r.tbl = true; if (src.dnn) r.dnn = src.dnn; } return r; };
 const isNA = x => x === undefined || (typeof x === 'number' && isNaN(x));
 const vtype = V => V.some(x => typeof x === 'string') ? 'character' : V.some(x => typeof x === 'number') ? 'numeric' : V.some(x => typeof x === 'boolean') ? 'logical' : !V.length && V.rtype ? V.rtype : 'logical';
 const typedEmpty = (t, named) => { const r = []; r.rtype = t; if (named) r.names = []; return r; };
@@ -1150,6 +1262,19 @@ function fmtMatrix(v){
   }
   return out.join('\n');
 }
+function fmtTable2(v){
+  const [nr, nc] = v.dim, dn = v.dimnames || [null, null], dnn = v.dnn, V = asVec(v);
+  const S = vtype(V) === 'character' ? V.map(x => x ?? '') : v.tbl ? fmtNums(V) : Array.from({ length: nc }, (_, j) => fmtNums(V.slice(j * nr, j * nr + nr))).flat();
+  const cwj = j => v.tbl ? Math.max(...S.map(dispW)) : Math.max(...S.slice(j * nr, j * nr + nr).map(dispW));
+  const rl = Array.from({ length: nr }, (_, i) => dn[0] ? dn[0][i] : `[${i + 1},]`), cl = Array.from({ length: nc }, (_, j) => dn[1] ? dn[1][j] : `[,${j + 1}]`);
+  let rw = Math.max(...rl.map(dispW)), off = 0;
+  if (dnn) { const nw = dispW(dnn[0] || ''); if (nw < rw + 2) { off = 2; rw += 2; } else { off = nw - rw; rw = nw; } }
+  const w = cl.map((c, j) => Math.max(cwj(j), dispW(c))), out = [];
+  if (dnn) out.push(' '.repeat(rw) + (dnn[1] || ''));
+  out.push(padR(dnn ? dnn[0] || '' : '', rw) + cl.map((c, j) => ' ' + padL(c, w[j])).join(''));
+  for (let i = 0; i < nr; i++) out.push(padR(' '.repeat(off) + rl[i], rw) + cl.map((_, j) => ' ' + padL(S[j * nr + i], w[j])).join(''));
+  return out.join('\n');
+}
 const syntactic = s => /^([A-Za-z]|[.][A-Za-z._]|[.]$)[\w.]*$/.test(s) && !KWS.has(s);
 function fmtPrint(v, prefix = ''){
   if (v === null) return 'NULL';
@@ -1161,6 +1286,7 @@ function fmtPrint(v, prefix = ''){
   if (isList(v) && v.cls === 'histogram') return fmtPrint(new RList(v.names, v.vals)) + '\nattr(,"class")\n[1] "histogram"';
   if (isDF(v)) return fmtDF(v);
   if (Array.isArray(v) && v.pv) return fmtVector(mk(v.map(x => '‘' + x + '’'))).replace(/"/g, '');
+  if (Array.isArray(v) && v.dim && v.dim.length === 2 && (v.tbl || v.dnn)) return fmtTable2(v);
   if (Array.isArray(v) && v.tbl) return '\n' + fmtVector(v);
   if (isList(v)) {
     if (!v.vals.length) return v.named ? 'named list()' : 'list()';
@@ -1387,7 +1513,8 @@ function renderPlotSVG(page, W = 504, H = 378){
   let out = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" class="rplot" font-family="Helvetica, Arial, 'Noto Sans TC', sans-serif"><rect width="${W}" height="${H}" fill="white"/>`;
   page.figs.forEach((fig, k) => {
     const pr = page.byrow === false ? k % nr : Math.floor(k / nc), pc = page.byrow === false ? Math.floor(k / nr) : k % nc;
-    const x0 = pc * W / nc, y0 = pr * H / nr, w = W / nc, h = H / nr, lh = 14.4 * cexL, fs = 12 * cexL;
+    const om = (page.oma || [0, 0, 0, 0]).map(v => v * 14.4 * cexL), IW = W - om[1] - om[3], IH = H - om[0] - om[2];
+    const x0 = om[1] + pc * IW / nc, y0 = om[2] + pr * IH / nr, w = IW / nc, h = IH / nr, lh = 14.4 * cexL, fs = 12 * cexL;
     const mar = fig.mar || [5.1, 4.1, 4.1, 2.1];
     let L = x0 + mar[1] * lh, Rr = x0 + w - mar[3] * lh, T = y0 + mar[2] * lh, B = y0 + h - mar[0] * lh;
     let [u0, u1, v0, v1] = fig.usr;
@@ -1454,6 +1581,26 @@ function renderPlotSVG(page, W = 504, H = 378){
           out += ax.las >= 2 ? `<text transform="translate(${f(X(v) + fs * 0.35)},${f(B + 1.0 * lh)}) rotate(-90)" font-size="${f(fs * (ax.cex || 1))}" text-anchor="end">${xesc(labs[i])}</text>`
             : `<text x="${f(X(v))}" y="${f(B + 1.0 * lh + fs * 0.98)}" font-size="${f(fs * (ax.cex || 1))}" text-anchor="middle">${xesc(labs[i])}</text>`;
         });
+      } else if (ax.side === 3) {
+        const vis = at.filter(v => v >= u0 - 1e-9 && v <= u1 + 1e-9);
+        if (vis.length) out += `<line x1="${f(X(Math.min(...vis)))}" x2="${f(X(Math.max(...vis)))}" y1="${f(T)}" y2="${f(T)}" stroke="${axisCol}"/>`;
+        let lastR = -Infinity;
+        at.forEach((v, i) => {
+          if (v < u0 - 1e-9 || v > u1 + 1e-9) return;
+          out += `<line x1="${f(X(v))}" x2="${f(X(v))}" y1="${f(T)}" y2="${f(T - 0.5 * lh)}" stroke="${axisCol}"/>`;
+          const tw = textW(labs[i], fs), cx = X(v); if (cx - tw / 2 < lastR + fs * 0.4) return; lastR = cx + tw / 2;
+          out += `<text x="${f(cx)}" y="${f(T - 1.0 * lh - fs * 0.15)}" font-size="${f(fs)}" text-anchor="middle">${xesc(labs[i])}</text>`;
+        });
+      } else if (ax.side === 4) {
+        const vis = at.filter(v => v >= v0 - 1e-9 && v <= v1 + 1e-9);
+        if (vis.length) out += `<line y1="${f(Y(Math.min(...vis)))}" y2="${f(Y(Math.max(...vis)))}" x1="${f(Rr)}" x2="${f(Rr)}" stroke="${axisCol}"/>`;
+        let lastT = Infinity;
+        at.forEach((v, i) => {
+          if (v < v0 - 1e-9 || v > v1 + 1e-9) return;
+          out += `<line y1="${f(Y(v))}" y2="${f(Y(v))}" x1="${f(Rr)}" x2="${f(Rr + 0.5 * lh)}" stroke="${axisCol}"/>`;
+          const tw = textW(labs[i], fs), cy = Y(v); if (cy + tw / 2 > lastT - fs * 0.4) return; lastT = cy - tw / 2;
+          out += `<text transform="translate(${f(Rr + 1.0 * lh + fs * 0.78)},${f(cy)}) rotate(-90)" font-size="${f(fs)}" text-anchor="middle">${xesc(labs[i])}</text>`;
+        });
       } else if (ax.side === 2) {
         const vis = at.filter(v => v >= v0 - 1e-9 && v <= v1 + 1e-9);
         if (vis.length) out += `<line y1="${f(Y(Math.min(...vis)))}" y2="${f(Y(Math.max(...vis)))}" x1="${f(L)}" x2="${f(L)}" stroke="${axisCol}"/>`;
@@ -1470,12 +1617,21 @@ function renderPlotSVG(page, W = 504, H = 378){
         });
       }
     }
+    for (const m of fig.mtext || []) {
+      const c = fs * (m.cex || 1);
+      if (m.side === 2 && m.las === 2) out += `<text x="${f(L - m.line * lh)}" y="${f(Y(m.at) + c * 0.35)}" font-size="${f(c)}" text-anchor="${m.adj === 0 ? 'start' : m.adj === 1 ? 'end' : 'middle'}">${xesc(m.text)}</text>`;
+      else if (m.side === 2) out += `<text transform="translate(${f(L - m.line * lh)},${f(Y(m.at))}) rotate(-90)" font-size="${f(c)}" text-anchor="middle">${xesc(m.text)}</text>`;
+      else if (m.side === 3) out += `<text x="${f(X(m.at))}" y="${f(T - m.line * lh)}" font-size="${f(c)}" text-anchor="middle">${xesc(m.text)}</text>`;
+    }
+    for (const t of fig.free || []) out += t.rot ? `<text transform="translate(${f(X(t.x))},${f(Y(t.y))}) rotate(-90)" font-size="${f(fs * t.cex)}" text-anchor="middle">${xesc(t.text)}</text>`
+      : `<text x="${f(X(t.x))}" y="${f(Y(t.y) + fs * t.cex * 0.35)}" font-size="${f(fs * t.cex)}" text-anchor="middle"${t.bold ? ' font-weight="bold"' : ''}>${xesc(t.text)}</text>`;
     if (fig.box) out += `<rect x="${f(L)}" y="${f(T)}" width="${f(Rr - L)}" height="${f(B - T)}" fill="none" stroke="black"/>`;
     if (fig.main) out += `<text x="${f((L + Rr) / 2)}" y="${f(T - 1.7 * lh + fs * 0.1)}" font-size="${f(fs * 1.2)}" font-weight="bold" text-anchor="middle">${xesc(fig.main)}</text>`;
     if (fig.sub) out += `<text x="${f((L + Rr) / 2)}" y="${f(B + 4 * lh + fs * 0.75)}" font-size="${f(fs)}" text-anchor="middle">${xesc(fig.sub)}</text>`;
     if (fig.xlab) out += `<text x="${f((L + Rr) / 2)}" y="${f(B + 3 * lh + fs * 0.95)}" font-size="${f(fs)}" text-anchor="middle">${xesc(fig.xlab)}</text>`;
     if (fig.ylab) out += `<text transform="translate(${f(L - 3 * lh - fs * 0.22)},${f((T + B) / 2)}) rotate(-90)" font-size="${f(fs)}" text-anchor="middle">${xesc(fig.ylab)}</text>`;
   });
+  if (page.main) out += `<text x="${f(W / 2)}" y="${f(page.mainY * 14.4 * cexL)}" font-size="${f(12 * 1.2)}" font-weight="bold" text-anchor="middle">${xesc(page.main)}</text>`;
   return out + '</svg>';
 }
 function legendSVG(it, P){
@@ -1510,6 +1666,26 @@ function betacf(a, b, x){ let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 
 function ibeta(x, a, b){ if (x <= 0) return 0; if (x >= 1) return 1; const bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x)); return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b; }
 const ptR = (t, df) => { const x = df / (df + t * t), p = 0.5 * ibeta(x, df / 2, 0.5); return t > 0 ? 1 - p : p; };
 function qtR(p, df){ let lo = -1e3, hi = 1e3; for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (ptR(m, df) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
+
+function gammaP(a, x){   // regularized lower incomplete gamma
+  if (x <= 0) return 0;
+  if (x < a + 1) { let s = 1 / a, t = s; for (let n = 1; n < 500; n++) { t *= x / (a + n); s += t; if (Math.abs(t) < Math.abs(s) * 1e-16) break; } return s * Math.exp(-x + a * Math.log(x) - lgamma(a)); }
+  let b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+  for (let i = 1; i < 500; i++) { const an = -i * (i - a); b += 2; d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300; c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 1e-16) break; }
+  return 1 - Math.exp(-x + a * Math.log(x) - lgamma(a)) * h;
+}
+const pchisqUpper = (x, df) => 1 - gammaP(df / 2, x / 2);
+function pnormR(x0){ const x = x0 / Math.SQRT2, t = 1 / (1 + 0.5 * Math.abs(x)); const y = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277))))))))); return x >= 0 ? 1 - y / 2 : y / 2; }
+function qnormR(p){   // Wichura AS241
+  if (p <= 0) return -Infinity; if (p >= 1) return Infinity;
+  const q = p - 0.5;
+  if (Math.abs(q) <= 0.425) { const r = 0.180625 - q * q; return q * (((((((r * 2509.0809287301226727 + 33430.575583588128105) * r + 67265.770927008700853) * r + 45921.953931549871457) * r + 13731.693765509461125) * r + 1971.5909503065514427) * r + 133.14166789178437745) * r + 3.387132872796366608) / (((((((r * 5226.495278852545925 + 28729.085735721942674) * r + 39307.89580009271061) * r + 21213.794301586595867) * r + 5394.1960214247511077) * r + 687.1870074920579083) * r + 42.313330701600911252) * r + 1); }
+  let r = q < 0 ? p : 1 - p; r = Math.sqrt(-Math.log(r)); let v;
+  if (r <= 5) { r -= 1.6; v = (((((((r * 7.7454501427834140764e-4 + 0.0227238449892691845833) * r + 0.24178072517745061177) * r + 1.27045825245236838258) * r + 3.64784832476320460504) * r + 5.7694972214606914055) * r + 4.6303378461565452959) * r + 1.42343711074968357734) / (((((((r * 1.05075007164441684324e-9 + 5.475938084995344946e-4) * r + 0.0151986665636164571966) * r + 0.14810397642748007459) * r + 0.68976733498510000455) * r + 1.6763848301838038494) * r + 2.05319162663775882187) * r + 1); }
+  else { r -= 5; v = (((((((r * 2.01033439929228813265e-7 + 2.71155556874348757815e-5) * r + 0.0012426609473880784386) * r + 0.026532189526576123093) * r + 0.29656057182850489123) * r + 1.7848265399172913358) * r + 5.4637849111641143699) * r + 6.6579046435011037772) / (((((((r * 2.04426310338993978564e-15 + 1.4215117583164458887e-7) * r + 1.8463183175100546818e-5) * r + 7.868691311456132591e-4) * r + 0.0148753612908506148525) * r + 0.13692988092273580531) * r + 0.59983220655588793769) * r + 1); }
+  return q < 0 ? -v : v;
+}
+const grayColors = n => Array.from({ length: n }, (_, i) => { const g = Math.pow(n === 1 ? Math.pow(0.3, 2.2) : Math.pow(0.3, 2.2) + (Math.pow(0.9, 2.2) - Math.pow(0.3, 2.2)) * i / (n - 1), 1 / 2.2), h = Math.round(g * 255).toString(16).padStart(2, '0').toUpperCase(); return '#' + h + h + h; });
 
 /* ---------- the interpreter ---------- */
 function execute(src, presets, opts = {}){
@@ -2048,6 +2224,8 @@ function execute(src, presets, opts = {}){
   }
   /* ===== graphics device ===== */
   const dev = { pages: [], cur: null, mfrow: [1, 1], byrow: true, file: null, fresh: true };
+  let rseed = 20260901;   // jitter needs random numbers; a fixed seed keeps every run (and the grading) the same
+  const runif1 = () => { rseed = (rseed * 1103515245 + 12345) % 2147483648; return rseed / 2147483648; };
   function newFig(kind){
     const [r, c] = dev.mfrow, list = dev.file ? dev.file.pages : dev.pages;
     let pg = dev.cur;
@@ -2112,6 +2290,39 @@ function execute(src, presets, opts = {}){
   const mkInt = arr => { const r = mk(arr); if (Array.isArray(r)) r.rtype = 'integer'; return r; };
   const fmtSig = (x, d) => fmtNums([x], d)[0];
   function formatPval(p){ return p < 2.220446e-16 ? '< 2.2e-16' : fmtSig(p, 4); }
+  function barplot2(a, line){
+    const M = numsOf(a.height, line, 'barplot() 的高度'), [nr, nc] = a.height.dim, dn = a.height.dimnames || [null, null];
+    const beside = a.beside !== undefined && lgl(a.beside, false), horiz = a.horiz !== undefined && lgl(a.horiz, false);
+    const col = a.col !== undefined ? optV(a.col) : grayColors(nr), pick = (v, i) => Array.isArray(v) ? v[i % v.length] : v;
+    const fig = newFig('bar'); if (horiz) fig.xaxs = 'i'; else fig.yaxs = 'i';
+    const wd = 1, mids = [], rects = [];
+    let pos = 0;
+    if (beside) {
+      const sp = a.space !== undefined ? numsOf(a.space) : [0, 1];
+      for (let j = 0; j < nc; j++) for (let i = 0; i < nr; i++) { pos += (i === 0 ? sp[1 % sp.length] : sp[0]) + wd; const m = pos - wd / 2; mids.push(m); rects.push({ m, b: 0, t: M[j * nr + i], c: pick(col, i) }); }
+    } else {
+      const sp = optN(a.space, 0.2);
+      for (let j = 0; j < nc; j++) { pos += sp + wd; const m = pos - wd / 2; mids.push(m); let acc = 0; for (let i = 0; i < nr; i++) { const v = M[j * nr + i]; rects.push({ m, b: acc, t: acc + v, c: pick(col, i) }); acc += v; } }
+    }
+    const tops = beside ? M : Array.from({ length: nc }, (_, j) => M.slice(j * nr, j * nr + nr).reduce((p, q) => p + q, 0));
+    const lim = [Math.min(0, ...tops), Math.max(0, ...tops)], pr = [mids[0] - wd / 2, mids[mids.length - 1] + wd / 2];
+    if (horiz) setWin(fig, lim, pr, { xlim: a.xlim, ylim: a.ylim }); else setWin(fig, pr, lim, { xlim: a.xlim, ylim: a.ylim });
+    rects.forEach(r => fig.layers.push(horiz ? { t: 'rect', y0: r.m - wd / 2, y1: r.m + wd / 2, x0: r.b, x1: r.t, col: r.c, border: optV(a.border, 'black') } : { t: 'rect', x0: r.m - wd / 2, x1: r.m + wd / 2, y0: r.b, y1: r.t, col: r.c, border: optV(a.border, 'black') }));
+    const vSide = horiz ? 1 : 2, nSide = horiz ? 2 : 1;
+    if (a.axes === undefined || lgl(a.axes, true)) { const [p0, p1] = vSide === 1 ? fig.usr.slice(0, 2) : fig.usr.slice(2); const at = axisTicks(p0, p1); fig.axes.push({ side: vSide, at, labels: fmtNums(at), las: optN(a.las, 0) }); }
+    const gm = beside ? Array.from({ length: nc }, (_, j) => mids.slice(j * nr, j * nr + nr).reduce((p, q) => p + q, 0) / nr) : mids;
+    const nm = a['names.arg'] !== undefined ? asVec(a['names.arg']).map(asChar1) : dn[1];
+    if (nm) fig.axes.push({ side: nSide, at: gm, labels: nm, ticks: false, line: false, las: optN(a.las, horiz ? 1 : 0), cex: optN(a['cex.names'], 1), names: true });
+    if (a['legend.text'] !== undefined && !(typeof asVec(a['legend.text'])[0] === 'boolean' && !asVec(a['legend.text'])[0])) {
+      let lt = typeof asVec(a['legend.text'])[0] === 'boolean' ? (dn[0] || []) : asVec(a['legend.text']).map(asChar1), lc = Array.from({ length: nr }, (_, i) => pick(col, i));
+      if (!beside) { lt = [...lt].reverse(); lc = [...lc].reverse(); }
+      fig.layers.push({ t: 'legend', pos: 'topright', legend: lt, fill: lc });
+    }
+    labels(fig, a, {});
+    fig.sig = { kind: 'bar2', heights: M, dim: [nr, nc], rows: dn[0], cols: dn[1], beside, horiz };
+    visible = false;
+    return beside ? mk(mids, null, [nr, nc]) : mk(mids);
+  }
   const BUILTIN = {
     c: [['...'], (a, line) => combine(a['...'], line)],
     list: [['...'], a => new RList(a['...'].map(d => d.name || ''), a['...'].map(d => d.v))],
@@ -2417,7 +2628,19 @@ function execute(src, presets, opts = {}){
     'complete.cases': [['...'], a => { const x = a['...'][0].v; if (isDF(x)) { const n = dfN(x); return mk(Array.from({ length: n }, (_, i) => x.vals.every(c => !isNA(asVec(c)[i])))); } return mk(asVec(x).map(v => !isNA(v))); }],
     'na.omit': [['object'], (a, line) => { const x = a.object; if (!isDF(x)) throw new RErr('這個網頁版的 na.omit() 只支援 data.frame；向量請用 x[!is.na(x)]', line); const n = dfN(x), keep = Array.from({ length: n }, (_, i) => i).filter(i => x.vals.every(c => !isNA(asVec(c)[i]))); const r = dfIndex(x, [mk(keep.map(i => i + 1)), MISSING], line, false); if (keep.length === n) return x; if (!r.rn) r.rn = keep.map(i => String(i + 1)); return r; }],
     summary: [['object', '...'], (a, line) => { throw new RErr('這個網頁版沒有實作 summary()。可以先用 str()、head()、nrow()、mean() 看資料；summary() 請到 RStudio 試試', line); }],
-    table: [['...'], (a, line) => { const r = oldTable(a, line); if (Array.isArray(r)) r.tbl = true; return r; }],
+    table: [['...'], (a, line) => {
+      const args = a['...'].filter(d => d.v !== undefined);
+      if (args.length === 2) {
+        const A = asVec(args[0].v), B = asVec(args[1].v);
+        if (A.length !== B.length) throw new RErr('all arguments must have the same length：table() 的兩個變數要一樣長', line);
+        const la = levelsOf(A), lb = levelsOf(B), cnt = [];
+        lb.forEach(b => la.forEach(x => cnt.push(A.filter((v, i) => asChar1(v) === x && asChar1(B[i]) === b).length)));
+        const r = mk(cnt, null, [la.length, lb.length], [la, lb]); r.tbl = true; r.rtype = 'integer'; r.dnn = [args[0].name || '', args[1].name || ''];
+        return r;
+      }
+      if (args.length > 2) throw new RErr('這個網頁版的 table() 最多只支援兩個變數', line);
+      const r = oldTable(a, line); if (Array.isArray(r)) r.tbl = true; return r;
+    }],
     /* -- files and folders -- */
     getwd: [[], () => wd],
     setwd: [['dir'], (a, line) => { const p = str1(a.dir, line, 'setwd() 的資料夾'), P = normPath(p); if (!isDir(P)) throw new RErr(`cannot change working directory：沒有 '${p}' 這個資料夾`, line); const old = wd; wd = P; visible = false; return old; }],
@@ -2548,7 +2771,7 @@ function execute(src, presets, opts = {}){
     barplot: [['height', 'width', 'space', 'names.arg', 'legend.text', 'beside', 'horiz', 'col', 'border', 'main', 'sub', 'xlab', 'ylab', 'xlim', 'ylim', 'axes', 'las', 'cex.names', '...'], (a, line) => {
       if (a.height === undefined) throw new RErr('barplot() 要給每根長條的高度，例如 barplot(table(x))', line);
       if (isList(a.height)) throw new RErr('barplot() 要給數字向量（或 table），不能是 list / data.frame', line);
-      if (dimOf(a.height)) throw new RErr('這個網頁版的 barplot() 只支援一組長條（向量或一維 table）', line);
+      if (dimOf(a.height)) return barplot2(a, line);
       const Hh = numsOf(a.height, line, 'barplot() 的高度'), k = Hh.length;
       const nm = a['names.arg'] !== undefined ? asVec(a['names.arg']).map(asChar1) : namesOf(a.height) ? [...namesOf(a.height)] : null;
       const sp = optN(a.space, 0.2), wd = 1, horiz = a.horiz !== undefined && lgl(a.horiz, false);
@@ -2699,6 +2922,145 @@ function execute(src, presets, opts = {}){
       dev.file = null; dev.cur = null; dev.fresh = true;
       const r = [1]; r.names = ['null device']; r.rtype = 'integer'; return r;
     }],
+    'gray.colors': [['n'], (a, line) => mk(grayColors(num1(a.n, line)))],
+    'grey.colors': [['n'], (a, line) => mk(grayColors(num1(a.n, line)))],
+    qnorm: [['p', 'mean', 'sd'], (a, line) => { const m = optN(a.mean, 0), sd = optN(a.sd, 1); return keepAttrs(a.p, numsOf(a.p, line, 'qnorm() 的機率').map(p => m + sd * qnormR(p))); }],
+    pnorm: [['q', 'mean', 'sd', 'lower.tail'], (a, line) => { const m = optN(a.mean, 0), sd = optN(a.sd, 1), lo = a['lower.tail'] === undefined || lgl(a['lower.tail'], true); return keepAttrs(a.q, numsOf(a.q, line, 'pnorm() 的值').map(q => { const v = pnormR((q - m) / sd); return lo ? v : 1 - v; })); }],
+    ppoints: [['n'], (a, line) => { const n = asVec(a.n).length > 1 ? asVec(a.n).length : num1(a.n, line), k = n <= 10 ? 3 / 8 : 0.5; return mk(Array.from({ length: n }, (_, i) => (i + 1 - k) / (n + 1 - 2 * k))); }],
+    'chisq.test': [['x', 'y', 'correct'], (a, line) => {
+      let O = a.x, dname = srcOf(a, 'x', 'x');
+      if (a.y !== undefined) { O = BUILTIN.table[1]({ '...': [{ name: srcOf(a, 'x', 'x'), v: a.x }, { name: srcOf(a, 'y', 'y'), v: a.y }] }, line); dname = `${srcOf(a, 'x', 'x')} and ${srcOf(a, 'y', 'y')}`; }
+      if (!dimOf(O)) throw new RErr('這個網頁版的 chisq.test() 要給一個二維的 table，例如 chisq.test(table(lab$group, lab$sex))', line);
+      const [nr, nc] = O.dim, V = numsOf(O, line, 'chisq.test() 的表'), N = V.reduce((p, q) => p + q, 0);
+      const rs = Array.from({ length: nr }, (_, i) => V.filter((_, k) => k % nr === i).reduce((p, q) => p + q, 0)), cs = Array.from({ length: nc }, (_, j) => V.slice(j * nr, j * nr + nr).reduce((p, q) => p + q, 0));
+      const E = V.map((_, k) => rs[k % nr] * cs[Math.floor(k / nr)] / N), yates = nr === 2 && nc === 2 && (a.correct === undefined || lgl(a.correct, true));
+      const st = V.reduce((s2, o, k) => { const d = Math.abs(o - E[k]) - (yates ? Math.min(0.5, Math.abs(o - E[k])) : 0); return s2 + d * d / E[k]; }, 0), df = (nr - 1) * (nc - 1), p = pchisqUpper(st, df);
+      if (E.some(e => e < 5)) warn(`In chisq.test(${srcOf(a, 'x', 'x')}${a.y !== undefined ? ', ' + srcOf(a, 'y', 'y') : ''}) :\n  Chi-squared approximation may be incorrect`);
+      const method = yates ? "Pearson's Chi-squared test with Yates' continuity correction" : "Pearson's Chi-squared test";
+      const txt = `\n\t${method}\n\ndata:  ${dname}\nX-squared = ${fmtSig(st, 5)}, df = ${df}, p-value = ${formatPval(p)}\n\n`;
+      const Em = mk(E, null, [nr, nc], O.dimnames ? O.dimnames : null); if (O.dnn && (O.dnn[0] || O.dnn[1])) Em.dnn = O.dnn;
+      return clsList(['statistic', 'parameter', 'p.value', 'method', 'observed', 'expected'], [mk([st], ['X-squared']), mk([df], ['df']), p, method, O, Em], 'htest', { printText: txt });
+    }],
+    stripchart: [['x', 'data', 'method', 'jitter', 'offset', 'vertical', 'group.names', 'pch', 'col', 'cex', 'main', 'xlab', 'ylab', 'xlim', 'ylim', '...'], (a, line) => {
+      let groups = [], nms = [], dlab = '', glab = '';
+      if (a.x instanceof RFormula) {
+        const fd = formulaData(a.x, a.data, line); if (!fd.y) throw new RErr('stripchart 的公式要寫成 數值 ~ 組別', line);
+        const Y = numsOf(fd.y.v, line, '公式左邊'), G = asVec(fd.x.v); nms = levelsOf(G); groups = nms.map(l => Y.filter((_, i) => asChar1(G[i]) === l)); dlab = fd.y.name;
+      } else if (isList(a.x)) { a.x.vals.forEach((c, i) => { groups.push(numsOf(c, line, 'stripchart 的資料')); nms.push(a.x.names[i] || String(i + 1)); }); }
+      else { groups = [numsOf(a.x, line, 'stripchart 的資料')]; nms = ['']; }
+      if (a['group.names'] !== undefined) nms = asVec(a['group.names']).map(asChar1);
+      const method = optS(a.method, 'overplot'), jit = optN(a.jitter, 0.1), offset = optN(a.offset, 1 / 3), vert = a.vertical !== undefined && lgl(a.vertical, false), n = groups.length;
+      const fig = newFig('strip'), pch = optV(a.pch, 0), col = optV(a.col, 'black'), cex = optV(a.cex, 1), pick = (v, i) => Array.isArray(v) ? v[i % v.length] : v;
+      let glim = [1, n]; if (method === 'jitter') glim = [1 - jit * (n === 1 ? 5 : 2), n + jit * (n === 1 ? 5 : 2)];
+      const all = groups.flat().filter(v => !isNA(v)), dr = rangeOf(all);
+      if (vert) setWin(fig, a.xlim !== undefined ? numsOf(a.xlim) : glim, dr, { ylim: a.ylim }); else setWin(fig, dr, a.ylim !== undefined ? numsOf(a.ylim) : glim, { xlim: a.xlim });
+      const csize = 0.2 / (378 / 72 - (5.1 + 4.1) * 0.2) * (vert ? fig.usr[1] - fig.usr[0] : fig.usr[3] - fig.usr[2]);   // one symbol height in user units
+      const P = [], Q = [], C = [], H = [];
+      groups.forEach((g, i) => {
+        const seen = {};
+        g.forEach(v => { if (isNA(v)) return; let pos = i + 1;
+          if (method === 'jitter') pos += (runif1() * 2 - 1) * jit;
+          else if (method === 'stack') { const k = seen[v] = (seen[v] || 0) + 1; pos += (k - 1) * offset * csize; }
+          P.push(vert ? pos : v); Q.push(vert ? v : pos); C.push(pick(col, i)); H.push(pick(pch, i)); });
+      });
+      fig.layers.push({ t: 'pts', x: P, y: Q, pch: H, col: C, cex });
+      const [d0, d1] = vert ? fig.usr.slice(2) : fig.usr.slice(0, 2), at = axisTicks(d0, d1);
+      fig.axes.push({ side: vert ? 2 : 1, at, labels: fmtNums(at) });
+      if (n > 1) fig.axes.push({ side: vert ? 1 : 2, at: groups.map((_, i) => i + 1), labels: nms });
+      fig.box = true;
+      labels(fig, a, vert ? { xlab: glab, ylab: dlab } : { xlab: dlab, ylab: glab });
+      fig.sig = { kind: 'strip', groups: groups.map(g => [...g].sort((p, q) => p - q)), names: nms, method };
+      visible = false; return null;
+    }],
+    dotchart: [['x', 'labels', 'pch', 'col', 'bg', 'cex', 'lcolor', 'main', 'xlab', 'ylab', 'xlim', '...'], (a, line) => {
+      const V = numsOf(a.x, line, 'dotchart() 的資料'), n = V.length;
+      const lab = a.labels !== undefined ? asVec(a.labels).map(asChar1) : namesOf(a.x) ? [...namesOf(a.x)] : V.map(() => '');
+      const fig = newFig('dot'), cex = optN(a.cex, 1);
+      const linch = Math.max(0, ...lab.map(s => textW(s, 12 * cex))) / 72;
+      fig.mar = [5.1, (0.42 + linch + 0.1) / 0.2, 4.1, 2.1];
+      setWin(fig, rangeOf(V), [0, n + 1], { xlim: a.xlim });
+      const y = V.map((_, i) => i + 1);
+      fig.layers.push({ t: 'abline', h: y, col: optV(a.lcolor, 'gray'), lty: 3, lwd: 1 });
+      fig.layers.push({ t: 'pts', x: V, y, pch: optV(a.pch, 21), col: optV(a.col, 'black'), bg: optV(a.bg, 'transparent'), cex: cex });
+      fig.mtext = lab.map((t, i) => ({ side: 2, las: 2, adj: 0, line: (linch + 0.1) / 0.2, at: i + 1, text: t, cex }));
+      const at = axisTicks(fig.usr[0], fig.usr[1]); fig.axes.push({ side: 1, at, labels: fmtNums(at) }); fig.box = true;
+      labels(fig, a, {});
+      fig.sig = { kind: 'dot', values: V, labels: lab };
+      visible = false; return null;
+    }],
+    qqnorm: [['y', 'main', 'xlab', 'ylab', 'pch', 'col', 'cex', 'plot.it', '...'], (a, line) => {
+      const Yv = numsOf(a.y, line, 'qqnorm() 的資料'), idx = Yv.map((v, i) => i).filter(i => !isNA(Yv[i])), n = idx.length, k = n <= 10 ? 3 / 8 : 0.5;
+      const order = [...idx].sort((p, q) => Yv[p] - Yv[q]), Xv = Yv.map(() => NaN);
+      order.forEach((i, r) => { Xv[i] = qnormR((r + 1 - k) / (n + 1 - 2 * k)); });
+      const res = new RList(['x', 'y'], [mk(Xv), mk(Yv)]);
+      if (a['plot.it'] !== undefined && !lgl(a['plot.it'], true)) return res;
+      const fig = newFig('qq'); setWin(fig, rangeOf(Xv), rangeOf(Yv), a); stdAxes(fig); fig.box = true;
+      fig.layers.push(...pointsLayer(Xv, Yv, a));
+      labels(fig, a, { main: 'Normal Q-Q Plot', xlab: 'Theoretical Quantiles', ylab: 'Sample Quantiles' });
+      fig.sig = { kind: 'qq', y: [...Yv].filter(v => !isNA(v)).sort((p, q) => p - q) };
+      visible = false; return res;
+    }],
+    qqline: [['y', 'col', 'lty', 'lwd', '...'], (a, line) => {
+      const f = curFig(line, 'qqline'), Yv = numsOf(a.y, line, 'qqline() 的資料').filter(v => !isNA(v));
+      const y1 = quantile7(Yv, 0.25), y2 = quantile7(Yv, 0.75), x1 = qnormR(0.25), x2 = qnormR(0.75), b = (y2 - y1) / (x2 - x1);
+      f.layers.push({ t: 'abline', a: y1 - b * x1, b, col: optV(a.col, 'black'), lty: optV(a.lty, 1), lwd: optN(a.lwd, 1), low: 'qqline' });
+      visible = false; return null;
+    }],
+    pairs: [['x', 'labels', 'col', 'pch', 'cex', 'main', 'gap', '...'], (a, line) => {
+      let cols = [], nms = [];
+      if (isDF(a.x) || isList(a.x)) { a.x.vals.forEach((c, i) => { cols.push(numsOf(c, line, 'pairs() 的每一欄')); nms.push(a.x.names[i]); }); }
+      else if (dimOf(a.x)) { const [nr, nc] = a.x.dim, V = numsOf(a.x, line, 'pairs()'); for (let j = 0; j < nc; j++) { cols.push(V.slice(j * nr, j * nr + nr)); nms.push(a.x.dimnames && a.x.dimnames[1] ? a.x.dimnames[1][j] : 'Var ' + (j + 1)); } }
+      else throw new RErr('pairs() 要給一個有好幾個數字欄位的 data.frame，例如 pairs(lab[, c("age", "glucose")])', line);
+      if (cols.length < 2) throw new RErr('only one column in the argument to \'pairs\'：至少要兩欄', line);
+      if (a.labels !== undefined) nms = asVec(a.labels).map(asChar1);
+      const k = cols.length, gap = optN(a.gap, 1), saved = [dev.mfrow, dev.byrow];
+      dev.mfrow = [k, k]; dev.byrow = true; dev.fresh = true;
+      const main = a.main !== undefined ? asChar1(one(a.main)) : null;
+      const cexL = k === 2 ? 1 : k === 3 ? 0.66 : 0.66;
+      for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) {
+        const fig = newFig('pairs'); fig.mar = [gap / 2, gap / 2, gap / 2, gap / 2];
+        if (i === 0 && j === 0) { dev.cur.oma = [4, 4, main ? 6 : 4, 4]; if (main) { dev.cur.main = main; dev.cur.mainY = 3; } }
+        setWin(fig, rangeOf(cols[j]), rangeOf(cols[i]), {}); fig.box = true;
+        const ax = (side, r) => { const [p0, p1] = r; const at = axisTicks(p0, p1); fig.axes.push({ side, at, labels: fmtNums(at) }); };
+        if (i === 0 && j % 2 === 1) ax(3, fig.usr.slice(0, 2));
+        if (i === k - 1 && j % 2 === 0) ax(1, fig.usr.slice(0, 2));
+        if (j === 0 && i % 2 === 1) ax(2, fig.usr.slice(2));
+        if (j === k - 1 && i % 2 === 0) ax(4, fig.usr.slice(2));
+        if (i === j) {
+          const maxw = Math.max(...nms.map(s => textW(s, 1)));
+          const pw = (504 - 8 * 14.4 * cexL) / k - gap * 14.4 * cexL, size = Math.max(0.8, Math.min(2, 0.9 * pw / (maxw * 12 * cexL)));
+          fig.free = [{ x: (fig.usr[0] + fig.usr[1]) / 2, y: (fig.usr[2] + fig.usr[3]) / 2, text: nms[i], cex: size }];
+        } else fig.layers.push({ t: 'pts', x: cols[j], y: cols[i], pch: optV(a.pch, 1), col: optV(a.col, 'black'), cex: optV(a.cex, 1) });
+      }
+      dev.cur.figs[0].sig = { kind: 'pairs', names: nms, n: cols[0].length };
+      [dev.mfrow, dev.byrow] = saved; dev.fresh = true;
+      visible = false; return null;
+    }],
+    mosaicplot: [['x', 'main', 'color', 'xlab', 'ylab', '...'], (a, line) => {
+      const O = a.x; if (!dimOf(O)) throw new RErr('mosaicplot() 要給二維的 table，例如 mosaicplot(table(lab$group, lab$sex))', line);
+      const [nr, nc] = O.dim, V = numsOf(O, line, 'mosaicplot()'), N = V.reduce((p, q) => p + q, 0), dn = O.dimnames || [[], []];
+      const fig = newFig('mosaic'); fig.xaxs = fig.yaxs = 'i'; fig.usr = [0, 1, 0, 1];
+      const cx0 = 0.0482, cx1 = 0.9494, cy0 = 0.0081, cy1 = 0.9553, gx = 0.013 * (cx1 - cx0), gy = 0.0129 * (cy1 - cy0);
+      const colr = a.color === undefined || a.color === null || (typeof asVec(a.color)[0] === 'boolean' && !asVec(a.color)[0]) ? Array(nc).fill('grey')
+        : typeof asVec(a.color)[0] === 'boolean' ? grayColors(nc) : asVec(a.color).map(asChar1);
+      const rowTot = Array.from({ length: nr }, (_, i) => V.filter((_, k) => k % nr === i).reduce((p, q) => p + q, 0));
+      let x = cx0; const wAvail = (cx1 - cx0) - gx * (nr - 1);
+      fig.free = [];
+      rowTot.forEach((rt, i) => {
+        const w = wAvail * rt / N; let y = cy1; const hAvail = (cy1 - cy0) - gy * (nc - 1);
+        for (let j = 0; j < nc; j++) {
+          const h = rt ? hAvail * V[j * nr + i] / rt : 0;
+          fig.layers.push({ t: 'rect', x0: x, x1: x + w, y0: y - h, y1: y, col: colr[j % colr.length], border: 'black' });
+          if (i === 0 && dn[1]) fig.free.push({ x: 0.0217, y: y - h / 2, text: dn[1][j], cex: 0.66, rot: true });
+          y -= h + gy;
+        }
+        if (dn[0]) fig.free.push({ x: x + w / 2, y: 0.9797, text: dn[0][i], cex: 0.66 });
+        x += w + gx;
+      });
+      labels(fig, a, { main: srcOf(a, 'x', 'x'), xlab: (O.dnn && O.dnn[0]) || '', ylab: (O.dnn && O.dnn[1]) || '' });
+      fig.sig = { kind: 'mosaic', values: V, dim: [nr, nc] };
+      visible = false; return null;
+    }],
     rainbow: [['n', '...'], (a, line) => { const n = num1(a.n, line); return mk(Array.from({ length: n }, (_, i) => hsv2hex(i / n, 1, 1))); }],
     /* -- statistics -- */
     signif: [['x', 'digits'], (a, line) => { const d = a.digits === undefined ? 6 : num1(a.digits, line); return keepAttrs(a.x, nums(a.x, line).map(x => x === undefined || x === 0 || !isFinite(x) ? x : Number(x.toPrecision(Math.max(1, d))))); }],
@@ -2781,7 +3143,13 @@ function execute(src, presets, opts = {}){
       const gx = Array.from({ length: m }, (_, i) => from + (to - from) * i / (m - 1)), gy = gx.map(g => X.reduce((acc, xi) => acc + Math.exp(-0.5 * ((g - xi) / bw) ** 2), 0) / (n * bw * Math.sqrt(2 * Math.PI)));
       return clsList(['x', 'y', 'bw', 'n'], [mk(gx), mk(gy), bw, n], 'density', { call: `density.default(x = ${srcOf(a, 'x', 'x')})`, xlab: `N = ${n}   Bandwidth = ${fmtSig(bw, 4)}`, printText: `\nCall:\n\tdensity.default(x = ${srcOf(a, 'x', 'x')})\n\n（密度估計的結果，用 plot() 或 lines() 畫出來）\n` });
     }],
-    'prop.table': [['x', 'margin'], (a, line) => { const V = numsOf(a.x, line, 'prop.table() 的資料'), s = V.reduce((p, q) => p + q, 0); const r = keepAttrs(a.x, V.map(v => v / s)); return r; }],
+    'prop.table': [['x', 'margin'], (a, line) => {
+      const V = numsOf(a.x, line, 'prop.table() 的資料'), m = a.margin === undefined || a.margin === null ? 0 : num1(a.margin, line);
+      if (!m || !dimOf(a.x)) { const s = V.reduce((p, q) => p + q, 0); return keepAttrs(a.x, V.map(v => v / s)); }
+      const [nr] = a.x.dim, key = i => m === 1 ? i % nr : Math.floor(i / nr), tot = {};
+      V.forEach((v, i) => { tot[key(i)] = (tot[key(i)] || 0) + v; });
+      return keepAttrs(a.x, V.map((v, i) => v / tot[key(i)]));
+    }],
     proportions: [['x', 'margin'], (a, line) => BUILTIN['prop.table'][1](a, line)],
     aggregate: [['x', 'data', 'FUN', '...'], (a, line) => {
       const fo = a.x; if (!(fo instanceof RFormula) || !fo.lhs) throw new RErr('這個網頁版的 aggregate() 要用公式：aggregate(數值 ~ 組別, data = df, FUN = mean)', line);
@@ -3496,6 +3864,14 @@ fit <- lm(chol ~ age, data = lab)            # 迴歸：chol = a + b × age
 abline(fit, col = "red")                     # 把迴歸線畫上去
 r <- round(cor(lab$age, lab$chol), 2)        # 相關係數，取 2 位
 r` },
+  ex7: { tests: [{}], want: ['tab', 'pct'], figs: true, labels: ['ylab'],
+    solution: `lab <- read.csv("data/lab.csv")
+tab <- table(lab$blood, lab$group)                  # 第一個變數 blood 是列（顏色）、group 是欄（x 軸的組）
+barplot(tab, beside = TRUE, legend.text = TRUE,     # beside = TRUE：並排；legend.text = TRUE：用列名當圖例
+        ylab = "Count")
+pct <- round(prop.table(tab, 2) * 100, 1)           # margin = 2：每一欄（每一組）加起來是 100%
+tab
+pct` },
   ex6: { tests: [{}], want: [], figs: true, lows: ['lines', 'abline', 'legend'],
     solution: `og <- read.csv("data/ogtt.csv")
 plot(og$time, og$P01, type = "b", ylim = c(80, 200), pch = 16, col = "steelblue",
@@ -3577,32 +3953,93 @@ const segPick = (el, fn) => { el.addEventListener('click', e => { const b = e.ta
   draw();
 })();
 
-/* ================= widget 4: chooser ================= */
+/* ================= widget 4: decision tree ================= */
 (() => {
-  const C = [
-    { k: '一個數值', code: 'lab <- read.csv("data/lab.csv")\npar(mfrow = c(1, 2))\nhist(lab$glucose, col = "lightblue", main = "hist", xlab = "Glucose (mg/dL)")\nboxplot(lab$glucose, col = "lightblue", main = "boxplot")',
-      why: '<p><b>直方圖</b>看形狀（對稱？偏斜？雙峰？），<b>盒形圖</b>看中位數、四分位距和離群值。</p><p>統計量：mean ± sd（對稱時）或 median、IQR（偏斜時）。</p>', bad: '只報平均數：看不出分布和極端值。' },
-    { k: '一個類別', code: 'lab <- read.csv("data/lab.csv")\nbarplot(sort(table(lab$blood), decreasing = TRUE), col = "steelblue", main = "Blood type", ylab = "Count")',
-      why: '<p>先 <code>table()</code> 數每一類，再畫<b>長條圖</b>；照多到少排序更好讀。</p><p>統計量：個數、百分比（<code>prop.table</code>）。</p>', bad: '類別很多的圓餅圖：角度很難比較大小。' },
-    { k: '數值 × 類別', code: 'lab <- read.csv("data/lab.csv")\nboxplot(glucose ~ group, data = lab, col = c("steelblue", "tomato"), ylab = "Glucose (mg/dL)")',
-      why: '<p>每組一個<b>盒形圖</b>並排，資料不多時把點也畫上去。</p><p>統計量：每組的中位數 / 平均數（<code>tapply</code>）、兩組比較用 <code>t.test</code>。</p>', bad: '只畫平均數 ± SD 的長條圖：看不到分布和樣本數。' },
-    { k: '數值 × 數值', code: 'lab <- read.csv("data/lab.csv")\nplot(glucose ~ hba1c, data = lab, pch = 16, xlab = "HbA1c (%)", ylab = "Glucose (mg/dL)")\nabline(lm(glucose ~ hba1c, data = lab), col = "tomato", lwd = 2)',
-      why: '<p><b>散佈圖</b>：每個人一個點，x、y 各是一個數值。需要時加上迴歸線。</p><p>統計量：<code>cor</code>（相關係數 r）、<code>lm</code>（斜率）。</p>', bad: '只報 r 不畫圖：彎曲的關係、極端值都看不到。' },
-    { k: '數值 × 時間', code: 'og <- read.csv("data/ogtt.csv")\nplot(og$time, og$P02, type = "b", pch = 16, col = "tomato", ylim = c(80, 240), xlab = "Time (min)", ylab = "Glucose (mg/dL)")\nlines(og$time, og$P01, type = "b", pch = 17, col = "steelblue")\nlegend("topright", legend = c("P02", "P01"), col = c("tomato", "steelblue"), pch = c(16, 17), lty = 1)',
-      why: '<p>x 是<b>有順序</b>的時間，用<b>折線圖</b>把點連起來，看上升和下降。多條線要加圖例。</p>', bad: '把沒有順序的類別（例如血型）用線連起來：線的斜率沒有意義。' },
-    { k: '部分與整體', code: 'lab <- read.csv("data/lab.csv")\npar(mfrow = c(1, 2))\npie(table(lab$group), col = c("steelblue", "tomato"), main = "pie (2 groups)")\nbarplot(table(lab$group), col = c("steelblue", "tomato"), main = "barplot")',
-      why: '<p>只有 2–3 類、想強調「佔整體多少」時，<b>圓餅圖</b>可以用；但長條圖幾乎總是一樣好、甚至更好。</p>', bad: '超過 5 塊的圓餅圖、3D 圓餅圖。' },
-  ];
-  const seg = $('#chooseSeg');
-  seg.innerHTML = C.map((c, i) => `<button type="button" data-i="${i}" aria-pressed="${i === 0}">${c.k}</button>`).join('');
-  const show = i => { const c = C[i]; $('#choosePlot').innerHTML = plotHTML(c.code); $('#chooseCode').innerHTML = hl(c.code); $('#chooseWhy').innerHTML = c.why + `<div class="bad"><b>✗ 不推薦：</b>${c.bad}</div>`; };
-  seg.onclick = e => { const b = e.target.closest('button'); if (!b) return; $$('button', seg).forEach(x => x.setAttribute('aria-pressed', String(x === b))); show(+b.dataset.i); };
-  show(0);
+  const RD = 'lab <- read.csv("data/lab.csv")\n';
+  const Q = {
+    start: { q: '你想看幾個變數？', opts: [['一個', 'one'], ['兩個', 'two'], ['三個以上', 'many']] },
+    one: { tag: '一個變數', q: '它是數值還是類別？', opts: [['數值（血糖、年齡、Ct 值）', 'oneNum'], ['類別（血型、性別）', 'oneCat']] },
+    oneNum: { tag: '數值', q: '你想知道什麼？', opts: [['分布的形狀', 'hist'], ['中位數、四分位、離群值', 'box'], ['是不是常態分布', 'qq'], ['資料很少，想看到每一個', 'stack']] },
+    oneCat: { tag: '類別', q: '想強調什麼？', opts: [['每一類有多少', 'bar'], ['只有 2–3 類，佔整體的比例', 'pie'], ['類別很多、或比較每類的某個數值', 'dot']] },
+    two: { tag: '兩個變數', q: '兩個變數各是什麼？', opts: [['數值 × 數值', 'nn'], ['數值 × 類別', 'nc'], ['類別 × 類別', 'cc']] },
+    nn: { tag: '數值 × 數值', q: 'x 是時間（有先後順序）嗎？', opts: [['不是：看兩者的關係', 'scatter'], ['是：看隨時間的變化', 'line']] },
+    nc: { tag: '數值 × 類別', q: '每一組的資料多嗎？', opts: [['多（每組十幾個以上）', 'boxg'], ['少，想看到每一個人', 'strip']] },
+    cc: { tag: '類別 × 類別', q: '想強調什麼？', opts: [['每個組合有幾個', 'beside'], ['各組的組成比例', 'stack100'], ['兩個變數有沒有關聯', 'mosaic']] },
+    many: { tag: '三個以上', q: '是什麼樣的資料？', opts: [['好幾個數值，看兩兩的關係', 'pairs'], ['好幾條線隨時間變化', 'multi'], ['同一種圖，依類別分開畫', 'mfrow']] },
+  };
+  const L = {
+    hist: { n: '直方圖', f: 'hist()', code: RD + 'hist(lab$glucose, col = "lightblue", main = "Fasting glucose", xlab = "Glucose (mg/dL)")', why: '看形狀：對稱、偏斜、雙峰？集中在哪裡、分散多大。', stat: '對稱時 mean ± sd，偏斜時 median、IQR', bad: '只報平均數：看不出形狀和極端值。' },
+    box: { n: '盒形圖', f: 'boxplot()', code: RD + 'boxplot(lab$glucose, horizontal = TRUE, col = "lightblue", xlab = "Glucose (mg/dL)")', why: '五個數字一次看：最小、Q1、中位數、Q3、最大，外面的點是離群值。', stat: 'fivenum、median、IQR', bad: '樣本很少（< 10）時畫盒形圖，盒子會誤導；直接畫點。' },
+    qq: { n: 'Q-Q 圖', f: 'qqnorm()', code: RD + 'qqnorm(lab$glucose)\nqqline(lab$glucose, col = "red")', why: '點貼著紅線 → 接近常態；兩端翹起來 → 偏斜或極端值。用來決定能不能用 t 檢定、平均 ± 標準差。', stat: '常態 → t.test；不常態 → wilcox.test（無母數）', bad: '只看直方圖判斷常態：樣本少時直方圖的形狀很不穩定。' },
+    stack: { n: '堆疊點圖', f: 'stripchart(method = "stack")', code: RD + 'stripchart(lab$hba1c, method = "stack", pch = 16, offset = 0.5, xlab = "HbA1c (%)")', why: '每個點就是一筆資料，像直方圖但看得到樣本數。', stat: '列出全部數值或 median', bad: '資料少還畫直方圖：組距一改，形狀就完全不同。' },
+    bar: { n: '長條圖', f: 'barplot(table(x))', code: RD + 'barplot(sort(table(lab$blood), decreasing = TRUE), col = "steelblue", ylab = "Count")', why: '先 table() 數每一類，再畫長條；照多到少排更好讀。', stat: 'table、prop.table', bad: 'y 軸不從 0 開始、立體長條。' },
+    pie: { n: '圓餅圖', f: 'pie()', code: RD + 'pie(table(lab$group), col = c("steelblue", "tomato"))', why: '只有 2–3 類、想強調「佔整體多少」時可以用。', stat: '百分比', bad: '超過 5 塊、3D 圓餅：角度很難比較大小，改用長條圖。' },
+    dot: { n: '點圖', f: 'dotchart()', code: RD + 'm <- sort(tapply(lab$glucose, lab$blood, mean))\ndotchart(m, pch = 16, xlab = "Mean glucose (mg/dL)")', why: '類別名稱橫著寫不擠，點的位置不必從 0 開始，適合比較很多類別的平均、比例。', stat: 'tapply 算每類的數值', bad: '類別很多的直立長條圖：名稱擠在一起、要歪頭看。' },
+    scatter: { n: '散佈圖', f: 'plot(y ~ x)', code: RD + 'plot(glucose ~ hba1c, data = lab, pch = 16, xlab = "HbA1c (%)", ylab = "Glucose (mg/dL)")\nabline(lm(glucose ~ hba1c, data = lab), col = "tomato", lwd = 2)', why: '每個人一個點；需要時加迴歸線。', stat: 'cor（相關係數 r）、lm（斜率）', bad: '只報 r 不畫圖：彎曲的關係、極端值都看不到。' },
+    line: { n: '折線圖', f: 'plot(type = "b")', code: 'og <- read.csv("data/ogtt.csv")\nplot(og$time, og$P02, type = "b", pch = 16, xlab = "Time (min)", ylab = "Glucose (mg/dL)")', why: 'x 有先後順序，把點連起來看上升和下降。', stat: '每個時間點的平均、曲線下面積', bad: '把沒有順序的類別（例如血型）連成線。' },
+    boxg: { n: '並排盒形圖', f: 'boxplot(y ~ g)', code: RD + 'boxplot(glucose ~ group, data = lab, col = c("steelblue", "tomato"), ylab = "Glucose (mg/dL)")', why: '每組一個盒子並排，比較中位數和分散程度。', stat: 'tapply；兩組 t.test、三組以上 aov', bad: '只畫平均數 ± SD 的長條圖：看不到分布和樣本數。' },
+    strip: { n: '點狀圖', f: 'stripchart(y ~ g)', code: RD + 'stripchart(hba1c ~ group, data = lab, method = "jitter", vertical = TRUE,\n           pch = 16, col = c("steelblue", "tomato"), ylab = "HbA1c (%)")', why: '每組人不多時，把每個人都畫出來最誠實。', stat: '每組的 median 或 mean', bad: '每組 5 個人卻畫平均 ± SD 長條圖。' },
+    beside: { n: '分組長條圖', f: 'barplot(tab, beside = TRUE)', code: RD + 'tab <- table(lab$sex, lab$group)\nbarplot(tab, beside = TRUE, legend.text = TRUE, col = c("tomato", "steelblue"), ylab = "Count")', why: '表的列變成顏色、欄變成組，直接比較每個組合的人數。', stat: 'table(a, b)', bad: '兩組人數差很多時只看人數：改看比例。' },
+    stack100: { n: '百分比堆疊長條圖', f: 'barplot(prop.table(tab, 2))', code: RD + 'tab <- table(lab$sex, lab$group)\nbarplot(prop.table(tab, 2), legend.text = TRUE, ylab = "Proportion")', why: '每組拉到 100%，比較組成比例；組的人數不一樣時特別有用。', stat: 'prop.table(tab, 2)', bad: '用好幾個圓餅圖比較比例：角度很難對照。' },
+    mosaic: { n: '馬賽克圖', f: 'mosaicplot()', code: RD + 'tab <- table(lab$group, lab$sex)\nmosaicplot(tab, color = TRUE, main = "Sex by group")', why: '寬度是組的大小、高度是組內比例；切線對齊代表兩個變數沒什麼關聯。', stat: 'chisq.test（期望個數 < 5 改用 fisher.test）', bad: '只給交叉表的數字，讀者很難看出比例差多少。' },
+    pairs: { n: '散佈圖矩陣', f: 'pairs()', code: RD + 'pairs(lab[, c("glucose", "hba1c", "chol")], pch = 16,\n      col = ifelse(lab$group == "diabetes", "tomato", "steelblue"))', why: '所有兩兩組合一次看，找出值得深入分析的變數。', stat: 'cor(df)：相關係數矩陣', bad: '一次放太多變數（> 6）：每格都太小看不清。' },
+    multi: { n: '多條折線', f: 'lines() + legend()', code: 'og <- read.csv("data/ogtt.csv")\nplot(og$time, og$P02, type = "b", pch = 16, col = "tomato", ylim = c(80, 240), xlab = "Time (min)", ylab = "Glucose (mg/dL)")\nlines(og$time, og$P01, type = "b", pch = 17, col = "steelblue")\nlines(og$time, og$P03, type = "b", pch = 15, col = "darkgreen")\nlegend("topright", legend = c("P02", "P01", "P03"), col = c("tomato", "steelblue", "darkgreen"), pch = c(16, 17, 15), lty = 1)', why: '每條線一種顏色和點的形狀，一定要有圖例。', stat: '每個時間點各組的平均', bad: '線太多（> 5 條）變成一團：改用分開的小圖。' },
+    mfrow: { n: '並排小圖', f: 'par(mfrow)', code: RD + 'par(mfrow = c(1, 2))\nhist(lab$glucose[lab$group == "control"], main = "control", xlab = "Glucose (mg/dL)", col = "steelblue")\nhist(lab$glucose[lab$group == "diabetes"], main = "diabetes", xlab = "Glucose (mg/dL)", col = "tomato")', why: '同一種圖依類別各畫一張排在一起，方便比較。', stat: '每組各自的統計量', bad: '並排的圖座標軸範圍不一樣，比較時會被騙；需要時用 xlim、ylim 統一。' },
+  };
+  // layout: leaves stacked in rows, questions centred on their children
+  const parent = {}, depth = { start: 0 }, rows = [];
+  const walk = k => { for (const [, c] of Q[k].opts) { parent[c] = k; depth[c] = depth[k] + 1; if (Q[c]) walk(c); else rows.push(c); } };
+  walk('start');
+  const RH = 34, X = [8, 140, 292], QW = [120, 136, 140], LX = 452, LW = 480, H = rows.length * RH + 16, pos = {};
+  rows.forEach((c, i) => { pos[c] = 8 + i * RH + RH / 2; });
+  const ypos = k => pos[k] ?? (pos[k] = Q[k].opts.map(([, c]) => ypos(c)).reduce((a, b) => a + b) / Q[k].opts.length);
+  ypos('start');
+  const tagOf = c => (Q[parent[c]].opts.find(o => o[1] === c) || [''])[0];
+  let svg = `<svg viewBox="0 0 ${LX + LW + 8} ${H}" role="img" aria-label="選圖決策樹">`;
+  const right = k => Q[k] ? X[depth[k]] + QW[depth[k]] : LX + LW;
+  for (const c of Object.keys(parent)) {
+    const p = parent[c], x1 = right(p), y1 = pos[p], x2 = Q[c] ? X[depth[c]] : LX, y2 = pos[c], xm = x1 + 10;
+    svg += `<path class="ed" data-e="${c}" d="M${x1} ${y1} H${xm} V${y2} H${x2}"/>`;
+  }
+  for (const k of Object.keys(Q)) {
+    const d = depth[k], x = X[d], w = QW[d], y = pos[k];
+    svg += `<g class="nd q" data-n="${k}"><rect x="${x}" y="${y - 22}" width="${w}" height="44" rx="10"/>${k === 'start' ? '' : `<text class="t" x="${x + 8}" y="${y - 6}">${esc(Q[k].tag)}</text>`}<text x="${x + 8}" y="${y + (k === 'start' ? 5 : 12)}">${esc(Q[k].q.replace(/？$/, '？'))}</text></g>`;
+  }
+  for (const c of rows) {
+    const y = pos[c], t = tagOf(c), l = L[c];
+    svg += `<g class="nd lf" data-n="${c}" tabindex="0" role="button" aria-label="${esc(l.n)}"><rect x="${LX}" y="${y - 14}" width="${LW}" height="28" rx="8"/><text class="t" x="${LX + 8}" y="${y + 4}">${esc(t.length > 14 ? t.slice(0, 13) + '…' : t)}</text><text x="${LX + 196}" y="${y + 4}" font-weight="700">${esc(l.n)}</text><text class="f" x="${LX + 316}" y="${y + 4}">${esc(l.f.length > 22 ? l.f.slice(0, 21) + '…' : l.f)}</text></g>`;
+  }
+  $('#dtChart').innerHTML = svg + '</svg>';
+  // shrink question text that is too wide for its box
+  $$('#dtChart .nd.q').forEach(g => { const r = g.querySelector('rect'), w = +r.getAttribute('width') - 14; g.querySelectorAll('text').forEach(t => { try { if (t.getComputedTextLength() > w) t.setAttribute('textLength', w), t.setAttribute('lengthAdjust', 'spacingAndGlyphs'); } catch (e) {} }); });
+  let cur = 'start', path = [];
+  const pathTo = k => { const out = []; for (let n = k; n; n = parent[n]) out.unshift(n); return out; };
+  const paint = () => {
+    const on = new Set(pathTo(cur));
+    $$('#dtChart .nd').forEach(g => { g.classList.toggle('on', on.has(g.dataset.n) && !L[g.dataset.n]); g.classList.toggle('pick', g.dataset.n === cur && !!L[cur]); });
+    $$('#dtChart .ed').forEach(e => e.classList.toggle('on', on.has(e.dataset.e)));
+    const steps = pathTo(cur).slice(1);
+    $('#dtPath').innerHTML = steps.length ? steps.map(n => `<button type="button" data-go="${parent[n]}">${esc(tagOf(n))}</button>`).join('<span>→</span>') : '';
+    if (Q[cur]) {
+      $('#dtAsk').innerHTML = `<p class="dt-q">${esc(Q[cur].q)}</p><div class="dt-opts">${Q[cur].opts.map(([t, c]) => `<button type="button" data-go="${c}">${esc(t)}</button>`).join('')}</div>`;
+      $('#dtResult').hidden = true;
+    } else {
+      const l = L[cur];
+      $('#dtAsk').innerHTML = `<p class="dt-q">✓ 建議：${esc(l.n)}　<code>${esc(l.f)}</code></p>`;
+      $('#dtResult').hidden = false;
+      $('#dtPlot').innerHTML = plotHTML(l.code); $('#dtCode').innerHTML = hl(l.code);
+      $('#dtWhy').innerHTML = `<p>${esc(l.why)}</p><p><b>搭配的統計：</b>${esc(l.stat)}</p><div class="bad"><b>✗ 不推薦：</b>${esc(l.bad)}</div>`;
+    }
+  };
+  const go = k => { cur = k; paint(); };
+  $('#dtree').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) return go(b.dataset.go); const n = e.target.closest('.nd'); if (n) go(n.dataset.n); if (e.target.closest('.dt-reset')) go('start'); });
+  $('#dtChart').addEventListener('keydown', e => { const n = e.target.closest('.nd.lf'); if (n && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); go(n.dataset.n); } });
+  paint();
 })();
 
 /* ================= quiz ================= */
 (() => {
-  const OPTS = ['直方圖', '盒形圖（分組）', '長條圖', '散佈圖', '折線圖', '圓餅圖'];
+  const OPTS = ['直方圖', '盒形圖（分組）', '長條圖', '散佈圖', '折線圖', '圓餅圖', '分組長條圖', 'Q-Q 圖', '散佈圖矩陣'];
   const Q = [
     ['檢驗科想看 500 位門診病人的 ALT 數值大致分布在哪、是不是右偏。', 0, '一個數值變數的分布 → 直方圖（盒形圖也可以）。'],
     ['比較三種治療方式之後的 LDL 膽固醇。', 1, '數值（LDL）× 類別（治療）→ 並排盒形圖。'],
@@ -3612,6 +4049,9 @@ const segPick = (el, fn) => { el.addEventListener('click', e => { const b = e.ta
     ['疫苗接種率：已接種與未接種各佔全體多少（只有兩類）。', 5, '只有兩類、強調部分與整體 → 圓餅圖可以（長條圖也可以）。'],
     ['兩台血球計數儀測同一批檢體的 WBC，看兩台是否一致。', 3, '同一檢體兩個數值 → 散佈圖，理想上點落在 y = x 附近（可以加 abline(0, 1)）。'],
     ['男性和女性的血紅素，論文想同時呈現中位數和分布。', 1, '數值 × 類別 → 並排盒形圖，比「平均數長條圖」包含更多資訊。'],
+    ['三家醫院的檢體，各有多少是陽性、陰性？', 6, '類別 × 類別 → 先 table(醫院, 結果)，再畫分組長條圖（或馬賽克圖），用 chisq.test 檢定。'],
+    ['做 t 檢定前，想確認 CRP 數值是不是接近常態分布。', 7, '常態檢查 → qqnorm() + qqline()；點貼著線才接近常態。CRP 通常嚴重右偏。'],
+    ['健檢資料有身高、體重、血壓、血糖、膽固醇，想先看哪些兩兩有關。', 8, '好幾個數值兩兩比較 → pairs()，一次看全部組合。'],
   ];
   const box = $('#quiz'), ans = (store.quiz = store.quiz || {});
   const render = () => {
@@ -3638,7 +4078,7 @@ function sameVal(a, b, o = {}){
   if (!o.ignoreNames && JSON.stringify(namesOf(a) || null) !== JSON.stringify(namesOf(b) || null)) return false;
   return A.every((x, i) => { const y = B[i]; if (typeof x === 'number' && typeof y === 'number') return Math.abs(x - y) < 1e-9 * Math.max(1, Math.abs(y)) || (isNaN(x) && isNaN(y)); return x === y; });
 }
-const KIND = { plot: '散佈圖 / 折線圖 plot()', hist: '直方圖 hist()', bar: '長條圖 barplot()', box: '盒形圖 boxplot()', pie: '圓餅圖 pie()', density: '密度圖' };
+const KIND = { plot: '散佈圖 / 折線圖 plot()', hist: '直方圖 hist()', bar: '長條圖 barplot()', bar2: '分組或堆疊長條圖 barplot(table(a, b))', box: '盒形圖 boxplot()', pie: '圓餅圖 pie()', density: '密度圖', strip: '點狀圖 stripchart()', dot: '點圖 dotchart()', qq: 'Q-Q 圖 qqnorm()', pairs: '散佈圖矩陣 pairs()', mosaic: '馬賽克圖 mosaicplot()' };
 const nearArr = (A, B) => A && B && A.length === B.length && A.every((x, i) => (x === null && B[i] === null) || (x !== undefined && B[i] !== undefined && Math.abs(x - B[i]) < 1e-6 * Math.max(1, Math.abs(B[i]))));
 function sigSame(s, r){
   if (s.kind !== r.kind) return false;
@@ -3647,6 +4087,11 @@ function sigSame(s, r){
   if (r.kind === 'bar') return nearArr(s.heights, r.heights) && JSON.stringify(s.names) === JSON.stringify(r.names);
   if (r.kind === 'box') return s.groups.length === r.groups.length && s.groups.every((g, i) => nearArr(g, r.groups[i])) && JSON.stringify(s.names) === JSON.stringify(r.names);
   if (r.kind === 'pie') return nearArr(s.values, r.values);
+  if (r.kind === 'bar2') return nearArr(s.heights, r.heights) && JSON.stringify(s.dim) === JSON.stringify(r.dim) && JSON.stringify(s.cols) === JSON.stringify(r.cols);
+  if (r.kind === 'strip') return s.groups.length === r.groups.length && s.groups.every((g, i) => nearArr(g, r.groups[i]));
+  if (r.kind === 'dot' || r.kind === 'mosaic') return nearArr(s.values, r.values);
+  if (r.kind === 'qq') return nearArr(s.y, r.y);
+  if (r.kind === 'pairs') return JSON.stringify(s.names) === JSON.stringify(r.names);
   return true;
 }
 function checkPlots(X, r, ref){
@@ -3656,7 +4101,9 @@ function checkPlots(X, r, ref){
     const f = F[i], g = RF[i];
     if (!f) return `應該要有 ${RF.length} 張圖，你只畫了 ${F.length} 張。`;
     if (f.sig.kind !== g.sig.kind) return `第 ${i + 1} 張圖應該是<b>${KIND[g.sig.kind]}</b>，你畫的是 ${KIND[f.sig.kind]}。`;
+    if (g.sig.kind === 'bar2' && f.sig.beside !== g.sig.beside) return '長條要' + (g.sig.beside ? '並排：加上 <code>beside = TRUE</code>' : '疊起來：拿掉 <code>beside = TRUE</code>') + '。';
     if (!sigSame(f.sig, g.sig)) return g.sig.kind === 'plot' ? '圖的資料不對：檢查 x 和 y 有沒有放對（第一個是橫軸、第二個是縱軸），或公式 y ~ x 的順序。'
+      : g.sig.kind === 'bar2' ? (g.sig.beside !== f.sig.beside ? '長條要' + (g.sig.beside ? '並排：加 beside = TRUE' : '疊起來：不要 beside = TRUE') + '。' : 'table() 裡的兩個變數或順序不對：第一個變數是顏色（列），第二個是 x 軸上的組（欄）。')
       : g.sig.kind === 'hist' ? '直方圖的資料或 breaks 不對：要用題目指定的欄位和 breaks。' : g.sig.kind === 'bar' ? '長條的高度或名稱不對：檢查 table() 用的欄位。' : g.sig.kind === 'box' ? '盒形圖的資料或分組不對：檢查公式 數值 ~ 組別。' : '圖的資料不對。';
     for (const k of X.labels || []) if ((f[k] || '') !== (g[k] || '')) return `<code>${k}</code> 應該是 "${esc(g[k] || '')}"，你的是 "${esc(f[k] || '')}"。`;
     for (const k of X.style || []) if (JSON.stringify(f.sig[k]) !== JSON.stringify(g.sig[k])) return `<code>${k}</code> 應該是 ${esc(JSON.stringify(g.sig[k]))}，你的是 ${esc(JSON.stringify(f.sig[k]))}。`;
@@ -3700,7 +4147,7 @@ function askPass(pass, then){
 function updateToc(){
   let n = 0;
   $$('#toc a[data-ex]').forEach(a => { const d = !!store.done[a.dataset.ex]; a.classList.toggle('done', d); n += d; });
-  $('#prog').textContent = `練習完成 ${n} / 6`;
+  $('#prog').textContent = `練習完成 ${n} / ${Object.keys(EX).length}`;
 }
 const tokensOf = code => { try { return tokenize(code).filter(t => t.t !== 'str').map(t => t.v ?? t.t); } catch (e) { return []; } };
 const setupVars = setup => setup ? Object.fromEntries(execute(setup).vars) : {};

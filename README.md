@@ -173,6 +173,8 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 | 04 | 比較組別：`boxplot(y ~ g)`、資料點、平均數 ± SD、`t.test` | 男女的 HbA1c |
 | 05 | 兩個數值：散佈圖、`cor`、`lm` 與迴歸線；動畫「相關係數直覺」 | 年齡和膽固醇的關係 |
 | 06 | 折線圖：`type = "b"`、`lines`、`legend`、`par(mfrow)`、`png()` 存檔 | 兩位病人的 OGTT |
+| 07 | 更多常用的圖：分組／堆疊長條圖、`mosaicplot` + `chisq.test`、`stripchart`、`dotchart`、`qqnorm`、`pairs` | 血型 × 組別 |
+| 08 | 總整理：選圖決策樹（可點選的流程圖）、對照表、小測驗、誤導圖 | — |
 | 07 | 總整理：資料類型 → 圖的對照表、選圖器、8 題小測驗、常見的誤導圖 | — |
 
 ## 第七部分：R 寶的 tidyverse 完全手冊（`tidy.html`）
