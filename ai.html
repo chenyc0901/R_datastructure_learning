@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="AI 入門：AI、機器學習、深度學習、大型語言模型是什麼，現代 AI 的發展史，語言模型如何預測下一個字與為什麼會幻覺，AI 在資料分析中的角色、風險與 prompt 寫法。">
+<meta property="og:title" content="R 寶的 AI 入門">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E">
+<meta charset="utf-8">
+<title>R 寶的 AI 入門</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+
+/* A reading page: side table of contents + chapters; every code block is an editable, runnable R cell */
+:root{
+  --bg:#eef1f4; --panel:#fbfcfd; --sunk:#f1f4f7; --ink:#16202b; --muted:#45515e; --line:#d3dae2;
+  --accent:#1d5fae; --accent-ink:#ffffff; --accent-soft:#dde9f7;
+  --amber:#b97d06; --amber-soft:#fdf1cf; --ok:#1d8656; --ok-soft:#dcf2e6; --bad:#c0392b; --bad-soft:#fbe3e0;
+  --t-kw:#8b2fc9; --t-str:#1d7a3a; --t-num:#b4530a; --t-com:#7f8a96; --t-fn:#1d5fae; --t-op:#a3324b;
+  --f-display:"Huninn","Noto Sans TC","PingFang TC",system-ui,sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC",system-ui,-apple-system,sans-serif;
+  --f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Noto Sans TC",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+    --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+    --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+    --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+  --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+  --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+  --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75;font-variant-ligatures:none}
+textarea,pre,code{font-variant-ligatures:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+code{font-family:var(--f-code);font-size:.9em}
+p code,li code,td code,.note code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+
+.page{max-width:1180px;margin:0 auto;padding:24px 16px 80px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:980px){.page{grid-template-columns:minmax(0,1fr);gap:20px}}
+
+/* header */
+.hero{grid-column:1/-1}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--accent)}
+.hero .eyebrow{margin:18px 0 4px;font-family:var(--f-code);font-size:14px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.hero h1{font-family:var(--f-display);font-size:clamp(30px,5vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+.hero p{margin:10px 0 0;color:var(--muted);max-width:66ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:14px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:2px 12px;color:var(--muted)}
+.pill b{color:var(--ink)}
+
+/* toc */
+.toc{position:sticky;top:20px;font-size:14px}
+.toc h2{font-size:13px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;border-left:3px solid transparent}
+.toc a:hover{background:var(--panel)}
+.toc a[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.toc .n{font-family:var(--f-code);font-size:13px;color:var(--muted);min-width:1.6em}
+.toc .ck{margin-left:auto;color:var(--ok);font-weight:700;visibility:hidden}
+.toc a.done .ck{visibility:visible}
+.toc .prog{margin-top:12px;font-size:14px;color:var(--muted)}
+@media (max-width:980px){
+  .toc{position:static;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .toc ol{flex-direction:row;flex-wrap:wrap}
+  .toc a{border-left:0;padding:4px 10px}
+}
+
+/* chapters */
+main{min-width:0}
+.ch{padding-top:12px;margin-bottom:56px;scroll-margin-top:16px}
+.ch-h{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:18px}
+.ch-h .num{font-family:var(--f-code);font-size:40px;font-weight:600;color:var(--accent);line-height:1}
+.ch-h h2{font-family:var(--f-display);font-size:clamp(24px,3.4vw,30px);margin:0;line-height:1.25}
+.ch-h small{display:block;font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:400}
+h3{font-size:19px;margin:30px 0 8px;line-height:1.4}
+h3 .tag{font-family:var(--f-code);font-size:13px;color:var(--muted);font-weight:400;margin-right:8px}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:22px}
+
+.note{border-radius:10px;padding:12px 16px;margin:14px 0;border:1px solid var(--line);background:var(--panel);font-size:15px}
+.note > b:first-child{display:block;margin-bottom:2px}
+.note.tip{background:var(--ok-soft);border-color:transparent}
+.note.warn{background:var(--bad-soft);border-color:transparent}
+.note.lab{background:var(--amber-soft);border-color:transparent}
+.note.link{background:var(--accent-soft);border-color:transparent}
+
+table.cmp{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.cmp th,table.cmp td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{background:var(--sunk);font-size:14px;color:var(--muted);font-weight:600}
+table.cmp tr:last-child td{border-bottom:0}
+.tblwrap{overflow-x:auto}
+
+/* runnable cells */
+.cell{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;overflow:hidden}
+.cell-h{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-bottom:1px solid var(--line);background:var(--sunk);font-size:14px}
+.cell-h .lab{font-weight:600;color:var(--muted);margin-right:auto}
+.cell-h button{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:2px 10px;font-size:14px}
+.cell-h button.run{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.ed{position:relative;font-family:var(--f-code);font-size:14px;line-height:1.6}
+.ed pre,.ed textarea{margin:0;padding:12px 14px;font:inherit;line-height:inherit;white-space:pre;tab-size:2;overflow:hidden;border:0}
+.ed pre{position:absolute;inset:0;pointer-events:none;color:var(--ink)}
+.ed textarea{position:relative;display:block;width:100%;resize:none;background:transparent;color:transparent;caret-color:var(--ink);overflow-x:auto;min-height:3.4em}
+.ed textarea::selection{background:color-mix(in srgb,var(--accent) 30%,transparent);color:transparent}
+.t-kw{color:var(--t-kw);font-weight:600}.t-str{color:var(--t-str)}.t-num{color:var(--t-num)}.t-com{color:var(--t-com);font-style:italic}.t-fn{color:var(--t-fn)}.t-op{color:var(--t-op)}
+.out{margin:0;border-top:1px dashed var(--line);padding:10px 14px;font-family:var(--f-code);font-size:14.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;background:var(--sunk);min-height:2.4em}
+.out .err{color:var(--bad)}
+.out .dim{color:var(--muted)}
+.envrow{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 10px;border-top:1px solid var(--line);font-family:var(--f-code);font-size:13.5px;background:var(--sunk)}
+.envrow span{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px}
+.envrow span b{color:var(--accent);font-weight:600;margin-right:6px}
+
+/* exercises */
+.ex{border:2px solid var(--accent);border-radius:14px;padding:16px 18px 6px;margin:26px 0 8px;background:var(--panel)}
+.ex.passed{border-color:var(--ok)}
+.ex-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.ex-h .badge{font-family:var(--f-code);font-size:13px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 8px}
+.ex.passed .ex-h .badge{background:var(--ok)}
+.ex-h h3{margin:0;font-size:18px}
+.ex-h .st{margin-left:auto;font-size:14px;color:var(--ok);font-weight:700}
+.ex .cell{margin:12px 0}
+.ex .cell-h button.sol{margin-left:4px}
+.verdict{margin:0 0 12px;padding:10px 14px;border-radius:10px;font-size:14.5px}
+.verdict.ok{background:var(--ok-soft)}
+.verdict.no{background:var(--bad-soft)}
+.verdict code{background:transparent;border:0}
+.verdict pre{margin:6px 0 0;font-family:var(--f-code);font-size:14px;white-space:pre-wrap}
+
+/* modal */
+.modal{position:fixed;inset:0;background:color-mix(in srgb,#000 45%,transparent);display:grid;place-items:center;padding:16px;z-index:50}
+.card{background:var(--panel);border-radius:16px;padding:22px 22px 18px;width:min(420px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:calc(100vh - 32px);overflow:auto}
+.card.wide{width:min(820px,100%)}
+.card h3{margin:0 0 4px;font-family:var(--f-display);font-size:22px}
+.card .row{display:flex;gap:8px;margin-top:12px}
+.card input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.card .err{min-height:1.4em;margin:6px 0 0;color:var(--bad);font-size:14px}
+.card .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.card pre.solcode{margin:10px 0 0;padding:12px 14px;border-radius:10px;background:var(--sunk);border:1px solid var(--line);font-family:var(--f-code);font-size:14.5px;line-height:1.6;overflow-x:auto;white-space:pre}
+.card.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion: reduce){.card.shake{animation:none}}
+
+.next{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.next a{flex:1 1 240px;display:block;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.next a:hover{border-color:var(--accent)}
+.next a span{display:block;font-size:14px;color:var(--muted)}
+.next a b{font-size:17px}
+
+/* ---------- tidyverse chapter ---------- */
+:root{--rose:#c2410c;--rose-soft:#fde7da;--teal:#0f8a7e;--teal-soft:#d6f3ef;--violet:#7c3aed;--violet-soft:#ede5fd;
+  --c1:#2f6fe0;--c1s:#dbe7fb;--c2:#d9480f;--c2s:#fde4d6;--c3:#2b8a3e;--c3s:#d8f1dd;--c4:#9c36b5;--c4s:#f1dcf6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rose:#fb923c;--rose-soft:#3b2416;--teal:#35d6c3;--teal-soft:#123430;--violet:#a78bfa;--violet-soft:#2a2140;
+  --c1:#82b1ff;--c1s:#1c2c47;--c2:#ff9b6a;--c2s:#40261a;--c3:#69db7c;--c3s:#173822;--c4:#e599f7;--c4s:#3a2141}}
+:root[data-theme="dark"]{--rose:#fb923c;--rose-soft:#3b2416;--teal:#35d6c3;--teal-soft:#123430;--violet:#a78bfa;--violet-soft:#2a2140;
+  --c1:#82b1ff;--c1s:#1c2c47;--c2:#ff9b6a;--c2s:#40261a;--c3:#69db7c;--c3s:#173822;--c4:#e599f7;--c4s:#3a2141}
+.hero-row{display:flex;align-items:center;gap:18px}
+.hero-row .bot{width:clamp(64px,10vw,96px);height:auto;flex:none}
+h4{font-size:16px;margin:20px 0 6px}
+.lead{font-size:17px}
+p code,li code,td code,.note code{overflow-wrap:anywhere}
+.stage{min-width:0;max-width:100%}
+.small{font-size:14px;color:var(--muted)}
+
+/* cell output: console colours like RStudio */
+.out .msg{color:var(--muted)}
+.out .warn{color:var(--amber)}
+.out .err{color:var(--bad)}
+.out.only-plot{display:none}
+.out .pre-tag{display:block;font-family:var(--f-body);font-size:13px;color:var(--muted);margin-bottom:4px}
+.plots{border-top:1px solid var(--line);background:#fff;padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.plots img{display:block;width:100%;max-width:620px;height:auto}
+.cell.running .run{opacity:.6}
+.cell.static .ed textarea{cursor:default}
+.cell .chain{font-family:var(--f-code);font-size:12.5px;color:var(--teal);border:1px solid var(--teal);border-radius:99px;padding:0 7px;margin-right:auto;margin-left:-4px}
+.cell-h .lab + .chain{margin-left:0}
+
+/* the R status pill */
+.rstat{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:45;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);
+  background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 16px 8px 10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.rstat[hidden]{display:none}
+.rstat .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid color-mix(in srgb,var(--bg) 35%,transparent);border-top-color:var(--bg);animation:spin .8s linear infinite;flex:none}
+.rstat.ok .spin{animation:none;border-color:var(--ok);background:var(--ok)}
+.rstat.bad .spin{animation:none;border-color:var(--bad);background:var(--bad)}
+.rstat button{border:0;background:transparent;color:inherit;opacity:.7;padding:0 2px;font-size:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* drawer: files R wrote */
+.pcbtn{position:fixed;right:18px;bottom:18px;z-index:40;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:9px 16px 9px 10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);font-weight:700;font-size:14.5px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.pcbtn svg{width:28px;height:28px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:50;background:var(--panel);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .25s ease;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.drawer-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.drawer-h b{margin-right:auto;font-size:16px}
+.drawer-h button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:3px 10px;font-size:14.5px}
+.drawer-b{flex:1;overflow:auto;padding:10px 14px 16px}
+.tree{font-family:var(--f-code);font-size:14.5px;line-height:1.75;margin:0;padding:0;list-style:none}
+.tree ul{list-style:none;margin:0;padding-left:18px;border-left:1px dashed var(--line)}
+.tree button{border:0;background:none;padding:0 6px;border-radius:6px;font:inherit;color:var(--ink);text-align:left}
+.tree button:hover{background:var(--accent-soft)}
+.tree button.sel{background:var(--accent);color:var(--accent-ink)}
+.tree .d{color:var(--muted);font-weight:600}
+.tree small{color:var(--muted);font-size:12.5px;margin-left:6px}
+.viewer{margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.viewer .fh{display:flex;gap:8px;align-items:center;padding:6px 10px;background:var(--sunk);border-bottom:1px solid var(--line);font-family:var(--f-code);font-size:13.5px;color:var(--muted);word-break:break-all}
+.viewer pre{margin:0;padding:10px 12px;font-family:var(--f-code);font-size:13.5px;line-height:1.5;max-height:340px;overflow:auto;white-space:pre}
+.viewer img{display:block;width:100%;height:auto;background:#fff}
+.dnote{font-size:14px;color:var(--muted);margin:10px 0 0}
+.dlbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
+.dlbar button{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:8px;padding:5px 12px;font-size:14px}
+.dlbar span{font-size:13.5px;color:var(--muted);flex:1 1 200px}
+.tree button.dl,.viewer button.dl{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:0 6px;margin-left:6px;font-size:13px;color:var(--accent)}
+.tree button.dl:hover,.viewer button.dl:hover{border-color:var(--accent)}
+
+/* shared widget frame */
+.widget{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:18px 0;overflow:hidden}
+.widget-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.widget-h .ttl{font-weight:700;margin-right:auto;display:flex;align-items:center;gap:8px}
+.widget-h .ttl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:3px 10px;font-size:14.5px;font-family:var(--f-code)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.wcode{margin:0;padding:10px 14px;font-family:var(--f-code);font-size:14px;border-bottom:1px solid var(--line);white-space:pre-wrap;word-break:break-word;background:var(--sunk)}
+.wcode .hot{background:var(--amber-soft);outline:1.5px solid var(--amber);border-radius:3px}
+.wmsg{padding:10px 14px;font-size:14.5px;color:var(--muted);border-top:1px solid var(--line)}
+.wmsg b{color:var(--ink)}
+.wctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.wctl button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:4px 12px;font-size:14px}
+.wctl button.go{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.wctl button:disabled{opacity:.45;cursor:default}
+
+/* variants: same plot, one thing changed */
+.variants .vimg{background:#fff;display:flex;justify-content:center;padding:8px}
+.variants .vimg img{display:block;width:100%;max-width:620px;height:auto}
+.variants .vimg .none{padding:40px;color:#667;font-size:14px}
+.variants .stepnav{display:flex;gap:6px;margin-left:auto}
+.variants .stepnav button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:2px 10px}
+
+/* mini tables used by the animated widgets */
+.mt{border-collapse:separate;border-spacing:0;font-family:var(--f-code);font-size:14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mt th,.mt td{padding:3px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left;transition:background .35s,opacity .35s,color .35s}
+.mt th{background:var(--sunk);color:var(--muted);font-weight:600}
+.mt td.num{text-align:right}
+.mt tr:last-child td{border-bottom:0}
+.mt .ty th{font-weight:400;font-size:12.5px;padding-top:0;color:var(--muted)}
+.mt .na{color:var(--muted);font-style:italic}
+.mt .gone{opacity:.25;text-decoration:line-through}
+.mt .pick{background:var(--ok-soft)}
+.mt .new{background:var(--amber-soft)}
+.mt .colpick{background:var(--accent-soft)}
+.mt .g1{background:var(--c1s)} .mt .g2{background:var(--c2s)} .mt .g3{background:var(--c3s)} .mt .g4{background:var(--c4s)}
+.mt .fromx{box-shadow:inset 3px 0 0 var(--c1)} .mt .fromy{box-shadow:inset 3px 0 0 var(--c2)}
+.mt caption{caption-side:top;text-align:left;font-family:var(--f-body);font-size:14px;color:var(--muted);padding:0 0 4px}
+.stage{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-start;padding:14px;overflow-x:auto}
+.stage .arrow{align-self:center;font-size:22px;color:var(--muted)}
+.stage .col{display:flex;flex-direction:column;gap:10px}
+.flipin{animation:flipin .45s ease}
+@keyframes flipin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* diagrams */
+.fig{margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow-x:auto}
+.fig svg{display:block;width:100%;height:auto;max-width:860px;margin:0 auto;color:var(--ink)}
+.fig figcaption{font-size:14.5px;color:var(--muted);text-align:center;margin-top:8px}
+.fig svg text{font-family:var(--f-body)}
+.fig svg .mono{font-family:var(--f-code)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.cards div{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 14px;font-size:14.5px}
+.cards code{font-weight:700;font-size:15px}
+.cards p{margin:2px 0 0;color:var(--muted)}
+.cards .k{display:inline-block;font-size:12.5px;border-radius:99px;padding:0 8px;margin-left:6px;background:var(--accent-soft);color:var(--accent)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0;font-size:14.5px}
+.flow span{border:1.5px solid var(--line);border-radius:10px;padding:4px 12px;background:var(--panel)}
+.flow i{font-style:normal;color:var(--muted)}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;position:relative;padding-left:34px;margin:8px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:2px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:700;display:grid;place-items:center}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.qz{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
+.qz p{margin:0 0 8px;font-weight:600}
+.qz .opts{display:flex;flex-wrap:wrap;gap:6px}
+.qz .opts button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 12px;font-size:14px;font-family:var(--f-code)}
+.qz .opts button.right{border-color:var(--ok);background:var(--ok-soft);font-weight:700}
+.qz .opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.qz .fb{margin-top:8px;font-size:14px;color:var(--muted)}
+.qz-score{font-weight:700}
+.example-ch .ch-h .num{color:var(--teal)}
+.example-ch .ch-h h2::before{content:"實作範例";display:block;font-family:var(--f-body);font-size:14px;letter-spacing:.1em;color:var(--teal);font-weight:600}
+.bio-ch .ch-h .num{color:var(--violet)}
+.bio-ch .ch-h h2::before{color:var(--violet);content:"實作範例 · 生物資訊"}
+.uses{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px;font-size:14px;align-items:center}
+.uses a{font-family:var(--f-code);font-size:13.5px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:1px 9px;text-decoration:none;color:var(--ink)}
+.uses a:hover{border-color:var(--accent)}
+.setup{font-family:var(--f-code);font-size:14px;background:var(--sunk);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;white-space:pre-wrap;color:var(--muted)}
+.setup b{color:var(--ink);font-weight:600}
+/* supplement: statistics */
+.stat-ch .ch-h .num{color:var(--rose)}
+.stat-ch .ch-h h2::before{content:"補充章節";display:block;font-family:var(--f-body);font-size:14px;letter-spacing:.1em;color:var(--rose);font-weight:600}
+.perm-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:14px}
+.perm-stage svg{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.perm-stage svg text{font-family:var(--f-body)}
+.perm-cap{font-size:14px;color:var(--muted);margin-bottom:4px}
+@media (max-width:720px){.perm-stage{grid-template-columns:minmax(0,1fr)}}
+.dt-chart{padding:12px 10px 4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.dt-chart svg{display:block;width:100%;min-width:720px;max-width:960px;height:auto;margin:0 auto}
+.dt-chart .nd rect{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.dt-chart .nd.q rect{fill:var(--sunk)}
+.dt-chart .nd.lf{cursor:pointer}
+.dt-chart .nd.lf:hover rect{stroke:var(--accent)}
+.dt-chart .nd.on rect{stroke:var(--accent);stroke-width:2.5;fill:var(--accent-soft)}
+.dt-chart .nd.pick rect{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2.5}
+.dt-chart .ed{fill:none;stroke:var(--line);stroke-width:1.5}
+.dt-chart .ed.on{stroke:var(--accent);stroke-width:3}
+.dt-chart text{font-size:13.5px;fill:var(--ink);font-family:var(--f-body)}
+.dt-chart text.t{fill:var(--muted);font-size:12.5px}
+.dt-chart text.f{font-family:var(--f-code);font-size:12.5px;fill:var(--accent)}
+.dt-panel{padding:12px 14px}
+.dt-path{display:flex;flex-wrap:wrap;gap:6px;font-size:14.5px;margin-bottom:8px;align-items:center}
+.dt-path button{border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:1px 10px;font-size:14px}
+.dt-q{font-weight:700;margin:0 0 8px}
+.dt-opts{display:flex;flex-wrap:wrap;gap:8px}
+.dt-opts button{border:1.5px solid var(--accent);background:var(--panel);color:var(--ink);border-radius:10px;padding:6px 14px;font-size:14.5px}
+.dt-opts button:hover{background:var(--accent-soft)}
+.widget-h .dt-reset{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:2px 10px;font-size:14px}
+.dt-result{border-top:1px solid var(--line)}
+.dt-leaf{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,0.7fr);gap:0}
+.dt-leaf .wcode{border-bottom:1px dashed var(--line)}
+.dt-leaf .out{max-height:360px;overflow:auto}
+.dt-notes{padding:10px 14px;border-left:1px solid var(--line);font-size:14.5px}
+.dt-notes p{margin:0 0 8px}
+@media (max-width:720px){.dt-leaf{grid-template-columns:minmax(0,1fr)}.dt-notes{border-left:0;border-top:1px solid var(--line)}}
+@media (prefers-reduced-motion: reduce){.drawer{transition:none}.flipin{animation:none}.rstat .spin{animation-duration:3s}}
+@media (max-width:640px){.rstat{font-size:13.5px;bottom:76px}}
+
+/* ---------- AI pages ---------- */
+.toc .n{min-width:1.9em}
+.lede-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.lede-grid > div{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 14px;font-size:14.5px}
+.lede-grid > div b{display:block;font-size:15.5px;margin-bottom:2px}
+.lede-grid .ic{font-size:22px;line-height:1;display:block;margin-bottom:4px}
+/* prompt card */
+.prompt{border:1.5px solid var(--violet);border-radius:12px;background:var(--violet-soft);margin:16px 0;overflow:hidden}
+.prompt-h{display:flex;align-items:center;gap:8px;padding:7px 8px 4px 14px;font-size:14.5px;font-weight:700;color:var(--violet)}
+.prompt-h .k{font-family:var(--f-code);font-weight:600;font-size:13px;background:var(--violet);color:#fff;border-radius:6px;padding:0 7px}
+.prompt-h .copy{margin-left:auto}
+.prompt pre{margin:0;padding:2px 16px 14px;font-family:var(--f-body);font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.prompt pre i{color:var(--muted);font-style:normal;background:color-mix(in srgb,var(--panel) 70%,transparent);border-radius:4px;padding:0 4px}
+.copy{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:2px 10px;font-size:14px;font-weight:600;color:var(--ink)}
+.copy.ok{border-color:var(--ok);color:var(--ok)}
+/* code + output (static, run in Colab) */
+.py{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;overflow:hidden}
+.py .cell-h .lab{font-family:var(--f-code)}
+.py pre.src{margin:0;padding:12px 14px;font-family:var(--f-code);font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre;tab-size:4}
+.py .out{white-space:pre;overflow-x:auto;word-break:normal}
+.py .out .pre-tag{font-family:var(--f-body)}
+.py .figout{border-top:1px dashed var(--line);background:#fff;padding:10px}
+.py .figout img{display:block;width:100%;max-width:640px;height:auto;margin:0 auto}
+.py .figout.wide img{max-width:820px}
+.py .out .err{white-space:pre-wrap}
+/* check box */
+.check{border-left:4px solid var(--teal);background:var(--teal-soft);border-radius:0 10px 10px 0;padding:10px 16px;margin:14px 0;font-size:15px}
+.check > b:first-child{display:block;color:var(--teal);margin-bottom:2px}
+.check ul{margin:4px 0}
+.aisay{border:1px dashed var(--line);border-radius:12px;background:var(--panel);padding:10px 16px;margin:14px 0;font-size:15px}
+.aisay > b:first-child{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;margin-bottom:4px}
+/* step done button */
+.stepdone{display:flex;justify-content:flex-end;margin:18px 0 0}
+.stepdone button{border:1.5px solid var(--ok);background:var(--panel);color:var(--ok);border-radius:999px;padding:4px 16px;font-weight:700;font-size:14px}
+.stepdone button[aria-pressed="true"]{background:var(--ok);color:#fff}
+/* download bar */
+.dlrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.dlrow a{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 14px;font-weight:600;font-size:14.5px;text-decoration:none;color:var(--ink)}
+.dlrow a.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dlrow a small{font-weight:400;color:inherit;opacity:.75}
+/* flow strip */
+.flow-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0;font-size:14px}
+.flow-strip span{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 12px;font-weight:600}
+.flow-strip i{font-style:normal;color:var(--muted)}
+/* timeline */
+.tl{position:relative;margin:18px 0;padding-left:26px}
+.tl::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl .era{position:relative;margin:20px 0 6px;font-weight:700;font-size:15px;color:var(--ec,var(--accent))}
+.tl .era::before{content:"";position:absolute;left:-23px;top:5px;width:14px;height:14px;border-radius:50%;background:var(--ec,var(--accent))}
+.tl .ev{position:relative;display:grid;grid-template-columns:4.2em minmax(0,1fr);gap:10px;padding:5px 0;font-size:15px}
+.tl .ev::before{content:"";position:absolute;left:-20px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--panel);border:2px solid var(--ec,var(--accent))}
+.tl .ev .y{font-family:var(--f-code);font-weight:600;color:var(--muted)}
+.tl .ev.hot b{color:var(--ec,var(--accent))}
+.tl .winter{margin:8px 0;padding:6px 12px;border-radius:8px;background:var(--sunk);font-size:14px;color:var(--muted)}
+/* generic svg figure */
+.svgfig{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px;margin:14px 0}
+.svgfig svg{display:block;width:100%;height:auto;max-width:760px;margin:0 auto}
+.svgfig svg text{font-family:var(--f-body)}
+.svgfig figcaption{font-size:14.5px;color:var(--muted);text-align:center;margin-top:6px}
+/* role table */
+table.role td:nth-child(2){background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+table.role td:nth-child(3){background:color-mix(in srgb,var(--violet-soft) 55%,transparent)}
+/* widgets */
+.wbox{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:18px 0;overflow:hidden}
+.wbox-h{padding:8px 14px;background:var(--sunk);border-bottom:1px solid var(--line);font-size:14px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wbox-h small{font-weight:400;color:var(--muted)}
+.wbox-b{padding:14px}
+.wbox svg{display:block;width:100%;height:auto}
+.wbox svg text{font-family:var(--f-body)}
+.wctl2{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:14px;margin-top:10px}
+.wctl2 label{display:flex;align-items:center;gap:8px;font-weight:600}
+.wctl2 output{font-family:var(--f-code);color:var(--accent);font-weight:700;min-width:3.5em}
+.wctl2 input[type=range]{width:180px;max-width:50vw}
+.seg2{display:flex;flex-wrap:wrap;gap:6px}
+.seg2 button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 12px;font-size:14px}
+.seg2 button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.tok-row{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 10px;font-size:16px}
+.tok-row span{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:1px 8px}
+.tok-row span.new{border-color:var(--violet);background:var(--violet-soft);font-weight:700}
+.bars{display:flex;flex-direction:column;gap:5px}
+.bars .br{display:grid;grid-template-columns:7.5em minmax(0,1fr) 3.4em;gap:8px;align-items:center;font-size:14.5px}
+.bars .br .t{text-align:right;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .br .track{display:block;height:18px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.bars .br .fill{display:block;height:100%;background:var(--violet);border-radius:5px;transition:width .35s}
+.bars .br.bad .fill{background:var(--bad)}
+.bars .br .v{font-family:var(--f-code);font-size:14px;color:var(--muted)}
+.bars .br.pick .t{color:var(--violet)}
+.wmsg2{margin-top:10px;font-size:14.5px;min-height:1.6em}
+.pb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.pb label{display:flex;flex-direction:column;gap:3px;font-size:14.5px;font-weight:700;margin-bottom:8px}
+.pb label span{font-weight:400;color:var(--muted)}
+.pb textarea{font:inherit;font-size:14.5px;line-height:1.6;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--bg);color:var(--ink);resize:vertical;min-height:2.6em}
+.pb .res{border:1.5px solid var(--violet);border-radius:10px;background:var(--violet-soft);padding:10px 12px;font-size:14.5px;white-space:pre-wrap;word-break:break-word;min-height:200px}
+.pb .meter{display:flex;gap:4px;margin:8px 0 4px;flex-wrap:wrap}
+.pb .meter span{font-size:13.5px;border-radius:999px;padding:1px 9px;border:1px solid var(--line);color:var(--muted)}
+.pb .meter span.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+@media (max-width:760px){.pb{grid-template-columns:minmax(0,1fr)}}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:12px 0}
+.vs > div{border-radius:12px;padding:10px 14px;font-size:14.5px}
+.vs .no{background:var(--bad-soft)}.vs .yes{background:var(--ok-soft)}
+.vs > div > b:first-child{display:block;margin-bottom:4px}
+.vs p{margin:4px 0}
+@media (max-width:640px){.vs{grid-template-columns:minmax(0,1fr)}}
+.cklist{list-style:none;padding:0;margin:10px 0}
+.cklist li{margin:6px 0}
+.cklist label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.cklist input{margin-top:6px;width:18px;height:18px;accent-color:var(--ok);flex:none}
+/* ---------- Colab mock screenshots (always light, like a real screenshot) ---------- */
+.shot{margin:18px 0 8px}
+.shot .scroll{overflow-x:auto;border-radius:12px;border:1px solid #c9ced6;box-shadow:0 8px 28px rgba(15,23,42,.12)}
+.mock{min-width:600px;background:#fff;color:#202124;font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;font-size:14px;line-height:1.45}
+.mock *{box-sizing:border-box}
+.mk-browser{display:flex;align-items:center;gap:8px;background:#dfe3e8;padding:7px 10px}
+.mk-browser .dots{display:flex;gap:5px}.mk-browser .dots i{width:10px;height:10px;border-radius:50%;background:#f25f58}.mk-browser .dots i+i{background:#fbbe2e}.mk-browser .dots i+i+i{background:#3bc840}
+.mk-browser .url{flex:1;background:#fff;border-radius:999px;padding:3px 14px;color:#5f6368;font-size:13.5px}
+.mk-top{display:flex;align-items:center;gap:10px;padding:8px 12px 2px}
+.mk-logo{font-weight:800;color:#e8710a;font-size:15px;letter-spacing:.02em}
+.mk-file{font-size:16px;color:#202124}
+.mk-file u{text-decoration:none;border:1px solid #1a73e8;border-radius:3px;padding:0 4px}
+.mk-top .sp{flex:1}
+.mk-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid #dadce0;border-radius:6px;padding:2px 10px;background:#fff;color:#3c4043;white-space:nowrap}
+.mk-btn.blue{background:#e8f0fe;border-color:#d2e3fc;color:#1967d2}
+.mk-btn.gem{background:linear-gradient(90deg,#eaf1ff,#f3e8ff);border-color:#d7ccf5;color:#5b3fc4;font-weight:700}
+.mk-menu{display:flex;gap:14px;padding:2px 12px 6px 12px;color:#3c4043;font-size:14px;flex-wrap:wrap}
+.mk-menu .on{background:#e8eaed;border-radius:4px;padding:0 5px;margin:0 -5px}
+.mk-tool{display:flex;align-items:center;gap:8px;padding:5px 12px;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;background:#fafafa}
+.mk-tool .sp{flex:1}
+.mk-ram{font-size:12.5px;color:#188038;display:inline-flex;align-items:center;gap:4px}
+.mk-ram::before{content:"✓";font-weight:700}
+.mk-main{display:flex;min-height:200px}
+.mk-side{width:40px;flex:none;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 0;color:#5f6368;font-size:15px;background:#fff}
+.mk-side .on{color:#1a73e8;background:#e8f0fe;border-radius:6px;padding:2px 4px}
+.mk-panel{width:200px;flex:none;border-right:1px solid #e0e0e0;padding:8px 10px;font-size:13.5px;background:#fff}
+.mk-panel h5{margin:0 0 6px;font-size:14px}
+.mk-panel .icons{display:flex;gap:8px;margin-bottom:8px;color:#5f6368}
+.mk-panel .icons span{border:1px solid #dadce0;border-radius:4px;padding:0 5px}
+.mk-panel .icons span.hl{border-color:#ea4335;background:#fce8e6;color:#c5221f}
+.mk-panel .f{padding:2px 0;display:flex;gap:6px;align-items:center}
+.mk-panel .f.sel{background:#e8f0fe;border-radius:4px;padding:2px 4px;margin:0 -4px}
+.mk-nb{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;background:#fff}
+.mk-cell{display:flex;gap:8px;align-items:flex-start}
+.mk-run{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid #5f6368;display:grid;place-items:center;font-size:12.5px;color:#5f6368;margin-top:3px}
+.mk-run.go{background:#202124;border-color:#202124;color:#fff}
+.mk-code{flex:1;min-width:0;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-family:"JetBrains Mono",Menlo,monospace;font-size:13.5px;white-space:pre;color:#202124}
+.mk-code.focus{border-color:#1a73e8;box-shadow:0 0 0 1px #1a73e8 inset;background:#fff}
+.mk-code .ph{color:#80868b;font-family:"PingFang TC","Microsoft JhengHei",sans-serif}
+.mk-code .ph a{color:#1a73e8;text-decoration:underline}
+.mk-out{margin:4px 0 0 32px;font-family:"JetBrains Mono",Menlo,monospace;font-size:13px;white-space:pre;color:#202124}
+.mk-out.err{background:#fce8e6;border-radius:4px;padding:6px 10px;color:#a50e0e;white-space:pre-wrap}
+.mk-text{margin-left:32px;font-size:15px;font-weight:700}
+.mk-cellbar{display:flex;gap:6px;justify-content:center;padding:2px 0}
+.mk-chat{width:250px;flex:none;border-left:1px solid #e0e0e0;background:#fbfaff;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.mk-chat h5{margin:0;font-size:14px;color:#5b3fc4}
+.mk-chat .u{align-self:flex-end;background:#e8f0fe;border-radius:12px 12px 2px 12px;padding:6px 10px;max-width:92%}
+.mk-chat .a{background:#fff;border:1px solid #e6e1f7;border-radius:12px 12px 12px 2px;padding:6px 10px}
+.mk-chat .a code{display:block;background:#f1f3f4;border-radius:4px;padding:4px 6px;margin:4px 0;font-family:"JetBrains Mono",Menlo,monospace;font-size:12.5px;white-space:pre;overflow:hidden}
+.mk-chat .in{margin-top:auto;border:1px solid #dadce0;border-radius:999px;padding:5px 12px;color:#80868b;background:#fff}
+.mk-dialog{margin:18px auto;width:min(560px,94%);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.25);background:#fff;overflow:hidden}
+.mk-dialog .dh{padding:12px 16px 4px;font-size:16px}
+.mk-dialog .tabs{display:flex;gap:16px;padding:0 16px;border-bottom:1px solid #e0e0e0;color:#5f6368;font-size:13.5px;flex-wrap:wrap}
+.mk-dialog .tabs span{padding:6px 0}
+.mk-dialog .tabs .on{color:#1a73e8;border-bottom:2px solid #1a73e8}
+.mk-dialog .rows{padding:6px 16px}
+.mk-dialog .rows div{padding:5px 0;border-bottom:1px solid #f1f3f4;color:#3c4043}
+.mk-dialog .df{display:flex;justify-content:flex-end;gap:10px;padding:10px 16px}
+.mk-gen{margin-left:32px;border:1px solid #d7ccf5;border-radius:10px;background:#fbfaff;padding:8px 10px;display:flex;gap:8px;align-items:center}
+.mk-gen .box{flex:1;border:1px solid #dadce0;border-radius:999px;padding:4px 12px;background:#fff;color:#202124}
+.mk-menu-pop{position:relative}
+.mk-pop{position:absolute;left:0;top:100%;margin-top:4px;background:#fff;border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.22);padding:6px 0;width:220px;z-index:2;font-size:13.5px}
+.mk-pop div{padding:4px 14px;color:#3c4043;display:flex;justify-content:space-between}
+.mk-pop div.hl{background:#e8f0fe}
+.mk-pop hr{border:0;border-top:1px solid #e0e0e0;margin:4px 0}
+.mk-pop small{color:#80868b}
+.mk-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e8453c;color:#fff;font:700 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 0 0 1px #e8453c;flex:none;vertical-align:middle;margin:0 3px}
+.shot figcaption{font-size:14.5px;color:var(--muted);margin-top:8px}
+.shot figcaption b{color:var(--ink)}
+ol.legend{list-style:none;padding:0;margin:8px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px;font-size:14.5px}
+ol.legend li{display:flex;gap:6px;align-items:flex-start}
+ol.legend .mk-n{margin-top:3px}
+table.nw1 td:first-child{white-space:nowrap}
+</style>
+<style id="clarity">
+/* PingFang / JhengHei are hinted for screens and read sharper than the web-loaded Noto subset */
+html:root{--f-body:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,-apple-system,sans-serif;--f-display:var(--f-body);--f-han:var(--f-body);--f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,"PingFang TC","Microsoft JhengHei",monospace}
+html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
+.lv,.big,.rank,.ch-h h2,.hero h1,.brand h1,.mission h2,.card h3,.boss h3{font-weight:700}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="rbBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa5ff"/><stop offset="1" stop-color="#2f6fe0"/></linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+  </defs>
+  <symbol id="rbao" viewBox="0 0 150 150">
+    <ellipse cx="62" cy="143" rx="34" ry="5" fill="#000" opacity=".18"/>
+    <line x1="62" y1="16" x2="62" y2="30" stroke="#8fb6ff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="62" cy="12" r="6" fill="#ffb547"/>
+    <rect x="18" y="28" width="88" height="74" rx="28" fill="url(#rbBody)"/>
+    <rect x="30" y="42" width="64" height="42" rx="17" fill="#0b1422"/>
+    <rect x="42" y="53" width="12" height="16" rx="6" fill="#35d6c3"/><rect x="70" y="53" width="12" height="16" rx="6" fill="#35d6c3"/>
+    <path d="M52 75 q10 7 20 0" stroke="#35d6c3" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="36" y="100" width="52" height="30" rx="11" fill="#2a5fc4"/>
+    <circle cx="62" cy="115" r="10" fill="#0b1422"/>
+    <text x="62" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#eaf1fa">R</text>
+    <rect x="22" y="103" width="15" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(25 30 107)"/>
+    <rect x="86" y="96" width="30" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(-28 88 100)"/>
+    <polygon points="128,64 140,78 128,92 116,78" fill="#35d6c3" stroke="#a6f0e7" stroke-width="2.5" stroke-linejoin="round"/>
+    <ellipse cx="46" cy="132" rx="11" ry="6" fill="#9fb0c7"/><ellipse cx="78" cy="132" rx="11" ry="6" fill="#9fb0c7"/>
+  </symbol>
+</svg>
+
+<header class="hero page" style="padding-bottom:0">
+  <div style="grid-column:1/-1">
+    <nav class="crumbs" aria-label="導覽">
+      <a href="./">← 大數據分析與實踐 · 課程首頁</a>
+      <a href="ggplot.html">上一單元：ggplot2 畫室</a>
+      <a href="colab.html">下一單元：AI × Colab 實戰 →</a>
+    </nav>
+    <div class="eyebrow">Part 09 · What is AI?</div>
+    <div class="hero-row">
+      <svg class="bot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg>
+      <h1>R 寶的 AI 入門</h1>
+    </div>
+    <p>現在寫程式、查資料、寫報告，幾乎都有 AI 可以幫忙。但 AI 到底是什麼？現在的 AI 是怎麼一步一步發展出來的？為什麼它有時候會很有自信地說錯話？在資料分析裡，哪些事可以交給它、哪些事一定要自己來？這一章不寫程式，先把這些觀念弄清楚；下一章再到 Google Colab 實際用 AI 分析鐵達尼號的資料。</p>
+    <div class="meta"><span class="pill">7 節 · 3 個互動動畫 · 1 個小測驗</span><span class="pill">這一章<b>不用寫程式</b></span><span class="pill">下一章：<a href="colab.html">AI × Colab 實戰</a></span></div>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="toc" aria-label="目錄">
+    <h2>目錄</h2>
+    <ol id="toc">
+      <li><a href="#a1"><span class="n">01</span>AI 是什麼？</a></li>
+      <li><a href="#a2"><span class="n">02</span>現代 AI 怎麼來的</a></li>
+      <li><a href="#a3"><span class="n">03</span>機器怎麼「學」？</a></li>
+      <li><a href="#a4"><span class="n">04</span>大型語言模型怎麼運作</a></li>
+      <li><a href="#a5"><span class="n">05</span>AI 在資料分析的角色</a></li>
+      <li><a href="#a6"><span class="n">06</span>風險與使用規範</a></li>
+      <li><a href="#a7"><span class="n">07</span>Prompt 怎麼下</a></li>
+      <li><a href="#a8"><span class="n">08</span>小測驗</a></li>
+      <li><a href="colab.html"><span class="n">→</span>下一單元：AI × Colab 實戰 ↗</a></li>
+    </ol>
+  </nav>
+
+  <main>
+<!-- ============ 01 ============ -->
+<section class="ch" id="a1">
+  <div class="ch-h"><span class="num">01</span><h2>AI 是什麼？<small>從手機解鎖到聊天機器人</small></h2></div>
+  <p><b>人工智慧（Artificial Intelligence，AI）</b>就是讓電腦去做「原本需要人類智慧才做得到」的事：看懂圖片、聽懂說話、翻譯、下棋、判斷、寫文章。其實你每天都在用 AI，只是平常不會這樣叫它：</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>生活中的例子</th><th>AI 在做什麼</th><th>醫檢、生醫領域的類似例子</th></tr>
+    <tr><td>手機用臉解鎖</td><td>影像辨識：這張臉是不是主人</td><td>血液抹片、尿沉渣的細胞影像自動分類；數位病理切片判讀</td></tr>
+    <tr><td>垃圾郵件被自動丟到垃圾桶</td><td>分類：這封信是不是垃圾信</td><td>依檢驗數值預測疾病風險、判斷檢體是否需要複驗</td></tr>
+    <tr><td>影音平台推薦下一部影片</td><td>從大量使用紀錄找出模式</td><td>從大量病歷找出容易再住院的病人</td></tr>
+    <tr><td>Google 翻譯、語音輸入</td><td>理解和產生語言</td><td>自動整理檢驗報告、病歷摘要</td></tr>
+    <tr><td>ChatGPT、Gemini、Claude</td><td>生成式 AI：依照你的要求產生文字、程式、圖片</td><td>幫忙寫分析程式、解釋統計結果（這兩章的主題）</td></tr>
+    <tr><td>—</td><td>預測蛋白質的立體結構</td><td>AlphaFold，2024 年諾貝爾化學獎</td></tr>
+  </table></div>
+
+  <h3><span class="tag">1-1</span>AI、機器學習、深度學習、生成式 AI 的關係</h3>
+  <p>這幾個名詞常常混在一起用。它們其實是一層包一層的關係：</p>
+  <figure class="svgfig">
+    <svg viewBox="0 0 760 330" role="img" aria-label="AI 包含機器學習，機器學習包含深度學習，深度學習包含生成式 AI 與大型語言模型">
+      <ellipse cx="250" cy="170" rx="235" ry="150" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <ellipse cx="290" cy="195" rx="180" ry="118" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="2"/>
+      <ellipse cx="325" cy="220" rx="125" ry="85" fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="2"/>
+      <ellipse cx="350" cy="242" rx="72" ry="50" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="2"/>
+      <text x="120" y="70" font-size="20" font-weight="700" fill="var(--accent)">人工智慧 AI</text>
+      <text x="170" y="122" font-size="18" font-weight="700" fill="var(--teal)">機器學習</text>
+      <text x="245" y="170" font-size="17" font-weight="700" fill="var(--amber)">深度學習</text>
+      <text x="350" y="238" font-size="14.5" font-weight="700" fill="var(--violet)" text-anchor="middle">生成式 AI</text>
+      <text x="350" y="258" font-size="12.5" fill="var(--violet)" text-anchor="middle">大型語言模型</text>
+      <g font-size="14" fill="var(--ink)">
+        <line x1="470" y1="64" x2="510" y2="64" stroke="var(--accent)" stroke-width="2"/><text x="518" y="58" font-weight="700">AI：讓電腦表現出智慧</text><text x="518" y="78" fill="var(--muted)" font-size="13">包含人寫規則的方法，例如專家系統</text>
+        <line x1="455" y1="128" x2="510" y2="128" stroke="var(--teal)" stroke-width="2"/><text x="518" y="122" font-weight="700">機器學習：從資料自己找規則</text><text x="518" y="142" fill="var(--muted)" font-size="13">例如迴歸、決策樹、隨機森林</text>
+        <line x1="440" y1="190" x2="510" y2="190" stroke="var(--amber)" stroke-width="2"/><text x="518" y="184" font-weight="700">深度學習：很多層的神經網路</text><text x="518" y="204" fill="var(--muted)" font-size="13">影像辨識、語音辨識的主力</text>
+        <line x1="420" y1="250" x2="510" y2="250" stroke="var(--violet)" stroke-width="2"/><text x="518" y="244" font-weight="700">生成式 AI：會「產生」新內容</text><text x="518" y="264" fill="var(--muted)" font-size="13">大型語言模型（LLM）：ChatGPT、</text><text x="518" y="282" fill="var(--muted)" font-size="13">Gemini、Claude 都是</text>
+      </g>
+    </svg>
+    <figcaption>外層包含內層：所有深度學習都是機器學習，但不是所有機器學習都是深度學習。</figcaption>
+  </figure>
+  <div class="note tip"><b>💡 一句話記住</b>傳統統計和機器學習都是「從資料找規律」。差別在目的：統計比較重視<b>解釋</b>（哪個因素有影響、影響多大、有多確定），機器學習比較重視<b>預測</b>（猜得準不準）。你在 p 值教室學的 t 檢定、迴歸，就站在這兩者的交界上。</div>
+  <div class="note"><b>🤖 現在的 AI 有「思考」嗎？</b>目前的 AI 很擅長某些事，有時表現得比人還好，但它沒有像人一樣的經驗和責任感，也會犯一些人不會犯的錯（第 4 節會看到為什麼）。所以這兩章一直強調：<b>AI 是很好用的助手，判斷和負責的人還是你</b>。</div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="ch" id="a2">
+  <div class="ch-h"><span class="num">02</span><h2>現代 AI 怎麼來的<small>八十年，三次大轉彎</small></h2></div>
+  <p>AI 不是這幾年才突然出現的。它經歷過好幾次「大家很興奮 → 做不到 → 沒人要投資」的循環（被叫做 <b>AI 寒冬</b>），直到資料、電腦速度和新方法同時到位，才變成今天的樣子。</p>
+  <div class="tl">
+    <div class="era" style="--ec:var(--accent)">① 萌芽期：電腦能不能思考？（1940–1960 年代）</div>
+    <div class="ev" style="--ec:var(--accent)"><span class="y">1943</span><span>McCulloch 和 Pitts 用數學描述「人工神經元」：很多輸入加起來，超過門檻就發出訊號。這是今天神經網路的祖先。</span></div>
+    <div class="ev hot" style="--ec:var(--accent)"><span class="y">1950</span><span>Alan Turing 提出<b>圖靈測試</b>：如果你分不出對面是人還是電腦，那電腦算不算有智慧？</span></div>
+    <div class="ev hot" style="--ec:var(--accent)"><span class="y">1956</span><span>美國<b>達特茅斯會議</b>，John McCarthy 等人正式使用「Artificial Intelligence」這個名詞，AI 成為一個研究領域。</span></div>
+    <div class="ev" style="--ec:var(--accent)"><span class="y">1958</span><span>Rosenblatt 做出<b>感知器</b>（perceptron），一個可以從例子學習的簡單神經網路。</span></div>
+    <div class="ev" style="--ec:var(--accent)"><span class="y">1966</span><span>MIT 的 <b>ELIZA</b> 用簡單的文字規則假裝心理諮商師聊天，很多人以為它真的懂。</span></div>
+
+    <div class="era" style="--ec:var(--amber)">② 人寫規則：專家系統（1970–1980 年代）</div>
+    <div class="ev hot" style="--ec:var(--amber)"><span class="y">1970s</span><span>史丹佛大學的 <b>MYCIN</b>：把感染科醫師的知識寫成大約 600 條「如果……就……」的規則，用來判斷血液感染的細菌、建議抗生素。測試時表現接近專家，但從來沒有正式用在病人身上。</span></div>
+    <div class="ev" style="--ec:var(--amber)"><span class="y">1986</span><span>Rumelhart、Hinton、Williams 讓<b>反向傳播</b>（backpropagation）廣為人知：一種讓多層神經網路從錯誤中修正自己的方法，到今天都還在用。</span></div>
+    <div class="winter">❄ AI 寒冬：規則要人一條一條寫，世界太複雜寫不完；當時的電腦也太慢。1970 年代中期和 1980 年代末期，AI 研究兩度失去經費和關注。</div>
+
+    <div class="era" style="--ec:var(--teal)">③ 讓電腦從資料學：機器學習（1990–2000 年代）</div>
+    <div class="ev hot" style="--ec:var(--teal)"><span class="y">1997</span><span>IBM 的 <b>深藍</b>（Deep Blue）擊敗西洋棋世界冠軍 Kasparov。它主要靠的是超快速地搜尋棋步。</span></div>
+    <div class="ev" style="--ec:var(--teal)"><span class="y">1998</span><span>LeCun 的 <b>LeNet</b> 用神經網路辨識手寫數字，被用來讀支票上的金額。</span></div>
+    <div class="ev" style="--ec:var(--teal)"><span class="y">2000s</span><span>網路讓資料大量累積。統計學習方法（支援向量機、隨機森林等）成為主流，垃圾郵件過濾、推薦系統開始普及。</span></div>
+    <div class="ev" style="--ec:var(--teal)"><span class="y">2009</span><span>李飛飛團隊建立 <b>ImageNet</b>：超過 1,400 萬張有人工標註的圖片，成為影像辨識的比賽場地。</span></div>
+
+    <div class="era" style="--ec:var(--rose)">④ 深度學習爆發（2012–2017）</div>
+    <div class="ev hot" style="--ec:var(--rose)"><span class="y">2012</span><span><b>AlexNet</b> 用顯示卡（GPU）訓練很深的神經網路，在 ImageNet 比賽的錯誤率大約 15%，第二名約 26%，差距大到整個領域轉向深度學習。</span></div>
+    <div class="ev hot" style="--ec:var(--rose)"><span class="y">2016</span><span>DeepMind 的 <b>AlphaGo</b> 以 4 比 1 擊敗圍棋棋士李世乭。圍棋的可能盤面比宇宙的原子還多，沒辦法硬算，AlphaGo 靠的是從棋譜和自己對弈中學習。</span></div>
+    <div class="ev hot" style="--ec:var(--rose)"><span class="y">2017</span><span>Google 發表論文〈Attention Is All You Need〉，提出 <b>Transformer</b> 架構：讀一句話時，每個字都可以「注意」句子裡其他所有的字。今天幾乎所有大型語言模型都建立在它上面。</span></div>
+
+    <div class="era" style="--ec:var(--violet)">⑤ 大型語言模型與生成式 AI（2018–現在）</div>
+    <div class="ev" style="--ec:var(--violet)"><span class="y">2018</span><span>OpenAI 的 GPT-1、Google 的 BERT：先讓模型讀大量文字「預訓練」，再拿去做各種任務。</span></div>
+    <div class="ev hot" style="--ec:var(--violet)"><span class="y">2020</span><span><b>GPT-3</b> 有 1,750 億個參數，只要給幾個例子就能做翻譯、摘要、寫程式。同一年，<b>AlphaFold 2</b> 準確預測蛋白質結構，開發者在 2024 年獲得諾貝爾化學獎。</span></div>
+    <div class="ev hot" style="--ec:var(--violet)"><span class="y">2022</span><span>11 月 <b>ChatGPT</b> 推出，用聊天的方式就能使用大型語言模型，兩個月內使用者估計破億。</span></div>
+    <div class="ev" style="--ec:var(--violet)"><span class="y">2023</span><span>GPT-4、Claude、Gemini 等陸續推出，開始能同時看懂文字和圖片（多模態）。</span></div>
+    <div class="ev" style="--ec:var(--violet)"><span class="y">2024</span><span>諾貝爾物理獎頒給 Hopfield 和 Hinton，表彰他們奠定神經網路的基礎。「推理模型」出現：回答前先一步一步想。</span></div>
+    <div class="ev hot" style="--ec:var(--violet)"><span class="y">現在</span><span><b>AI 代理（agent）</b>：AI 不只回答問題，還會自己寫程式、執行、看結果、再修正。下一章用的 Colab 內建 Gemini，就能直接在筆記本裡寫程式並執行。</span></div>
+  </div>
+
+  <h3><span class="tag">2-1</span>為什麼是現在？三種燃料同時到位</h3>
+  <div class="lede-grid">
+    <div><span class="ic">📚</span><b>資料</b>網路、手機、數位化，留下了大量文字、圖片和紀錄。大型語言模型讀過的文字量，一個人讀幾萬輩子也讀不完。</div>
+    <div><span class="ic">⚡</span><b>算力</b>原本給電玩用的顯示卡（GPU）很擅長同時做大量簡單的計算，剛好適合訓練神經網路。</div>
+    <div><span class="ic">🧩</span><b>演算法</b>反向傳播讓網路能學習，Transformer 讓網路能有效率地讀長篇文字，而且規模越大表現越好。</div>
+  </div>
+  <div class="note"><b>📈 「規模」的發現</b>研究者發現：模型越大、讀的資料越多、用的計算越多，語言模型的表現就越好，而且相當可以預測。這促成了 2020 年之後越做越大的模型。但大不代表不會錯；第 4 節會看到它的弱點來自哪裡。</div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="ch" id="a3">
+  <div class="ch-h"><span class="num">03</span><h2>機器怎麼「學」？<small>從資料找出錯誤最少的規則</small></h2></div>
+  <p>傳統的程式是<b>人寫規則</b>，電腦照做；機器學習反過來，是給電腦<b>資料和正確答案</b>，讓電腦自己找出規則。</p>
+  <figure class="svgfig">
+    <svg viewBox="0 0 760 210" role="img" aria-label="傳統程式：規則加資料得到答案；機器學習：資料加答案得到規則">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+      <text x="20" y="34" font-size="15" font-weight="700" fill="var(--amber)">傳統程式</text>
+      <rect x="20" y="46" width="150" height="44" rx="10" fill="var(--amber-soft)" stroke="var(--amber)"/><text x="95" y="73" font-size="14" text-anchor="middle">規則（人寫的）</text>
+      <rect x="190" y="46" width="150" height="44" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="265" y="73" font-size="14" text-anchor="middle">資料</text>
+      <line x1="345" y1="68" x2="415" y2="68" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="420" y="46" width="110" height="44" rx="10" fill="var(--sunk)" stroke="var(--line)"/><text x="475" y="73" font-size="14" text-anchor="middle">電腦</text>
+      <line x1="535" y1="68" x2="595" y2="68" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="600" y="46" width="140" height="44" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="670" y="73" font-size="14" text-anchor="middle">答案</text>
+      <text x="20" y="134" font-size="15" font-weight="700" fill="var(--teal)">機器學習</text>
+      <rect x="20" y="146" width="150" height="44" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="95" y="173" font-size="14" text-anchor="middle">資料</text>
+      <rect x="190" y="146" width="150" height="44" rx="10" fill="var(--panel)" stroke="var(--line)"/><text x="265" y="173" font-size="14" text-anchor="middle">正確答案</text>
+      <line x1="345" y1="168" x2="415" y2="168" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="420" y="146" width="110" height="44" rx="10" fill="var(--sunk)" stroke="var(--line)"/><text x="475" y="173" font-size="14" text-anchor="middle">電腦</text>
+      <line x1="535" y1="168" x2="595" y2="168" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar)"/>
+      <rect x="600" y="146" width="140" height="44" rx="10" fill="var(--teal-soft)" stroke="var(--teal)"/><text x="670" y="173" font-size="14" text-anchor="middle" font-weight="700">規則（學出來的）</text>
+    </svg>
+  </figure>
+
+  <h3><span class="tag">3-1</span>動手看：讓電腦自己找血糖切點</h3>
+  <p>下面是 30 個人的空腹血糖。綠點是實際上<b>沒有</b>糖尿病的人，紅點是實際上<b>有</b>的人（由其他檢查確認）。我們想找一個切點：血糖超過它，就判為糖尿病。拖動藍線試試看，再按「讓電腦自己找」。被描黑框的點是判錯的人。</p>
+  <div class="wbox">
+    <div class="wbox-h">🎯 從資料學一個切點 <small>最簡單的機器學習</small></div>
+    <div class="wbox-b">
+      <svg id="thSvg" viewBox="0 0 640 262" role="img" aria-label="血糖切點與錯誤數"></svg>
+      <div class="wctl2">
+        <label>切點 <input type="range" id="thR" min="80" max="190" step="1" value="150"><output id="thV"></output></label>
+        <button type="button" class="btn primary" id="thLearn">讓電腦自己找</button>
+      </div>
+      <div class="wmsg2" id="thMsg"></div>
+    </div>
+  </div>
+  <p>電腦做的事很單純：<b>試很多個切點、算每個切點錯幾個、挑錯最少的</b>。「學習」就是這樣：定義什麼叫做錯，然後調整，讓錯誤越來越少。</p>
+  <ul>
+    <li>這裡只有 <b>1 個</b>可以調的數字（切點）。深度學習的模型有幾百萬到幾千億個可以調的數字（叫做<b>參數</b>），道理一樣，只是用反向傳播一次調整全部。</li>
+    <li>電腦找到的切點，跟臨床標準 126 不一定一樣。臨床標準是根據大型研究和併發症風險訂的；這 30 個人只是一小份資料。<b>從資料學到的規則，只能代表這份資料</b>。</li>
+    <li>如果資料再少一點、或剛好抽到特別的人，學出來的切點就可能很怪。所以真正做機器學習時，會把資料分成<b>訓練組</b>（拿來學）和<b>測試組</b>（拿來考試）：考的題目不能是練習過的題目，否則只是背答案（叫做<b>過度擬合</b>，overfitting）。</li>
+  </ul>
+
+  <h3><span class="tag">3-2</span>三種學習方式</h3>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>方式</th><th>給電腦什麼</th><th>例子</th></tr>
+    <tr><td><b>監督式學習</b></td><td>資料 + 正確答案</td><td>用檢驗數值預測有沒有糖尿病；判斷細胞影像是哪一種白血球</td></tr>
+    <tr><td><b>非監督式學習</b></td><td>只有資料，沒有答案</td><td>把病人自動分群；單細胞 RNA-seq 把細胞依基因表現分群</td></tr>
+    <tr><td><b>強化學習</b></td><td>環境和獎勵：做對加分、做錯扣分</td><td>AlphaGo 自己下棋；聊天機器人依人類的評分學會回答得更好（下一節）</td></tr>
+  </table></div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="ch" id="a4">
+  <div class="ch-h"><span class="num">04</span><h2>大型語言模型怎麼運作<small>超級厲害的文字接龍</small></h2></div>
+  <p>ChatGPT、Gemini、Claude 這類聊天 AI，核心是<b>大型語言模型</b>（Large Language Model，LLM）。把細節拿掉之後，它做的事情出乎意料地簡單：<b>根據前面的文字，預測下一個字最可能是什麼</b>，然後一直重複。</p>
+
+  <h3><span class="tag">4-1</span>第一步：把文字切成 token</h3>
+  <p>模型不是一個字一個字讀，而是把文字切成小片段，叫做 <b>token</b>（可以想成「字塊」）。一個 token 可能是一個中文字、一個詞、一個英文單字或單字的一部分。下面是示意（實際的切法依模型而不同）：</p>
+  <div class="tok-row" aria-label="token 示意"><span>鐵達尼</span><span>號</span><span>在</span><span>1912</span><span>年</span><span>撞上</span><span>了</span><span>一座</span><span>冰山</span><span>。</span></div>
+  <p>模型能一次看的 token 數量有上限（叫做<b>上下文長度</b>，context window）。對話太長時，最前面的內容可能被忘掉；開新對話，它也不記得上一次聊過什麼。</p>
+
+  <h3><span class="tag">4-2</span>第二步：預測下一個 token</h3>
+  <p>模型看完前面的 token，會算出「下一個 token 是每個候選字」的機率，再從中挑一個。<b>溫度</b>（temperature）控制挑選的方式：溫度低，幾乎都挑機率最高的；溫度高，比較常挑到冷門的字，回答比較有變化，也比較容易出錯。下面的機率是為了說明而設定的示範數字：</p>
+  <div class="wbox" id="ntBox">
+    <div class="wbox-h">🎲 下一個字是什麼？ <small>示範用的機率，不是真實模型的輸出</small></div>
+    <div class="wbox-b">
+      <div class="seg2" id="ntSeg" role="group" aria-label="選擇句子"><button type="button" aria-pressed="true">鐵達尼號</button><button type="button" aria-pressed="false">血糖</button><button type="button" aria-pressed="false">R 畫圖</button></div>
+      <div class="tok-row" id="ntCtx" style="margin-top:12px"></div>
+      <div class="bars" id="ntBars"></div>
+      <div class="wctl2">
+        <label>溫度 <input type="range" id="ntTR" min="0.2" max="2.5" step="0.1" value="1"><output id="ntT"></output></label>
+        <button type="button" class="btn primary" id="ntGo">抽一個字</button>
+      </div>
+      <div class="wmsg2" id="ntMsg"></div>
+    </div>
+  </div>
+  <p>把溫度拉高、多抽幾次，你會發現偶爾會抽到紅色的錯誤答案，而且整句話讀起來<b>一樣通順</b>。這就是大型語言模型最重要的特性：</p>
+  <div class="note warn"><b>⚠ 幻覺（hallucination）</b>語言模型的目標是產生「通順、像是會出現在這裡」的文字，而不是去資料庫查證事實。所以它可能很有自信地編出不存在的論文、不存在的函式、錯誤的數字。它說得越流暢，越容易讓人相信。</div>
+
+  <h3><span class="tag">4-3</span>從「接龍機器」到「聊天助手」：三個訓練階段</h3>
+  <figure class="svgfig">
+    <svg viewBox="0 0 760 170" role="img" aria-label="預訓練、指令微調、人類回饋三個階段">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+      <rect x="10" y="20" width="220" height="130" rx="14" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="120" y="50" font-size="16" font-weight="700" text-anchor="middle" fill="var(--accent)">① 預訓練</text>
+      <text x="120" y="78" font-size="13.5" text-anchor="middle">讀網路、書籍、程式碼等</text><text x="120" y="98" font-size="13.5" text-anchor="middle">大量文字，練習文字接龍</text>
+      <text x="120" y="128" font-size="12.5" text-anchor="middle" fill="var(--muted)">學到語言、知識、程式寫法</text>
+      <line x1="236" y1="85" x2="266" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar2)"/>
+      <rect x="270" y="20" width="220" height="130" rx="14" fill="var(--teal-soft)" stroke="var(--teal)"/>
+      <text x="380" y="50" font-size="16" font-weight="700" text-anchor="middle" fill="var(--teal)">② 指令微調</text>
+      <text x="380" y="78" font-size="13.5" text-anchor="middle">用「問題 → 好的回答」</text><text x="380" y="98" font-size="13.5" text-anchor="middle">範例再訓練</text>
+      <text x="380" y="128" font-size="12.5" text-anchor="middle" fill="var(--muted)">學會照指令回答，而不是亂接</text>
+      <line x1="496" y1="85" x2="526" y2="85" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar2)"/>
+      <rect x="530" y="20" width="220" height="130" rx="14" fill="var(--violet-soft)" stroke="var(--violet)"/>
+      <text x="640" y="50" font-size="16" font-weight="700" text-anchor="middle" fill="var(--violet)">③ 人類回饋</text>
+      <text x="640" y="78" font-size="13.5" text-anchor="middle">人類比較兩個回答哪個好，</text><text x="640" y="98" font-size="13.5" text-anchor="middle">模型依評分調整（強化學習）</text>
+      <text x="640" y="128" font-size="12.5" text-anchor="middle" fill="var(--muted)">更有幫助、更誠實、更安全</text>
+    </svg>
+  </figure>
+
+  <h3><span class="tag">4-4</span>所以，它的強項和弱點是……</h3>
+  <div class="vs">
+    <div class="yes"><b>✓ 擅長</b><p>寫程式、解釋程式、找錯誤原因</p><p>解釋觀念、換句話說、翻譯</p><p>整理、摘要、改寫文字</p><p>提供分析方向和可能的做法</p></div>
+    <div class="no"><b>✗ 要小心</b><p>精確計算：它是「猜」數字，不是「算」數字</p><p>最新消息、冷門知識：可能沒讀過或已過時</p><p>引用文獻：可能編出不存在的論文</p><p>你的資料：它沒看過，除非你給它，而且可能誤解</p></div>
+  </div>
+  <div class="note tip"><b>🔑 資料分析的黃金守則</b><b style="display:inline">讓 AI 寫程式，讓程式算數字。</b>不要叫 AI「直接告訴我平均是多少」，而是請它寫程式，你執行程式得到真正的結果。現在很多 AI 工具（包括 Colab 的 Gemini）可以自己執行程式，這比只靠「猜」可靠得多，但結果一樣要你自己看過。</div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="ch" id="a5">
+  <div class="ch-h"><span class="num">05</span><h2>AI 在資料分析的角色<small>它是副駕駛，方向盤在你手上</small></h2></div>
+  <p>把 AI 想成一位<b>反應很快、懂很多程式、但偶爾粗心又不會說「我不知道」的助理</b>。它可以大幅加快你的速度，但研究問題由你決定，結論也要由你負責。下面把一份資料分析的每一步拆開來看：</p>
+  <div class="tblwrap"><table class="cmp nw1 role">
+    <tr><th>分析步驟</th><th>👤 你負責</th><th>🤖 AI 可以幫忙</th><th>⚠ 要小心</th></tr>
+    <tr><td><b>1. 提出問題</b></td><td>決定要回答什麼問題、為什麼重要</td><td>把模糊的想法整理成可以分析的問題、建議可以看哪些變數</td><td>問題不清楚，後面全部白做</td></tr>
+    <tr><td><b>2. 取得資料</b></td><td>確認來源可靠、可以合法使用、符合倫理</td><td>寫讀檔、下載的程式；解釋檔案格式</td><td>病人資料不能隨便貼給 AI（第 6 節）</td></tr>
+    <tr><td><b>3. 清理資料</b></td><td>決定缺值、異常值怎麼處理，並寫下理由</td><td>寫清理程式；列出幾種處理方式的優缺點</td><td>AI 可能不聲不響地刪掉資料、補值</td></tr>
+    <tr><td><b>4. 探索資料</b></td><td>看結果有沒有不合理的地方</td><td>快速產生摘要表、交叉表</td><td>表格數字要對得起來（例如人數加總）</td></tr>
+    <tr><td><b>5. 統計分析</b></td><td>確認方法符合資料型態和前提</td><td>建議檢定方法、寫程式、解釋輸出</td><td>選錯檢定、沒檢查前提、多重比較沒校正</td></tr>
+    <tr><td><b>6. 畫圖</b></td><td>決定圖要傳達什麼訊息</td><td>寫 ggplot2 / seaborn 程式、調整顏色和標籤</td><td>座標軸、單位、圖例要正確</td></tr>
+    <tr><td><b>7. 寫結論</b></td><td>為每一句話負責</td><td>草擬文字、潤飾、翻譯</td><td>編造數字、把相關說成因果、過度推論</td></tr>
+  </table></div>
+  <h3><span class="tag">5-1</span>三條使用原則</h3>
+  <div class="lede-grid">
+    <div><span class="ic">🔢</span><b>數字要能追到程式輸出</b>報告裡每一個數字，都應該能在你執行過的程式輸出中找到。AI 打的字不算。</div>
+    <div><span class="ic">🧐</span><b>看得懂才用</b>AI 給的每一行程式，你都要大概知道在做什麼。看不懂就問它：「請逐行解釋這段程式。」</div>
+    <div><span class="ic">🔁</span><b>小步前進、隨時檢查</b>一次只請它做一步，執行、看結果、確認合理，再進下一步。一次要完整份分析，錯了很難找。</div>
+  </div>
+  <div class="note"><b>🧑‍🔬 學 R 還有用嗎？</b>有，而且更重要。AI 寫得出程式，但只有看得懂程式的人才能發現它寫錯了。前面八個單元學的觀念（向量、資料框、分組統計、圖形文法、p 值），正是你檢查 AI 的工具。下一章用的是 Python，你會發現觀念幾乎一模一樣。</div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="ch" id="a6">
+  <div class="ch-h"><span class="num">06</span><h2>風險與使用規範<small>醫檢人特別要注意的事</small></h2></div>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>風險</th><th>會發生什麼</th><th>怎麼做</th></tr>
+    <tr><td><b>幻覺</b></td><td>編出不存在的函式、套件、論文、數字</td><td>程式一定要實際執行；文獻要自己到 PubMed 查得到原文才能引用</td></tr>
+    <tr><td><b>個資與隱私</b></td><td>貼上的資料會傳到 AI 公司的伺服器；依服務和設定，可能被保存或拿來改進模型</td><td><b>不要</b>貼上病人姓名、病歷號、身分證字號、生日等可以認出個人的資料。用去識別化或模擬的資料，或只給 AI 欄位名稱和格式。遵守個人資料保護法、醫院規定和研究倫理（IRB）</td></tr>
+    <tr><td><b>偏誤</b></td><td>訓練資料裡的偏見會被學進去；建議的方法可能不適合你的族群或資料</td><td>想一想：這個建議適用於我的資料嗎？</td></tr>
+    <tr><td><b>學術誠信</b></td><td>把 AI 寫的內容當成自己的</td><td>依照課程或期刊規定說明你怎麼使用 AI；你要能解釋每一行程式和每一句結論</td></tr>
+    <tr><td><b>可重現性</b></td><td>同一個問題，AI 每次的回答可能不同</td><td>保存最後使用的程式碼（notebook）和重要的 prompt，讓別人能跑出一樣的結果</td></tr>
+    <tr><td><b>過度依賴</b></td><td>自己慢慢看不懂、也不會寫</td><td>先自己想，再問 AI；請 AI 解釋而不只是給答案</td></tr>
+  </table></div>
+  <div class="note warn"><b>🚫 這些資料不要直接貼給 AI</b>病人的檢驗報告、病歷、含姓名或病歷號的 Excel、還沒發表的研究資料、醫院內部文件。需要 AI 幫忙寫程式時，可以只給它「欄位名稱、每欄的型態、兩三列<b>假的</b>範例資料」，它就能寫出可以用的程式，再由你在自己的電腦上對真正的資料執行。</div>
+  <div class="vs">
+    <div class="no"><b>✗ 這樣不行</b><p>（把整份含病歷號和姓名的檢驗結果貼上）「幫我分析這些病人的血糖。」</p></div>
+    <div class="yes"><b>✓ 這樣可以</b><p>「我有一個 CSV，欄位是 id（文字）、group（control / diabetes）、glucose（數字，mg/dL）、hba1c（數字，%）。請寫 R 程式比較兩組的 glucose。範例資料：P01, control, 98, 5.4」</p></div>
+  </div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="ch" id="a7">
+  <div class="ch-h"><span class="num">07</span><h2>Prompt 怎麼下<small>五個要素，讓 AI 第一次就聽懂</small></h2></div>
+  <p>給 AI 的指令或問題叫做 <b>prompt</b>。AI 不知道你是誰、你的資料長什麼樣、你要什麼格式；你沒說的，它就自己猜。好的 prompt 通常包含這五個要素：</p>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>要素</th><th>回答的問題</th><th>例子（Titanic 分析）</th></tr>
+    <tr><td><b>角色</b></td><td>要 AI 用什麼身分回答？</td><td>你是一位資料分析助教，熟悉 Python 的 pandas 和 seaborn。</td></tr>
+    <tr><td><b>背景</b></td><td>你是誰？資料是什麼？做到哪裡了？</td><td>我是醫技系學生，在 Colab 分析 Titanic 資料，欄位有 Survived、Pclass、Sex、Age……，已經讀進變數 df。</td></tr>
+    <tr><td><b>任務</b></td><td>這一步具體要做什麼？</td><td>請依性別和艙等計算存活率。</td></tr>
+    <tr><td><b>格式</b></td><td>結果要長什麼樣子？</td><td>只給程式碼，加上繁體中文註解；存活率取小數 3 位。</td></tr>
+    <tr><td><b>限制</b></td><td>有什麼不要做、一定要遵守的？</td><td>不要修改 df；不要自己編造數字；圖上文字用英文。</td></tr>
+  </table></div>
+
+  <h3><span class="tag">7-1</span>好壞對照</h3>
+  <div class="vs">
+    <div class="no"><b>✗ 太模糊</b><p>「幫我分析鐵達尼號。」</p><p style="color:var(--muted);font-size:13.5px">AI 不知道你要看什麼、用什麼語言、做到多深，通常會丟給你一大段你看不懂、也不一定對的程式。</p></div>
+    <div class="yes"><b>✓ 具體</b><p>「我在 Colab 用 Python，資料已讀進 df。請算出男性和女性的存活率，存活率取 3 位小數，程式加上中文註解。」</p></div>
+  </div>
+  <div class="vs">
+    <div class="no"><b>✗ 只說「錯了」</b><p>「你的程式不能跑。」</p></div>
+    <div class="yes"><b>✓ 給完整線索</b><p>「我執行這段程式（貼上）出現錯誤，完整訊息是：KeyError: 'sex'（貼上）。請說明原因並修正。」</p></div>
+  </div>
+  <div class="vs">
+    <div class="no"><b>✗ 叫它直接給數字</b><p>「Titanic 的女性存活率是多少？」</p><p style="color:var(--muted);font-size:13.5px">它可能憑記憶回答一個「差不多」的數字，不一定是你這份資料的結果。</p></div>
+    <div class="yes"><b>✓ 叫它寫程式</b><p>「請寫程式計算 df 裡女性的存活率。」然後自己執行。</p></div>
+  </div>
+
+  <h3><span class="tag">7-2</span>動手組一個 prompt</h3>
+  <p>改改看左邊的內容，右邊會組成完整的 prompt，可以直接複製到 AI 使用。</p>
+  <div class="wbox" id="pbBox">
+    <div class="wbox-h">🧰 Prompt 組合器 <small>五個要素</small><button type="button" class="copy" style="margin-left:auto">複製 prompt</button></div>
+    <div class="wbox-b pb">
+      <div>
+        <label>角色 <span>要 AI 用什麼身分回答</span><textarea id="pb_role" rows="2">你是一位資料分析助教，熟悉 Python 的 pandas 和 seaborn。</textarea></label>
+        <label>背景 <span>你是誰、資料是什麼、做到哪裡</span><textarea id="pb_ctx" rows="3">我是醫技系學生，正在 Google Colab 分析 Titanic 乘客資料，已經讀進變數 df，欄位有 Survived（0/1）、Pclass（1/2/3）、Sex、Age。</textarea></label>
+        <label>任務 <span>這一步要做什麼</span><textarea id="pb_task" rows="2">請計算每個艙等中，男性和女性的存活率，再畫成長條圖。</textarea></label>
+        <label>格式 <span>結果長什麼樣子</span><textarea id="pb_fmt" rows="2">程式碼加上繁體中文註解；存活率取小數 3 位。</textarea></label>
+        <label>限制 <span>不要做什麼、一定要遵守什麼</span><textarea id="pb_rule" rows="2">不要修改 df；圖上的文字用英文；不要自己編造數字。</textarea></label>
+        <div class="wctl2"><button type="button" class="btn" id="pbReset">恢復範例</button><button type="button" class="btn" id="pbClear">全部清空</button></div>
+      </div>
+      <div>
+        <div class="meter" id="pbMeter"></div>
+        <div class="res" id="pbRes"></div>
+        <div class="wmsg2" id="pbTip"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3><span class="tag">7-3</span>更多技巧</h3>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>技巧</th><th>怎麼說</th></tr>
+    <tr><td>一次一步</td><td>「這一步只要讀資料並顯示前 5 列，先不要做分析。」</td></tr>
+    <tr><td>先討論、再寫程式</td><td>「先不要寫程式，請列出缺值可以怎麼處理，以及各自的優缺點。」</td></tr>
+    <tr><td>把結果貼回去</td><td>「這是執行結果（貼上），請解釋代表什麼意思。」AI 看到真正的輸出，解釋才會準。</td></tr>
+    <tr><td>要它說明理由</td><td>「為什麼選卡方檢定而不是 t 檢定？前提是什麼？」</td></tr>
+    <tr><td>要它檢查自己</td><td>「請檢查上面的程式有沒有可能出錯的地方，例如缺值或資料型態。」</td></tr>
+    <tr><td>要它逐行解釋</td><td>「請逐行解釋這段程式在做什麼，用初學者聽得懂的話。」</td></tr>
+    <tr><td>指定語言和套件</td><td>「請用 R 的 tidyverse 和 ggplot2 改寫。」</td></tr>
+    <tr><td>重新開始</td><td>對話很長、AI 開始混亂時，開新對話，把背景（欄位、目前的程式）重新貼一次。</td></tr>
+  </table></div>
+  <figure class="svgfig">
+    <svg viewBox="0 0 760 120" role="img" aria-label="下 prompt、執行、檢查、回饋的循環">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+      <g font-size="15" text-anchor="middle" font-weight="700">
+        <rect x="10" y="30" width="150" height="50" rx="25" fill="var(--violet-soft)" stroke="var(--violet)"/><text x="85" y="61" fill="var(--violet)">① 下 prompt</text>
+        <rect x="205" y="30" width="150" height="50" rx="25" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="280" y="61" fill="var(--accent)">② 執行程式</text>
+        <rect x="400" y="30" width="150" height="50" rx="25" fill="var(--teal-soft)" stroke="var(--teal)"/><text x="475" y="61" fill="var(--teal)">③ 檢查結果</text>
+        <rect x="595" y="30" width="150" height="50" rx="25" fill="var(--amber-soft)" stroke="var(--amber)"/><text x="670" y="61" fill="var(--amber)">④ 回饋修正</text>
+      </g>
+      <line x1="163" y1="55" x2="200" y2="55" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar3)"/>
+      <line x1="358" y1="55" x2="395" y2="55" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar3)"/>
+      <line x1="553" y1="55" x2="590" y2="55" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar3)"/>
+      <path d="M670 84 Q670 112 380 112 Q85 112 85 86" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar3)"/>
+      <text x="380" y="106" font-size="12.5" text-anchor="middle" fill="var(--muted)">不對就再來一輪：把錯誤訊息或不合理的結果告訴 AI</text>
+    </svg>
+  </figure>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="ch" id="a8">
+  <div class="ch-h"><span class="num">08</span><h2>小測驗<small>確認觀念，再進入實戰</small></h2></div>
+  <div class="quiz" id="quiz"></div>
+  <div class="note link"><b>➡ 下一章</b>觀念有了，接下來到 Google Colab 實際操作：從下載鐵達尼號的資料開始，用 AI 一步一步完成清理、統計、畫圖和結論。</div>
+  <div class="next">
+    <a href="ggplot.html"><span>上一單元</span><b>R 寶的 ggplot2 畫室 →</b></a>
+    <a href="colab.html"><span>下一單元</span><b>R 寶的 AI × Colab 實戰 →</b></a>
+    <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
+  </div>
+</section>
+  </main>
+</div>
+
+<script>
+window.PAGE_KEY = 'r-ai-intro-v1';
+window.PAGE_QUIZ = [
+  ['ChatGPT、Gemini、Claude 屬於下面哪一類？', ['專家系統', '生成式 AI（大型語言模型）', '非監督式分群', '搜尋引擎'], 1, '它們是大型語言模型，屬於生成式 AI，而生成式 AI 又是深度學習、機器學習、AI 的一部分。'],
+  ['機器學習和傳統程式最大的不同是？', ['機器學習不用電腦', '機器學習是從資料和答案中自己找出規則', '機器學習一定比較準', '傳統程式不能處理數字'], 1, '傳統程式是人寫規則；機器學習是給資料和答案，讓電腦找出錯誤最少的規則。'],
+  ['2017 年哪一個發明，成為今天大型語言模型的基礎？', ['感知器', '反向傳播', 'Transformer', 'ImageNet'], 2, 'Transformer 讓每個字都能「注意」句子裡其他的字，GPT 的 T 就是 Transformer。'],
+  ['大型語言模型產生回答的方式，最接近下面哪一個？', ['到資料庫查正確答案', '根據前文，一次預測一個最可能的下一個 token', '把網路上的文章原封不動複製', '執行數學公式計算'], 1, '它是「超級文字接龍」：依前文預測下一個 token，一直重複。'],
+  ['為什麼 AI 可能「很有自信地說錯」？', ['因為它故意騙人', '因為它的目標是產生通順合理的文字，不是查證事實', '因為網路太慢', '因為溫度設太低'], 1, '這叫做幻覺。通順不代表正確，所以程式要執行、數字要核對、文獻要查原文。'],
+  ['想知道 Titanic 資料中女性的存活率，最好的做法是？', ['直接問 AI 女性存活率是多少', '請 AI 寫程式，自己執行後看結果', '上網搜尋', '用猜的'], 1, '黃金守則：讓 AI 寫程式，讓程式算數字。'],
+  ['下面哪一種做法比較恰當？', ['把含病歷號的檢驗報告整份貼給 AI', '只給 AI 欄位名稱、型態和幾列假資料，請它寫程式', '把醫院內部文件上傳請 AI 摘要', '把同學的成績單貼給 AI'], 1, '可以辨識個人的資料不要貼給 AI。給它資料的「結構」就足以寫出程式。'],
+  ['AI 給的程式執行出錯了，最有效的下一步是？', ['跟 AI 說「錯了」', '把程式碼和完整錯誤訊息貼給 AI，請它說明原因並修正', '換一台電腦', '放棄'], 1, 'AI 看到完整的錯誤訊息，才知道錯在哪裡。'],
+  ['Prompt 的五個要素不包括？', ['角色', '背景', '任務', '要 AI 保證答案百分之百正確'], 3, '五個要素是角色、背景、任務、格式、限制。AI 沒辦法保證正確，檢查是你的工作。'],
+];
+
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let store = {};
+try { store = JSON.parse(localStorage.getItem(window.PAGE_KEY) || '{}') || {}; } catch (e) { store = {}; }
+const persist = () => { try { localStorage.setItem(window.PAGE_KEY, JSON.stringify(store)); } catch (e) {} };
+
+/* copy buttons: copy the text of the block they belong to */
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove(); return ok;
+  }
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button.copy'); if (!b) return;
+  const host = b.closest('.prompt, .py, .wbox');
+  const src = b.dataset.from ? $(b.dataset.from) : host && (host.querySelector('pre.src') || host.querySelector('pre') || host.querySelector('.res'));
+  if (!src) return;
+  const ok = await copyText(src.innerText.replace(/ /g, ' '));
+  const old = b.textContent; b.textContent = ok ? '✓ 已複製' : '請手動選取'; b.classList.toggle('ok', ok);
+  setTimeout(() => { b.textContent = old; b.classList.remove('ok'); }, 1600);
+});
+
+/* TOC: highlight the chapter on screen */
+(() => {
+  const links = $$('#toc a[href^="#"]'); if (!links.length || !('IntersectionObserver' in window)) return;
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver(es => {
+    for (const en of es) if (en.isIntersecting) { links.forEach(a => a.removeAttribute('aria-current')); const a = map.get(en.target.id); if (a) a.setAttribute('aria-current', 'true'); }
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  map.forEach((a, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+})();
+
+/* "I finished this step" buttons + progress in the TOC */
+(() => {
+  const btns = $$('.stepdone button'); if (!btns.length) return;
+  store.done = store.done || {};
+  const paint = () => {
+    btns.forEach(b => { const d = !!store.done[b.dataset.step]; b.setAttribute('aria-pressed', d); b.textContent = d ? '✓ 這一步完成了' : '我完成這一步了'; });
+    $$('#toc a[href^="#"]').forEach(a => a.classList.toggle('done', !!store.done[a.getAttribute('href').slice(1)]));
+    const p = $('#prog'); if (p) p.textContent = `完成 ${btns.filter(b => store.done[b.dataset.step]).length} / ${btns.length} 步`;
+  };
+  btns.forEach(b => b.addEventListener('click', () => { store.done[b.dataset.step] = !store.done[b.dataset.step]; persist(); paint(); }));
+  paint();
+})();
+
+/* checklists remember their ticks */
+(() => {
+  store.ck = store.ck || {};
+  $$('.cklist input[type=checkbox]').forEach(c => {
+    c.checked = !!store.ck[c.id];
+    c.addEventListener('change', () => { store.ck[c.id] = c.checked; persist(); });
+  });
+})();
+
+/* quiz */
+(() => {
+  const box = $('#quiz'); if (!box || !window.PAGE_QUIZ) return;
+  const Q = window.PAGE_QUIZ, ans = (store.quiz = store.quiz || {});
+  const render = () => {
+    const ok = Q.filter((q, i) => ans[i] === q[2]).length, done = Object.keys(ans).length;
+    box.innerHTML = Q.map((q, i) => `<div class="qz" data-i="${i}"><p>${i + 1}. ${q[0]}</p><div class="opts">${q[1].map((o, j) => `<button type="button" data-j="${j}" class="${ans[i] === undefined ? '' : j === q[2] ? 'right' : j === ans[i] ? 'wrong' : ''}"${ans[i] !== undefined ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>${ans[i] !== undefined ? `<div class="fb">${ans[i] === q[2] ? '✓ 答對了！' : '✗ 不對。'}${q[3]}</div>` : ''}</div>`).join('')
+      + `<div class="qz"><span class="qz-score">答對 ${ok} / ${Q.length}</span>${done ? '　<button type="button" class="btn" id="qzReset">重新作答</button>' : ''}</div>`;
+    const r = $('#qzReset'); if (r) r.onclick = () => { for (const k of Object.keys(ans)) delete ans[k]; persist(); render(); };
+  };
+  box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b) return; const i = +b.closest('.qz').dataset.i; ans[i] = +b.dataset.j; persist(); render(); });
+  render();
+})();
+
+/* ---------- widget: learn a cut-off from data ---------- */
+(() => {
+  const svg = $('#thSvg'); if (!svg) return;
+  // fasting glucose (mg/dL) of 30 people and whether they truly have diabetes (by OGTT / HbA1c)
+  const NO = [84, 88, 91, 93, 95, 96, 98, 99, 101, 103, 104, 106, 108, 110, 113, 117, 121, 131];
+  const YES = [109, 118, 124, 127, 129, 133, 138, 142, 149, 156, 168, 184];
+  const W = 640, H = 262, X0 = 30, X1 = 620, lo = 75, hi = 195;
+  const xs = v => X0 + (v - lo) / (hi - lo) * (X1 - X0);
+  const errs = t => ({ fp: NO.filter(v => v >= t).length, fn: YES.filter(v => v < t).length });
+  const slider = $('#thR'), outv = $('#thV'), msg = $('#thMsg');
+  const curve = []; for (let t = 80; t <= 190; t++) { const e = errs(t); curve.push([t, e.fp + e.fn]); }
+  const best = Math.min(...curve.map(c => c[1]));
+  const cy = n => 250 - n * 6;
+  const draw = (t, scan) => {
+    const e = errs(t);
+    let s = `<rect x="0" y="0" width="${W}" height="${H}" fill="none"/>`;
+    s += `<line x1="${X0}" y1="100" x2="${X1}" y2="100" stroke="var(--line)" stroke-width="2"/>`;
+    for (let v = 80; v <= 190; v += 10) s += `<line x1="${xs(v)}" y1="96" x2="${xs(v)}" y2="104" stroke="var(--muted)"/><text x="${xs(v)}" y="118" font-size="11" text-anchor="middle" fill="var(--muted)">${v}</text>`;
+    s += `<rect x="${xs(t)}" y="18" width="${X1 - xs(t)}" height="74" fill="var(--bad)" opacity=".07"/>`;
+    s += `<text x="${X1 - 4}" y="30" font-size="12" text-anchor="end" fill="var(--bad)">判為「糖尿病」</text><text x="${X0 + 4}" y="30" font-size="12" fill="var(--ok)">判為「正常」</text>`;
+    const dots = (arr, y, col, isYes) => arr.map((v, i) => { const wrong = isYes ? v < t : v >= t; return `<circle cx="${xs(v)}" cy="${y + (i % 3) * 9}" r="6" fill="${col}" ${wrong ? 'stroke="var(--ink)" stroke-width="2.5"' : 'stroke="none"'}/>`; }).join('');
+    s += dots(NO, 52, 'var(--ok)', false) + dots(YES, 70, 'var(--bad)', true);
+    s += `<line x1="${xs(t)}" y1="16" x2="${xs(t)}" y2="104" stroke="var(--accent)" stroke-width="3"/><text x="${xs(t)}" y="12" font-size="12" text-anchor="middle" fill="var(--accent)" font-weight="700">${t}</text>`;
+    s += `<line x1="${xs(126)}" y1="100" x2="${xs(126)}" y2="256" stroke="var(--amber)" stroke-dasharray="4 3"/><text x="${xs(126) + 4}" y="254" font-size="11" fill="var(--amber)">臨床標準 126</text>`;
+    s += `<polyline fill="none" stroke="var(--violet)" stroke-width="2" points="${curve.map(([v, n]) => `${xs(v)},${cy(n)}`).join(' ')}"/>`;
+    s += `<text x="${X1}" y="140" font-size="11.5" text-anchor="end" fill="var(--violet)">紫線：每個切點的錯誤人數（越低越好）</text>`;
+    s += `<circle cx="${xs(t)}" cy="${cy(e.fp + e.fn)}" r="5" fill="var(--violet)"/>`;
+    svg.innerHTML = s;
+    slider.value = t; outv.textContent = t + ' mg/dL';
+    const tot = e.fp + e.fn;
+    msg.innerHTML = `切點 <b>${t}</b>：把 ${e.fp} 位<b style="color:var(--ok)">沒有</b>糖尿病的人判成有（偽陽性），${e.fn} 位<b style="color:var(--bad)">有</b>糖尿病的人判成沒有（偽陰性），共錯 <b>${tot}</b> 位（正確率 ${Math.round((30 - tot) / 30 * 100)}%）。` + (scan ? '' : tot === best ? ' 🎉 這已經是這份資料能做到的最少錯誤。' : '');
+  };
+  slider.addEventListener('input', () => draw(+slider.value));
+  let timer = null;
+  $('#thLearn').addEventListener('click', () => {
+    clearInterval(timer); let t = 80, bestT = 80, bestE = 99;
+    timer = setInterval(() => {
+      const e = errs(t), n = e.fp + e.fn; if (n < bestE) { bestE = n; bestT = t; }
+      draw(t, true); t += 2;
+      if (t > 190) { clearInterval(timer); draw(bestT); msg.innerHTML += `<br>電腦把 80 到 190 每個切點都試過一次，挑出錯誤最少的 <b>${bestT}</b>。這就是最簡單的「從資料學習」。`; }
+    }, 45);
+  });
+  draw(150);
+})();
+
+/* ---------- widget: next-token prediction ---------- */
+(() => {
+  const host = $('#ntBox'); if (!host) return;
+  const P = [
+    { ctx: ['鐵達尼號', '在', '1912', '年', '撞上', '了', '一座'], c: [['冰山', 8.2], ['礁石', 0.7], ['島嶼', 0.4], ['燈塔', 0.3], ['軍艦', 0.2], ['火山', 0.05, 1]] },
+    { ctx: ['空腹', '血糖', '126', 'mg/dL', '以上', '，', '可能', '是'], c: [['糖尿病', 7.1], ['高血糖', 1.2], ['檢體', 0.6], ['正常', 0.2], ['感冒', 0.06, 1], ['貧血', 0.05, 1]] },
+    { ctx: ['R', '語言', '裡', '最', '常用', '的', '畫圖', '套件', '是'], c: [['ggplot2', 7.8], ['base', 0.8], ['lattice', 0.5], ['plotly', 0.4], ['matplotlib', 0.35, 1], ['Excel', 0.1, 1]] },
+  ];
+  let k = 0, T = 1, picked = null;
+  const probs = () => { const w = P[k].c.map(([, p]) => Math.pow(p, 1 / T)); const s = w.reduce((a, b) => a + b, 0); return w.map(x => x / s); };
+  const render = () => {
+    const pr = probs();
+    $('#ntCtx').innerHTML = P[k].ctx.map(t => `<span>${esc(t)}</span>`).join('') + (picked !== null ? `<span class="new">${esc(P[k].c[picked][0])}</span>` : '<span style="border-style:dashed">？</span>');
+    $('#ntBars').innerHTML = P[k].c.map(([t, , bad], i) => `<div class="br${bad ? ' bad' : ''}${picked === i ? ' pick' : ''}"><span class="t">${esc(t)}</span><span class="track"><span class="fill" style="width:${(pr[i] * 100).toFixed(1)}%"></span></span><span class="v">${(pr[i] * 100).toFixed(1)}%</span></div>`).join('');
+    $('#ntT').textContent = T.toFixed(1);
+  };
+  $$('#ntSeg button').forEach((b, i) => b.addEventListener('click', () => { k = i; picked = null; $$('#ntSeg button').forEach((x, j) => x.setAttribute('aria-pressed', i === j)); $('#ntMsg').textContent = ''; render(); }));
+  $('#ntTR').addEventListener('input', e => { T = +e.target.value; render(); });
+  let n = 0, wrong = 0;
+  $('#ntGo').addEventListener('click', () => {
+    const pr = probs(); let r = Math.random(), i = 0; while (i < pr.length - 1 && (r -= pr[i]) > 0) i++;
+    picked = i; n++; if (P[k].c[i][2]) wrong++;
+    render();
+    $('#ntMsg').innerHTML = (P[k].c[i][2] ? `抽到 <b style="color:var(--bad)">${esc(P[k].c[i][0])}</b>：句子一樣通順，但內容是<b>錯的</b>。這就是「幻覺」的來源之一。` : `抽到 <b>${esc(P[k].c[i][0])}</b>。`) + ` <span style="color:var(--muted)">（你已經抽了 ${n} 次，其中 ${wrong} 次是紅色的錯誤答案）</span>`;
+  });
+  render();
+})();
+
+/* ---------- widget: prompt builder ---------- */
+(() => {
+  const host = $('#pbBox'); if (!host) return;
+  const F = ['role', 'ctx', 'task', 'fmt', 'rule'], L = { role: '角色', ctx: '背景', task: '任務', fmt: '格式', rule: '限制' };
+  const saved = store.pb || {};
+  F.forEach(f => { const t = $('#pb_' + f); if (saved[f] !== undefined) t.value = saved[f]; });
+  const render = () => {
+    const v = {}; F.forEach(f => v[f] = $('#pb_' + f).value.trim());
+    const parts = [];
+    if (v.role) parts.push(v.role);
+    if (v.ctx) parts.push(v.ctx);
+    if (v.task) parts.push(v.task);
+    if (v.fmt) parts.push('輸出格式：' + v.fmt);
+    if (v.rule) parts.push('請遵守：' + v.rule);
+    $('#pbRes').textContent = parts.join('\n\n') || '（在左邊填寫，這裡會組合成一段 prompt）';
+    $('#pbMeter').innerHTML = F.map(f => `<span class="${v[f] ? 'on' : ''}">${v[f] ? '✓ ' : ''}${L[f]}</span>`).join('');
+    const n = F.filter(f => v[f]).length;
+    $('#pbTip').textContent = n === 5 ? '五個要素都有了。送出之後，記得檢查 AI 的回答！' : !v.task ? '最重要的是「任務」：你要 AI 做什麼？' : !v.ctx ? '加上「背景」：AI 不知道你的資料長什麼樣子。' : !v.rule ? '加上「限制」可以避免 AI 自作主張。' : '還可以補上其他要素，讓回答更貼近你要的。';
+    store.pb = v; persist();
+  };
+  F.forEach(f => $('#pb_' + f).addEventListener('input', render));
+  $('#pbReset').addEventListener('click', () => { F.forEach(f => { const t = $('#pb_' + f); t.value = t.defaultValue; }); render(); });
+  $('#pbClear').addEventListener('click', () => { F.forEach(f => $('#pb_' + f).value = ''); render(); });
+  render();
+})();
+
+</script>
+
+</body>
+</html>

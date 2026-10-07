@@ -166,8 +166,8 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <div class="en rise d2">以 <b>R</b> 為工具：從資料結構、迴圈到分析思維</div>
       <div class="meta rise d3">
         <div><small>INSTRUCTOR</small><span>陳育辰（YCC）</span></div>
-        <div><small>TOOLKIT</small><span>R · RStudio</span></div>
-        <div><small>MATERIALS</small><span>8 個互動單元</span></div>
+        <div><small>TOOLKIT</small><span>R · RStudio · Colab + AI</span></div>
+        <div><small>MATERIALS</small><span>10 個互動單元</span></div>
       </div>
     </div>
 
@@ -181,7 +181,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
 <main class="mods">
   <div class="mods-h">
     <h2>互動教材</h2>
-    <p>八個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法、用 apply 家族把迴圈收起來，接著安裝套件、讀寫真正的資料檔、用圖呈現統計結果，再用 tidyverse 整理資料，最後用 ggplot2 畫出報告等級的圖；補充教材補齊細節。</p>
+    <p>十個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法、用 apply 家族把迴圈收起來，接著安裝套件、讀寫真正的資料檔、用圖呈現統計結果，再用 tidyverse 整理資料、用 ggplot2 畫出報告等級的圖，最後認識 AI，並在 Colab 上用 AI 完成一份完整的分析；補充教材補齊細節。</p>
   </div>
   <div class="grid">
     <a class="mod rise" style="--c:var(--blue)" href="memory.html">
@@ -438,6 +438,52 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <span class="go">9 章 + 練習 <i>→</i></span>
   </a>
 
+  <div class="grid" style="margin-top:18px">
+    <a class="mod rise d3" style="--c:var(--sky)" href="ai.html">
+      <div class="part"><b>09</b>PART NINE</div>
+      <div>
+        <h3>R 寶的 AI 入門</h3>
+        <p>AI、機器學習、深度學習、大型語言模型是什麼；從 1950 年到今天的發展；語言模型怎麼「接龍」、為什麼會幻覺；AI 在資料分析中該做什麼、不該做什麼，以及 prompt 怎麼下。</p>
+      </div>
+      <div class="prev" aria-label="示意：AI 依前文預測下一個字">
+        <svg viewBox="0 0 440 112" role="img">
+          <text x="0" y="16" font-size="14" fill="var(--ink)">鐵達尼號撞上了一座 <tspan fill="var(--sky)">＿＿</tspan></text>
+          <g transform="translate(0,30)" font-size="12" fill="var(--dim)">
+            <text x="0" y="12">冰山</text><rect x="44" y="2" width="300" height="12" rx="3" fill="var(--sky)"/><text x="352" y="12">82%</text>
+            <text x="0" y="32">礁石</text><rect x="44" y="22" width="26" height="12" rx="3" fill="var(--sky)" opacity=".6"/><text x="78" y="32">7%</text>
+            <text x="0" y="52">島嶼</text><rect x="44" y="42" width="15" height="12" rx="3" fill="var(--sky)" opacity=".45"/><text x="67" y="52">4%</text>
+            <text x="0" y="72">火山</text><rect x="44" y="62" width="4" height="12" rx="2" fill="var(--rose)"/><text x="56" y="72" fill="var(--rose)">← 幻覺</text>
+          </g>
+        </svg>
+      </div>
+      <div class="foot">
+        <div class="tags"><span>機器學習</span><span>深度學習</span><span>Transformer</span><span>LLM</span><span>幻覺</span><span>prompt</span></div>
+        <span class="go">7 節 + 互動動畫 + 小測驗 <i>→</i></span>
+      </div>
+    </a>
+    <a class="mod rise d3" style="--c:var(--rose)" href="colab.html">
+      <div class="part"><b>10</b>PART TEN</div>
+      <div>
+        <h3>R 寶的 AI × Colab 實戰：鐵達尼號</h3>
+        <p>在 Google Colab 上請 AI 幫忙，一步一步分析 891 位鐵達尼號乘客：下載資料、清理缺值、分組探索、畫圖、卡方檢定、logistic regression 到寫結論。每一步附 prompt、程式碼、實際結果和檢查重點。</p>
+      </div>
+      <div class="prev" aria-label="示意：女性與男性的存活率">
+        <svg viewBox="0 0 440 112" role="img">
+          <text x="0" y="16" font-size="13" fill="var(--violet)">🤖 「請依性別計算存活率……」</text>
+          <g transform="translate(250,24)">
+            <line x1="0" y1="80" x2="170" y2="80" stroke="var(--line)"/>
+            <rect x="20" y="21" width="50" height="59" fill="var(--teal)"/><rect x="100" y="65" width="50" height="15" fill="var(--rose)"/>
+            <g font-size="11" fill="var(--dim)" text-anchor="middle"><text x="45" y="15">74%</text><text x="125" y="59">19%</text></g>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="11.5" fill="var(--dim)"><text x="0" y="46">df.groupby("Sex")</text><text x="0" y="64">  ["Survived"].mean()</text><text x="0" y="90" fill="var(--teal)">female  0.742</text><text x="0" y="106" fill="var(--rose)">male    0.189</text></g>
+        </svg>
+      </div>
+      <div class="foot">
+        <div class="tags"><span>Colab</span><span>Gemini</span><span>pandas</span><span>seaborn</span><span>卡方</span><span>logistic</span></div>
+        <span class="go">11 步 + notebook 下載 <i>→</i></span>
+      </div>
+    </a>
+  </div>
   <a class="extra rise d2" href="extras.html" style="margin-top:14px">
     <span class="k">＋ PART 02 補充</span>
     <div><b>控制流程補充教材</b></div>

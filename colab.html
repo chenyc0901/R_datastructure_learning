@@ -1,0 +1,1600 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="用 AI 加 Google Colab 一步一步分析鐵達尼號資料：下載、清理、探索、seaborn 繪圖、卡方檢定、logistic regression 與結論，每一步附 prompt、程式碼與實際輸出，可下載 notebook。">
+<meta property="og:title" content="R 寶的 AI × Colab 實戰：鐵達尼號">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%A2%3C/text%3E%3C/svg%3E">
+<meta charset="utf-8">
+<title>R 寶的 AI × Colab 實戰</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+
+/* A reading page: side table of contents + chapters; every code block is an editable, runnable R cell */
+:root{
+  --bg:#eef1f4; --panel:#fbfcfd; --sunk:#f1f4f7; --ink:#16202b; --muted:#45515e; --line:#d3dae2;
+  --accent:#1d5fae; --accent-ink:#ffffff; --accent-soft:#dde9f7;
+  --amber:#b97d06; --amber-soft:#fdf1cf; --ok:#1d8656; --ok-soft:#dcf2e6; --bad:#c0392b; --bad-soft:#fbe3e0;
+  --t-kw:#8b2fc9; --t-str:#1d7a3a; --t-num:#b4530a; --t-com:#7f8a96; --t-fn:#1d5fae; --t-op:#a3324b;
+  --f-display:"Huninn","Noto Sans TC","PingFang TC",system-ui,sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC",system-ui,-apple-system,sans-serif;
+  --f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Noto Sans TC",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+    --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+    --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+    --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#161d25; --sunk:#11171e; --ink:#e3e9f0; --muted:#93a1b1; --line:#283340;
+  --accent:#6aa5ec; --accent-ink:#0b1622; --accent-soft:#1b2c42;
+  --amber:#e9b949; --amber-soft:#3a3018; --ok:#4cc58b; --ok-soft:#163327; --bad:#f07167; --bad-soft:#3a1d1b;
+  --t-kw:#c792ea; --t-str:#9ccc65; --t-num:#f5a65b; --t-com:#6c7a89; --t-fn:#82b1ff; --t-op:#ff8fa3;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75;font-variant-ligatures:none}
+textarea,pre,code{font-variant-ligatures:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+code{font-family:var(--f-code);font-size:.9em}
+p code,li code,td code,.note code{background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+
+.page{max-width:1180px;margin:0 auto;padding:24px 16px 80px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:980px){.page{grid-template-columns:minmax(0,1fr);gap:20px}}
+
+/* header */
+.hero{grid-column:1/-1}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px}
+.crumbs a{color:var(--muted);text-decoration:none}.crumbs a:hover{color:var(--accent)}
+.hero .eyebrow{margin:18px 0 4px;font-family:var(--f-code);font-size:14px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.hero h1{font-family:var(--f-display);font-size:clamp(30px,5vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+.hero p{margin:10px 0 0;color:var(--muted);max-width:66ch}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:14px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:2px 12px;color:var(--muted)}
+.pill b{color:var(--ink)}
+
+/* toc */
+.toc{position:sticky;top:20px;font-size:14px}
+.toc h2{font-size:13px;letter-spacing:.14em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;border-left:3px solid transparent}
+.toc a:hover{background:var(--panel)}
+.toc a[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.toc .n{font-family:var(--f-code);font-size:13px;color:var(--muted);min-width:1.6em}
+.toc .ck{margin-left:auto;color:var(--ok);font-weight:700;visibility:hidden}
+.toc a.done .ck{visibility:visible}
+.toc .prog{margin-top:12px;font-size:14px;color:var(--muted)}
+@media (max-width:980px){
+  .toc{position:static;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .toc ol{flex-direction:row;flex-wrap:wrap}
+  .toc a{border-left:0;padding:4px 10px}
+}
+
+/* chapters */
+main{min-width:0}
+.ch{padding-top:12px;margin-bottom:56px;scroll-margin-top:16px}
+.ch-h{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:18px}
+.ch-h .num{font-family:var(--f-code);font-size:40px;font-weight:600;color:var(--accent);line-height:1}
+.ch-h h2{font-family:var(--f-display);font-size:clamp(24px,3.4vw,30px);margin:0;line-height:1.25}
+.ch-h small{display:block;font-family:var(--f-body);font-size:14px;color:var(--muted);font-weight:400}
+h3{font-size:19px;margin:30px 0 8px;line-height:1.4}
+h3 .tag{font-family:var(--f-code);font-size:13px;color:var(--muted);font-weight:400;margin-right:8px}
+p{margin:8px 0}
+ul{margin:8px 0;padding-left:22px}
+
+.note{border-radius:10px;padding:12px 16px;margin:14px 0;border:1px solid var(--line);background:var(--panel);font-size:15px}
+.note > b:first-child{display:block;margin-bottom:2px}
+.note.tip{background:var(--ok-soft);border-color:transparent}
+.note.warn{background:var(--bad-soft);border-color:transparent}
+.note.lab{background:var(--amber-soft);border-color:transparent}
+.note.link{background:var(--accent-soft);border-color:transparent}
+
+table.cmp{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table.cmp th,table.cmp td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.cmp th{background:var(--sunk);font-size:14px;color:var(--muted);font-weight:600}
+table.cmp tr:last-child td{border-bottom:0}
+.tblwrap{overflow-x:auto}
+
+/* runnable cells */
+.cell{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;overflow:hidden}
+.cell-h{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 14px;border-bottom:1px solid var(--line);background:var(--sunk);font-size:14px}
+.cell-h .lab{font-weight:600;color:var(--muted);margin-right:auto}
+.cell-h button{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:2px 10px;font-size:14px}
+.cell-h button.run{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.ed{position:relative;font-family:var(--f-code);font-size:14px;line-height:1.6}
+.ed pre,.ed textarea{margin:0;padding:12px 14px;font:inherit;line-height:inherit;white-space:pre;tab-size:2;overflow:hidden;border:0}
+.ed pre{position:absolute;inset:0;pointer-events:none;color:var(--ink)}
+.ed textarea{position:relative;display:block;width:100%;resize:none;background:transparent;color:transparent;caret-color:var(--ink);overflow-x:auto;min-height:3.4em}
+.ed textarea::selection{background:color-mix(in srgb,var(--accent) 30%,transparent);color:transparent}
+.t-kw{color:var(--t-kw);font-weight:600}.t-str{color:var(--t-str)}.t-num{color:var(--t-num)}.t-com{color:var(--t-com);font-style:italic}.t-fn{color:var(--t-fn)}.t-op{color:var(--t-op)}
+.out{margin:0;border-top:1px dashed var(--line);padding:10px 14px;font-family:var(--f-code);font-size:14.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;background:var(--sunk);min-height:2.4em}
+.out .err{color:var(--bad)}
+.out .dim{color:var(--muted)}
+.envrow{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 10px;border-top:1px solid var(--line);font-family:var(--f-code);font-size:13.5px;background:var(--sunk)}
+.envrow span{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px}
+.envrow span b{color:var(--accent);font-weight:600;margin-right:6px}
+
+/* exercises */
+.ex{border:2px solid var(--accent);border-radius:14px;padding:16px 18px 6px;margin:26px 0 8px;background:var(--panel)}
+.ex.passed{border-color:var(--ok)}
+.ex-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.ex-h .badge{font-family:var(--f-code);font-size:13px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 8px}
+.ex.passed .ex-h .badge{background:var(--ok)}
+.ex-h h3{margin:0;font-size:18px}
+.ex-h .st{margin-left:auto;font-size:14px;color:var(--ok);font-weight:700}
+.ex .cell{margin:12px 0}
+.ex .cell-h button.sol{margin-left:4px}
+.verdict{margin:0 0 12px;padding:10px 14px;border-radius:10px;font-size:14.5px}
+.verdict.ok{background:var(--ok-soft)}
+.verdict.no{background:var(--bad-soft)}
+.verdict code{background:transparent;border:0}
+.verdict pre{margin:6px 0 0;font-family:var(--f-code);font-size:14px;white-space:pre-wrap}
+
+/* modal */
+.modal{position:fixed;inset:0;background:color-mix(in srgb,#000 45%,transparent);display:grid;place-items:center;padding:16px;z-index:50}
+.card{background:var(--panel);border-radius:16px;padding:22px 22px 18px;width:min(420px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:calc(100vh - 32px);overflow:auto}
+.card.wide{width:min(820px,100%)}
+.card h3{margin:0 0 4px;font-family:var(--f-display);font-size:22px}
+.card .row{display:flex;gap:8px;margin-top:12px}
+.card input{flex:1;min-width:0;font:inherit;font-family:var(--f-code);font-size:18px;letter-spacing:4px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:6px 16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.card .err{min-height:1.4em;margin:6px 0 0;color:var(--bad);font-size:14px}
+.card .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.card pre.solcode{margin:10px 0 0;padding:12px 14px;border-radius:10px;background:var(--sunk);border:1px solid var(--line);font-family:var(--f-code);font-size:14.5px;line-height:1.6;overflow-x:auto;white-space:pre}
+.card.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion: reduce){.card.shake{animation:none}}
+
+.next{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.next a{flex:1 1 240px;display:block;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.next a:hover{border-color:var(--accent)}
+.next a span{display:block;font-size:14px;color:var(--muted)}
+.next a b{font-size:17px}
+
+/* ---------- tidyverse chapter ---------- */
+:root{--rose:#c2410c;--rose-soft:#fde7da;--teal:#0f8a7e;--teal-soft:#d6f3ef;--violet:#7c3aed;--violet-soft:#ede5fd;
+  --c1:#2f6fe0;--c1s:#dbe7fb;--c2:#d9480f;--c2s:#fde4d6;--c3:#2b8a3e;--c3s:#d8f1dd;--c4:#9c36b5;--c4s:#f1dcf6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rose:#fb923c;--rose-soft:#3b2416;--teal:#35d6c3;--teal-soft:#123430;--violet:#a78bfa;--violet-soft:#2a2140;
+  --c1:#82b1ff;--c1s:#1c2c47;--c2:#ff9b6a;--c2s:#40261a;--c3:#69db7c;--c3s:#173822;--c4:#e599f7;--c4s:#3a2141}}
+:root[data-theme="dark"]{--rose:#fb923c;--rose-soft:#3b2416;--teal:#35d6c3;--teal-soft:#123430;--violet:#a78bfa;--violet-soft:#2a2140;
+  --c1:#82b1ff;--c1s:#1c2c47;--c2:#ff9b6a;--c2s:#40261a;--c3:#69db7c;--c3s:#173822;--c4:#e599f7;--c4s:#3a2141}
+.hero-row{display:flex;align-items:center;gap:18px}
+.hero-row .bot{width:clamp(64px,10vw,96px);height:auto;flex:none}
+h4{font-size:16px;margin:20px 0 6px}
+.lead{font-size:17px}
+p code,li code,td code,.note code{overflow-wrap:anywhere}
+.stage{min-width:0;max-width:100%}
+.small{font-size:14px;color:var(--muted)}
+
+/* cell output: console colours like RStudio */
+.out .msg{color:var(--muted)}
+.out .warn{color:var(--amber)}
+.out .err{color:var(--bad)}
+.out.only-plot{display:none}
+.out .pre-tag{display:block;font-family:var(--f-body);font-size:13px;color:var(--muted);margin-bottom:4px}
+.plots{border-top:1px solid var(--line);background:#fff;padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.plots img{display:block;width:100%;max-width:620px;height:auto}
+.cell.running .run{opacity:.6}
+.cell.static .ed textarea{cursor:default}
+.cell .chain{font-family:var(--f-code);font-size:12.5px;color:var(--teal);border:1px solid var(--teal);border-radius:99px;padding:0 7px;margin-right:auto;margin-left:-4px}
+.cell-h .lab + .chain{margin-left:0}
+
+/* the R status pill */
+.rstat{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:45;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);
+  background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 16px 8px 10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.rstat[hidden]{display:none}
+.rstat .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid color-mix(in srgb,var(--bg) 35%,transparent);border-top-color:var(--bg);animation:spin .8s linear infinite;flex:none}
+.rstat.ok .spin{animation:none;border-color:var(--ok);background:var(--ok)}
+.rstat.bad .spin{animation:none;border-color:var(--bad);background:var(--bad)}
+.rstat button{border:0;background:transparent;color:inherit;opacity:.7;padding:0 2px;font-size:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* drawer: files R wrote */
+.pcbtn{position:fixed;right:18px;bottom:18px;z-index:40;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:9px 16px 9px 10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);font-weight:700;font-size:14.5px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.pcbtn svg{width:28px;height:28px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:50;background:var(--panel);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.18);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .25s ease;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.drawer-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.drawer-h b{margin-right:auto;font-size:16px}
+.drawer-h button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:3px 10px;font-size:14.5px}
+.drawer-b{flex:1;overflow:auto;padding:10px 14px 16px}
+.tree{font-family:var(--f-code);font-size:14.5px;line-height:1.75;margin:0;padding:0;list-style:none}
+.tree ul{list-style:none;margin:0;padding-left:18px;border-left:1px dashed var(--line)}
+.tree button{border:0;background:none;padding:0 6px;border-radius:6px;font:inherit;color:var(--ink);text-align:left}
+.tree button:hover{background:var(--accent-soft)}
+.tree button.sel{background:var(--accent);color:var(--accent-ink)}
+.tree .d{color:var(--muted);font-weight:600}
+.tree small{color:var(--muted);font-size:12.5px;margin-left:6px}
+.viewer{margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.viewer .fh{display:flex;gap:8px;align-items:center;padding:6px 10px;background:var(--sunk);border-bottom:1px solid var(--line);font-family:var(--f-code);font-size:13.5px;color:var(--muted);word-break:break-all}
+.viewer pre{margin:0;padding:10px 12px;font-family:var(--f-code);font-size:13.5px;line-height:1.5;max-height:340px;overflow:auto;white-space:pre}
+.viewer img{display:block;width:100%;height:auto;background:#fff}
+.dnote{font-size:14px;color:var(--muted);margin:10px 0 0}
+.dlbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk)}
+.dlbar button{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:8px;padding:5px 12px;font-size:14px}
+.dlbar span{font-size:13.5px;color:var(--muted);flex:1 1 200px}
+.tree button.dl,.viewer button.dl{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:0 6px;margin-left:6px;font-size:13px;color:var(--accent)}
+.tree button.dl:hover,.viewer button.dl:hover{border-color:var(--accent)}
+
+/* shared widget frame */
+.widget{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:18px 0;overflow:hidden}
+.widget-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.widget-h .ttl{font-weight:700;margin-right:auto;display:flex;align-items:center;gap:8px}
+.widget-h .ttl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:3px 10px;font-size:14.5px;font-family:var(--f-code)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.wcode{margin:0;padding:10px 14px;font-family:var(--f-code);font-size:14px;border-bottom:1px solid var(--line);white-space:pre-wrap;word-break:break-word;background:var(--sunk)}
+.wcode .hot{background:var(--amber-soft);outline:1.5px solid var(--amber);border-radius:3px}
+.wmsg{padding:10px 14px;font-size:14.5px;color:var(--muted);border-top:1px solid var(--line)}
+.wmsg b{color:var(--ink)}
+.wctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.wctl button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:4px 12px;font-size:14px}
+.wctl button.go{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+.wctl button:disabled{opacity:.45;cursor:default}
+
+/* variants: same plot, one thing changed */
+.variants .vimg{background:#fff;display:flex;justify-content:center;padding:8px}
+.variants .vimg img{display:block;width:100%;max-width:620px;height:auto}
+.variants .vimg .none{padding:40px;color:#667;font-size:14px}
+.variants .stepnav{display:flex;gap:6px;margin-left:auto}
+.variants .stepnav button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:2px 10px}
+
+/* mini tables used by the animated widgets */
+.mt{border-collapse:separate;border-spacing:0;font-family:var(--f-code);font-size:14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mt th,.mt td{padding:3px 10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left;transition:background .35s,opacity .35s,color .35s}
+.mt th{background:var(--sunk);color:var(--muted);font-weight:600}
+.mt td.num{text-align:right}
+.mt tr:last-child td{border-bottom:0}
+.mt .ty th{font-weight:400;font-size:12.5px;padding-top:0;color:var(--muted)}
+.mt .na{color:var(--muted);font-style:italic}
+.mt .gone{opacity:.25;text-decoration:line-through}
+.mt .pick{background:var(--ok-soft)}
+.mt .new{background:var(--amber-soft)}
+.mt .colpick{background:var(--accent-soft)}
+.mt .g1{background:var(--c1s)} .mt .g2{background:var(--c2s)} .mt .g3{background:var(--c3s)} .mt .g4{background:var(--c4s)}
+.mt .fromx{box-shadow:inset 3px 0 0 var(--c1)} .mt .fromy{box-shadow:inset 3px 0 0 var(--c2)}
+.mt caption{caption-side:top;text-align:left;font-family:var(--f-body);font-size:14px;color:var(--muted);padding:0 0 4px}
+.stage{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-start;padding:14px;overflow-x:auto}
+.stage .arrow{align-self:center;font-size:22px;color:var(--muted)}
+.stage .col{display:flex;flex-direction:column;gap:10px}
+.flipin{animation:flipin .45s ease}
+@keyframes flipin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* diagrams */
+.fig{margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow-x:auto}
+.fig svg{display:block;width:100%;height:auto;max-width:860px;margin:0 auto;color:var(--ink)}
+.fig figcaption{font-size:14.5px;color:var(--muted);text-align:center;margin-top:8px}
+.fig svg text{font-family:var(--f-body)}
+.fig svg .mono{font-family:var(--f-code)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.cards div{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 14px;font-size:14.5px}
+.cards code{font-weight:700;font-size:15px}
+.cards p{margin:2px 0 0;color:var(--muted)}
+.cards .k{display:inline-block;font-size:12.5px;border-radius:99px;padding:0 8px;margin-left:6px;background:var(--accent-soft);color:var(--accent)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0;font-size:14.5px}
+.flow span{border:1.5px solid var(--line);border-radius:10px;padding:4px 12px;background:var(--panel)}
+.flow i{font-style:normal;color:var(--muted)}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;position:relative;padding-left:34px;margin:8px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:2px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:14px;font-weight:700;display:grid;place-items:center}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:12px;margin:12px 0}
+.qz{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px 14px}
+.qz p{margin:0 0 8px;font-weight:600}
+.qz .opts{display:flex;flex-wrap:wrap;gap:6px}
+.qz .opts button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 12px;font-size:14px;font-family:var(--f-code)}
+.qz .opts button.right{border-color:var(--ok);background:var(--ok-soft);font-weight:700}
+.qz .opts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.qz .fb{margin-top:8px;font-size:14px;color:var(--muted)}
+.qz-score{font-weight:700}
+.example-ch .ch-h .num{color:var(--teal)}
+.example-ch .ch-h h2::before{content:"實作範例";display:block;font-family:var(--f-body);font-size:14px;letter-spacing:.1em;color:var(--teal);font-weight:600}
+.bio-ch .ch-h .num{color:var(--violet)}
+.bio-ch .ch-h h2::before{color:var(--violet);content:"實作範例 · 生物資訊"}
+.uses{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px;font-size:14px;align-items:center}
+.uses a{font-family:var(--f-code);font-size:13.5px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:1px 9px;text-decoration:none;color:var(--ink)}
+.uses a:hover{border-color:var(--accent)}
+.setup{font-family:var(--f-code);font-size:14px;background:var(--sunk);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;white-space:pre-wrap;color:var(--muted)}
+.setup b{color:var(--ink);font-weight:600}
+/* supplement: statistics */
+.stat-ch .ch-h .num{color:var(--rose)}
+.stat-ch .ch-h h2::before{content:"補充章節";display:block;font-family:var(--f-body);font-size:14px;letter-spacing:.1em;color:var(--rose);font-weight:600}
+.perm-stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;padding:14px}
+.perm-stage svg{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.perm-stage svg text{font-family:var(--f-body)}
+.perm-cap{font-size:14px;color:var(--muted);margin-bottom:4px}
+@media (max-width:720px){.perm-stage{grid-template-columns:minmax(0,1fr)}}
+.dt-chart{padding:12px 10px 4px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.dt-chart svg{display:block;width:100%;min-width:720px;max-width:960px;height:auto;margin:0 auto}
+.dt-chart .nd rect{fill:var(--panel);stroke:var(--line);stroke-width:1.5}
+.dt-chart .nd.q rect{fill:var(--sunk)}
+.dt-chart .nd.lf{cursor:pointer}
+.dt-chart .nd.lf:hover rect{stroke:var(--accent)}
+.dt-chart .nd.on rect{stroke:var(--accent);stroke-width:2.5;fill:var(--accent-soft)}
+.dt-chart .nd.pick rect{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2.5}
+.dt-chart .ed{fill:none;stroke:var(--line);stroke-width:1.5}
+.dt-chart .ed.on{stroke:var(--accent);stroke-width:3}
+.dt-chart text{font-size:13.5px;fill:var(--ink);font-family:var(--f-body)}
+.dt-chart text.t{fill:var(--muted);font-size:12.5px}
+.dt-chart text.f{font-family:var(--f-code);font-size:12.5px;fill:var(--accent)}
+.dt-panel{padding:12px 14px}
+.dt-path{display:flex;flex-wrap:wrap;gap:6px;font-size:14.5px;margin-bottom:8px;align-items:center}
+.dt-path button{border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:1px 10px;font-size:14px}
+.dt-q{font-weight:700;margin:0 0 8px}
+.dt-opts{display:flex;flex-wrap:wrap;gap:8px}
+.dt-opts button{border:1.5px solid var(--accent);background:var(--panel);color:var(--ink);border-radius:10px;padding:6px 14px;font-size:14.5px}
+.dt-opts button:hover{background:var(--accent-soft)}
+.widget-h .dt-reset{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:2px 10px;font-size:14px}
+.dt-result{border-top:1px solid var(--line)}
+.dt-leaf{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,0.7fr);gap:0}
+.dt-leaf .wcode{border-bottom:1px dashed var(--line)}
+.dt-leaf .out{max-height:360px;overflow:auto}
+.dt-notes{padding:10px 14px;border-left:1px solid var(--line);font-size:14.5px}
+.dt-notes p{margin:0 0 8px}
+@media (max-width:720px){.dt-leaf{grid-template-columns:minmax(0,1fr)}.dt-notes{border-left:0;border-top:1px solid var(--line)}}
+@media (prefers-reduced-motion: reduce){.drawer{transition:none}.flipin{animation:none}.rstat .spin{animation-duration:3s}}
+@media (max-width:640px){.rstat{font-size:13.5px;bottom:76px}}
+
+/* ---------- AI pages ---------- */
+.toc .n{min-width:1.9em}
+.lede-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0}
+.lede-grid > div{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 14px;font-size:14.5px}
+.lede-grid > div b{display:block;font-size:15.5px;margin-bottom:2px}
+.lede-grid .ic{font-size:22px;line-height:1;display:block;margin-bottom:4px}
+/* prompt card */
+.prompt{border:1.5px solid var(--violet);border-radius:12px;background:var(--violet-soft);margin:16px 0;overflow:hidden}
+.prompt-h{display:flex;align-items:center;gap:8px;padding:7px 8px 4px 14px;font-size:14.5px;font-weight:700;color:var(--violet)}
+.prompt-h .k{font-family:var(--f-code);font-weight:600;font-size:13px;background:var(--violet);color:#fff;border-radius:6px;padding:0 7px}
+.prompt-h .copy{margin-left:auto}
+.prompt pre{margin:0;padding:2px 16px 14px;font-family:var(--f-body);font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.prompt pre i{color:var(--muted);font-style:normal;background:color-mix(in srgb,var(--panel) 70%,transparent);border-radius:4px;padding:0 4px}
+.copy{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:2px 10px;font-size:14px;font-weight:600;color:var(--ink)}
+.copy.ok{border-color:var(--ok);color:var(--ok)}
+/* code + output (static, run in Colab) */
+.py{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:14px 0;overflow:hidden}
+.py .cell-h .lab{font-family:var(--f-code)}
+.py pre.src{margin:0;padding:12px 14px;font-family:var(--f-code);font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre;tab-size:4}
+.py .out{white-space:pre;overflow-x:auto;word-break:normal}
+.py .out .pre-tag{font-family:var(--f-body)}
+.py .figout{border-top:1px dashed var(--line);background:#fff;padding:10px}
+.py .figout img{display:block;width:100%;max-width:640px;height:auto;margin:0 auto}
+.py .figout.wide img{max-width:820px}
+.py .out .err{white-space:pre-wrap}
+/* check box */
+.check{border-left:4px solid var(--teal);background:var(--teal-soft);border-radius:0 10px 10px 0;padding:10px 16px;margin:14px 0;font-size:15px}
+.check > b:first-child{display:block;color:var(--teal);margin-bottom:2px}
+.check ul{margin:4px 0}
+.aisay{border:1px dashed var(--line);border-radius:12px;background:var(--panel);padding:10px 16px;margin:14px 0;font-size:15px}
+.aisay > b:first-child{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;margin-bottom:4px}
+/* step done button */
+.stepdone{display:flex;justify-content:flex-end;margin:18px 0 0}
+.stepdone button{border:1.5px solid var(--ok);background:var(--panel);color:var(--ok);border-radius:999px;padding:4px 16px;font-weight:700;font-size:14px}
+.stepdone button[aria-pressed="true"]{background:var(--ok);color:#fff}
+/* download bar */
+.dlrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.dlrow a{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 14px;font-weight:600;font-size:14.5px;text-decoration:none;color:var(--ink)}
+.dlrow a.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dlrow a small{font-weight:400;color:inherit;opacity:.75}
+/* flow strip */
+.flow-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:12px 0;font-size:14px}
+.flow-strip span{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 12px;font-weight:600}
+.flow-strip i{font-style:normal;color:var(--muted)}
+/* timeline */
+.tl{position:relative;margin:18px 0;padding-left:26px}
+.tl::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl .era{position:relative;margin:20px 0 6px;font-weight:700;font-size:15px;color:var(--ec,var(--accent))}
+.tl .era::before{content:"";position:absolute;left:-23px;top:5px;width:14px;height:14px;border-radius:50%;background:var(--ec,var(--accent))}
+.tl .ev{position:relative;display:grid;grid-template-columns:4.2em minmax(0,1fr);gap:10px;padding:5px 0;font-size:15px}
+.tl .ev::before{content:"";position:absolute;left:-20px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--panel);border:2px solid var(--ec,var(--accent))}
+.tl .ev .y{font-family:var(--f-code);font-weight:600;color:var(--muted)}
+.tl .ev.hot b{color:var(--ec,var(--accent))}
+.tl .winter{margin:8px 0;padding:6px 12px;border-radius:8px;background:var(--sunk);font-size:14px;color:var(--muted)}
+/* generic svg figure */
+.svgfig{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:12px;margin:14px 0}
+.svgfig svg{display:block;width:100%;height:auto;max-width:760px;margin:0 auto}
+.svgfig svg text{font-family:var(--f-body)}
+.svgfig figcaption{font-size:14.5px;color:var(--muted);text-align:center;margin-top:6px}
+/* role table */
+table.role td:nth-child(2){background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+table.role td:nth-child(3){background:color-mix(in srgb,var(--violet-soft) 55%,transparent)}
+/* widgets */
+.wbox{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:18px 0;overflow:hidden}
+.wbox-h{padding:8px 14px;background:var(--sunk);border-bottom:1px solid var(--line);font-size:14px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.wbox-h small{font-weight:400;color:var(--muted)}
+.wbox-b{padding:14px}
+.wbox svg{display:block;width:100%;height:auto}
+.wbox svg text{font-family:var(--f-body)}
+.wctl2{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:14px;margin-top:10px}
+.wctl2 label{display:flex;align-items:center;gap:8px;font-weight:600}
+.wctl2 output{font-family:var(--f-code);color:var(--accent);font-weight:700;min-width:3.5em}
+.wctl2 input[type=range]{width:180px;max-width:50vw}
+.seg2{display:flex;flex-wrap:wrap;gap:6px}
+.seg2 button{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:3px 12px;font-size:14px}
+.seg2 button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.tok-row{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 10px;font-size:16px}
+.tok-row span{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:1px 8px}
+.tok-row span.new{border-color:var(--violet);background:var(--violet-soft);font-weight:700}
+.bars{display:flex;flex-direction:column;gap:5px}
+.bars .br{display:grid;grid-template-columns:7.5em minmax(0,1fr) 3.4em;gap:8px;align-items:center;font-size:14.5px}
+.bars .br .t{text-align:right;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .br .track{display:block;height:18px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.bars .br .fill{display:block;height:100%;background:var(--violet);border-radius:5px;transition:width .35s}
+.bars .br.bad .fill{background:var(--bad)}
+.bars .br .v{font-family:var(--f-code);font-size:14px;color:var(--muted)}
+.bars .br.pick .t{color:var(--violet)}
+.wmsg2{margin-top:10px;font-size:14.5px;min-height:1.6em}
+.pb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.pb label{display:flex;flex-direction:column;gap:3px;font-size:14.5px;font-weight:700;margin-bottom:8px}
+.pb label span{font-weight:400;color:var(--muted)}
+.pb textarea{font:inherit;font-size:14.5px;line-height:1.6;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--bg);color:var(--ink);resize:vertical;min-height:2.6em}
+.pb .res{border:1.5px solid var(--violet);border-radius:10px;background:var(--violet-soft);padding:10px 12px;font-size:14.5px;white-space:pre-wrap;word-break:break-word;min-height:200px}
+.pb .meter{display:flex;gap:4px;margin:8px 0 4px;flex-wrap:wrap}
+.pb .meter span{font-size:13.5px;border-radius:999px;padding:1px 9px;border:1px solid var(--line);color:var(--muted)}
+.pb .meter span.on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+@media (max-width:760px){.pb{grid-template-columns:minmax(0,1fr)}}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:12px 0}
+.vs > div{border-radius:12px;padding:10px 14px;font-size:14.5px}
+.vs .no{background:var(--bad-soft)}.vs .yes{background:var(--ok-soft)}
+.vs > div > b:first-child{display:block;margin-bottom:4px}
+.vs p{margin:4px 0}
+@media (max-width:640px){.vs{grid-template-columns:minmax(0,1fr)}}
+.cklist{list-style:none;padding:0;margin:10px 0}
+.cklist li{margin:6px 0}
+.cklist label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.cklist input{margin-top:6px;width:18px;height:18px;accent-color:var(--ok);flex:none}
+/* ---------- Colab mock screenshots (always light, like a real screenshot) ---------- */
+.shot{margin:18px 0 8px}
+.shot .scroll{overflow-x:auto;border-radius:12px;border:1px solid #c9ced6;box-shadow:0 8px 28px rgba(15,23,42,.12)}
+.mock{min-width:600px;background:#fff;color:#202124;font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;font-size:14px;line-height:1.45}
+.mock *{box-sizing:border-box}
+.mk-browser{display:flex;align-items:center;gap:8px;background:#dfe3e8;padding:7px 10px}
+.mk-browser .dots{display:flex;gap:5px}.mk-browser .dots i{width:10px;height:10px;border-radius:50%;background:#f25f58}.mk-browser .dots i+i{background:#fbbe2e}.mk-browser .dots i+i+i{background:#3bc840}
+.mk-browser .url{flex:1;background:#fff;border-radius:999px;padding:3px 14px;color:#5f6368;font-size:13.5px}
+.mk-top{display:flex;align-items:center;gap:10px;padding:8px 12px 2px}
+.mk-logo{font-weight:800;color:#e8710a;font-size:15px;letter-spacing:.02em}
+.mk-file{font-size:16px;color:#202124}
+.mk-file u{text-decoration:none;border:1px solid #1a73e8;border-radius:3px;padding:0 4px}
+.mk-top .sp{flex:1}
+.mk-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid #dadce0;border-radius:6px;padding:2px 10px;background:#fff;color:#3c4043;white-space:nowrap}
+.mk-btn.blue{background:#e8f0fe;border-color:#d2e3fc;color:#1967d2}
+.mk-btn.gem{background:linear-gradient(90deg,#eaf1ff,#f3e8ff);border-color:#d7ccf5;color:#5b3fc4;font-weight:700}
+.mk-menu{display:flex;gap:14px;padding:2px 12px 6px 12px;color:#3c4043;font-size:14px;flex-wrap:wrap}
+.mk-menu .on{background:#e8eaed;border-radius:4px;padding:0 5px;margin:0 -5px}
+.mk-tool{display:flex;align-items:center;gap:8px;padding:5px 12px;border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;background:#fafafa}
+.mk-tool .sp{flex:1}
+.mk-ram{font-size:12.5px;color:#188038;display:inline-flex;align-items:center;gap:4px}
+.mk-ram::before{content:"✓";font-weight:700}
+.mk-main{display:flex;min-height:200px}
+.mk-side{width:40px;flex:none;border-right:1px solid #e0e0e0;display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 0;color:#5f6368;font-size:15px;background:#fff}
+.mk-side .on{color:#1a73e8;background:#e8f0fe;border-radius:6px;padding:2px 4px}
+.mk-panel{width:200px;flex:none;border-right:1px solid #e0e0e0;padding:8px 10px;font-size:13.5px;background:#fff}
+.mk-panel h5{margin:0 0 6px;font-size:14px}
+.mk-panel .icons{display:flex;gap:8px;margin-bottom:8px;color:#5f6368}
+.mk-panel .icons span{border:1px solid #dadce0;border-radius:4px;padding:0 5px}
+.mk-panel .icons span.hl{border-color:#ea4335;background:#fce8e6;color:#c5221f}
+.mk-panel .f{padding:2px 0;display:flex;gap:6px;align-items:center}
+.mk-panel .f.sel{background:#e8f0fe;border-radius:4px;padding:2px 4px;margin:0 -4px}
+.mk-nb{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;background:#fff}
+.mk-cell{display:flex;gap:8px;align-items:flex-start}
+.mk-run{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid #5f6368;display:grid;place-items:center;font-size:12.5px;color:#5f6368;margin-top:3px}
+.mk-run.go{background:#202124;border-color:#202124;color:#fff}
+.mk-code{flex:1;min-width:0;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:4px;padding:6px 10px;font-family:"JetBrains Mono",Menlo,monospace;font-size:13.5px;white-space:pre;color:#202124}
+.mk-code.focus{border-color:#1a73e8;box-shadow:0 0 0 1px #1a73e8 inset;background:#fff}
+.mk-code .ph{color:#80868b;font-family:"PingFang TC","Microsoft JhengHei",sans-serif}
+.mk-code .ph a{color:#1a73e8;text-decoration:underline}
+.mk-out{margin:4px 0 0 32px;font-family:"JetBrains Mono",Menlo,monospace;font-size:13px;white-space:pre;color:#202124}
+.mk-out.err{background:#fce8e6;border-radius:4px;padding:6px 10px;color:#a50e0e;white-space:pre-wrap}
+.mk-text{margin-left:32px;font-size:15px;font-weight:700}
+.mk-cellbar{display:flex;gap:6px;justify-content:center;padding:2px 0}
+.mk-chat{width:250px;flex:none;border-left:1px solid #e0e0e0;background:#fbfaff;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.mk-chat h5{margin:0;font-size:14px;color:#5b3fc4}
+.mk-chat .u{align-self:flex-end;background:#e8f0fe;border-radius:12px 12px 2px 12px;padding:6px 10px;max-width:92%}
+.mk-chat .a{background:#fff;border:1px solid #e6e1f7;border-radius:12px 12px 12px 2px;padding:6px 10px}
+.mk-chat .a code{display:block;background:#f1f3f4;border-radius:4px;padding:4px 6px;margin:4px 0;font-family:"JetBrains Mono",Menlo,monospace;font-size:12.5px;white-space:pre;overflow:hidden}
+.mk-chat .in{margin-top:auto;border:1px solid #dadce0;border-radius:999px;padding:5px 12px;color:#80868b;background:#fff}
+.mk-dialog{margin:18px auto;width:min(560px,94%);border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.25);background:#fff;overflow:hidden}
+.mk-dialog .dh{padding:12px 16px 4px;font-size:16px}
+.mk-dialog .tabs{display:flex;gap:16px;padding:0 16px;border-bottom:1px solid #e0e0e0;color:#5f6368;font-size:13.5px;flex-wrap:wrap}
+.mk-dialog .tabs span{padding:6px 0}
+.mk-dialog .tabs .on{color:#1a73e8;border-bottom:2px solid #1a73e8}
+.mk-dialog .rows{padding:6px 16px}
+.mk-dialog .rows div{padding:5px 0;border-bottom:1px solid #f1f3f4;color:#3c4043}
+.mk-dialog .df{display:flex;justify-content:flex-end;gap:10px;padding:10px 16px}
+.mk-gen{margin-left:32px;border:1px solid #d7ccf5;border-radius:10px;background:#fbfaff;padding:8px 10px;display:flex;gap:8px;align-items:center}
+.mk-gen .box{flex:1;border:1px solid #dadce0;border-radius:999px;padding:4px 12px;background:#fff;color:#202124}
+.mk-menu-pop{position:relative}
+.mk-pop{position:absolute;left:0;top:100%;margin-top:4px;background:#fff;border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.22);padding:6px 0;width:220px;z-index:2;font-size:13.5px}
+.mk-pop div{padding:4px 14px;color:#3c4043;display:flex;justify-content:space-between}
+.mk-pop div.hl{background:#e8f0fe}
+.mk-pop hr{border:0;border-top:1px solid #e0e0e0;margin:4px 0}
+.mk-pop small{color:#80868b}
+.mk-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#e8453c;color:#fff;font:700 12px/1 system-ui,sans-serif;border:2px solid #fff;box-shadow:0 0 0 1px #e8453c;flex:none;vertical-align:middle;margin:0 3px}
+.shot figcaption{font-size:14.5px;color:var(--muted);margin-top:8px}
+.shot figcaption b{color:var(--ink)}
+ol.legend{list-style:none;padding:0;margin:8px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 16px;font-size:14.5px}
+ol.legend li{display:flex;gap:6px;align-items:flex-start}
+ol.legend .mk-n{margin-top:3px}
+table.nw1 td:first-child{white-space:nowrap}
+</style>
+<style id="clarity">
+/* PingFang / JhengHei are hinted for screens and read sharper than the web-loaded Noto subset */
+html:root{--f-body:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,-apple-system,sans-serif;--f-display:var(--f-body);--f-han:var(--f-body);--f-code:"JetBrains Mono",ui-monospace,Menlo,Consolas,"PingFang TC","Microsoft JhengHei",monospace}
+html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
+.lv,.big,.rank,.ch-h h2,.hero h1,.brand h1,.mission h2,.card h3,.boss h3{font-weight:700}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="rbBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6aa5ff"/><stop offset="1" stop-color="#2f6fe0"/></linearGradient>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+  </defs>
+  <symbol id="rbao" viewBox="0 0 150 150">
+    <ellipse cx="62" cy="143" rx="34" ry="5" fill="#000" opacity=".18"/>
+    <line x1="62" y1="16" x2="62" y2="30" stroke="#8fb6ff" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="62" cy="12" r="6" fill="#ffb547"/>
+    <rect x="18" y="28" width="88" height="74" rx="28" fill="url(#rbBody)"/>
+    <rect x="30" y="42" width="64" height="42" rx="17" fill="#0b1422"/>
+    <rect x="42" y="53" width="12" height="16" rx="6" fill="#35d6c3"/><rect x="70" y="53" width="12" height="16" rx="6" fill="#35d6c3"/>
+    <path d="M52 75 q10 7 20 0" stroke="#35d6c3" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="36" y="100" width="52" height="30" rx="11" fill="#2a5fc4"/>
+    <circle cx="62" cy="115" r="10" fill="#0b1422"/>
+    <text x="62" y="120" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="700" font-size="14" fill="#eaf1fa">R</text>
+    <rect x="22" y="103" width="15" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(25 30 107)"/>
+    <rect x="86" y="96" width="30" height="9" rx="4.5" fill="#2a5fc4" transform="rotate(-28 88 100)"/>
+    <polygon points="128,64 140,78 128,92 116,78" fill="#35d6c3" stroke="#a6f0e7" stroke-width="2.5" stroke-linejoin="round"/>
+    <ellipse cx="46" cy="132" rx="11" ry="6" fill="#9fb0c7"/><ellipse cx="78" cy="132" rx="11" ry="6" fill="#9fb0c7"/>
+  </symbol>
+</svg>
+
+<header class="hero page" style="padding-bottom:0">
+  <div style="grid-column:1/-1">
+    <nav class="crumbs" aria-label="導覽">
+      <a href="./">← 大數據分析與實踐 · 課程首頁</a>
+      <a href="ai.html">← 上一單元：AI 入門</a>
+    </nav>
+    <div class="eyebrow">Part 10 · AI × Google Colab hands-on</div>
+    <div class="hero-row">
+      <svg class="bot" viewBox="0 0 150 150" role="img" aria-label="R 寶"><use href="#rbao"/></svg>
+      <h1>R 寶的 AI × Colab 實戰：鐵達尼號</h1>
+    </div>
+    <p>1912 年 4 月，鐵達尼號在處女航撞上冰山沉沒，船上約 2,200 人，超過 1,500 人罹難。誰比較有機會活下來？這一章在 Google Colab 上請 AI 幫忙，從下載資料、清理、探索、畫圖、統計檢定，一直到寫出結論，一步一步完成一份完整的分析。每一步都有：<b>給 AI 的 prompt</b>、<b>AI 寫的程式碼</b>、<b>實際執行的結果</b>，以及<b>你要自己檢查的地方</b>。</p>
+    <div class="meta"><span class="pill">11 個步驟 · 13 個 prompt · 完整 notebook 下載</span><span class="pill">使用 <b>Python</b>（Colab 預設），附錄有 <b>R</b> 版</span><span class="pill">需要：Google 帳號 + 瀏覽器</span></div>
+    <div class="dlrow">
+      <a class="primary" href="https://colab.research.google.com/github/chenyc0901/R_datastructure_learning/blob/main/notebooks/titanic_ai_practice.ipynb" target="_blank" rel="noopener">▶ 在 Colab 開啟練習用 notebook</a>
+      <a href="notebooks/titanic_ai_practice.ipynb" download>⬇ 練習用 notebook <small>只有 prompt，程式自己請 AI 寫</small></a>
+      <a href="notebooks/titanic_ai_colab.ipynb" download>⬇ 完整 notebook <small>含全部程式碼</small></a>
+      <a href="data/titanic.csv" download>⬇ titanic.csv <small>891 位乘客</small></a>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+  <nav class="toc" aria-label="目錄">
+    <h2>步驟</h2>
+    <ol id="toc">
+      <li><a href="#c0"><span class="n">00</span>開始之前</a></li>
+      <li><a href="#c1"><span class="n">01</span>認識 Colab、開新筆記本<span class="ck">✓</span></a></li>
+      <li><a href="#c2"><span class="n">02</span>在 Colab 裡使用 AI<span class="ck">✓</span></a></li>
+      <li><a href="#c3"><span class="n">03</span>下載資料<span class="ck">✓</span></a></li>
+      <li><a href="#c4"><span class="n">04</span>讀進資料、認識欄位<span class="ck">✓</span></a></li>
+      <li><a href="#c5"><span class="n">05</span>缺值與清理<span class="ck">✓</span></a></li>
+      <li><a href="#c6"><span class="n">06</span>探索：誰活下來了？<span class="ck">✓</span></a></li>
+      <li><a href="#c7"><span class="n">07</span>畫圖<span class="ck">✓</span></a></li>
+      <li><a href="#c8"><span class="n">08</span>統計檢定<span class="ck">✓</span></a></li>
+      <li><a href="#c9"><span class="n">09</span>多變數分析<span class="ck">✓</span></a></li>
+      <li><a href="#c10"><span class="n">10</span>寫結論<span class="ck">✓</span></a></li>
+      <li><a href="#c11"><span class="n">11</span>除錯與 prompt 速查<span class="ck">✓</span></a></li>
+      <li><a href="#cR"><span class="n">附</span>用 R 做同樣的分析</a></li>
+    </ol>
+    <div class="prog" id="prog"></div>
+  </nav>
+
+  <main>
+<!-- ============ 00 ============ -->
+<section class="ch" id="c0">
+  <div class="ch-h"><span class="num">00</span><h2>開始之前<small>需要什麼、會做什麼、怎麼讀這一頁</small></h2></div>
+  <p>這一章要完成的分析流程：</p>
+  <div class="flow-strip"><span>下載資料</span><i>→</i><span>讀取</span><i>→</i><span>清理</span><i>→</i><span>探索</span><i>→</i><span>畫圖</span><i>→</i><span>統計檢定</span><i>→</i><span>多變數模型</span><i>→</i><span>結論</span></div>
+  <div class="lede-grid">
+    <div><span class="ic">🔑</span><b>Google 帳號</b>Colab 是 Google 的服務，用 Gmail 或學校的 Google 帳號登入。</div>
+    <div><span class="ic">🌐</span><b>瀏覽器</b>建議用 Chrome。不用安裝任何軟體，程式在 Google 的雲端電腦上執行。</div>
+    <div><span class="ic">🤖</span><b>一個 AI 助手</b>Colab 內建的 Gemini，或 ChatGPT、Claude、Gemini 網頁版都可以。這一頁的 prompt 每一個都能用。</div>
+  </div>
+  <h3><span class="tag">0-1</span>這一頁的四種方塊</h3>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>紫色框是要給 AI 的話。按「複製」貼到 AI 對話框。<i>（灰底的括號）</i>表示要換成你自己的內容。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-com"># 灰框是 AI 寫出來、我們檢查過的程式碼，貼到 Colab 的程式碼儲存格執行</span></pre><div class="out"><span class="pre-tag">執行結果</span>下面是在 Colab 實際執行得到的結果，你的結果應該要一樣。</div></div>
+  <div class="check"><b>🔍 自己檢查</b>綠色框是「AI 不會替你做」的事：看結果合不合理、數字對不對得起來。</div>
+  <div class="aisay"><b>💬 AI 可能會這樣回答</b>虛線框是 AI 常見回答的重點整理。每次回答的文字都不一樣，看重點就好。</div>
+
+  <h3><span class="tag">0-2</span>為什麼用 Python，不是 R？</h3>
+  <p>Colab 預設的語言是 Python，AI 寫 Python 也最熟練。好消息是：<b>你在 R 學過的觀念，Python 幾乎一一對應</b>，只是寫法不同。看懂這張表，AI 寫的 Python 你就大致看得懂：</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>要做的事</th><th>R（tidyverse）</th><th>Python（pandas / seaborn）</th></tr>
+    <tr><td>載入套件</td><td><code>library(tidyverse)</code></td><td><code>import pandas as pd</code></td></tr>
+    <tr><td>讀 CSV</td><td><code>read_csv("x.csv")</code></td><td><code>pd.read_csv("x.csv")</code></td></tr>
+    <tr><td>看前幾列 / 結構</td><td><code>head(df)</code>、<code>glimpse(df)</code></td><td><code>df.head()</code>、<code>df.info()</code></td></tr>
+    <tr><td>取一欄</td><td><code>df$Age</code></td><td><code>df["Age"]</code></td></tr>
+    <tr><td>新增欄位</td><td><code>mutate(fam = SibSp + Parch + 1)</code></td><td><code>df["fam"] = df["SibSp"] + df["Parch"] + 1</code></td></tr>
+    <tr><td>分組統計</td><td><code>group_by(Sex) |&gt; summarise(rate = mean(Survived))</code></td><td><code>df.groupby("Sex")["Survived"].mean()</code></td></tr>
+    <tr><td>交叉表</td><td><code>table(df$Sex, df$Survived)</code></td><td><code>pd.crosstab(df["Sex"], df["Survived"])</code></td></tr>
+    <tr><td>缺值</td><td><code>NA</code>、<code>is.na()</code></td><td><code>NaN</code>、<code>.isna()</code></td></tr>
+    <tr><td>畫圖</td><td><code>ggplot(df, aes(x, y)) + geom_col()</code></td><td><code>sns.barplot(data=df, x=..., y=...)</code></td></tr>
+    <tr><td>卡方檢定 / 秩和檢定</td><td><code>chisq.test()</code> / <code>wilcox.test()</code></td><td><code>chi2_contingency()</code> / <code>mannwhitneyu()</code></td></tr>
+    <tr><td>logistic regression</td><td><code>glm(..., family = binomial)</code></td><td><code>smf.logit(...).fit()</code></td></tr>
+  </table></div>
+  <div class="note"><b>⚠ 兩個最容易搞混的地方</b>① Python 的位置從 <b>0</b> 開始數，R 從 <b>1</b> 開始。② Python 用<b>縮排</b>表示程式區塊，空白不能亂刪；R 用大括號。</div>
+</section>
+
+<!-- ============ 01 ============ -->
+<section class="ch" id="c1">
+  <div class="ch-h"><span class="num">01</span><h2>認識 Colab、開新筆記本<small>雲端上的 Jupyter 筆記本</small></h2></div>
+  <p><b>Google Colab</b>（Colaboratory）是 Google 提供的免費線上筆記本：在瀏覽器裡寫程式、執行、看結果和圖，全部放在同一份文件裡。筆記本的檔名是 <code>.ipynb</code>，會自動存到你的 Google 雲端硬碟裡的「Colab Notebooks」資料夾。</p>
+
+  <h3><span class="tag">1-1</span>打開 Colab，新增筆記本</h3>
+  <ol>
+    <li>到 <a href="https://colab.research.google.com/" target="_blank" rel="noopener">colab.research.google.com</a>，右上角登入 Google 帳號。</li>
+    <li>會跳出「開啟筆記本」視窗，按左下角的 <b>＋ 新增筆記本</b>。（如果沒跳出來：上方選單 <b>檔案 → 新增筆記本</b>。）</li>
+  </ol>
+  <div class="note"><b>📥 用這一頁準備好的 notebook</b>按頁面最上方的「▶ 在 Colab 開啟練習用 notebook」，會直接在 Colab 打開（裡面已經放好每一步的 prompt）。這時它還不是你的檔案，請先按 <b>檔案 → 在雲端硬碟中儲存複本</b>，之後的修改才會存到你的雲端硬碟。下載的 .ipynb 檔則用 <b>檔案 → 上傳筆記本</b> 開啟。</div>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-browser"><span class="dots"><i></i><i></i><i></i></span><span class="url">colab.research.google.com</span></div>
+      <div style="background:#f1f3f4;padding:4px 0 10px">
+        <div class="mk-dialog">
+          <div class="dh">開啟筆記本</div>
+          <div class="tabs"><span>範例</span><span class="on">近期</span><span>Google 雲端硬碟</span><span>GitHub</span><span>上傳</span></div>
+          <div class="rows"><div>📙 Colab 歡迎使用</div><div>📙 Untitled0.ipynb</div></div>
+          <div class="df"><span class="mk-btn blue"><span class="mk-n">1</span>＋ 新增筆記本</span><span class="mk-btn">取消</span></div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 1</b>　開啟 Colab 時出現的視窗，按 <span class="mk-n">1</span>「＋ 新增筆記本」。上方的「上傳」分頁可以開啟電腦裡的 .ipynb 檔（例如這一頁下載的 notebook）。</figcaption>
+  </figure>
+
+  <h3><span class="tag">1-2</span>認識畫面</h3>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-browser"><span class="dots"><i></i><i></i><i></i></span><span class="url">colab.research.google.com/drive/…</span></div>
+      <div class="mk-top"><span class="mk-logo">Colab</span><span class="mk-file"><span class="mk-n">1</span><u>Titanic_AI.ipynb</u> ☆</span><span class="sp"></span><span class="mk-btn">分享</span><span class="mk-btn gem"><span class="mk-n">7</span>✦ Gemini</span></div>
+      <div class="mk-menu"><span>檔案</span><span>編輯</span><span>檢視畫面</span><span>插入</span><span>執行階段<span class="mk-n">6</span></span><span>工具</span><span>說明</span></div>
+      <div class="mk-tool"><span class="mk-n">2</span><span class="mk-btn">＋ 程式碼</span><span class="mk-btn">＋ 文字</span><span class="sp"></span><span class="mk-ram">RAM ▬ 磁碟 ▬</span><span class="mk-n">5</span></div>
+      <div class="mk-main">
+        <div class="mk-side"><span>☰</span><span>🔍</span><span>{x}</span><span>🔑</span><span class="on">📁</span><span class="mk-n">4</span></div>
+        <div class="mk-nb">
+          <div class="mk-text">鐵達尼號分析</div>
+          <div class="mk-cell"><span class="mk-run go">▶</span><span class="mk-code focus">print("Hello, Titanic!")</span><span class="mk-n">3</span></div>
+          <div class="mk-out">Hello, Titanic!</div>
+          <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code"><span class="ph">開始編寫程式碼或<a>使用 AI 產生</a>程式碼。</span></span></div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 2</b>　Colab 筆記本的畫面（依照實際介面重畫的示意圖；Colab 改版很快，按鈕的位置和文字可能略有不同）。</figcaption>
+  </figure>
+  <ol class="legend">
+    <li><span class="mk-n">1</span><span><b>檔名</b>：點一下就能改，例如改成 <code>Titanic_AI.ipynb</code>。</span></li>
+    <li><span class="mk-n">2</span><span><b>＋ 程式碼 / ＋ 文字</b>：新增程式碼儲存格，或寫筆記用的文字儲存格。</span></li>
+    <li><span class="mk-n">3</span><span><b>程式碼儲存格</b>：在灰框裡寫程式，按左邊的 ▶ 或 <kbd>Shift</kbd> + <kbd>Enter</kbd> 執行，結果出現在下面。</span></li>
+    <li><span class="mk-n">4</span><span><b>左側工具列</b>：☰ 目錄、{x} 變數、🔑 密鑰、📁 <b>檔案</b>（上傳資料用，第 3 步）。</span></li>
+    <li><span class="mk-n">5</span><span><b>連線狀態</b>：出現 ✓ 和 RAM / 磁碟，代表已經連上雲端電腦。</span></li>
+    <li><span class="mk-n">6</span><span><b>執行階段</b>選單：全部執行、重新啟動、變更執行階段類型（換成 R，見附錄）。</span></li>
+    <li><span class="mk-n">7</span><span><b>Gemini</b>：開啟 AI 對話面板（第 2 步）。</span></li>
+  </ol>
+
+  <h3><span class="tag">1-3</span>執行第一格程式</h3>
+  <p>在第一個程式碼儲存格輸入下面這行，按 ▶ 執行。第一次執行時，Colab 要先幫你分配一台雲端電腦（「連線中」），等幾秒鐘。</p>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">print</span>(<span class="t-str">"Hello, Titanic!"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>Hello, Titanic!</div></div>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>快捷鍵</th><th>功能</th></tr>
+    <tr><td><kbd>Shift</kbd> + <kbd>Enter</kbd></td><td>執行這一格，並跳到下一格（最常用）</td></tr>
+    <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></td><td>執行這一格，停在原地</td></tr>
+    <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>M</kbd>，再按 <kbd>B</kbd></td><td>在下面新增一格程式碼</td></tr>
+    <tr><td><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>/</kbd></td><td>把選取的程式加上或取消註解（<code>#</code>）</td></tr>
+  </table></div>
+  <div class="note warn"><b>⚠ 一定要知道：雲端電腦會「失憶」</b>Colab 的雲端電腦閒置一段時間（或用了很久）會被收回。重新連線後，<b>之前建立的變數和上傳的檔案都會消失</b>，筆記本裡的程式碼還在。看到 <code>NameError: name 'df' is not defined</code> 時，用 <b>執行階段 → 全部執行</b> 從頭跑一次就好。</div>
+  <div class="stepdone"><button type="button" data-step="c1">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section class="ch" id="c2">
+  <div class="ch-h"><span class="num">02</span><h2>在 Colab 裡使用 AI<small>三個入口，加上一段開場 prompt</small></h2></div>
+  <p>Colab 內建 Google 的 AI 助手 <b>Gemini</b>。有三個常用的入口：</p>
+
+  <h3><span class="tag">2-1</span>入口 A：在空白儲存格請 AI 產生程式碼</h3>
+  <p>新增一格空白的程式碼儲存格，裡面會出現灰色的提示文字，點<b>「使用 AI 產生」</b>（或類似的連結），輸入你要做的事，按 Enter，AI 會把程式碼寫進這一格。</p>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-nb" style="padding:16px">
+        <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code focus"><span class="ph">開始編寫程式碼或<a>使用 AI 產生</a><span class="mk-n">1</span>程式碼。</span></span></div>
+        <div class="mk-gen"><span style="color:#5b3fc4;font-weight:700">✦</span><span class="box">讀取 titanic.csv 存成 df，顯示前 5 列<span class="mk-n">2</span></span><span class="mk-btn blue">產生<span class="mk-n">3</span></span></div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 3</b>　<span class="mk-n">1</span> 點提示文字裡的連結 → <span class="mk-n">2</span> 輸入需求 → <span class="mk-n">3</span> 產生。程式碼出現後，<b>先讀過再執行</b>。</figcaption>
+  </figure>
+
+  <h3><span class="tag">2-2</span>入口 B：出錯時按「解釋錯誤」</h3>
+  <p>程式執行出錯時，錯誤訊息下面通常會出現<b>「解釋錯誤」</b>按鈕。按下去，Gemini 會說明錯誤原因並建議修正方式。第 11 步有完整的例子。</p>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-nb" style="padding:16px">
+        <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code">clean.groupby("sex")["Survived"].mean()</span></div>
+        <div class="mk-out err">KeyError                                  Traceback (most recent call last)
+……
+KeyError: 'sex'</div>
+        <div style="margin-left:32px"><span class="mk-btn gem">✦ 解釋錯誤<span class="mk-n">1</span></span></div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 4</b>　出錯時按 <span class="mk-n">1</span>「解釋錯誤」。</figcaption>
+  </figure>
+
+  <h3><span class="tag">2-3</span>入口 C：Gemini 對話面板</h3>
+  <p>按右上角（或工具列上）的 <b>Gemini</b> 按鈕，右邊會打開對話面板。可以像聊天一樣問問題、請它寫整段程式。它看得到你的筆記本，產生的程式可以直接加到筆記本裡。</p>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-top"><span class="mk-logo">Colab</span><span class="mk-file">Titanic_AI.ipynb</span><span class="sp"></span><span class="mk-btn gem">✦ Gemini<span class="mk-n">1</span></span></div>
+      <div class="mk-main" style="min-height:240px">
+        <div class="mk-nb">
+          <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code">df = pd.read_csv(url)
+df.head()</span></div>
+          <div class="mk-out">   PassengerId  Survived  Pclass ...</div>
+        </div>
+        <div class="mk-chat">
+          <h5>✦ Gemini</h5>
+          <div class="u">請依性別計算存活率<span class="mk-n">2</span></div>
+          <div class="a">可以用 groupby：<code>df.groupby("Sex")["Survived"].mean()</code><span class="mk-btn" style="font-size:11.5px">＋ 加到筆記本<span class="mk-n">3</span></span></div>
+          <div class="in">輸入提示……</div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 5</b>　<span class="mk-n">1</span> 開啟面板 → <span class="mk-n">2</span> 輸入 prompt → <span class="mk-n">3</span> 把程式碼加到筆記本（或自己複製貼上）。</figcaption>
+  </figure>
+  <div class="note"><b>✦ 也可以叫 Gemini「整份分析幫我做」</b>新版的 Gemini 可以當「資料科學代理」：你說「分析這個檔案」，它會自己規劃步驟、產生好幾格程式並執行。很方便，但初學時<b>建議一步一步來</b>，才知道每一格在做什麼、哪裡可能錯。</div>
+
+  <h3><span class="tag">2-4</span>入口 D：用其他 AI 聊天網站</h3>
+  <p>如果你的帳號看不到 Gemini（例如學校帳號的管理員關閉了 AI 功能、或免費額度用完），可以另外開一個分頁使用 ChatGPT、Claude 或 Gemini 網頁版：把 prompt 貼過去，再把它寫的程式碼複製回 Colab。<b>這一頁的每個 prompt 都適用</b>。</p>
+
+  <h3><span class="tag">2-5</span>先給 AI 一段開場 prompt</h3>
+  <p>在開始之前，先告訴 AI 你是誰、資料是什麼、要遵守什麼規則。之後每一步的 prompt 就可以比較短。（用 Gemini 面板或聊天網站時，在同一個對話裡繼續問；如果開了新對話，記得再貼一次。）</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>你是一位資料分析助教，熟悉 Python 的 pandas、seaborn、scipy 和 statsmodels。
+我是醫技系的大學生，正在 Google Colab 上分析 Titanic 乘客資料（891 位乘客，欄位有 PassengerId、Survived、Pclass、Name、Sex、Age、SibSp、Parch、Ticket、Fare、Cabin、Embarked）。
+接下來我會一步一步請你寫程式，請遵守：
+1. 每次只做我要求的那一步，不要一次做完全部。
+2. 程式碼加上繁體中文註解。
+3. 圖上的文字一律用英文（Colab 預設沒有中文字型）。
+4. 不要自己編造數字；結果以我執行後貼回給你的輸出為準。</pre></div>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>這段 prompt 裡的</th><th>作用</th></tr>
+    <tr><td>你是一位資料分析助教……</td><td><b>角色</b>：讓它用教學的口氣、選適合的套件</td></tr>
+    <tr><td>我是醫技系的大學生……欄位有……</td><td><b>背景</b>：它看不到你的資料，欄位名稱一定要給，寫的程式才不會用錯欄名</td></tr>
+    <tr><td>每次只做我要求的那一步</td><td><b>限制</b>：避免一次丟出一大段看不懂的程式</td></tr>
+    <tr><td>圖上的文字一律用英文</td><td>Colab 預設<b>沒有中文字型</b>，中文會變成方塊（第 7 步有圖）</td></tr>
+    <tr><td>不要自己編造數字</td><td>提醒它：數字以執行結果為準（AI 入門第 4 節的「幻覺」）</td></tr>
+  </table></div>
+  <div class="stepdone"><button type="button" data-step="c2">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section class="ch" id="c3">
+  <div class="ch-h"><span class="num">03</span><h2>下載資料<small>認識 Titanic 資料集，四種取得方式</small></h2></div>
+  <p>這份資料來自資料科學競賽網站 Kaggle 的入門題目「Titanic – Machine Learning from Disaster」的訓練資料（<code>train.csv</code>），整理自乘客名單等歷史紀錄。它有 <b>891 位乘客</b>，大約是全船人數的四成，不包含船員。我們在課程網站放了一份一模一樣的副本，方便直接下載。</p>
+  <h3><span class="tag">3-1</span>資料字典：每一欄是什麼？</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>欄位</th><th>意思</th><th>值 / 單位</th><th>備註</th></tr>
+    <tr><td><code>PassengerId</code></td><td>乘客編號</td><td>1–891</td><td>只是編號，不拿來分析</td></tr>
+    <tr><td><code>Survived</code></td><td>是否存活</td><td>0 = 罹難、1 = 存活</td><td><b>我們要研究的結果</b></td></tr>
+    <tr><td><code>Pclass</code></td><td>艙等</td><td>1 = 頭等、2 = 二等、3 = 三等</td><td>常被當作社經地位的代表；是數字，但其實是類別</td></tr>
+    <tr><td><code>Name</code></td><td>姓名</td><td>文字</td><td>含稱謂（Mr.、Mrs.、Miss.、Master.）</td></tr>
+    <tr><td><code>Sex</code></td><td>性別</td><td>male / female</td><td></td></tr>
+    <tr><td><code>Age</code></td><td>年齡</td><td>歲</td><td>未滿 1 歲用小數（例如 0.42）；<b>有缺值</b></td></tr>
+    <tr><td><code>SibSp</code></td><td>同船的兄弟姊妹 + 配偶人數</td><td>人</td><td>sibling + spouse</td></tr>
+    <tr><td><code>Parch</code></td><td>同船的父母 + 子女人數</td><td>人</td><td>parent + child</td></tr>
+    <tr><td><code>Ticket</code></td><td>船票號碼</td><td>文字</td><td>格式很亂，這次不用</td></tr>
+    <tr><td><code>Fare</code></td><td>票價</td><td>英鎊</td><td>同一張票可能是全家合買</td></tr>
+    <tr><td><code>Cabin</code></td><td>艙房號碼</td><td>文字</td><td><b>大部分是缺值</b></td></tr>
+    <tr><td><code>Embarked</code></td><td>登船港口</td><td>C = Cherbourg（法國）、Q = Queenstown（愛爾蘭）、S = Southampton（英國）</td><td>有 2 個缺值</td></tr>
+  </table></div>
+
+  <h3><span class="tag">3-2</span>四種取得資料的方式</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>方式</th><th>怎麼做</th><th>優點 / 缺點</th></tr>
+    <tr><td><b>A. 直接用網址讀</b>（這一章用這個）</td><td>程式裡寫網址，<code>pd.read_csv(網址)</code></td><td>最簡單，重新連線也不怕；資料要放在公開網址</td></tr>
+    <tr><td><b>B. 下載後上傳到 Colab</b></td><td>先下載到電腦，再從左側 📁 上傳</td><td>任何檔案都可以；<b>重新連線後檔案會消失</b>，要再上傳</td></tr>
+    <tr><td><b>C. 放在 Google 雲端硬碟</b></td><td>把檔案放進雲端硬碟，在 Colab 掛載</td><td>檔案不會消失；第一次要授權</td></tr>
+    <tr><td><b>D. 從 Kaggle 下載</b></td><td>到 Kaggle 的 Titanic 競賽頁面下載 <code>train.csv</code></td><td>原始出處；要註冊帳號並同意競賽規則</td></tr>
+  </table></div>
+
+  <h4>方式 B：上傳檔案</h4>
+  <ol>
+    <li>按頁面最上方的 <a href="data/titanic.csv" download>⬇ titanic.csv</a>，存到電腦。</li>
+    <li>在 Colab 左側按 📁（檔案），再按上傳圖示，選剛剛下載的 <code>titanic.csv</code>。會出現「重新連線後檔案會被刪除」的提醒，按確定。</li>
+    <li>檔案出現在清單裡之後，就能用 <code>pd.read_csv("titanic.csv")</code> 讀取。</li>
+  </ol>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-main" style="min-height:190px">
+        <div class="mk-side"><span>☰</span><span>🔍</span><span>{x}</span><span>🔑</span><span class="on">📁<span class="mk-n">1</span></span></div>
+        <div class="mk-panel">
+          <h5>檔案</h5>
+          <div class="icons"><span class="hl">⬆<span class="mk-n">2</span></span><span>⟳</span><span>📂</span></div>
+          <div class="f">📁 ..</div>
+          <div class="f">📁 sample_data</div>
+          <div class="f sel">📄 titanic.csv<span class="mk-n">3</span></div>
+        </div>
+        <div class="mk-nb">
+          <div class="mk-cell"><span class="mk-run">▶</span><span class="mk-code">df = pd.read_csv("titanic.csv")</span></div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 6</b>　<span class="mk-n">1</span> 打開檔案面板 → <span class="mk-n">2</span> 上傳 → <span class="mk-n">3</span> 檔案出現後就能讀取。在檔名上按右鍵可以「複製路徑」。</figcaption>
+  </figure>
+
+  <h4>方式 C：掛載 Google 雲端硬碟</h4>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">from</span> google.colab <span class="t-kw">import</span> drive
+drive.<span class="t-fn">mount</span>(<span class="t-str">"/content/drive"</span>)                 <span class="t-com"># 會跳出視窗請你授權</span>
+df = pd.<span class="t-fn">read_csv</span>(<span class="t-str">"/content/drive/MyDrive/titanic.csv"</span>)   <span class="t-com"># 依你放的位置修改路徑</span></pre></div>
+  <div class="note"><b>💡 資料來源要寫清楚</b>正式報告要註明資料從哪裡來、什麼時候下載的。這份資料：Kaggle「Titanic – Machine Learning from Disaster」的 train.csv，891 位乘客。</div>
+  <div class="stepdone"><button type="button" data-step="c3">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section class="ch" id="c4">
+  <div class="ch-h"><span class="num">04</span><h2>讀進資料、認識欄位<small>先看清楚資料長什麼樣子</small></h2></div>
+  <p>把下面的 prompt 給 AI。AI 寫出來的程式應該跟下面差不多（變數名稱或註解可能不同，沒關係）。貼到 Colab 執行：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請寫 Python 程式：從下面的網址讀取 CSV，存到變數 df，印出它有幾列幾欄，再顯示前 5 列。
+https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">import</span> pandas <span class="t-kw">as</span> pd                 <span class="t-com"># 表格資料</span>
+<span class="t-kw">import</span> matplotlib.pyplot <span class="t-kw">as</span> plt     <span class="t-com"># 畫圖的底層</span>
+<span class="t-kw">import</span> seaborn <span class="t-kw">as</span> sns               <span class="t-com"># 比較漂亮、好寫的統計圖</span>
+
+url = <span class="t-str">"https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv"</span>
+df = pd.<span class="t-fn">read_csv</span>(url)               <span class="t-com"># 讀 CSV，存成 DataFrame</span>
+<span class="t-fn">print</span>(df.shape)                     <span class="t-com"># (列數, 欄數)</span>
+df.<span class="t-fn">head</span>()                           <span class="t-com"># 前 5 列</span></pre><div class="out"><span class="pre-tag">執行結果</span>(891, 12)
+   PassengerId  Survived  Pclass                                               Name     Sex   Age  SibSp  Parch  \
+0            1         0       3                            Braund, Mr. Owen Harris    male  22.0      1      0   
+1            2         1       1  Cumings, Mrs. John Bradley (Florence Briggs Th...  female  38.0      1      0   
+2            3         1       3                             Heikkinen, Miss. Laina  female  26.0      0      0   
+3            4         1       1       Futrelle, Mrs. Jacques Heath (Lily May Peel)  female  35.0      1      0   
+4            5         0       3                           Allen, Mr. William Henry    male  35.0      0      0   
+
+             Ticket     Fare Cabin Embarked  
+0         A/5 21171   7.2500   NaN        S  
+1          PC 17599  71.2833   C85        C  
+2  STON/O2. 3101282   7.9250   NaN        S  
+3            113803  53.1000  C123        S  
+4            373450   8.0500   NaN        S</div></div>
+  <div class="check"><b>🔍 自己檢查</b><ul>
+    <li><code>(891, 12)</code>：891 列（乘客）、12 欄，跟資料字典一樣。</li>
+    <li>最左邊的 0、1、2……是 pandas 自動加的<b>列索引</b>，從 0 開始數，不是資料的一部分。</li>
+    <li><code>NaN</code> 是 Python 的缺值，等於 R 的 <code>NA</code>。前 5 列就看到 Cabin 有缺值了。</li>
+  </ul></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 info() 和 describe() 檢查 df：每一欄的資料型態、非缺值的數量，以及數值欄位的摘要統計。
+執行結果我貼在下面，請用白話說明每一欄代表什麼，以及你看到哪些需要注意的地方。
+<i>（貼上輸出）</i></pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">df.<span class="t-fn">info</span>()                           <span class="t-com"># 每一欄的型態與非缺值數量</span></pre><div class="out"><span class="pre-tag">執行結果</span>&lt;class 'pandas.core.frame.DataFrame'&gt;
+RangeIndex: 891 entries, 0 to 890
+Data columns (total 12 columns):
+ #   Column       Non-Null Count  Dtype  
+---  ------       --------------  -----  
+ 0   PassengerId  891 non-null    int64  
+ 1   Survived     891 non-null    int64  
+ 2   Pclass       891 non-null    int64  
+ 3   Name         891 non-null    object 
+ 4   Sex          891 non-null    object 
+ 5   Age          714 non-null    float64
+ 6   SibSp        891 non-null    int64  
+ 7   Parch        891 non-null    int64  
+ 8   Ticket       891 non-null    object 
+ 9   Fare         891 non-null    float64
+ 10  Cabin        204 non-null    object 
+ 11  Embarked     889 non-null    object 
+dtypes: float64(2), int64(5), object(5)
+memory usage: 83.7+ KB</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">df.<span class="t-fn">describe</span>().<span class="t-fn">round</span>(<span class="t-num">2</span>)              <span class="t-com"># 數值欄位的摘要統計</span></pre><div class="out"><span class="pre-tag">執行結果</span>       PassengerId  Survived  Pclass     Age   SibSp   Parch    Fare
+count       891.00    891.00  891.00  714.00  891.00  891.00  891.00
+mean        446.00      0.38    2.31   29.70    0.52    0.38   32.20
+std         257.35      0.49    0.84   14.53    1.10    0.81   49.69
+min           1.00      0.00    1.00    0.42    0.00    0.00    0.00
+25%         223.50      0.00    2.00   20.12    0.00    0.00    7.91
+50%         446.00      0.00    3.00   28.00    0.00    0.00   14.45
+75%         668.50      1.00    3.00   38.00    1.00    0.00   31.00
+max         891.00      1.00    3.00   80.00    8.00    6.00  512.33</div></div>
+  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>Name、Sex、Ticket、Cabin、Embarked 是文字（object）；Age 只有 714 筆、Cabin 只有 204 筆、Embarked 有 889 筆，代表有缺值；Survived 的平均 0.38 表示約 38% 的人存活；Fare 的最大值 512 遠大於中位數 14.45，分布很偏斜。</div>
+  <div class="check"><b>🔍 自己檢查：AI 的解釋對不對？</b><ul>
+    <li><b>Non-Null Count</b> 是「不是缺值」的數量：Age 714 → 缺 891 − 714 = <b>177</b> 筆；Cabin 只有 204 → 缺 <b>687</b> 筆；Embarked 889 → 缺 <b>2</b> 筆。</li>
+    <li>Survived 是 0/1，平均值 0.38 = 存活的比例。這是很實用的技巧：<b>0/1 變數的平均就是比例</b>。</li>
+    <li><code>Pclass</code> 的平均 2.31 沒有意義，因為它其實是類別（艙等）。<code>describe()</code> 只是把所有數字欄都算一遍，不會判斷該不該算。</li>
+    <li>Age 最小 0.42（約 5 個月大的嬰兒）、最大 80，合理；Fare 最小 0，可能是工作人員或招待票，值得留意。</li>
+  </ul></div>
+  <div class="stepdone"><button type="button" data-step="c4">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section class="ch" id="c5">
+  <div class="ch-h"><span class="num">05</span><h2>缺值與清理<small>讓 AI 列選項，由你做決定</small></h2></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請算出 df 每一欄有幾個缺值、佔全部的百分比，整理成一張表。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">na = df.<span class="t-fn">isna</span>().<span class="t-fn">sum</span>()                              <span class="t-com"># 每一欄的缺值數</span>
+pd.<span class="t-fn">DataFrame</span>({<span class="t-str">"n_missing"</span>: na,
+              <span class="t-str">"percent"</span>: (na / <span class="t-fn">len</span>(df) * <span class="t-num">100</span>).<span class="t-fn">round</span>(<span class="t-num">1</span>)})   <span class="t-com"># 佔全部的 %</span></pre><div class="out"><span class="pre-tag">執行結果</span>             n_missing  percent
+PassengerId          0      0.0
+Survived             0      0.0
+Pclass               0      0.0
+Name                 0      0.0
+Sex                  0      0.0
+Age                177     19.9
+SibSp                0      0.0
+Parch                0      0.0
+Ticket               0      0.0
+Fare                 0      0.0
+Cabin              687     77.1
+Embarked             2      0.2</div></div>
+  <p>缺值怎麼處理會影響結果，這是<b>你</b>要做的決定。先請 AI 列出選項，<b>不要直接寫程式</b>：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>Cabin 缺 687 筆、Age 缺 177 筆、Embarked 缺 2 筆。
+請先不要寫程式，列出每一欄可以怎麼處理（刪掉欄位、補值、保留缺值），以及各自的優缺點。</pre></div>
+  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>
+    <div class="tblwrap"><table class="cmp">
+      <tr><th>欄位</th><th>選項</th><th>優點</th><th>缺點</th></tr>
+      <tr><td rowspan="3">Age（缺 19.9%）</td><td>刪掉缺 Age 的列</td><td>簡單</td><td>少了 177 人；如果缺值不是隨機的，會造成偏差</td></tr>
+      <tr><td>用中位數（28 歲）補</td><td>保留所有人</td><td>202 個人都變成 28 歲，分布被扭曲，變異被低估（標準差從 14.5 變成 13.0）</td></tr>
+      <tr><td>依艙等、性別分組的中位數補 / 用模型預測</td><td>比較合理</td><td>比較複雜，補的值仍然是猜的</td></tr>
+      <tr><td>Cabin（缺 77.1%）</td><td>刪掉這一欄</td><td>大部分都缺，很難用</td><td>失去艙房位置的資訊</td></tr>
+      <tr><td>Embarked（缺 0.2%）</td><td>用最常見的港口 S 補</td><td>只有 2 筆，影響極小</td><td>—</td></tr>
+    </table></div>
+  </div>
+  <p>這次的決定：<b>Age 保留缺值</b>，需要年齡的分析就只用有年齡的 714 人，並在結論寫出這個限制；Cabin 和 Ticket 刪掉；Embarked 用 S 補。另外新增幾個之後會用到的欄位：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>好，請照下面的決定寫程式，結果存成新的 DataFrame clean，不要改動 df：
+1. 刪掉 Cabin 和 Ticket 兩欄。
+2. Embarked 用出現最多次的值補。
+3. Age 保留缺值，不要補。
+4. 新增 FamilySize = SibSp + Parch + 1。
+5. 新增 AgeGroup，把 Age 分成 0-12、13-18、19-40、41-60、61-80。
+6. 新增 Outcome，把 Survived 的 0 / 1 換成 "Died" / "Survived"。
+最後檢查 clean 每一欄還有幾個缺值。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean = df.<span class="t-fn">drop</span>(columns=[<span class="t-str">"Cabin"</span>, <span class="t-str">"Ticket"</span>])     <span class="t-com"># drop 會回傳新的表，df 不會被改到</span>
+clean[<span class="t-str">"Embarked"</span>] = clean[<span class="t-str">"Embarked"</span>].<span class="t-fn">fillna</span>(clean[<span class="t-str">"Embarked"</span>].<span class="t-fn">mode</span>()[<span class="t-num">0</span>])   <span class="t-com"># 補上最常見的港口</span>
+clean[<span class="t-str">"FamilySize"</span>] = clean[<span class="t-str">"SibSp"</span>] + clean[<span class="t-str">"Parch"</span>] + <span class="t-num">1</span>                   <span class="t-com"># 兄弟姊妹配偶 + 父母子女 + 自己</span>
+clean[<span class="t-str">"AgeGroup"</span>] = pd.<span class="t-fn">cut</span>(clean[<span class="t-str">"Age"</span>],
+                           bins=[<span class="t-num">0</span>, <span class="t-num">12</span>, <span class="t-num">18</span>, <span class="t-num">40</span>, <span class="t-num">60</span>, <span class="t-num">80</span>],                    <span class="t-com"># (0,12]、(12,18]……</span>
+                           labels=[<span class="t-str">"0-12"</span>, <span class="t-str">"13-18"</span>, <span class="t-str">"19-40"</span>, <span class="t-str">"41-60"</span>, <span class="t-str">"61-80"</span>])
+clean[<span class="t-str">"Outcome"</span>] = clean[<span class="t-str">"Survived"</span>].<span class="t-fn">map</span>({<span class="t-num">0</span>: <span class="t-str">"Died"</span>, <span class="t-num">1</span>: <span class="t-str">"Survived"</span>})        <span class="t-com"># 0/1 換成文字，畫圖比較好讀</span>
+clean.<span class="t-fn">isna</span>().<span class="t-fn">sum</span>()</pre><div class="out"><span class="pre-tag">執行結果</span>PassengerId      0
+Survived         0
+Pclass           0
+Name             0
+Sex              0
+Age            177
+SibSp            0
+Parch            0
+Fare             0
+Embarked         0
+FamilySize       0
+AgeGroup       177
+Outcome          0
+dtype: int64</div></div>
+  <div class="check"><b>🔍 自己檢查</b><ul>
+    <li>Cabin、Ticket 不見了，Embarked 的缺值變成 0，新增的 FamilySize、AgeGroup、Outcome 都在。</li>
+    <li>AgeGroup 缺 177 筆，跟 Age 一樣，表示每一個有年齡的人都分到組了（0.42 歲的嬰兒也落在 0-12）。</li>
+    <li>原本的 <code>df</code> 沒被改到：執行 <code>df.shape</code> 應該還是 <code>(891, 12)</code>。</li>
+  </ul></div>
+  <div class="note warn"><b>⚠ AI 常犯的清理錯誤：一行刪掉八成的資料</b>如果只說「把缺值處理掉」，AI 常常會寫 <code>df = df.dropna()</code>。這會刪掉<b>任何一欄</b>有缺值的列，因為 Cabin 大部分都缺，891 人只剩 <b>183</b> 人，而且留下來的大多是有艙房紀錄的頭等艙乘客，結果會完全偏掉。所以清理一定要指定「哪一欄、怎麼處理」。</div>
+  <div class="stepdone"><button type="button" data-step="c5">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section class="ch" id="c6">
+  <div class="ch-h"><span class="num">06</span><h2>探索：誰活下來了？<small>分組算存活率</small></h2></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 clean 算出：
+1. 整體存活率。
+2. 依性別（Sex）、艙等（Pclass）各自分組的人數、存活人數與存活率。
+3. 艙等 × 性別交叉的存活率表。
+4. 依年齡組（AgeGroup）、家庭人數（FamilySize）分組的人數與存活率。
+每一個結果分開放在不同的儲存格，存活率取到小數 3 位。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-fn">print</span>(<span class="t-str">"總人數："</span>, <span class="t-fn">len</span>(clean))
+<span class="t-fn">print</span>(<span class="t-str">"存活率："</span>, <span class="t-fn">round</span>(clean[<span class="t-str">"Survived"</span>].<span class="t-fn">mean</span>() * <span class="t-num">100</span>, <span class="t-num">1</span>), <span class="t-str">"%"</span>)   <span class="t-com"># 0/1 的平均 = 1 的比例</span>
+clean[<span class="t-str">"Outcome"</span>].<span class="t-fn">value_counts</span>()</pre><div class="out"><span class="pre-tag">執行結果</span>總人數： 891
+存活率： 38.4 %
+Outcome
+Died        549
+Survived    342
+Name: count, dtype: int64</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"Sex"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, survived=<span class="t-str">"sum"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>          n  survived   rate
+Sex                         
+female  314       233  0.742
+male    577       109  0.189</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"Pclass"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, survived=<span class="t-str">"sum"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>          n  survived   rate
+Pclass                      
+1       216       136  0.630
+2       184        87  0.473
+3       491       119  0.242</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Pclass"</span>], clean[<span class="t-str">"Sex"</span>],
+            values=clean[<span class="t-str">"Survived"</span>], aggfunc=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)   <span class="t-com"># 每一格是存活率</span></pre><div class="out"><span class="pre-tag">執行結果</span>Sex     female   male
+Pclass               
+1        0.968  0.369
+2        0.921  0.157
+3        0.500  0.135</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"AgeGroup"</span>, observed=<span class="t-kw">True</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>            n   rate
+AgeGroup            
+0-12       69  0.580
+13-18      70  0.429
+19-40     425  0.388
+41-60     128  0.391
+61-80      22  0.227</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"FamilySize"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">agg</span>(n=<span class="t-str">"count"</span>, rate=<span class="t-str">"mean"</span>).<span class="t-fn">round</span>(<span class="t-num">3</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>              n   rate
+FamilySize            
+1           537  0.304
+2           161  0.553
+3           102  0.578
+4            29  0.724
+5            15  0.200
+6            22  0.136
+7            12  0.333
+8             6  0.000
+11            7  0.000</div></div>
+  <div class="check"><b>🔍 自己檢查：數字對得起來嗎？</b><ul>
+    <li>549 + 342 = 891 ✓；女性 314 + 男性 577 = 891 ✓；三個艙等 216 + 184 + 491 = 891 ✓。</li>
+    <li>存活人數 233 + 109 = 342 ✓，跟整體的存活人數一樣。</li>
+    <li>年齡組的人數加起來是 714，不是 891，因為缺年齡的 177 人沒有分組。</li>
+    <li>FamilySize = 8 只有 6 人、= 11 只有 7 人（可能各是同一個大家庭），<b>人數太少的組，比例很不穩定</b>，不要過度解讀。</li>
+  </ul></div>
+  <h3><span class="tag">6-1</span>初步發現</h3>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>比較</th><th>存活率</th><th>白話</th></tr>
+    <tr><td>整體</td><td>38.4%</td><td>大約每 5 個人只有 2 個活下來</td></tr>
+    <tr><td>女性 vs 男性</td><td>74.2% vs 18.9%</td><td>差了 55 個百分點，「婦孺優先」上救生艇</td></tr>
+    <tr><td>頭等 / 二等 / 三等艙</td><td>63.0% / 47.3% / 24.2%</td><td>艙等越高，存活率越高</td></tr>
+    <tr><td>頭等艙女性 vs 三等艙男性</td><td>96.8% vs 13.5%</td><td>性別和艙等加在一起，差距非常大</td></tr>
+    <tr><td>0–12 歲兒童</td><td>58.0%</td><td>高於成人組（約 39%）</td></tr>
+    <tr><td>獨自一人 vs 2–4 人同行</td><td>30.4% vs 55–72%</td><td>小家庭較高，5 人以上的大家庭反而很低</td></tr>
+  </table></div>
+  <div class="note"><b>🤔 這些只是「描述」</b>表格看起來差很多，但這些差異會不會只是剛好？性別和艙等是不是互相糾纏（例如三等艙男性特別多）？這要靠第 8、9 步的統計來回答。</div>
+  <div class="stepdone"><button type="button" data-step="c6">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section class="ch" id="c7">
+  <div class="ch-h"><span class="num">07</span><h2>畫圖<small>seaborn：Python 版的 ggplot2</small></h2></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請用 seaborn 畫三張圖，圖上文字用英文：
+1. 性別、艙等各自的存活率長條圖，左右並排，y 軸 0 到 1。
+2. 艙等 × 性別的存活率長條圖，不要誤差線，柱子上標出數值。
+3. 存活與死亡乘客的年齡分布：依 Outcome 上色的堆疊直方圖，每 5 歲一格。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">sns.<span class="t-fn">set_theme</span>(style=<span class="t-str">"whitegrid"</span>)                        <span class="t-com"># 白底加格線</span>
+fig, axes = plt.<span class="t-fn">subplots</span>(<span class="t-num">1</span>, <span class="t-num">2</span>, figsize=(<span class="t-num">9</span>, <span class="t-num">4</span>))          <span class="t-com"># 一列兩張</span>
+sns.<span class="t-fn">barplot</span>(data=clean, x=<span class="t-str">"Sex"</span>, y=<span class="t-str">"Survived"</span>, hue=<span class="t-str">"Sex"</span>, order=[<span class="t-str">"female"</span>, <span class="t-str">"male"</span>],
+            palette={<span class="t-str">"female"</span>: <span class="t-str">"#66c2a5"</span>, <span class="t-str">"male"</span>: <span class="t-str">"#fc8d62"</span>}, legend=<span class="t-kw">False</span>, ax=axes[<span class="t-num">0</span>])   <span class="t-com"># 長條 = 平均（存活率），黑線 = 95% 信賴區間</span>
+axes[<span class="t-num">0</span>].<span class="t-fn">set</span>(title=<span class="t-str">"Survival rate by sex"</span>, xlabel=<span class="t-str">"Sex"</span>, ylabel=<span class="t-str">"Survival rate"</span>, ylim=(<span class="t-num">0</span>, <span class="t-num">1</span>))
+sns.<span class="t-fn">barplot</span>(data=clean, x=<span class="t-str">"Pclass"</span>, y=<span class="t-str">"Survived"</span>, hue=<span class="t-str">"Pclass"</span>,
+            palette=[<span class="t-str">"#1d3557"</span>, <span class="t-str">"#457b9d"</span>, <span class="t-str">"#8ecae6"</span>], legend=<span class="t-kw">False</span>, ax=axes[<span class="t-num">1</span>])
+axes[<span class="t-num">1</span>].<span class="t-fn">set</span>(title=<span class="t-str">"Survival rate by class"</span>, xlabel=<span class="t-str">"Passenger class"</span>, ylabel=<span class="t-str">"Survival rate"</span>, ylim=(<span class="t-num">0</span>, <span class="t-num">1</span>))
+plt.<span class="t-fn">tight_layout</span>()
+plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img/titanic/fig1_0.png" alt="fig1 的圖" width="1771" height="768" loading="lazy"></div></div>
+  <div class="check"><b>🔍 讀圖</b>長條的高度是存活率（0/1 的平均），黑色直線是 seaborn 預設的 <b>95% 信賴區間</b>。女性和男性的區間完全沒有重疊，差異很明確；三個艙等也一樣。</div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">ax = sns.<span class="t-fn">barplot</span>(data=clean, x=<span class="t-str">"Pclass"</span>, y=<span class="t-str">"Survived"</span>, hue=<span class="t-str">"Sex"</span>, hue_order=[<span class="t-str">"female"</span>, <span class="t-str">"male"</span>],
+                 palette={<span class="t-str">"female"</span>: <span class="t-str">"#66c2a5"</span>, <span class="t-str">"male"</span>: <span class="t-str">"#fc8d62"</span>}, errorbar=<span class="t-kw">None</span>)          <span class="t-com"># 不畫誤差線</span>
+<span class="t-kw">for</span> bars <span class="t-kw">in</span> ax.containers:
+    ax.<span class="t-fn">bar_label</span>(bars, fmt=<span class="t-str">"%.2f"</span>, padding=<span class="t-num">2</span>)            <span class="t-com"># 柱子上標數值</span>
+ax.<span class="t-fn">set</span>(title=<span class="t-str">"Survival rate by class and sex"</span>, xlabel=<span class="t-str">"Passenger class"</span>,
+       ylabel=<span class="t-str">"Survival rate"</span>, ylim=(<span class="t-num">0</span>, <span class="t-num">1.08</span>))
+plt.<span class="t-fn">show</span>()</pre><div class="figout"><img src="img/titanic/fig2_0.png" alt="fig2 的圖" width="1143" height="917" loading="lazy"></div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">ax = sns.<span class="t-fn">histplot</span>(data=clean, x=<span class="t-str">"Age"</span>, hue=<span class="t-str">"Outcome"</span>, multiple=<span class="t-str">"stack"</span>,
+                  binwidth=<span class="t-num">5</span>, palette={<span class="t-str">"Died"</span>: <span class="t-str">"#9aa5b1"</span>, <span class="t-str">"Survived"</span>: <span class="t-str">"#2a9d8f"</span>})
+ax.<span class="t-fn">set</span>(title=<span class="t-str">"Age of passengers (age known for 714)"</span>, xlabel=<span class="t-str">"Age (years)"</span>, ylabel=<span class="t-str">"Passengers"</span>)
+plt.<span class="t-fn">show</span>()</pre><div class="figout"><img src="img/titanic/fig3_0.png" alt="fig3 的圖" width="1151" height="917" loading="lazy"></div></div>
+  <div class="check"><b>🔍 讀圖</b>0–5 歲那一格綠色（存活）比例特別高；20–30 歲的人最多，但大部分罹難。圖的標題提醒了只有 714 人有年齡，這是誠實的畫法。</div>
+
+  <h3><span class="tag">7-1</span>為什麼圖上要用英文？</h3>
+  <p>Colab 的雲端電腦預設沒有安裝中文字型。如果在標題或標籤寫中文，會變成一排方塊（俗稱「豆腐字」）：</p>
+  <figure class="svgfig" style="max-width:420px"><img src="img/titanic/tofu.png" alt="圖上的中文全部變成方塊" width="920" height="520" style="width:100%;height:auto;display:block;background:#fff;border-radius:6px"><figcaption>圖上的中文字變成方塊</figcaption></figure>
+  <p>最簡單的解法就是圖上用英文（開場 prompt 已經提醒 AI 了）。如果一定要中文，可以請 AI：「請在 Colab 安裝中文字型並讓 matplotlib 使用它」，它會寫出下載字型的程式。</p>
+
+  <h3><span class="tag">7-2</span>用 prompt 修改圖</h3>
+  <p>第一版的圖很少剛好是你要的。直接告訴 AI 要改什麼，一次改一兩件事：</p>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>想要</th><th>可以這樣說</th></tr>
+    <tr><td>換顏色</td><td>「把 female 改成綠色、male 改成橘色，兩張圖要一致。」</td></tr>
+    <tr><td>改順序</td><td>「x 軸順序改成 female 在左、male 在右。」</td></tr>
+    <tr><td>標數字</td><td>「在每根長條上標出存活率，取 2 位小數。」</td></tr>
+    <tr><td>存成檔案</td><td>「把這張圖存成 300 dpi 的 PNG，檔名 survival_by_class.png。」</td></tr>
+    <tr><td>改成 R</td><td>「請把這張圖改用 R 的 ggplot2 畫。」</td></tr>
+  </table></div>
+  <div class="note link"><b>🎨 想畫得更好看</b>畫圖的原則（選什麼圖、怎麼配色、標籤怎麼寫）跟語言無關。在 R 裡怎麼畫，看 <a href="ggplot.html">ggplot2 畫室</a>；什麼資料用什麼圖，看<a href="plot.html#ch8">統計圖鑑的選圖決策樹</a>。</div>
+  <div class="stepdone"><button type="button" data-step="c7">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section class="ch" id="c8">
+  <div class="ch-h"><span class="num">08</span><h2>統計檢定<small>差異是真的，還是剛好？</small></h2></div>
+  <p>不要直接說「幫我做 t 檢定」，而是把<b>問題</b>告訴 AI，請它說明為什麼選這個方法。這樣你才能判斷它選得對不對：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>我想回答三個問題：
+1. 性別和存活有沒有關係？
+2. 艙等和存活有沒有關係？
+3. 存活者和死亡者的年齡有沒有差別？
+請先說明每個問題適合用哪一種統計檢定、為什麼，再寫程式。p 值用科學記號顯示。</pre></div>
+  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>
+    <div class="tblwrap"><table class="cmp">
+      <tr><th>問題</th><th>資料型態</th><th>建議的檢定</th></tr>
+      <tr><td>性別 × 存活</td><td>類別 × 類別（2 × 2）</td><td>卡方檢定（每格期望次數都很大）</td></tr>
+      <tr><td>艙等 × 存活</td><td>類別 × 類別（3 × 2）</td><td>卡方檢定</td></tr>
+      <tr><td>年齡：存活 vs 死亡</td><td>數值 × 兩組</td><td>年齡分布偏斜，用 Mann–Whitney U 檢定（= R 的 Wilcoxon 秩和檢定）；也可以用 Welch t 檢定</td></tr>
+    </table></div>
+  </div>
+  <div class="check"><b>🔍 檢查 AI 選的方法</b>對照 <a href="pvalue.html#c4">p 值教室的檢定決策流程圖</a>：兩個類別變數 → 期望次數都 ≥ 5 → 卡方檢定 ✓；數值、兩組獨立、不一定常態 → Wilcoxon / Mann–Whitney ✓。AI 選的跟流程圖一致。</div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">from</span> scipy.stats <span class="t-kw">import</span> chi2_contingency, mannwhitneyu
+
+tab = pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Sex"</span>], clean[<span class="t-str">"Survived"</span>])           <span class="t-com"># 2 × 2 列聯表</span>
+chi2, p, dof, expected = <span class="t-fn">chi2_contingency</span>(tab)
+<span class="t-fn">print</span>(tab)
+<span class="t-fn">print</span>(<span class="t-str">f"性別：chi2 = {chi2:.1f}, df = {dof}, p = {p:.2e}"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>Survived    0    1
+Sex               
+female     81  233
+male      468  109
+性別：chi2 = 260.7, df = 1, p = 1.20e-58</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">tab2 = pd.<span class="t-fn">crosstab</span>(clean[<span class="t-str">"Pclass"</span>], clean[<span class="t-str">"Survived"</span>])       <span class="t-com"># 3 × 2 列聯表</span>
+chi2, p, dof, expected = <span class="t-fn">chi2_contingency</span>(tab2)
+<span class="t-fn">print</span>(tab2)
+<span class="t-fn">print</span>(<span class="t-str">f"艙等：chi2 = {chi2:.1f}, df = {dof}, p = {p:.2e}"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>Survived    0    1
+Pclass            
+1          80  136
+2          97   87
+3         372  119
+艙等：chi2 = 102.9, df = 2, p = 4.55e-23</div></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">age_s = clean.loc[clean[<span class="t-str">"Survived"</span>] == <span class="t-num">1</span>, <span class="t-str">"Age"</span>].<span class="t-fn">dropna</span>()   <span class="t-com"># 存活者的年齡（去掉缺值）</span>
+age_d = clean.loc[clean[<span class="t-str">"Survived"</span>] == <span class="t-num">0</span>, <span class="t-str">"Age"</span>].<span class="t-fn">dropna</span>()   <span class="t-com"># 死亡者的年齡</span>
+<span class="t-fn">print</span>(<span class="t-str">"存活者：n ="</span>, <span class="t-fn">len</span>(age_s), <span class="t-str">" 中位數 ="</span>, age_s.<span class="t-fn">median</span>())
+<span class="t-fn">print</span>(<span class="t-str">"死亡者：n ="</span>, <span class="t-fn">len</span>(age_d), <span class="t-str">" 中位數 ="</span>, age_d.<span class="t-fn">median</span>())
+stat, p = <span class="t-fn">mannwhitneyu</span>(age_s, age_d)
+<span class="t-fn">print</span>(<span class="t-str">f"Mann-Whitney U = {stat:.0f}, p = {p:.3f}"</span>)</pre><div class="out"><span class="pre-tag">執行結果</span>存活者：n = 290  中位數 = 28.0
+死亡者：n = 424  中位數 = 28.0
+Mann-Whitney U = 57682, p = 0.160</div></div>
+  <h3><span class="tag">8-1</span>怎麼解讀</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>檢定</th><th>結果</th><th>白話</th></tr>
+    <tr><td>性別 × 存活（卡方）</td><td>χ² = 260.7，p = 1.2 × 10⁻⁵⁸</td><td>如果性別和存活真的無關，幾乎不可能看到這麼大的差異。效應量：存活率差 55 個百分點，非常大。</td></tr>
+    <tr><td>艙等 × 存活（卡方）</td><td>χ² = 102.9，p = 4.6 × 10⁻²³</td><td>艙等和存活有關；頭等艙 63% vs 三等艙 24%。</td></tr>
+    <tr><td>年齡（Mann–Whitney）</td><td>p = 0.16，兩組中位數都是 28 歲</td><td>只看年齡，存活和罹難的人整體年齡分布<b>沒有明顯差別</b>。</td></tr>
+  </table></div>
+  <div class="note"><b>🤔 等一下，年齡沒關係？</b>可是第 6 步明明看到兒童的存活率比較高。這是因為 Mann–Whitney 比較的是整體分布，兒童只佔一小部分；而且年齡和艙等糾纏在一起：<b>頭等艙乘客的中位數年齡 37 歲、二等艙 29 歲、三等艙 24 歲</b>。年紀大的人比較多在存活率高的頭等艙，把「年紀大比較不利」的效果蓋掉了。要把這些因素分開，就需要下一步的多變數模型。</div>
+  <div class="check"><b>🔍 小細節：跟 R 的結果一樣嗎？</b>Python 的 <code>chi2_contingency</code> 對 2 × 2 表預設會做 Yates 連續性校正，跟 R 的 <code>chisq.test</code> 一樣，所以 χ² 都是 260.7（附錄有 R 的輸出可以對照）。</div>
+  <div class="stepdone"><button type="button" data-step="c8">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 09 ============ -->
+<section class="ch" id="c9">
+  <div class="ch-h"><span class="num">09</span><h2>多變數分析：logistic regression<small>同時考慮性別、艙等和年齡</small></h2></div>
+  <p>結果是「活 / 死」這種 0/1 的變數時，用 <b>logistic regression</b>（邏輯斯迴歸）。它可以同時放好幾個因素，回答：「<b>在其他因素都一樣的情況下</b>，這個因素跟存活有沒有關係？」</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>性別、艙等、年齡彼此有關（例如頭等艙的乘客年紀比較大），分開檢定可能會互相混淆。
+請用 statsmodels 做 logistic regression：Survived ~ 性別 + 艙等 + 年齡，
+算出每個變數的 odds ratio、95% 信賴區間和 p 值，整理成一張表，並用白話解釋 odds ratio 的意思。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">import</span> numpy <span class="t-kw">as</span> np
+<span class="t-kw">import</span> statsmodels.formula.api <span class="t-kw">as</span> smf
+
+model = smf.<span class="t-fn">logit</span>(<span class="t-str">"Survived ~ C(Sex) + C(Pclass) + Age"</span>, data=clean).<span class="t-fn">fit</span>()   <span class="t-com"># Age 缺值的列會自動排除</span>
+<span class="t-fn">print</span>(<span class="t-str">"用到的乘客數："</span>, <span class="t-fn">int</span>(model.nobs))
+or_table = pd.<span class="t-fn">DataFrame</span>({
+    <span class="t-str">"OR"</span>:      np.<span class="t-fn">exp</span>(model.params),            <span class="t-com"># 係數取 e 次方 = odds ratio</span>
+    <span class="t-str">"CI_low"</span>:  np.<span class="t-fn">exp</span>(model.<span class="t-fn">conf_int</span>()[<span class="t-num">0</span>]),
+    <span class="t-str">"CI_high"</span>: np.<span class="t-fn">exp</span>(model.<span class="t-fn">conf_int</span>()[<span class="t-num">1</span>]),
+}).<span class="t-fn">round</span>(<span class="t-num">3</span>)
+or_table[<span class="t-str">"p"</span>] = model.pvalues.<span class="t-fn">map</span>(<span class="t-kw">lambda</span> v: <span class="t-str">f"{v:.1e}"</span>)   <span class="t-com"># p 值用科學記號，不然會被四捨五入成 0</span>
+or_table</pre><div class="out"><span class="pre-tag">執行結果</span>Optimization terminated successfully.
+         Current function value: 0.453279
+         Iterations 6
+用到的乘客數： 714
+                    OR  CI_low  CI_high        p
+Intercept       43.685  19.902   95.890  4.7e-21
+C(Sex)[T.male]   0.080   0.053    0.120  4.8e-34
+C(Pclass)[T.2]   0.270   0.156    0.465  2.5e-06
+C(Pclass)[T.3]   0.076   0.044    0.131  4.8e-20
+Age              0.964   0.949    0.978  1.4e-06</div></div>
+  <h3><span class="tag">9-1</span>odds ratio 怎麼讀</h3>
+  <p><b>勝算（odds）</b>＝ 存活機率 ÷ 死亡機率。例如女性存活率 74.2%，勝算 = 0.742 ÷ 0.258 ≈ 2.9（活下來的機會是死掉的 2.9 倍）。<b>勝算比（odds ratio，OR）</b>就是兩組勝算相除。OR = 1 表示沒差別，小於 1 表示存活機會比較低。</p>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>變數</th><th>OR（95% CI）</th><th>白話（其他兩個因素都一樣時）</th></tr>
+    <tr><td>男性（相對女性）</td><td>0.080（0.053–0.120）</td><td>男性存活的勝算只有女性的 8%，大約 1/12</td></tr>
+    <tr><td>二等艙（相對頭等）</td><td>0.270（0.156–0.465）</td><td>勝算約為頭等艙的 1/4</td></tr>
+    <tr><td>三等艙（相對頭等）</td><td>0.076（0.044–0.131）</td><td>勝算約為頭等艙的 1/13</td></tr>
+    <tr><td>年齡（每多 1 歲）</td><td>0.964（0.949–0.978）</td><td>每多 1 歲勝算少 3.6%；每多 10 歲，0.964¹⁰ ≈ 0.69，少約 31%</td></tr>
+  </table></div>
+  <div class="check"><b>🔍 自己檢查</b><ul>
+    <li><b>用到的乘客數是 714</b>，不是 891：缺年齡的 177 人被自動排除了。這要寫進結論的限制。</li>
+    <li>年齡在單獨檢定時 p = 0.16，放進模型後 p = 1.4 × 10⁻⁶：<b>考慮艙等之後，年齡的影響才顯現出來</b>，正好呼應第 8 步的推測。</li>
+    <li>「Intercept」（截距）是三個因素都在參考組（女性、頭等艙、0 歲）時的勝算，本身沒什麼解讀意義。</li>
+    <li>每個 CI 都沒有跨過 1，所以四個變數都達統計顯著。</li>
+  </ul></div>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>請把上面的 odds ratio 畫成森林圖：每個變數一列，點是 OR，橫線是 95% 信賴區間，
+x 軸用對數尺度，在 OR = 1 畫一條虛線，變數名稱改成好讀的英文。</pre></div>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python · AI 寫的程式碼</span><button type="button" class="copy">複製</button></div><pre class="src">ors = or_table.<span class="t-fn">drop</span>(<span class="t-str">"Intercept"</span>)                                  <span class="t-com"># 截距不畫</span>
+names = {<span class="t-str">"C(Sex)[T.male]"</span>: <span class="t-str">"Male (vs female)"</span>,
+         <span class="t-str">"C(Pclass)[T.2]"</span>: <span class="t-str">"2nd class (vs 1st)"</span>,
+         <span class="t-str">"C(Pclass)[T.3]"</span>: <span class="t-str">"3rd class (vs 1st)"</span>,
+         <span class="t-str">"Age"</span>: <span class="t-str">"Age (per 1 year)"</span>}
+y = <span class="t-fn">range</span>(<span class="t-fn">len</span>(ors))
+fig, ax = plt.<span class="t-fn">subplots</span>(figsize=(<span class="t-num">7</span>, <span class="t-num">3</span>))
+ax.<span class="t-fn">errorbar</span>(ors[<span class="t-str">"OR"</span>], y,
+            xerr=[ors[<span class="t-str">"OR"</span>] - ors[<span class="t-str">"CI_low"</span>], ors[<span class="t-str">"CI_high"</span>] - ors[<span class="t-str">"OR"</span>]],
+            fmt=<span class="t-str">"o"</span>, color=<span class="t-str">"#264653"</span>, capsize=<span class="t-num">4</span>)
+ax.<span class="t-fn">axvline</span>(<span class="t-num">1</span>, linestyle=<span class="t-str">"--"</span>, color=<span class="t-str">"grey"</span>)                      <span class="t-com"># OR = 1：沒有關係</span>
+ax.<span class="t-fn">set_xscale</span>(<span class="t-str">"log"</span>)
+ax.<span class="t-fn">set_yticks</span>(<span class="t-fn">list</span>(y), [names[i] <span class="t-kw">for</span> i <span class="t-kw">in</span> ors.index])
+ax.<span class="t-fn">invert_yaxis</span>()                                                <span class="t-com"># 第一個變數放最上面</span>
+ax.<span class="t-fn">set</span>(xlabel=<span class="t-str">"Odds ratio of survival (95% CI, log scale)"</span>, title=<span class="t-str">"Logistic regression"</span>)
+plt.<span class="t-fn">tight_layout</span>()
+plt.<span class="t-fn">show</span>()</pre><div class="figout wide"><img src="img/titanic/forest_0.png" alt="forest 的圖" width="1378" height="568" loading="lazy"></div></div>
+  <div class="check"><b>🔍 讀圖</b>點越往左，存活機會越低。三個點都離虛線（OR = 1）很遠：性別和艙等的影響都非常大；年齡的點很靠近 1，但因為信賴區間很窄，仍然顯著，只是每 1 歲的效果比較小。用對數座標，0.1 和 10 離 1 的距離才會一樣。森林圖在醫學論文很常見，<a href="ggplot.html#g15">ggplot2 畫室第 15 章</a>有 R 的畫法。</div>
+  <div class="stepdone"><button type="button" data-step="c9">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="ch" id="c10">
+  <div class="ch-h"><span class="num">10</span><h2>寫結論<small>AI 寫草稿，你逐句核對</small></h2></div>
+  <p>把前面的<b>實際輸出</b>貼給 AI，請它寫結論。重點是限制它只能用你給的數字：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>以下是我所有的分析結果：
+<i>（貼上：整體存活率、性別與艙等的存活率表、卡方檢定與 Mann–Whitney 的結果、logistic regression 的 OR 表）</i>
+請用繁體中文寫一段約 250 字的結論，給沒有統計背景的人看：
+1. 只能使用我提供的數字，不要自己補數字。
+2. 分成「主要發現」和「這份分析的限制」兩段。
+3. 不要寫出「因為是女性所以活下來」這種因果的說法。</pre></div>
+  <p>AI 給的草稿，經過逐句核對、修正後，可以像這樣：</p>
+  <div class="note tip"><b>📝 結論範例</b>
+    <p><b>主要發現：</b>本分析使用 Kaggle Titanic 資料中的 891 位乘客，整體存活率為 38.4%。女性的存活率（74.2%）遠高於男性（18.9%）；頭等、二等、三等艙的存活率分別為 63.0%、47.3%、24.2%，兩者與存活的關聯都達統計顯著（卡方檢定，p &lt; 0.001）。單獨比較年齡時，存活者與罹難者的年齡分布沒有明顯差異（Mann–Whitney，p = 0.16）；但在同時考慮性別、艙等與年齡的 logistic regression 中（n = 714），男性存活的勝算約為女性的 0.08 倍（95% CI 0.05–0.12），三等艙約為頭等艙的 0.08 倍（0.04–0.13），年齡每增加 10 歲，存活勝算約減少 31%。</p>
+    <p><b>限制：</b>這份資料只包含約四成的乘客、不含船員；年齡有 177 人（19.9%）缺值，模型只用了有年齡的 714 人；這是觀察性資料，只能說明「關聯」，不能證明性別或艙等「造成」存活差異，艙等也可能同時代表艙房位置、離救生艇的距離等其他因素。</p>
+  </div>
+  <h3><span class="tag">10-1</span>逐句核對：每個數字都要找得到出處</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>結論裡的數字</th><th>出處</th></tr>
+    <tr><td>891 位、38.4%</td><td>第 6 步「整體存活率」</td></tr>
+    <tr><td>74.2%、18.9%</td><td>第 6 步依性別的 rate（0.742、0.189）</td></tr>
+    <tr><td>63.0%、47.3%、24.2%</td><td>第 6 步依艙等的 rate</td></tr>
+    <tr><td>p &lt; 0.001</td><td>第 8 步卡方檢定（1.2e-58、4.6e-23）</td></tr>
+    <tr><td>p = 0.16</td><td>第 8 步 Mann–Whitney</td></tr>
+    <tr><td>n = 714、0.08（0.05–0.12）、0.08（0.04–0.13）</td><td>第 9 步 OR 表</td></tr>
+    <tr><td>每 10 歲減少約 31%</td><td>第 9 步：0.964¹⁰ ≈ 0.69（這是自己算的，要寫清楚怎麼來的）</td></tr>
+    <tr><td>177 人（19.9%）缺值</td><td>第 5 步缺值表</td></tr>
+  </table></div>
+  <h3><span class="tag">10-2</span>交出去之前的檢查清單</h3>
+  <ul class="cklist">
+    <li><label><input type="checkbox" id="ck1"><span>結論裡的每一個數字，都能在程式輸出中找到（或寫清楚怎麼算的）。</span></label></li>
+    <li><label><input type="checkbox" id="ck2"><span>沒有「因為……所以……」的因果說法，用的是「與……有關」。</span></label></li>
+    <li><label><input type="checkbox" id="ck3"><span>寫出樣本數，以及缺值怎麼處理。</span></label></li>
+    <li><label><input type="checkbox" id="ck4"><span>檢定方法符合資料型態（對照 p 值教室的流程圖）。</span></label></li>
+    <li><label><input type="checkbox" id="ck5"><span>除了 p 值，也寫了效應大小（存活率差、OR 與信賴區間）。</span></label></li>
+    <li><label><input type="checkbox" id="ck6"><span>圖的標題、座標軸、圖例都正確，看得懂。</span></label></li>
+    <li><label><input type="checkbox" id="ck7"><span>用「執行階段 → 重新啟動工作階段並全部執行」從頭跑一次，結果一樣、沒有錯誤。</span></label></li>
+    <li><label><input type="checkbox" id="ck8"><span>依照課程規定，說明哪些部分使用了 AI。</span></label></li>
+  </ul>
+  <div class="note warn"><b>⚠ AI 寫結論時常見的問題</b>① 數字跟輸出對不上（例如把 74.2% 寫成 74%、或寫出輸出裡沒有的數字）。② 把關聯寫成因果（「身為女性提高了存活率」）。③ 漏掉限制，或加上資料裡沒有的背景知識（例如船上救生艇的數量），這些要另外查證才能寫。</div>
+  <div class="stepdone"><button type="button" data-step="c10">我完成這一步了</button></div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="ch" id="c11">
+  <div class="ch-h"><span class="num">11</span><h2>除錯與 prompt 速查<small>出錯時怎麼辦、AI 常見的錯</small></h2></div>
+  <h3><span class="tag">11-1</span>一個錯誤的完整處理過程</h3>
+  <p>假設你自己打了下面這行，想算性別的存活率：</p>
+  <div class="py"><div class="cell-h"><span class="lab">🐍 Python</span><button type="button" class="copy">複製</button></div><pre class="src">clean.<span class="t-fn">groupby</span>(<span class="t-str">"sex"</span>)[<span class="t-str">"Survived"</span>].<span class="t-fn">mean</span>()</pre><div class="out"><span class="pre-tag">執行結果</span><span class="err">---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+----&gt; 1 clean.groupby("sex")["Survived"].mean()
+……（中間是很多層 pandas 內部的訊息，可以先跳過）……
+KeyError: 'sex'</span></div></div>
+  <p><b>先看最後一行</b>：<code>KeyError: 'sex'</code>，意思是「找不到叫做 sex 的欄位」。如果看不懂，按 Colab 的「解釋錯誤」，或用這個 prompt：</p>
+  <div class="prompt"><div class="prompt-h"><span class="k">PROMPT</span>🤖 給 AI 的 prompt<button type="button" class="copy">複製</button></div><pre>我執行下面的程式時出現錯誤：
+<i>（貼上程式碼）</i>
+完整的錯誤訊息是：
+<i>（貼上錯誤訊息，從 Traceback 到最後一行）</i>
+請說明錯誤的原因，並給我修正後的程式碼。</pre></div>
+  <div class="aisay"><b>💬 AI 可能會這樣回答（重點）</b>KeyError 表示 DataFrame 裡沒有 <code>"sex"</code> 這一欄。欄位名稱有分大小寫，資料裡的欄名是 <code>"Sex"</code>（大寫 S）。修正：<code>clean.groupby("Sex")["Survived"].mean()</code>。可以用 <code>clean.columns</code> 查看所有欄名。</div>
+
+  <h3><span class="tag">11-2</span>常見錯誤訊息</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>錯誤訊息</th><th>意思</th><th>怎麼辦</th></tr>
+    <tr><td><code>NameError: name 'pd' is not defined</code></td><td>還沒執行 <code>import</code> 那一格，或雲端電腦重新連線過</td><td>執行階段 → 全部執行</td></tr>
+    <tr><td><code>NameError: name 'clean' is not defined</code></td><td>還沒執行建立 clean 的那一格</td><td>依順序從上往下執行</td></tr>
+    <tr><td><code>FileNotFoundError</code></td><td>找不到檔案：沒上傳、路徑打錯，或重新連線後檔案消失</td><td>重新上傳，或改用網址讀取</td></tr>
+    <tr><td><code>KeyError: '…'</code></td><td>欄位名稱打錯（大小寫、空白）</td><td><code>df.columns</code> 看正確欄名</td></tr>
+    <tr><td><code>ModuleNotFoundError</code></td><td>套件沒有安裝</td><td>在儲存格執行 <code>!pip install 套件名稱</code></td></tr>
+    <tr><td><code>IndentationError</code></td><td>縮排不對（Python 用縮排分區塊）</td><td>對齊同一層的程式；不要混用 Tab 和空白</td></tr>
+    <tr><td><code>SettingWithCopyWarning</code>（警告）</td><td>可能改到的是副本而不是原本的表</td><td>建立新表時加 <code>.copy()</code></td></tr>
+    <tr><td><code>FutureWarning</code>（警告）</td><td>這種寫法以後的版本會改</td><td>通常可以先不理；可以請 AI 改成新寫法</td></tr>
+  </table></div>
+
+  <h3><span class="tag">11-3</span>AI 常犯的錯，以及怎麼發現</h3>
+  <div class="tblwrap"><table class="cmp">
+    <tr><th>AI 的錯</th><th>例子</th><th>怎麼發現</th></tr>
+    <tr><td>用不存在的欄位</td><td>寫成 <code>df["age"]</code>、<code>df["Class"]</code></td><td>出現 KeyError；開場 prompt 先給欄位名稱可以避免</td></tr>
+    <tr><td>舊版或不存在的函式</td><td>pandas、seaborn 改版後，參數名稱變了</td><td>出現錯誤或警告時，貼給 AI 並說明版本</td></tr>
+    <tr><td>不聲不響地刪資料</td><td><code>dropna()</code>、<code>inplace=True</code></td><td>每一步之後看 <code>.shape</code>，列數有沒有突然變少</td></tr>
+    <tr><td>選錯統計方法</td><td>把 0/1 結果拿去做一般線性迴歸</td><td>請它說明理由；對照 p 值教室的流程圖</td></tr>
+    <tr><td>解釋跟輸出對不上</td><td>說「p = 0.03」，輸出其實是 0.16</td><td>每個數字回頭對照輸出</td></tr>
+    <tr><td>過度推論</td><td>「女性存活率較高，證明當時有婦孺優先政策」</td><td>資料能證明什麼、不能證明什麼，自己想一遍</td></tr>
+  </table></div>
+
+  <h3><span class="tag">11-4</span>Prompt 速查表</h3>
+  <div class="tblwrap"><table class="cmp nw1">
+    <tr><th>情境</th><th>prompt 範本</th></tr>
+    <tr><td>開場</td><td>你是資料分析助教。我在 Colab 用 Python 分析 <i>（資料名稱）</i>，欄位有 <i>（欄位與意思）</i>。每次只做一步，加中文註解，圖上用英文，不要編造數字。</td></tr>
+    <tr><td>讀資料</td><td>請從 <i>（網址或檔名）</i> 讀取 CSV 存成 df，顯示列數、欄數和前 5 列。</td></tr>
+    <tr><td>認識資料</td><td>這是 df.info() 和 df.describe() 的輸出 <i>（貼上）</i>，請用白話說明每一欄，並指出需要注意的地方。</td></tr>
+    <tr><td>清理（先討論）</td><td>先不要寫程式。<i>（欄位）</i> 有 <i>（數量）</i> 個缺值，有哪些處理方式？各有什麼優缺點？</td></tr>
+    <tr><td>選統計方法</td><td>我想知道 <i>（問題）</i>。<i>（變數）</i> 是 <i>（類別 / 數值）</i>。請建議適合的檢定，說明理由和前提，再寫程式。</td></tr>
+    <tr><td>解釋輸出</td><td>這是 <i>（檢定 / 模型）</i> 的輸出 <i>（貼上）</i>，請用沒有統計背景的人聽得懂的話解釋。</td></tr>
+    <tr><td>修改圖</td><td>請把上一張圖的 <i>（要改的地方）</i> 改成 <i>（想要的樣子）</i>，其他不變。</td></tr>
+    <tr><td>看懂程式</td><td>請逐行解釋這段程式在做什麼 <i>（貼上）</i>，用初學者聽得懂的話。</td></tr>
+    <tr><td>檢查程式</td><td>請檢查這段程式有沒有可能出錯或讓結果偏差的地方，例如缺值、資料型態、刪掉資料。</td></tr>
+    <tr><td>除錯</td><td>執行 <i>（程式）</i> 出現錯誤 <i>（完整訊息）</i>，請說明原因並修正。</td></tr>
+    <tr><td>寫結論</td><td>根據以下結果 <i>（貼上）</i>，寫 250 字結論，分「主要發現」和「限制」，只能用我給的數字，不要寫因果。</td></tr>
+    <tr><td>換成 R</td><td>請把上面的 Python 程式改寫成 R，使用 tidyverse 和 ggplot2。</td></tr>
+  </table></div>
+  <h3><span class="tag">11-5</span>換一份資料練習</h3>
+  <p>用同樣的流程，換一份資料自己做一次。下面這些都是公開、不含個資的資料：</p>
+  <ul>
+    <li><b>企鵝資料</b>：<code>sns.load_dataset("penguins")</code>，三種企鵝的嘴喙長度、體重（比較組別、散佈圖）。</li>
+    <li><b>小費資料</b>：<code>sns.load_dataset("tips")</code>，餐廳帳單與小費（迴歸、分組比較）。</li>
+    <li><b>這門課的資料</b>：<a href="tidy.html">tidyverse 手冊</a>右下角 📁 可以下載 <code>lab.csv</code>（模擬的血糖、HbA1c 資料），試試用 AI + Colab 重做一次 p 值教室的分析。</li>
+  </ul>
+  <div class="stepdone"><button type="button" data-step="c11">我完成這一步了</button></div>
+</section>
+
+<!-- ============ R ============ -->
+<section class="ch" id="cR">
+  <div class="ch-h"><span class="num">附</span><h2>用 R 做同樣的分析<small>Colab 也能跑 R</small></h2></div>
+  <p>Colab 可以把語言換成 R：上方選單 <b>執行階段 → 變更執行階段類型</b>，在「執行階段類型」選 <b>R</b>，按儲存。之後這份筆記本的程式碼儲存格就是 R 了。常用的 tidyverse 通常已經裝好，可以直接 <code>library(tidyverse)</code>；如果出現找不到套件的錯誤，先執行 <code>install.packages("tidyverse")</code>。</p>
+  <figure class="shot">
+    <div class="scroll"><div class="mock">
+      <div class="mk-menu" style="padding-top:8px"><span>檔案</span><span>編輯</span><span>檢視畫面</span><span>插入</span><span class="mk-menu-pop"><span class="on">執行階段<span class="mk-n">1</span></span>
+        <span class="mk-pop"><div>全部執行 <small>Ctrl+F9</small></div><div>執行之前的儲存格</div><hr><div>中斷執行</div><div>重新啟動工作階段</div><div>重新啟動工作階段並全部執行</div><hr><div class="hl">變更執行階段類型<span class="mk-n">2</span></div></span></span><span>工具</span><span>說明</span></div>
+      <div style="height:200px;display:flex;align-items:flex-end;justify-content:flex-end;padding:12px">
+        <div class="mk-dialog" style="margin:0;width:260px"><div class="dh" style="font-size:14px">變更執行階段類型</div><div class="rows"><div>執行階段類型：<b style="color:#1a73e8">R ▾</b><span class="mk-n">3</span></div></div><div class="df"><span class="mk-btn">取消</span><span class="mk-btn blue">儲存</span></div></div>
+      </div>
+    </div></div>
+    <figcaption><b>示意圖 7</b>　<span class="mk-n">1</span> 執行階段 → <span class="mk-n">2</span> 變更執行階段類型 → <span class="mk-n">3</span> 選 R，儲存。</figcaption>
+  </figure>
+  <p>也可以直接請 AI 改寫：「請把上面的 Python 程式改寫成 R，使用 tidyverse。」下面是核心分析的 R 版本，結果跟 Python 完全一樣：</p>
+  <div class="py"><div class="cell-h"><span class="lab">R · 同樣的分析</span><button type="button" class="copy">複製</button></div><pre class="src"><span class="t-kw">library</span>(tidyverse)
+
+df <span class="t-op">&lt;-</span> <span class="t-fn">read_csv</span>(<span class="t-str">"https://chenyc0901.github.io/R_datastructure_learning/data/titanic.csv"</span>,
+               show_col_types = <span class="t-kw">FALSE</span>)
+<span class="t-fn">glimpse</span>(df)
+<span class="t-fn">colSums</span>(is.<span class="t-fn">na</span>(df))                                    <span class="t-com"># 每一欄的缺值數</span>
+
+clean <span class="t-op">&lt;-</span> df <span class="t-op">|&gt;</span>
+  <span class="t-fn">select</span>(-Cabin, -Ticket) <span class="t-op">|&gt;</span>
+  <span class="t-fn">mutate</span>(Embarked   = <span class="t-fn">replace_na</span>(Embarked, <span class="t-str">"S"</span>),      <span class="t-com"># 最常見的港口</span>
+         FamilySize = SibSp + Parch + <span class="t-num">1</span>,
+         Outcome    = <span class="t-fn">if_else</span>(Survived == <span class="t-num">1</span>, <span class="t-str">"Survived"</span>, <span class="t-str">"Died"</span>))
+
+clean <span class="t-op">|&gt;</span>
+  <span class="t-fn">summarise</span>(n = <span class="t-fn">n</span>(), rate = <span class="t-fn">mean</span>(Survived), .by = <span class="t-fn">c</span>(Pclass, Sex)) <span class="t-op">|&gt;</span>
+  <span class="t-fn">arrange</span>(Pclass, Sex)
+
+<span class="t-fn">ggplot</span>(clean, <span class="t-fn">aes</span>(x = <span class="t-fn">factor</span>(Pclass), y = Survived, fill = Sex)) +
+  <span class="t-fn">stat_summary</span>(fun = mean, geom = <span class="t-str">"col"</span>, position = <span class="t-str">"dodge"</span>) +
+  <span class="t-fn">labs</span>(x = <span class="t-str">"Passenger class"</span>, y = <span class="t-str">"Survival rate"</span>)
+
+chisq.<span class="t-fn">test</span>(<span class="t-fn">table</span>(clean$Sex, clean$Survived))
+wilcox.<span class="t-fn">test</span>(Age <span class="t-op">~</span> Survived, data = clean)
+
+fit <span class="t-op">&lt;-</span> <span class="t-fn">glm</span>(Survived <span class="t-op">~</span> Sex + <span class="t-fn">factor</span>(Pclass) + Age, data = clean, family = binomial)
+<span class="t-fn">exp</span>(<span class="t-fn">cbind</span>(OR = <span class="t-fn">coef</span>(fit), confint.<span class="t-fn">default</span>(fit)))      <span class="t-com"># odds ratio 與 95% CI</span></pre></div>
+  <div class="out" style="border:1px solid var(--line);border-radius:12px;white-space:pre;overflow-x:auto"><span class="pre-tag">重點輸出（節錄）</span># A tibble: 6 × 4
+  Pclass Sex        n  rate
+   &lt;dbl&gt; &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;
+1      1 female    94 0.968
+2      1 male     122 0.369
+3      2 female    76 0.921
+4      2 male     108 0.157
+5      3 female   144 0.5
+6      3 male     347 0.135
+
+	Pearson's Chi-squared test with Yates' continuity correction
+data:  table(clean$Sex, clean$Survived)
+X-squared = 260.72, df = 1, p-value &lt; 2.2e-16
+
+	Wilcoxon rank sum test with continuity correction
+data:  Age by Survived
+W = 65278, p-value = 0.1605
+
+                         OR       2.5 %     97.5 %
+(Intercept)     43.68534331 19.90210333 95.8898257
+Sexmale          0.08023617  0.05343658  0.1204763
+factor(Pclass)2  0.26987422  0.15648460  0.4654266
+factor(Pclass)3  0.07572664  0.04361991  0.1314657
+Age              0.96369033  0.94933775  0.9782599</div>
+  <div class="check"><b>🔍 對照 Python</b>存活率表、χ² = 260.7、年齡 p = 0.16、OR 與信賴區間都和 Python 版相同（Wilcoxon 的 W 和 Mann–Whitney 的 U 數值不同，是因為兩邊以不同的組當作第一組，p 值一樣）。用哪一種語言不重要，<b>重要的是你看得懂、檢查得了</b>。</div>
+  <div class="next">
+    <a href="ai.html"><span>上一單元</span><b>R 寶的 AI 入門 →</b></a>
+    <a href="pvalue.html"><span>統計方法複習</span><b>R 寶的 p 值教室 →</b></a>
+    <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
+  </div>
+</section>
+  </main>
+</div>
+
+<script>
+window.PAGE_KEY = 'r-ai-colab-v1';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let store = {};
+try { store = JSON.parse(localStorage.getItem(window.PAGE_KEY) || '{}') || {}; } catch (e) { store = {}; }
+const persist = () => { try { localStorage.setItem(window.PAGE_KEY, JSON.stringify(store)); } catch (e) {} };
+
+/* copy buttons: copy the text of the block they belong to */
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove(); return ok;
+  }
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button.copy'); if (!b) return;
+  const host = b.closest('.prompt, .py, .wbox');
+  const src = b.dataset.from ? $(b.dataset.from) : host && (host.querySelector('pre.src') || host.querySelector('pre') || host.querySelector('.res'));
+  if (!src) return;
+  const ok = await copyText(src.innerText.replace(/ /g, ' '));
+  const old = b.textContent; b.textContent = ok ? '✓ 已複製' : '請手動選取'; b.classList.toggle('ok', ok);
+  setTimeout(() => { b.textContent = old; b.classList.remove('ok'); }, 1600);
+});
+
+/* TOC: highlight the chapter on screen */
+(() => {
+  const links = $$('#toc a[href^="#"]'); if (!links.length || !('IntersectionObserver' in window)) return;
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const io = new IntersectionObserver(es => {
+    for (const en of es) if (en.isIntersecting) { links.forEach(a => a.removeAttribute('aria-current')); const a = map.get(en.target.id); if (a) a.setAttribute('aria-current', 'true'); }
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  map.forEach((a, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+})();
+
+/* "I finished this step" buttons + progress in the TOC */
+(() => {
+  const btns = $$('.stepdone button'); if (!btns.length) return;
+  store.done = store.done || {};
+  const paint = () => {
+    btns.forEach(b => { const d = !!store.done[b.dataset.step]; b.setAttribute('aria-pressed', d); b.textContent = d ? '✓ 這一步完成了' : '我完成這一步了'; });
+    $$('#toc a[href^="#"]').forEach(a => a.classList.toggle('done', !!store.done[a.getAttribute('href').slice(1)]));
+    const p = $('#prog'); if (p) p.textContent = `完成 ${btns.filter(b => store.done[b.dataset.step]).length} / ${btns.length} 步`;
+  };
+  btns.forEach(b => b.addEventListener('click', () => { store.done[b.dataset.step] = !store.done[b.dataset.step]; persist(); paint(); }));
+  paint();
+})();
+
+/* checklists remember their ticks */
+(() => {
+  store.ck = store.ck || {};
+  $$('.cklist input[type=checkbox]').forEach(c => {
+    c.checked = !!store.ck[c.id];
+    c.addEventListener('change', () => { store.ck[c.id] = c.checked; persist(); });
+  });
+})();
+
+/* quiz */
+(() => {
+  const box = $('#quiz'); if (!box || !window.PAGE_QUIZ) return;
+  const Q = window.PAGE_QUIZ, ans = (store.quiz = store.quiz || {});
+  const render = () => {
+    const ok = Q.filter((q, i) => ans[i] === q[2]).length, done = Object.keys(ans).length;
+    box.innerHTML = Q.map((q, i) => `<div class="qz" data-i="${i}"><p>${i + 1}. ${q[0]}</p><div class="opts">${q[1].map((o, j) => `<button type="button" data-j="${j}" class="${ans[i] === undefined ? '' : j === q[2] ? 'right' : j === ans[i] ? 'wrong' : ''}"${ans[i] !== undefined ? ' disabled' : ''}>${esc(o)}</button>`).join('')}</div>${ans[i] !== undefined ? `<div class="fb">${ans[i] === q[2] ? '✓ 答對了！' : '✗ 不對。'}${q[3]}</div>` : ''}</div>`).join('')
+      + `<div class="qz"><span class="qz-score">答對 ${ok} / ${Q.length}</span>${done ? '　<button type="button" class="btn" id="qzReset">重新作答</button>' : ''}</div>`;
+    const r = $('#qzReset'); if (r) r.onclick = () => { for (const k of Object.keys(ans)) delete ans[k]; persist(); render(); };
+  };
+  box.addEventListener('click', e => { const b = e.target.closest('button[data-j]'); if (!b) return; const i = +b.closest('.qz').dataset.i; ans[i] = +b.dataset.j; persist(); render(); });
+  render();
+})();
+
+/* ---------- widget: learn a cut-off from data ---------- */
+(() => {
+  const svg = $('#thSvg'); if (!svg) return;
+  // fasting glucose (mg/dL) of 30 people and whether they truly have diabetes (by OGTT / HbA1c)
+  const NO = [84, 88, 91, 93, 95, 96, 98, 99, 101, 103, 104, 106, 108, 110, 113, 117, 121, 131];
+  const YES = [109, 118, 124, 127, 129, 133, 138, 142, 149, 156, 168, 184];
+  const W = 640, H = 262, X0 = 30, X1 = 620, lo = 75, hi = 195;
+  const xs = v => X0 + (v - lo) / (hi - lo) * (X1 - X0);
+  const errs = t => ({ fp: NO.filter(v => v >= t).length, fn: YES.filter(v => v < t).length });
+  const slider = $('#thR'), outv = $('#thV'), msg = $('#thMsg');
+  const curve = []; for (let t = 80; t <= 190; t++) { const e = errs(t); curve.push([t, e.fp + e.fn]); }
+  const best = Math.min(...curve.map(c => c[1]));
+  const cy = n => 250 - n * 6;
+  const draw = (t, scan) => {
+    const e = errs(t);
+    let s = `<rect x="0" y="0" width="${W}" height="${H}" fill="none"/>`;
+    s += `<line x1="${X0}" y1="100" x2="${X1}" y2="100" stroke="var(--line)" stroke-width="2"/>`;
+    for (let v = 80; v <= 190; v += 10) s += `<line x1="${xs(v)}" y1="96" x2="${xs(v)}" y2="104" stroke="var(--muted)"/><text x="${xs(v)}" y="118" font-size="11" text-anchor="middle" fill="var(--muted)">${v}</text>`;
+    s += `<rect x="${xs(t)}" y="18" width="${X1 - xs(t)}" height="74" fill="var(--bad)" opacity=".07"/>`;
+    s += `<text x="${X1 - 4}" y="30" font-size="12" text-anchor="end" fill="var(--bad)">判為「糖尿病」</text><text x="${X0 + 4}" y="30" font-size="12" fill="var(--ok)">判為「正常」</text>`;
+    const dots = (arr, y, col, isYes) => arr.map((v, i) => { const wrong = isYes ? v < t : v >= t; return `<circle cx="${xs(v)}" cy="${y + (i % 3) * 9}" r="6" fill="${col}" ${wrong ? 'stroke="var(--ink)" stroke-width="2.5"' : 'stroke="none"'}/>`; }).join('');
+    s += dots(NO, 52, 'var(--ok)', false) + dots(YES, 70, 'var(--bad)', true);
+    s += `<line x1="${xs(t)}" y1="16" x2="${xs(t)}" y2="104" stroke="var(--accent)" stroke-width="3"/><text x="${xs(t)}" y="12" font-size="12" text-anchor="middle" fill="var(--accent)" font-weight="700">${t}</text>`;
+    s += `<line x1="${xs(126)}" y1="100" x2="${xs(126)}" y2="256" stroke="var(--amber)" stroke-dasharray="4 3"/><text x="${xs(126) + 4}" y="254" font-size="11" fill="var(--amber)">臨床標準 126</text>`;
+    s += `<polyline fill="none" stroke="var(--violet)" stroke-width="2" points="${curve.map(([v, n]) => `${xs(v)},${cy(n)}`).join(' ')}"/>`;
+    s += `<text x="${X1}" y="140" font-size="11.5" text-anchor="end" fill="var(--violet)">紫線：每個切點的錯誤人數（越低越好）</text>`;
+    s += `<circle cx="${xs(t)}" cy="${cy(e.fp + e.fn)}" r="5" fill="var(--violet)"/>`;
+    svg.innerHTML = s;
+    slider.value = t; outv.textContent = t + ' mg/dL';
+    const tot = e.fp + e.fn;
+    msg.innerHTML = `切點 <b>${t}</b>：把 ${e.fp} 位<b style="color:var(--ok)">沒有</b>糖尿病的人判成有（偽陽性），${e.fn} 位<b style="color:var(--bad)">有</b>糖尿病的人判成沒有（偽陰性），共錯 <b>${tot}</b> 位（正確率 ${Math.round((30 - tot) / 30 * 100)}%）。` + (scan ? '' : tot === best ? ' 🎉 這已經是這份資料能做到的最少錯誤。' : '');
+  };
+  slider.addEventListener('input', () => draw(+slider.value));
+  let timer = null;
+  $('#thLearn').addEventListener('click', () => {
+    clearInterval(timer); let t = 80, bestT = 80, bestE = 99;
+    timer = setInterval(() => {
+      const e = errs(t), n = e.fp + e.fn; if (n < bestE) { bestE = n; bestT = t; }
+      draw(t, true); t += 2;
+      if (t > 190) { clearInterval(timer); draw(bestT); msg.innerHTML += `<br>電腦把 80 到 190 每個切點都試過一次，挑出錯誤最少的 <b>${bestT}</b>。這就是最簡單的「從資料學習」。`; }
+    }, 45);
+  });
+  draw(150);
+})();
+
+/* ---------- widget: next-token prediction ---------- */
+(() => {
+  const host = $('#ntBox'); if (!host) return;
+  const P = [
+    { ctx: ['鐵達尼號', '在', '1912', '年', '撞上', '了', '一座'], c: [['冰山', 8.2], ['礁石', 0.7], ['島嶼', 0.4], ['燈塔', 0.3], ['軍艦', 0.2], ['火山', 0.05, 1]] },
+    { ctx: ['空腹', '血糖', '126', 'mg/dL', '以上', '，', '可能', '是'], c: [['糖尿病', 7.1], ['高血糖', 1.2], ['檢體', 0.6], ['正常', 0.2], ['感冒', 0.06, 1], ['貧血', 0.05, 1]] },
+    { ctx: ['R', '語言', '裡', '最', '常用', '的', '畫圖', '套件', '是'], c: [['ggplot2', 7.8], ['base', 0.8], ['lattice', 0.5], ['plotly', 0.4], ['matplotlib', 0.35, 1], ['Excel', 0.1, 1]] },
+  ];
+  let k = 0, T = 1, picked = null;
+  const probs = () => { const w = P[k].c.map(([, p]) => Math.pow(p, 1 / T)); const s = w.reduce((a, b) => a + b, 0); return w.map(x => x / s); };
+  const render = () => {
+    const pr = probs();
+    $('#ntCtx').innerHTML = P[k].ctx.map(t => `<span>${esc(t)}</span>`).join('') + (picked !== null ? `<span class="new">${esc(P[k].c[picked][0])}</span>` : '<span style="border-style:dashed">？</span>');
+    $('#ntBars').innerHTML = P[k].c.map(([t, , bad], i) => `<div class="br${bad ? ' bad' : ''}${picked === i ? ' pick' : ''}"><span class="t">${esc(t)}</span><span class="track"><span class="fill" style="width:${(pr[i] * 100).toFixed(1)}%"></span></span><span class="v">${(pr[i] * 100).toFixed(1)}%</span></div>`).join('');
+    $('#ntT').textContent = T.toFixed(1);
+  };
+  $$('#ntSeg button').forEach((b, i) => b.addEventListener('click', () => { k = i; picked = null; $$('#ntSeg button').forEach((x, j) => x.setAttribute('aria-pressed', i === j)); $('#ntMsg').textContent = ''; render(); }));
+  $('#ntTR').addEventListener('input', e => { T = +e.target.value; render(); });
+  let n = 0, wrong = 0;
+  $('#ntGo').addEventListener('click', () => {
+    const pr = probs(); let r = Math.random(), i = 0; while (i < pr.length - 1 && (r -= pr[i]) > 0) i++;
+    picked = i; n++; if (P[k].c[i][2]) wrong++;
+    render();
+    $('#ntMsg').innerHTML = (P[k].c[i][2] ? `抽到 <b style="color:var(--bad)">${esc(P[k].c[i][0])}</b>：句子一樣通順，但內容是<b>錯的</b>。這就是「幻覺」的來源之一。` : `抽到 <b>${esc(P[k].c[i][0])}</b>。`) + ` <span style="color:var(--muted)">（你已經抽了 ${n} 次，其中 ${wrong} 次是紅色的錯誤答案）</span>`;
+  });
+  render();
+})();
+
+/* ---------- widget: prompt builder ---------- */
+(() => {
+  const host = $('#pbBox'); if (!host) return;
+  const F = ['role', 'ctx', 'task', 'fmt', 'rule'], L = { role: '角色', ctx: '背景', task: '任務', fmt: '格式', rule: '限制' };
+  const saved = store.pb || {};
+  F.forEach(f => { const t = $('#pb_' + f); if (saved[f] !== undefined) t.value = saved[f]; });
+  const render = () => {
+    const v = {}; F.forEach(f => v[f] = $('#pb_' + f).value.trim());
+    const parts = [];
+    if (v.role) parts.push(v.role);
+    if (v.ctx) parts.push(v.ctx);
+    if (v.task) parts.push(v.task);
+    if (v.fmt) parts.push('輸出格式：' + v.fmt);
+    if (v.rule) parts.push('請遵守：' + v.rule);
+    $('#pbRes').textContent = parts.join('\n\n') || '（在左邊填寫，這裡會組合成一段 prompt）';
+    $('#pbMeter').innerHTML = F.map(f => `<span class="${v[f] ? 'on' : ''}">${v[f] ? '✓ ' : ''}${L[f]}</span>`).join('');
+    const n = F.filter(f => v[f]).length;
+    $('#pbTip').textContent = n === 5 ? '五個要素都有了。送出之後，記得檢查 AI 的回答！' : !v.task ? '最重要的是「任務」：你要 AI 做什麼？' : !v.ctx ? '加上「背景」：AI 不知道你的資料長什麼樣子。' : !v.rule ? '加上「限制」可以避免 AI 自作主張。' : '還可以補上其他要素，讓回答更貼近你要的。';
+    store.pb = v; persist();
+  };
+  F.forEach(f => $('#pb_' + f).addEventListener('input', render));
+  $('#pbReset').addEventListener('click', () => { F.forEach(f => { const t = $('#pb_' + f); t.value = t.defaultValue; }); render(); });
+  $('#pbClear').addEventListener('click', () => { F.forEach(f => $('#pb_' + f).value = ''); render(); });
+  render();
+})();
+
+</script>
+
+</body>
+</html>
