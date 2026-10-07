@@ -394,7 +394,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <h1>R 寶的 tidyverse 完全手冊</h1>
     </div>
     <p>從讀進一份亂七八糟的資料，到整理、轉換、合併，再用 ggplot2 畫出能放進報告的圖。每一個函式都有可以執行的範例和圖解，最後用三個實作範例（其中一個是生物資訊的 RNA-seq 分析）把全部串起來。</p>
-    <div class="meta"><span class="pill">13 章 · 10 題練習 · 3 個實作範例</span><span class="pill">這一頁跑的是<b>真正的 R</b>（webR）</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span></div>
+    <div class="meta"><span class="pill">13 章 · 8 題練習 · 3 個實作範例</span><span class="pill">這一頁跑的是<b>真正的 R</b>（webR）</span><span class="pill">快捷鍵 <b>Ctrl / ⌘ + Enter</b> 執行</span></div>
   </div>
 </header>
 
@@ -411,13 +411,12 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <li><a href="#ch6" data-ex="ex6"><span class="n">06</span>整理成 tidy：tidyr<span class="ck">✓</span></a></li>
       <li><a href="#ch7" data-ex="ex7"><span class="n">07</span>合併表格：join<span class="ck">✓</span></a></li>
       <li><a href="#ch8" data-ex="ex8"><span class="n">08</span>字串、類別、日期<span class="ck">✓</span></a></li>
-      <li><a href="#ch9" data-ex="ex9"><span class="n">09</span>ggplot2：圖形文法<span class="ck">✓</span></a></li>
-      <li><a href="#ch10" data-ex="ex10"><span class="n">10</span>ggplot2：讓圖會說話<span class="ck">✓</span></a></li>
+      <li><a href="#ch9"><span class="n">09</span>ggplot2 → 畫室 ↗</a></li>
       <li><a href="#stat"><span class="n">+</span>補充：p 值教室 ↗</a></li>
-      <li><a href="#ex-a"><span class="n">11</span>範例：臨床資料清理</a></li>
-      <li><a href="#ex-b"><span class="n">12</span>範例：OGTT 曲線</a></li>
-      <li><a href="#ex-c"><span class="n">13</span>範例：RNA-seq 🧬</a></li>
-      <li><a href="#ch14"><span class="n">14</span>總整理與速查表</a></li>
+      <li><a href="#ex-a"><span class="n">10</span>範例：臨床資料清理</a></li>
+      <li><a href="#ex-b"><span class="n">11</span>範例：OGTT 曲線</a></li>
+      <li><a href="#ex-c"><span class="n">12</span>範例：RNA-seq 🧬</a></li>
+      <li><a href="#ch14"><span class="n">13</span>總整理與速查表</a></li>
     </ol>
     <div class="prog" id="prog"></div>
   </nav>
@@ -469,7 +468,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     <div><code>stringr</code><span class="k">08</span><p>字串：偵測、取代、切割，函式都是 <code>str_</code> 開頭</p></div>
     <div><code>forcats</code><span class="k">08</span><p>類別（factor）：調整順序、合併類別，函式都是 <code>fct_</code> 開頭</p></div>
     <div><code>lubridate</code><span class="k">08</span><p>日期：<code>ymd()</code> 把文字變日期，算相隔幾天</p></div>
-    <div><code>ggplot2</code><span class="k">09–10</span><p>用「圖層」的文法畫圖，目前最常用的 R 繪圖套件</p></div>
+    <div><code>ggplot2</code><span class="k"><a href="ggplot.html">畫室 ↗</a></span><p>用「圖層」的文法畫圖，目前最常用的 R 繪圖套件。內容很多，獨立成下一單元</p></div>
     <div><code>purrr</code><span class="k">—</span><p>函數式程式設計，<code>map()</code> 是 apply 家族的 tidyverse 版本（第四單元的概念）</p></div>
   </div>
 
@@ -1183,7 +1182,7 @@ lab |> mutate(blood = fct_infreq(blood)) |> count(blood)     # fct_infreq：照�
 levels(f$blood2)
 levels(f$blood3)
 f |> pull(sex2) |> head()                                          # pull：把一欄拿出來變成向量（像 $）</script>
-  <p><code>fct_reorder()</code> 在畫圖時最常用：盒形圖、長條圖依數值大小排列，比字母順序好讀多了（第 10 章）。類別太多時，<code>fct_lump_n(x, n = 5)</code> 把前 5 多以外的合併成 <code>"Other"</code>。</p>
+  <p><code>fct_reorder()</code> 在畫圖時最常用：盒形圖、長條圖依數值大小排列，比字母順序好讀多了（<a href="ggplot.html#g6">ggplot2 畫室第 6 章</a>）。類別太多時，<code>fct_lump_n(x, n = 5)</code> 把前 5 多以外的合併成 <code>"Other"</code>。</p>
 
   <h3><span class="tag">8-4</span>lubridate：日期</h3>
 <script type="text/x-r" class="cell" data-label="範例 8-7">ymd("2024-03-05"); ymd("2024/03/05")     # 年月日（y m d），分隔符號隨意
@@ -1219,292 +1218,19 @@ clean <- raw |>
 clean</script>
   </div>
 </section>
-<!-- ============ 09 ============ -->
+<!-- ============ 09 -> ggplot2 unit ============ -->
 <section class="ch" id="ch9">
-  <div class="ch-h"><span class="num">09</span><h2>ggplot2：圖形文法<small>資料 + 對應（aes）+ 幾何圖形（geom），一層一層疊</small></h2></div>
-  <p>第六單元用 <code>plot()</code>、<code>hist()</code>、<code>boxplot()</code> 畫圖，每一種圖都是不同的函式、不同的參數。ggplot2 換一個想法：<b>每一張圖都是由同樣的幾個部分組成的</b>，這套規則叫「圖形文法」（grammar of graphics）：</p>
-  <figure class="fig" style="background:#2f3237;border-color:#2f3237">
-    <svg viewBox="0 80 860 580" role="img" aria-label="ggplot2 的繪圖架構：由下往上是資料、對應、幾何圖形、分面、統計轉換、座標、主題七個圖層">
-      <defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#111"/></marker></defs>
-      <g><polygon points="470,590 645,540 820,590 645,640" fill="#c9ced6" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,590)"><text x="8" y="22" font-size="9" class="mono" fill="#111">121</text><text x="34" y="22" font-size="9" class="mono" fill="#111">5.3</text><text x="62" y="22" font-size="9" class="mono" fill="#111">177</text><text x="8" y="44" font-size="9" class="mono" fill="#111">102</text><text x="34" y="44" font-size="9" class="mono" fill="#111">5.8</text><text x="62" y="44" font-size="9" class="mono" fill="#111">215</text><text x="8" y="66" font-size="9" class="mono" fill="#111">112</text><text x="34" y="66" font-size="9" class="mono" fill="#111">5.7</text><text x="62" y="66" font-size="9" class="mono" fill="#111">190</text><text x="8" y="88" font-size="9" class="mono" fill="#111">117</text><text x="34" y="88" font-size="9" class="mono" fill="#111">4.9</text><text x="62" y="88" font-size="9" class="mono" fill="#111">219</text></g><text x="440" y="586" text-anchor="end" font-size="27" font-weight="800" fill="#c9ced6">Data</text><text x="440" y="608" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">資料</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">lab（一張 tidy 的表格）</tspan></text></g><g><polygon points="470,516 645,466 820,516 645,566" fill="#e8695a" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,516)"><g font-weight="900" font-size="20" fill="#111"><text x="6" y="34">A</text><text x="66" y="34">x</text><text x="6" y="80">B</text><text x="66" y="80">y</text></g><g stroke="#111" stroke-width="3" fill="none" marker-end="url(#ah2)"><path d="M24 28 H58"/><path d="M24 74 H58"/></g></g><text x="440" y="512" text-anchor="end" font-size="27" font-weight="800" fill="#e8695a">Aesthetics</text><text x="440" y="534" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">對應（美學）</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">aes(x = hba1c, y = glucose, colour = group)</tspan></text></g><g><polygon points="470,442 645,392 820,442 645,492" fill="#4ea8d6" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,442)"><g stroke="#111" stroke-width="3" fill="none"><path d="M8 86 L90 18"/><circle cx="74" cy="72" r="13"/><path d="M14 18 L40 14 L30 40 Z"/><rect x="40" y="56" width="18" height="30"/></g></g><text x="440" y="438" text-anchor="end" font-size="27" font-weight="800" fill="#4ea8d6">Geometries</text><text x="440" y="460" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">幾何圖形</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">geom_point()、geom_boxplot()、geom_line()</tspan></text></g><g><polygon points="470,368 645,318 820,368 645,418" fill="#f29b2b" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,368)"><rect x="6" y="6" width="26" height="26" fill="#e9ecef"/><rect x="37" y="6" width="26" height="26" fill="#e9ecef"/><rect x="68" y="6" width="26" height="26" fill="#e9ecef"/><rect x="6" y="37" width="26" height="26" fill="#e9ecef"/><rect x="37" y="37" width="26" height="26" fill="#e9ecef"/><rect x="68" y="37" width="26" height="26" fill="#e9ecef"/><rect x="6" y="68" width="26" height="26" fill="#e9ecef"/><rect x="37" y="68" width="26" height="26" fill="#e9ecef"/><rect x="68" y="68" width="26" height="26" fill="#e9ecef"/></g><text x="440" y="364" text-anchor="end" font-size="27" font-weight="800" fill="#f29b2b">Facets</text><text x="440" y="386" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">分面</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">facet_wrap(~ sex)</tspan></text></g><g><polygon points="470,294 645,244 820,294 645,344" fill="#5cbf72" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,294)"><g stroke="#111" stroke-width="3" fill="none"><rect x="10" y="12" width="20" height="78"/><rect x="40" y="38" width="20" height="52"/><rect x="70" y="62" width="20" height="28"/></g></g><text x="440" y="290" text-anchor="end" font-size="27" font-weight="800" fill="#5cbf72">Statistics</text><text x="440" y="312" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">統計轉換</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">geom_bar() 先數、geom_smooth() 算迴歸線</tspan></text></g><g><polygon points="470,220 645,170 820,220 645,270" fill="#f1d264" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,220)"><g stroke="#111" stroke-width="3" fill="none" marker-end="url(#ah2)"><path d="M12 88 V8"/><path d="M12 88 H94"/></g><g stroke="#111" stroke-width="3"><path d="M6 64 H18"/><path d="M6 40 H18"/><path d="M38 82 V94"/><path d="M64 82 V94"/></g></g><text x="440" y="216" text-anchor="end" font-size="27" font-weight="800" fill="#f1d264">Coordinates</text><text x="440" y="238" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">座標</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">coord_flip()、coord_cartesian()</tspan></text></g><g><polygon points="470,146 645,96 820,146 645,196" fill="#a77fd0" fill-opacity=".88"/><g transform="matrix(1.75,-0.5,1.75,0.5,470,146)"><circle cx="20" cy="20" r="9" fill="#d1495b"/><circle cx="50" cy="20" r="9" fill="#edae49"/><circle cx="80" cy="20" r="9" fill="#e9e9e9"/><circle cx="20" cy="50" r="9" fill="#66a182"/><circle cx="50" cy="50" r="9" fill="#00798c"/><circle cx="80" cy="50" r="9" fill="#f4a3a8"/><circle cx="20" cy="80" r="9" fill="#8d6a9f"/><circle cx="50" cy="80" r="9" fill="#30638e"/><circle cx="80" cy="80" r="9" fill="#d1d1d1"/></g><text x="440" y="142" text-anchor="end" font-size="27" font-weight="800" fill="#a77fd0">Theme</text><text x="440" y="164" text-anchor="end" font-size="14" fill="#e6e6e6"><tspan font-weight="700">主題</tspan>　<tspan class="mono" font-size="12" fill="#b8bec7">theme_bw()、theme(legend.position = "bottom")</tspan></text></g>
-      <g font-size="13.5" fill="#cfd4da"><text x="20" y="645">↑ 由下往上疊：<tspan font-weight="700" fill="#fff">Data、Aesthetics、Geometries 三層每張圖都一定要有</tspan>，其他四層不寫就用預設值</text></g>
-    </svg>
-    <figcaption style="color:#b8bec7">ggplot2 的繪圖架構（layered grammar of graphics）。圖層的概念與順序參考 G. T. Wang〈<a href="https://blog.gtwang.org/r/ggplot2-tutorial-basic-concept-and-qplot/" target="_blank" rel="noopener" style="color:#9cc3ff">R ggplot2 教學：基本概念與 qplot 函數</a>〉中的「ggplot 繪圖架構」圖，本頁重新繪製並加上中文說明與對應的程式碼</figcaption>
-  </figure>
-  <div class="setup"><b>ggplot</b>(data = <b>資料</b>, mapping = <b>aes</b>(x = 欄, y = 欄, colour = 欄, …)) +
-  <b>geom_</b>種類() +
-  其他圖層 …</div>
-  <p>圖上沒畫、但一直在背後工作的還有<b>尺度 scale</b>：負責把資料的值換成位置、顏色、大小，例如 <code>scale_colour_manual()</code>（第 10 章）。</p>
-  <p>用下面的步驟，看一張圖怎麼一層一層加上去（按 ▶ 或點按鈕）：</p>
-  <div class="widget variants" data-title="一層一層疊上去" data-mode="steps">
-<script type="text/x-r" data-v="① 資料" data-note="只給資料：ggplot 準備好一張空白的畫布，但還不知道要畫什麼。">ggplot(lab)</script>
-<script type="text/x-r" data-v="② + aes" data-note="aes() 說 x 軸是 hba1c、y 軸是 glucose：座標軸出現了，但還沒說要用什麼畫。">ggplot(lab, aes(x = hba1c, y = glucose))</script>
-<script type="text/x-r" data-v="③ + geom_point" data-note="用 + 加上一層 geom_point()：每一列畫一個點。">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point()</script>
-<script type="text/x-r" data-v="④ colour = group" data-note="aes 裡多一個 colour = group：顏色也是一種「對應」，ggplot 自動配色、自動加圖例。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point()</script>
-<script type="text/x-r" data-v="⑤ + geom_smooth" data-note="再疊一層迴歸線。colour 寫在 ggplot() 裡，所有圖層都會用到，所以每組各一條線。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x, se = FALSE)</script>
-<script type="text/x-r" data-v="⑥ + labs" data-note="labs() 改標題、軸標籤、圖例標題。給別人看的圖一定要有單位。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +
-  labs(title = "HbA1c and fasting glucose", x = "HbA1c (%)",
-       y = "Fasting glucose (mg/dL)", colour = "Group")</script>
-<script type="text/x-r" data-v="⑦ + theme_bw" data-note="theme_bw() 換成白底的主題，適合放進論文。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point() +
-  geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +
-  labs(title = "HbA1c and fasting glucose", x = "HbA1c (%)",
-       y = "Fasting glucose (mg/dL)", colour = "Group") +
-  theme_bw()</script>
+  <div class="ch-h"><span class="num">09</span><h2>ggplot2：獨立成下一單元<small>資料整理好了，接著畫圖</small></h2></div>
+  <span id="ch10"></span>
+  <p>前面八章把資料整理成 tidy 的表格，這正是 <b>ggplot2</b> 需要的格式。ggplot2 的內容很多，所以獨立成下一個單元，寫得更完整：</p>
+  <div class="next" style="margin-top:8px"><a href="ggplot.html"><span>下一單元</span><b>R 寶的 ggplot2 畫室 →</b></a></div>
+  <div class="cards">
+    <div><code>01–03</code><p>圖形文法（七層架構圖）、一層一層疊出第一張圖、aes 寫在裡面還是外面</p></div>
+    <div><code>04–08</code><p>依資料類型：分布、長條圖、比較組別（盒形圖、小提琴圖、平均 ± 誤差）、散佈圖、折線圖</p></div>
+    <div><code>09–14</code><p>分面、position、尺度與配色、標籤與註解、主題、存檔</p></div>
+    <div><code>15–16</code><p>熱圖、Bland–Altman 圖、森林圖，以及完整的 <b>real-time PCR</b> 分析範例</p></div>
   </div>
-  <div class="note warn"><b>⚠️ ggplot 的圖層用 + 連接，不是 |&gt;</b>資料處理用 <code>|&gt;</code>，一進到 <code>ggplot()</code> 之後就改用 <code>+</code>。寫錯的話 ggplot2 會直接告訴你：</div>
-<script type="text/x-r" class="cell" data-label="範例 9-1 · 常見錯誤">ggplot(lab, aes(x = hba1c, y = glucose)) |>
-  geom_point()</script>
-
-  <h3><span class="tag">9-1</span>對應（mapping）和設定（setting）</h3>
-  <p>顏色、大小、形狀可以「對應到一欄」，也可以「設定成固定值」。差別只在<b>寫在 aes() 裡面還是外面</b>：</p>
-  <div class="widget variants" data-title="寫在 aes() 裡面還是外面？">
-<script type="text/x-r" data-v="aes 裡：對應" data-note="✓ colour = group 在 aes() 裡面：顏色「依照 group 這一欄」變化，會有圖例。">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point(aes(colour = group), size = 2)</script>
-<script type="text/x-r" data-v="aes 外：設定" data-note="✓ colour = &quot;steelblue&quot; 在 aes() 外面：所有點都是同一個顏色，沒有圖例。size = 2 也是設定。">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point(colour = "steelblue", size = 2)</script>
-<script type="text/x-r" data-v="✗ 常見錯誤" data-note="✗ 把固定的顏色寫進 aes()：ggplot 以為 &quot;steelblue&quot; 是一個類別的名字，用預設的紅色畫，圖例還寫著 steelblue。">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point(aes(colour = "steelblue"), size = 2)</script>
-  </div>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>aes</th><th>控制</th><th>適合對應到</th></tr>
-    <tr><td><code>x</code>、<code>y</code></td><td>位置</td><td>數值或類別</td></tr>
-    <tr><td><code>colour</code></td><td>點、線、外框的顏色</td><td>類別（自動配色）或數值（漸層）</td></tr>
-    <tr><td><code>fill</code></td><td>柱子、盒子、方塊<b>裡面</b>的填色</td><td>類別或數值</td></tr>
-    <tr><td><code>size</code> / <code>alpha</code></td><td>大小 / 透明度</td><td>數值</td></tr>
-    <tr><td><code>shape</code> / <code>linetype</code></td><td>點的形狀 / 線的樣式</td><td>類別（最多 6 種左右）</td></tr>
-    <tr><td><code>group</code></td><td>哪些點連成同一條線</td><td>類別（例如病人 id）</td></tr>
-    <tr><td><code>label</code></td><td>文字內容（geom_text 用）</td><td>文字</td></tr>
-  </table></div>
-
-  <h3><span class="tag">9-2</span>什麼資料用什麼 geom</h3>
-  <p>第六單元的「什麼資料用什麼圖」換成 ggplot2，就是換一個 geom：</p>
-  <h4>一個數值：直方圖、密度圖</h4>
-<script type="text/x-r" class="cell" data-label="範例 9-2">ggplot(lab, aes(x = glucose)) +
-  geom_histogram(binwidth = 10, fill = "steelblue", colour = "white")   # binwidth：每根柱子寬 10 mg/dL</script>
-<script type="text/x-r" class="cell" data-label="範例 9-3 · 兩組疊在一起比較">ggplot(lab, aes(x = glucose, fill = group)) +
-  geom_density(alpha = 0.5)        # alpha = 0.5：半透明，重疊的部分才看得到</script>
-  <h4>一個類別：geom_bar 和 geom_col</h4>
-<script type="text/x-r" class="cell" data-label="範例 9-4">ggplot(lab, aes(x = blood)) +
-  geom_bar()                                   # geom_bar：幫你「數」每一類有幾列
-
-lab |>
-  count(blood) |>                              # 自己先數好
-  ggplot(aes(x = blood, y = n)) +
-  geom_col()                                   # geom_col：y 已經算好了，照畫</script>
-  <figure class="fig">
-    <svg viewBox="0 0 860 150" role="img" aria-label="geom_bar 先數再畫，geom_col 直接畫">
-      <g font-size="14">
-        <text x="20" y="28" font-weight="700" class="mono">geom_bar()</text>
-        <text x="20" y="54" fill="var(--muted)">原始資料（一人一列）</text>
-        <text x="230" y="54" class="mono" fill="var(--violet)">stat = "count" 先數</text>
-        <text x="450" y="54" fill="var(--muted)">每類幾個</text><text x="620" y="54" fill="var(--muted)">畫成柱子</text>
-        <text x="20" y="108" font-weight="700" class="mono">geom_col()</text>
-        <text x="20" y="134" fill="var(--muted)">已經算好的表格（blood、n）</text>
-        <text x="450" y="134" fill="var(--muted)">y = n 照畫，不另外計算</text>
-      </g>
-      <g stroke="var(--muted)" stroke-width="2" fill="none" color="var(--muted)"><path d="M180 50 H222" marker-end="url(#ah)"/><path d="M400 50 H442" marker-end="url(#ah)"/><path d="M540 50 H612" marker-end="url(#ah)"/><path d="M240 130 H442" marker-end="url(#ah)"/></g>
-      <g fill="var(--c1)"><rect x="700" y="22" width="18" height="34"/><rect x="724" y="38" width="18" height="18"/><rect x="748" y="30" width="18" height="26"/><rect x="772" y="14" width="18" height="42"/></g>
-    </svg>
-  </figure>
-  <h4>數值 × 類別：盒形圖＋每個點</h4>
-<script type="text/x-r" class="cell" data-label="範例 9-5">ggplot(lab, aes(x = group, y = glucose)) +
-  geom_boxplot(outlier.shape = NA) +        # 離群值不另外畫（下一層已經畫了每個點）
-  geom_jitter(width = 0.15, alpha = 0.6)    # 每人一個點，左右稍微抖開，才不會疊在一起</script>
-  <div class="widget variants" data-title="同一份資料，換一個 geom">
-<script type="text/x-r" data-v="boxplot" data-note="盒形圖：中位數、四分位距、離群值（第六單元學過怎麼讀）。">ggplot(lab, aes(x = group, y = hba1c)) + geom_boxplot()</script>
-<script type="text/x-r" data-v="violin" data-note="小提琴圖：把密度曲線左右對稱畫出來，看得到分布的形狀（有沒有雙峰）。">ggplot(lab, aes(x = group, y = hba1c)) + geom_violin(fill = "grey85")</script>
-<script type="text/x-r" data-v="jitter" data-note="每個點都畫出來：資料不多時最誠實，看得到樣本數。">ggplot(lab, aes(x = group, y = hba1c)) + geom_jitter(width = 0.15)</script>
-<script type="text/x-r" data-v="violin + boxplot + point" data-note="疊起來：形狀、摘要、每個點一次看到。這就是圖層的好處。">ggplot(lab, aes(x = group, y = hba1c)) +
-  geom_violin(fill = "grey90") +
-  geom_boxplot(width = 0.15, outlier.shape = NA) +
-  geom_jitter(width = 0.08, alpha = 0.5, colour = "steelblue")</script>
-  </div>
-  <h4>數值 × 數值：散佈圖＋迴歸線</h4>
-<script type="text/x-r" class="cell" data-label="範例 9-6">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point(aes(colour = group), size = 2) +        # colour 只寫在這一層：只有點分顏色
-  geom_smooth(method = "lm", formula = y ~ x)        # 所以迴歸線只有一條（灰色帶是 95% 信賴區間）</script>
-  <p>aes 寫在 <code>ggplot()</code> 裡，<b>所有圖層</b>都會用；寫在某個 <code>geom_()</code> 裡，<b>只有那一層</b>用。比較上面的「一層一層疊上去」第 ⑤ 步：colour 寫在 ggplot() 裡，所以兩組各畫一條迴歸線。</p>
-  <h4>隨時間變化：折線圖要有 group</h4>
-<script type="text/x-r" class="cell" data-label="範例 9-7">ogtt |>
-  pivot_longer(-time, names_to = "patient", values_to = "glucose") |>   # 第 6 章：先變長
-  ggplot(aes(x = time, y = glucose, colour = patient)) +
-  geom_line() +
-  geom_point()</script>
-<script type="text/x-r" class="cell" data-label="範例 9-8 · 少了分組會怎樣">ogtt |>
-  pivot_longer(-time, names_to = "patient", values_to = "glucose") |>
-  ggplot(aes(x = time, y = glucose)) +       # 沒有 colour，也沒有 group
-  geom_line()                                # 三個人的點被連成同一條鋸齒線！</script>
-  <p><code>geom_line()</code> 把<b>同一組</b>的點連起來。<code>colour = patient</code> 會自動分組；不想分顏色的時候，寫 <code>aes(group = patient)</code>。</p>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>資料</th><th>第六單元（base R）</th><th>ggplot2</th></tr>
-    <tr><td>一個數值</td><td><code>hist(x)</code> / <code>boxplot(x)</code></td><td><code>geom_histogram()</code> / <code>geom_density()</code> / <code>geom_boxplot()</code></td></tr>
-    <tr><td>一個類別</td><td><code>barplot(table(x))</code></td><td><code>geom_bar()</code>；已經數好用 <code>geom_col()</code></td></tr>
-    <tr><td>數值 × 類別</td><td><code>boxplot(y ~ g)</code></td><td><code>geom_boxplot()</code> + <code>geom_jitter()</code>、<code>geom_violin()</code></td></tr>
-    <tr><td>數值 × 數值</td><td><code>plot(x, y)</code> + <code>abline(lm())</code></td><td><code>geom_point()</code> + <code>geom_smooth(method = "lm")</code></td></tr>
-    <tr><td>數值 × 時間</td><td><code>plot(type = "b")</code> + <code>lines()</code></td><td><code>geom_line()</code> + <code>geom_point()</code>（記得 group）</td></tr>
-    <tr><td>類別 × 類別</td><td>（第六單元的網頁版不支援）</td><td><code>geom_bar(position = "dodge")</code>（第 10 章）</td></tr>
-  </table></div>
-
-  <div class="ex" id="ex9" data-ex="ex9">
-    <div class="ex-h"><span class="badge">練習 9</span><h3>兩組的 HbA1c</h3><span class="st"></span></div>
-    <p>畫出 <code>lab</code> 兩組（<code>group</code>）的 HbA1c 盒形圖，把每個人的點也抖開畫上去，存成 <code>p</code>：</p>
-    <ul>
-      <li>x 是 <code>group</code>、y 是 <code>hba1c</code>，盒子的<b>填色</b>（fill）也依照 <code>group</code>，三個都寫在 <code>ggplot()</code> 的 aes 裡。</li>
-      <li>圖層：<code>geom_boxplot()</code>，再加 <code>geom_jitter(width = 0.15)</code>。</li>
-      <li>y 軸標籤 <code>"HbA1c (%)"</code>。</li>
-    </ul>
-<script type="text/x-r" class="starter">p <- ggplot(lab, aes(x = ___, y = ___, fill = ___)) +
-  ___ +
-  ___ +
-  labs(y = ___)
-p</script>
-  </div>
-</section>
-
-<!-- ============ 10 ============ -->
-<section class="ch" id="ch10">
-  <div class="ch-h"><span class="num">10</span><h2>ggplot2：讓圖會說話<small>分面、position、尺度與顏色、標籤與主題、參考線與文字、誤差線、排序、存檔</small></h2></div>
-
-  <h3><span class="tag">10-1</span>分面 facet：依類別拆成小圖</h3>
-<script type="text/x-r" class="cell" data-label="範例 10-1" data-h="250">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point() +
-  facet_wrap(~ sex)            # 依 sex 拆成並排的小圖，座標軸範圍相同，方便比較</script>
-<script type="text/x-r" class="cell" data-label="範例 10-2 · 兩個變數：facet_grid" data-h="330">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point() +
-  facet_grid(sex ~ group)      # 列 ~ 欄：上下依 sex、左右依 group</script>
-  <p>每張小圖的 y 軸範圍預設一樣。單位不同的東西放在一起（血糖 mg/dL、胰島素 μU/mL）時，加 <code>scales = "free_y"</code> 讓每張小圖自己決定 y 的範圍：</p>
-  <div class="widget variants" data-title="facet_wrap 的 scales">
-<script type="text/x-r" data-v='scales = "fixed"（預設）' data-note="血糖和胰島素用同一個 y 軸：胰島素的線被壓在下面，看不出變化。" data-h="250">read_csv("data/ogtt_wide.csv", show_col_types = FALSE) |>
-  pivot_longer(-c(id, group), names_to = c("analyte", "time"), names_sep = "_") |>
-  mutate(time = as.numeric(time)) |>
-  ggplot(aes(x = time, y = value, group = id, colour = group)) +
-  geom_line() +
-  facet_wrap(~ analyte)</script>
-<script type="text/x-r" data-v='scales = "free_y"' data-note="每張小圖各自的 y 範圍：兩種檢驗的變化都看得清楚。（範例 2 會用到）" data-h="250">read_csv("data/ogtt_wide.csv", show_col_types = FALSE) |>
-  pivot_longer(-c(id, group), names_to = c("analyte", "time"), names_sep = "_") |>
-  mutate(time = as.numeric(time)) |>
-  ggplot(aes(x = time, y = value, group = id, colour = group)) +
-  geom_line() +
-  facet_wrap(~ analyte, scales = "free_y")</script>
-  </div>
-
-  <h3><span class="tag">10-2</span>兩個類別：position</h3>
-  <p>柱子用 <code>fill</code> 分顏色時，<code>position</code> 決定同一個 x 的幾根柱子怎麼擺：</p>
-  <div class="widget variants" data-title="geom_bar(position = ?)">
-<script type="text/x-r" data-v='"stack"（預設）' data-note="疊起來：看得到每型血的總人數，但上面那段不好比較。">ggplot(lab, aes(x = blood, fill = group)) + geom_bar(position = "stack")</script>
-<script type="text/x-r" data-v='"dodge"' data-note="並排：直接比較每型血裡兩組的人數。">ggplot(lab, aes(x = blood, fill = group)) + geom_bar(position = "dodge")</script>
-<script type="text/x-r" data-v='"fill"' data-note="每根都拉到 100%：比較「比例」。y 軸變成 0–1，下面的 10-3 教怎麼改成百分比。">ggplot(lab, aes(x = blood, fill = group)) + geom_bar(position = "fill")</script>
-  </div>
-
-  <h3><span class="tag">10-3</span>尺度 scale：控制顏色和座標軸</h3>
-  <p>每一個 aes 背後都有一個 scale，名字是 <code>scale_aes名稱_種類()</code>：</p>
-<script type="text/x-r" class="cell" data-label="範例 10-3 · 自己指定顏色、刻度">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point(size = 2) +
-  scale_colour_manual(values = c(control = "steelblue", diabetes = "tomato")) +   # 類別 = 顏色
-  scale_x_continuous(breaks = seq(4, 10, by = 1))                                # x 軸刻度</script>
-<script type="text/x-r" class="cell" data-label="範例 10-4 · 比例改成百分比">ggplot(lab, aes(x = group, fill = sex)) +
-  geom_bar(position = "fill") +
-  scale_y_continuous(labels = scales::percent) +       # 0.25 → 25%（scales 套件跟著 ggplot2 一起安裝）
-  scale_fill_manual(values = c(F = "#E69F00", M = "#56B4E9")) +
-  labs(y = "Proportion")</script>
-  <div class="tblwrap"><table class="cmp">
-    <tr><th>scale</th><th>用途</th></tr>
-    <tr><td><code>scale_colour_manual(values = …)</code> / <code>scale_fill_manual()</code></td><td>類別自己指定顏色（給具名向量最保險）</td></tr>
-    <tr><td><code>scale_x_continuous(breaks, limits, labels)</code></td><td>數值軸的刻度、範圍、標籤</td></tr>
-    <tr><td><code>scale_y_log10()</code></td><td>對數座標：數值橫跨好幾個數量級時（例如基因表現量）</td></tr>
-    <tr><td><code>scale_fill_gradient(low, high)</code></td><td>數值 → 兩色漸層</td></tr>
-    <tr><td><code>scale_fill_gradient2(low, mid, high, midpoint)</code></td><td>數值 → 三色漸層，中間值一個顏色（熱圖常用，見下面）</td></tr>
-    <tr><td><code>scale_colour_viridis_d()</code> / <code>_c()</code></td><td>色盲友善、黑白列印也分得出來的配色</td></tr>
-  </table></div>
-  <h4>熱圖：geom_tile() + 三色漸層</h4>
-  <p>熱圖用顏色表示數值：每一格一個方塊（<code>geom_tile()</code>）。不同檢驗的單位和範圍不一樣，所以先在<b>每個檢驗項目裡</b>各自標準化成 z 分數（第 5 章的分組 mutate）：0 是平均、正的比平均高、負的比平均低，再用「藍—白—紅」三色漸層，白色對準 0：</p>
-<script type="text/x-r" class="cell" data-label="範例 10-5 · 熱圖" data-h="315">lab |>
-  slice_head(n = 12) |>
-  select(id, glucose, hba1c, chol) |>
-  pivot_longer(-id, names_to = "test", values_to = "value") |>    # 長格式：一格一列
-  group_by(test) |>
-  mutate(z = (value - mean(value)) / sd(value)) |>                 # 每個檢驗項目各自標準化
-  ungroup() |>
-  ggplot(aes(x = test, y = id, fill = z)) +
-  geom_tile(colour = "white") +                                    # 方塊，白色細框
-  scale_fill_gradient2(low = "steelblue", mid = "white", high = "firebrick", midpoint = 0)</script>
-
-  <h3><span class="tag">10-4</span>標籤與主題</h3>
-<script type="text/x-r" class="cell" data-label="範例 10-6">p <- ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point() +
-  labs(title = "HbA1c and fasting glucose", subtitle = "40 subjects",
-       x = "HbA1c (%)", y = "Fasting glucose (mg/dL)", colour = "Group",
-       caption = "Data: simulated")
-p + theme_bw(base_size = 14) +                       # 圖存成變數 p，之後還能再 + 東西
-  theme(legend.position = "bottom")                  # theme()：細部調整，這裡把圖例放到下面</script>
-  <div class="widget variants" data-title="內建主題">
-<script type="text/x-r" data-v="theme_gray（預設）" data-note="灰底白格線：ggplot2 的招牌。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) + geom_point() + theme_gray()</script>
-<script type="text/x-r" data-v="theme_bw" data-note="白底、有外框和格線：論文常用。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) + geom_point() + theme_bw()</script>
-<script type="text/x-r" data-v="theme_classic" data-note="只有座標軸線，沒有格線：最像傳統的統計圖（也像第六單元的 base R 圖）。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) + geom_point() + theme_classic()</script>
-<script type="text/x-r" data-v="theme_minimal" data-note="沒有外框和背景：簡報常用。">ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) + geom_point() + theme_minimal()</script>
-  </div>
-
-  <h3><span class="tag">10-5</span>參考線與文字標籤</h3>
-<script type="text/x-r" class="cell" data-label="範例 10-7">ggplot(lab, aes(x = hba1c, y = glucose)) +
-  geom_point(colour = "grey50") +
-  geom_hline(yintercept = 126, linetype = "dashed", colour = "tomato") +  # 水平線：空腹血糖的診斷切點
-  geom_vline(xintercept = 6.5, linetype = "dashed", colour = "tomato") +  # 垂直線：HbA1c 的切點
-  geom_text(data = lab |> filter(glucose > 190),    # 這一層換一份資料：只有血糖 > 190 的人
-            aes(label = id), vjust = -0.8) +         # label = 寫什麼字；vjust 往上挪一點
-  annotate("text", x = 8.8, y = 100, label = "HbA1c 6.5%", colour = "tomato")   # 在指定位置寫字</script>
-  <p>重點：<b>每一層都可以用自己的 <code>data =</code></b>。<code>geom_text()</code> 只拿到篩選過的 4 個人，所以只有他們有標籤。這在範例 3 的火山圖會用到。有分面（facet）的時候，如果這一層的資料裡也有分面用的那一欄，它就只會畫在對應的那一張小圖上（範例 2 用這個技巧，只在血糖那一張畫參考線）。</p>
-
-  <h3><span class="tag">10-6</span>平均值 ± 誤差線</h3>
-  <p>先用 summarise 算好每組的平均和標準誤，再畫。<b>標準差 SD</b> 描述「個體之間差多少」；<b>標準誤 SE = SD / √n</b> 描述「平均值估得多準」，n 越大越小：</p>
-<script type="text/x-r" class="cell" data-label="範例 10-8">hb <- lab |>
-  group_by(group) |>
-  summarise(mean = mean(hba1c), se = sd(hba1c) / sqrt(n()))   # n()：這組有幾人
-hb
-
-ggplot(hb, aes(x = group, y = mean)) +
-  geom_col(fill = "grey80", width = 0.6) +
-  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.2) +   # 誤差線：上下界
-  geom_jitter(data = lab, aes(y = hba1c), width = 0.1, alpha = 0.5) +     # 換一份資料：每個人
-  labs(y = "HbA1c (%), mean ± SE")</script>
-  <p>第六單元說過「只畫平均數長條圖會藏住分布」，所以這裡把每個人也疊上去。時間序列常用 <code>geom_line() + geom_point() + geom_errorbar()</code> 畫「平均 ± SE 的折線」（範例 2）。</p>
-
-  <h3><span class="tag">10-7</span>依數值排序：fct_reorder()</h3>
-<script type="text/x-r" class="cell" data-label="範例 10-9">lab |>
-  mutate(blood = fct_reorder(blood, glucose, .fun = median)) |>   # 第 8 章：依血糖中位數排
-  ggplot(aes(x = blood, y = glucose)) +
-  geom_boxplot() +
-  coord_flip()                                                     # 座標翻轉：類別放在 y 軸，橫著看</script>
-
-  <h3><span class="tag">10-8</span>存成圖檔：ggsave()</h3>
-<script type="text/x-r" class="cell" data-label="範例 10-10">p <- ggplot(lab, aes(x = hba1c, y = glucose)) + geom_point()
-ggsave("fig_scatter.png", p, width = 6, height = 4, dpi = 300)   # 單位是英吋；期刊通常要 300 dpi
-file.exists("fig_scatter.png")</script>
-  <p>副檔名決定格式：<code>.png</code>、<code>.pdf</code>（向量圖，放大不會糊）、<code>.tiff</code>。圖檔會出現在右下角 <b>📁 專案檔案</b>，點一下就能看，按 ⬇ 下載。</p>
-
-  <div class="ex" id="ex10" data-ex="ex10">
-    <div class="ex-h"><span class="badge">練習 10</span><h3>男女分開的散佈圖</h3><span class="st"></span></div>
-    <p>畫 HbA1c（x）與血糖（y）的散佈圖，存成 <code>p</code>：</p>
-    <ul>
-      <li>點的顏色依 <code>group</code>（寫在 <code>ggplot()</code> 的 aes 裡），用 <code>scale_colour_manual()</code> 指定 control 是 <code>"steelblue"</code>、diabetes 是 <code>"tomato"</code>。</li>
-      <li>加一條 y = 126 的水平虛線（<code>linetype = "dashed"</code>）。</li>
-      <li>依 <code>sex</code> 用 <code>facet_wrap()</code> 分成兩張小圖。</li>
-      <li>x 軸標籤 <code>"HbA1c (%)"</code>，y 軸標籤 <code>"Glucose (mg/dL)"</code>。</li>
-    </ul>
-<script type="text/x-r" class="starter">p <- ggplot(lab, aes(x = ___, y = ___, colour = ___)) +
-  geom_point() +
-  geom_hline(___) +
-  scale_colour_manual(values = ___) +
-  facet_wrap(___) +
-  labs(x = ___, y = ___)
-p</script>
-  </div>
+  <p>下面三個實作範例都會畫圖，用到的 ggplot2 寫法旁邊都有 ↗ 連到畫室的說明；建議先讀完畫室的第 1–12 章再回來看範例。</p>
 </section>
 <!-- ============ supplement pointer ============ -->
 <section class="ch stat-ch" id="stat">
@@ -1517,9 +1243,9 @@ p</script>
 </section>
 <!-- ============ 11 example A ============ -->
 <section class="ch example-ch" id="ex-a">
-  <div class="ch-h"><span class="num">11</span><h2>臨床檢驗資料：從原始匯出檔到報表<small>讀入 → 找問題 → 清理 → 分類 → 統計表 → 三張圖 → 存檔</small></h2></div>
+  <div class="ch-h"><span class="num">10</span><h2>臨床檢驗資料：從原始匯出檔到報表<small>讀入 → 找問題 → 清理 → 分類 → 統計表 → 三張圖 → 存檔</small></h2></div>
   <p>檢驗科從系統匯出了 64 筆糖化血色素和血壓的資料 <code>lab_raw.csv</code>，主任想知道：<b>血糖控制越差的人，血壓是不是也越高？</b>這個範例從原始檔一路做到可以放進報告的表格和圖。</p>
-  <div class="uses"><span>用到的方法：</span><a href="#ch1">read_csv</a><a href="#ch8">rename_with + regex</a><a href="#ch3">distinct</a><a href="#ch8">str_sub / str_to_upper</a><a href="#ch8">parse_number</a><a href="#ch6">separate_wider_delim</a><a href="#ch4">across</a><a href="#ch4">case_when</a><a href="#ch8">factor levels</a><a href="#ch5">summarise / count</a><a href="#ch6">pivot_wider</a><a href="#ch9">boxplot + jitter</a><a href="#ch10">facet、position = "fill"、scales::percent</a><a href="#ch10">ggsave</a></div>
+  <div class="uses"><span>用到的方法：</span><a href="#ch1">read_csv</a><a href="#ch8">rename_with + regex</a><a href="#ch3">distinct</a><a href="#ch8">str_sub / str_to_upper</a><a href="#ch8">parse_number</a><a href="#ch6">separate_wider_delim</a><a href="#ch4">across</a><a href="#ch4">case_when</a><a href="#ch8">factor levels</a><a href="#ch5">summarise / count</a><a href="#ch6">pivot_wider</a><a href="ggplot.html#g6">boxplot + jitter ↗</a><a href="ggplot.html#g10">facet、position = "fill"、scales::percent ↗</a><a href="ggplot.html#g14">ggsave ↗</a></div>
   <p>這個範例的每一格<b>接續</b>上一格：前面的格子做好的變數，後面可以直接用（就像在 RStudio 裡從上到下執行一個 R script）。直接執行後面的格子，前面的格子會先自動執行。</p>
 
   <h3><span class="tag">步驟 1</span>讀入，先看看</h3>
@@ -1631,9 +1357,9 @@ list.files(pattern = "csv|png")       # 工作目錄裡的檔案</script>
 
 <!-- ============ 12 example B ============ -->
 <section class="ch example-ch" id="ex-b">
-  <div class="ch-h"><span class="num">12</span><h2>OGTT 葡萄糖耐受試驗：寬變長、平均曲線、曲線下面積<small>pivot_longer → 個人曲線 → 平均 ± SE → AUC → 診斷 → 報告表</small></h2></div>
+  <div class="ch-h"><span class="num">11</span><h2>OGTT 葡萄糖耐受試驗：寬變長、平均曲線、曲線下面積<small>pivot_longer → 個人曲線 → 平均 ± SE → AUC → 診斷 → 報告表</small></h2></div>
   <p>12 位受試者（正常、葡萄糖耐受不良 IGT、糖尿病各 4 位）喝下 75 g 葡萄糖，在 0、30、60、90、120 分鐘抽血，測血糖和胰島素。</p>
-  <div class="uses"><span>用到的方法：</span><a href="#ch6">pivot_longer + names_sep</a><a href="#ch4">if_else</a><a href="#ch8">factor levels</a><a href="#ch9">geom_line + group</a><a href="#ch10">facet scales = "free_y"</a><a href="#ch5">summarise：n、mean、sd</a><a href="#ch10">geom_errorbar、每層自己的 data</a><a href="#ch4">lag</a><a href="#ch4">case_when</a><a href="#ch6">pivot_wider</a><a href="#ch8">str_c</a></div>
+  <div class="uses"><span>用到的方法：</span><a href="#ch6">pivot_longer + names_sep</a><a href="#ch4">if_else</a><a href="#ch8">factor levels</a><a href="ggplot.html#g8">geom_line + group ↗</a><a href="ggplot.html#g9">facet scales = "free_y" ↗</a><a href="#ch5">summarise：n、mean、sd</a><a href="ggplot.html#g6">geom_errorbar、每層自己的 data ↗</a><a href="#ch4">lag</a><a href="#ch4">case_when</a><a href="#ch6">pivot_wider</a><a href="#ch8">str_c</a></div>
 
   <h3><span class="tag">步驟 1</span>讀入、變成長格式</h3>
 <script type="text/x-r" class="cell" data-chain="b" data-label="1 · 讀入">og <- read_csv("data/ogtt_wide.csv", show_col_types = FALSE)
@@ -1679,7 +1405,7 @@ ggplot(og_sum, aes(x = time, y = mean, colour = group)) +
   scale_colour_manual(values = c(normal = "#009E73", IGT = "#E69F00", diabetes = "#D55E00")) +
   labs(x = "Time after glucose load (min)", y = "Mean ± SE", colour = "Group") +
   theme_bw()</script>
-  <p><code>geom_hline()</code> 用的是自己的資料 <code>cut</code>（10-5 學過：每一層可以有自己的 data），而且 <code>cut</code> 裡有分面用的欄 <code>analyte</code>，值只有血糖那一個，所以<b>參考線只會出現在血糖那一張小圖</b>。140 和 200 mg/dL 是 2 小時血糖判斷 IGT 和糖尿病的切點。</p>
+  <p><code>geom_hline()</code> 用的是自己的資料 <code>cut</code>（<a href="ggplot.html#g12">ggplot2 畫室第 12 章</a>：每一層可以有自己的 data），而且 <code>cut</code> 裡有分面用的欄 <code>analyte</code>，值只有血糖那一個，所以<b>參考線只會出現在血糖那一張小圖</b>。140 和 200 mg/dL 是 2 小時血糖判斷 IGT 和糖尿病的切點。</p>
 
   <h3><span class="tag">步驟 4</span>曲線下面積（AUC）</h3>
   <p>用一個數字代表「整條曲線有多高」：把曲線下面切成梯形，每個梯形的面積是（上底 + 下底）÷ 2 × 高，全部加起來。上底和下底是相鄰兩個時間點的血糖，<b>「前一個時間點」正是 <code>lag()</code></b>：</p>
@@ -1745,9 +1471,9 @@ auc |>
 
 <!-- ============ 13 example C ============ -->
 <section class="ch example-ch bio-ch" id="ex-c">
-  <div class="ch-h"><span class="num">13</span><h2>RNA-seq 差異表現分析：LPS 刺激的巨噬細胞<small>計數矩陣 → 長格式 → 正規化 → 每個基因做檢定 → 火山圖 → 熱圖</small></h2></div>
+  <div class="ch-h"><span class="num">12</span><h2>RNA-seq 差異表現分析：LPS 刺激的巨噬細胞<small>計數矩陣 → 長格式 → 正規化 → 每個基因做檢定 → 火山圖 → 熱圖</small></h2></div>
   <p>三位捐贈者（D1–D3）的巨噬細胞，各分成兩盤：一盤不處理（control，C1–C3），一盤加 <b>LPS</b>（細菌內毒素，模擬感染，L1–L3），做 RNA 定序。問題：<b>LPS 讓哪些基因的表現量變高或變低？</b></p>
-  <div class="uses"><span>用到的方法：</span><a href="#ch1">read_csv</a><a href="#ch6">pivot_longer</a><a href="#ch7">left_join、semi_join</a><a href="#ch5">分組 summarise / mutate</a><a href="#ch4">log2、-log10</a><a href="#ch5">在 summarise 裡做 t.test</a><a href="#ch5">p.adjust(BH)</a><a href="#ch4">case_when</a><a href="#ch3">slice_min、%in%</a><a href="#ch10">scale_colour_manual</a><a href="#ch10">geom_hline / vline、geom_text(data =)</a><a href="#ch10">geom_tile + gradient2</a><a href="#ch8">fct_reorder</a><a href="#ch10">facet scales</a></div>
+  <div class="uses"><span>用到的方法：</span><a href="#ch1">read_csv</a><a href="#ch6">pivot_longer</a><a href="#ch7">left_join、semi_join</a><a href="#ch5">分組 summarise / mutate</a><a href="#ch4">log2、-log10</a><a href="#ch5">在 summarise 裡做 t.test</a><a href="#ch5">p.adjust(BH)</a><a href="#ch4">case_when</a><a href="#ch3">slice_min、%in%</a><a href="ggplot.html#g11">scale_colour_manual ↗</a><a href="ggplot.html#g12">geom_hline / vline、geom_text(data =) ↗</a><a href="ggplot.html#g15">geom_tile + gradient2 ↗</a><a href="#ch8">fct_reorder</a><a href="ggplot.html#g9">facet scales ↗</a></div>
 
   <figure class="fig">
     <svg viewBox="0 0 860 210" role="img" aria-label="RNA-seq 的三張表如何用 join 接起來">
@@ -1887,9 +1613,9 @@ read_lines("de_genes.csv", n_max = 5)</script>
 </section>
 <!-- ============ 14 ============ -->
 <section class="ch" id="ch14">
-  <div class="ch-h"><span class="num">14</span><h2>總整理與速查表<small>動詞總表、ggplot2 公式、常見錯誤訊息、小測驗</small></h2></div>
+  <div class="ch-h"><span class="num">13</span><h2>總整理與速查表<small>動詞總表、ggplot2 公式、常見錯誤訊息、小測驗</small></h2></div>
 
-  <h3><span class="tag">14-1</span>資料處理：我想要……</h3>
+  <h3><span class="tag">13-1</span>資料處理：我想要……</h3>
   <div class="tblwrap"><table class="cmp">
     <tr><th>我想要……</th><th>函式</th><th>例子</th><th>章</th></tr>
     <tr><td>讀 csv / 寫 csv</td><td><code>read_csv()</code> / <code>write_csv()</code></td><td><code>read_csv("data/lab.csv", show_col_types = FALSE)</code></td><td>01</td></tr>
@@ -1917,7 +1643,8 @@ read_lines("de_genes.csv", n_max = 5)</script>
     <tr><td>日期</td><td><code>ymd()</code>、<code>year()</code>、<code>month()</code></td><td><code>as.numeric(date - first(date))</code></td><td>08</td></tr>
   </table></div>
 
-  <h3><span class="tag">14-2</span>畫圖：ggplot2 公式</h3>
+  <h3><span class="tag">13-2</span>畫圖：ggplot2 公式</h3>
+  <p class="small">完整的說明在 <a href="ggplot.html">ggplot2 畫室</a>。</p>
   <div class="setup">資料 |&gt;
   <b>ggplot</b>(<b>aes</b>(x = , y = , colour = , fill = , group = )) +   <span>← 對應：哪一欄 → 哪個視覺屬性</span>
   <b>geom_</b>xxx() +                                     <span>← 幾何圖形：可以疊好幾層</span>
@@ -1937,7 +1664,7 @@ read_lines("de_genes.csv", n_max = 5)</script>
     <tr><td>參考線、標註</td><td><code>geom_hline()</code>、<code>geom_vline()</code>、<code>geom_text(data =)</code>、<code>annotate()</code></td><td></td></tr>
   </table></div>
 
-  <h3><span class="tag">14-3</span>看懂常見的錯誤訊息</h3>
+  <h3><span class="tag">13-3</span>看懂常見的錯誤訊息</h3>
   <div class="tblwrap"><table class="cmp">
     <tr><th>訊息</th><th>意思</th><th>怎麼辦</th></tr>
     <tr><td><code>could not find function "filter"</code>（或 ggplot、read_csv…）</td><td>套件沒載入</td><td>先執行 <code>library(tidyverse)</code></td></tr>
@@ -1952,12 +1679,13 @@ read_lines("de_genes.csv", n_max = 5)</script>
     <tr><td><code>ℹ In argument: … Caused by error: …</code></td><td>dplyr 告訴你錯在哪一個參數</td><td>先看最後一行 <code>!</code> 開頭的真正原因</td></tr>
   </table></div>
 
-  <h3><span class="tag">14-4</span>小測驗：該用哪個函式？</h3>
+  <h3><span class="tag">13-4</span>小測驗：該用哪個函式？</h3>
   <div class="quiz" id="quiz"></div>
 
   <div class="note link"><b>📚 接下來</b>這一單元的寫法和 Hadley Wickham 等人的免費線上書 <a href="https://r4ds.hadley.nz/" target="_blank" rel="noopener"><i>R for Data Science</i>（第二版）</a>一致，想更深入可以讀它；ggplot2 的所有 geom 和範例圖在 <a href="https://ggplot2.tidyverse.org/reference/" target="_blank" rel="noopener">ggplot2 官方網站</a>。RStudio 的 Help → Cheat Sheets 也有 dplyr、tidyr、ggplot2 的速查表可以印出來。</div>
   <div class="next">
     <a href="plot.html"><span>上一單元</span><b>R 寶的統計圖鑑 →</b></a>
+    <a href="ggplot.html"><span>下一單元</span><b>R 寶的 ggplot2 畫室 →</b></a>
     <a href="./"><span>課程首頁</span><b>大數據分析與實踐 →</b></a>
   </div>
 </section>
@@ -2540,18 +2268,6 @@ clean <- raw |>
          month = month(\`Collect Date\`)) |>                 # lubridate：幾月
   select(id = \`Patient ID\`, sex, glucose, month)           # 選欄順便改名
 clean` },
-  ex9: { plots: ['p'], solution: `p <- ggplot(lab, aes(x = group, y = hba1c, fill = group)) +   # 三個對應都寫在 ggplot()
-  geom_boxplot() +                    # 盒形圖
-  geom_jitter(width = 0.15) +         # 每個人一個點，左右抖開
-  labs(y = "HbA1c (%)")               # y 軸標籤
-p` },
-  ex10: { plots: ['p'], solution: `p <- ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +
-  geom_point() +
-  geom_hline(yintercept = 126, linetype = "dashed") +                         # 水平虛線
-  scale_colour_manual(values = c(control = "steelblue", diabetes = "tomato")) +  # 具名向量指定顏色
-  facet_wrap(~ sex) +                                                         # 男女分兩張
-  labs(x = "HbA1c (%)", y = "Glucose (mg/dL)")
-p` },
 };
 const SOL_PASS = '0901';   // classroom speed bump only: the answers ship with the page
 const unlocked = new Set();

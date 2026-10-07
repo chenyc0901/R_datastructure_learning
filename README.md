@@ -12,6 +12,7 @@
 | 05 R 寶的資料倉庫 | `io.html` |
 | 06 R 寶的統計圖鑑 | `plot.html` |
 | 07 R 寶的 tidyverse 完全手冊 | `tidy.html` |
+| 08 R 寶的 ggplot2 畫室 | `ggplot.html` |
 | 補充 R 寶的 p 值教室 | `pvalue.html` |
 | ＋ 控制流程補充教材 | `extras.html` |
 
@@ -195,8 +196,7 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 | 06 | tidy data、`pivot_longer` / `pivot_wider`（動畫）、`separate_wider_delim`、`fill` | 血糖高峰 |
 | 07 | join 六種（動畫）、`join_by`、`bind_rows` | 回診資料檢查 |
 | 08 | stringr、regex、`parse_number`、forcats、lubridate | 整理原始匯出檔 |
-| 09 | ggplot2 圖形文法（逐層動畫）、aes 對應與設定、什麼資料用什麼 geom | 盒形圖＋點 |
-| 10 | facet、position、scale、熱圖、主題、參考線與標籤、誤差線、排序、`ggsave` | 分面散佈圖 |
+| 09 | ggplot2 → 獨立成第八部分 `ggplot.html` | — |
 | 補充 | p 值的意義（置換檢定動畫）、效應量與信賴區間、各種檢定的 R 寫法與 `broom::tidy()`、**選擇統計方法的決策流程圖**、假設檢查、報告清單 | 年齡的 p 值與 Cohen's d |
 | 11 | 實作範例：臨床檢驗原始檔 → 清理 → Table 1 → 三張圖 | — |
 | 12 | 實作範例：OGTT 寬變長、平均 ± SE、AUC | — |
@@ -222,3 +222,22 @@ apply 家族從原理到應用，每段程式都能直接執行（內建的 R �
 | 07 | 多重比較：20 次檢定的模擬、Bonferroni 與 BH（`p.adjust`） |
 | 08 | 常見的誤解與陷阱 |
 | 09 | 報告怎麼寫：六樣東西與範例句子 |
+
+## 第八部分：R 寶的 ggplot2 畫室（`ggplot.html`）
+
+**線上版本：** https://chenyc0901.github.io/R_datastructure_learning/ggplot.html
+
+從 tidyverse 手冊獨立出來、寫得更完整的 ggplot2 單元，網頁裡執行真正的 R（webR）。
+
+| 章 | 內容 | 練習 |
+|---|---|---|
+| 01–03 | 圖形文法（七層架構圖）、一層一層疊、aes 對應與設定、aes 放在哪一層 | — |
+| 04 | 一個數值：直方圖（binwidth 比較）、密度圖、`after_stat(density)`、`stat_ecdf` | HbA1c 直方圖 |
+| 05 | 類別：geom_bar／geom_col、排序、標數字、橫向、百分比 | — |
+| 06 | 比較組別：盒形圖、jitter、小提琴、`stat_summary`、誤差線、加上 p 值 | 盒形圖＋點 |
+| 07–08 | 散佈圖（lm／loess、alpha、y = x、對數座標）、折線圖（group、errorbar、ribbon） | — |
+| 09–10 | 分面（scales、labeller）、position（stack／dodge／fill） | 分面散佈圖、分組長條圖 |
+| 11–14 | 尺度與配色（limits vs coord_cartesian）、標籤與註解、主題、ggsave 與 patchwork | — |
+| 15 | 熱圖、Bland–Altman 圖、森林圖、火山圖 | Bland–Altman |
+| 16 | 實作範例：real-time PCR（擴增曲線、標準曲線與效率、技術重複品管、ΔCt、ΔΔCt、2^−ΔΔCt、統計與報告圖） | log2 倍數變化圖 |
+| 17 | 速查表與常見錯誤 | — |

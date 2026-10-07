@@ -167,7 +167,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <div class="meta rise d3">
         <div><small>INSTRUCTOR</small><span>陳育辰（YCC）</span></div>
         <div><small>TOOLKIT</small><span>R · RStudio</span></div>
-        <div><small>MATERIALS</small><span>7 個互動單元</span></div>
+        <div><small>MATERIALS</small><span>8 個互動單元</span></div>
       </div>
     </div>
 
@@ -181,7 +181,7 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
 <main class="mods">
   <div class="mods-h">
     <h2>互動教材</h2>
-    <p>七個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法、用 apply 家族把迴圈收起來，接著安裝套件、讀寫真正的資料檔、用圖呈現統計結果，最後用 tidyverse 把整理資料到 ggplot2 繪圖串成完整的分析流程；補充教材補齊細節。</p>
+    <p>八個單元依序學習：先看懂資料在電腦裡長什麼樣子，再學會用迴圈處理它、用 function 組出演算法、用 apply 家族把迴圈收起來，接著安裝套件、讀寫真正的資料檔、用圖呈現統計結果，再用 tidyverse 整理資料，最後用 ggplot2 畫出報告等級的圖；補充教材補齊細節。</p>
   </div>
   <div class="grid">
     <a class="mod rise" style="--c:var(--blue)" href="memory.html">
@@ -372,15 +372,15 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
         <span class="go">7 章 + 動畫 + 練習 <i>→</i></span>
       </div>
     </a>
-    <a class="mod wide rise d3" style="--c:var(--orchid)" href="tidy.html">
+    <a class="mod rise d3" style="--c:var(--orchid)" href="tidy.html">
       <div class="part"><b>07</b>PART SEVEN</div>
       <div>
         <h3>R 寶的 tidyverse 完全手冊</h3>
-        <p>readr、dplyr、tidyr、stringr、forcats、lubridate 整理資料，ggplot2 用圖層畫出報告等級的圖；最後三個實作範例：臨床資料清理、OGTT 曲線、RNA-seq 火山圖與熱圖。網頁裡跑的是真正的 R。</p>
+        <p>readr、dplyr、tidyr、stringr、forcats、lubridate 整理資料；三個實作範例：臨床資料清理、OGTT 曲線、RNA-seq 火山圖與熱圖。網頁裡跑的是真正的 R。</p>
       </div>
       <div class="prev" aria-label="示意：資料經過管線整理後畫成圖">
         <svg viewBox="0 0 600 112" role="img">
-          <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="14" fill="var(--ink)">lab <tspan fill="var(--orchid)">|&gt;</tspan> filter() <tspan fill="var(--orchid)">|&gt;</tspan> summarise() <tspan fill="var(--orchid)">|&gt;</tspan> ggplot() <tspan fill="var(--orchid)">+</tspan> geom_point()</text>
+          <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="14" fill="var(--ink)">lab <tspan fill="var(--orchid)">|&gt;</tspan> filter() <tspan fill="var(--orchid)">|&gt;</tspan> group_by() <tspan fill="var(--orchid)">|&gt;</tspan> summarise()</text>
           <g font-family="JetBrains Mono, monospace" font-size="11">
             <g transform="translate(0,34)" fill="none" stroke="var(--line)">
               <rect width="96" height="62" rx="4"/><line x1="0" y1="15" x2="96" y2="15"/><line x1="0" y1="31" x2="96" y2="31"/><line x1="0" y1="47" x2="96" y2="47"/><line x1="32" y1="0" x2="32" y2="62"/><line x1="64" y1="0" x2="64" y2="62"/>
@@ -403,6 +403,31 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
       <div class="foot">
         <div class="tags"><span>read_csv</span><span>filter</span><span>mutate</span><span>summarise</span><span>pivot_longer</span><span>left_join</span><span>ggplot2</span><span>RNA-seq</span></div>
         <span class="go">13 章 + 3 個實作範例 + 練習 <i>→</i></span>
+      </div>
+    </a>
+    <a class="mod rise d3" style="--c:var(--amber)" href="ggplot.html">
+      <div class="part"><b>08</b>PART EIGHT</div>
+      <div>
+        <h3>R 寶的 ggplot2 畫室</h3>
+        <p>圖形文法、aes、每一種資料該用的 geom、分面、尺度與配色、標籤和主題；熱圖、Bland–Altman、森林圖，以及完整的 real-time PCR（ΔΔCt）分析範例。</p>
+      </div>
+      <div class="prev" aria-label="示意：一層一層疊成一張 ggplot2 圖">
+        <svg viewBox="0 0 440 112" role="img">
+          <text x="0" y="16" font-family="JetBrains Mono, monospace" font-size="14" fill="var(--ink)">ggplot(lab, aes(x, y)) <tspan fill="var(--amber)">+</tspan> geom_point()</text>
+          <g transform="translate(10,28)">
+            <rect width="120" height="74" rx="4" fill="none" stroke="var(--line)"/>
+            <rect x="150" width="120" height="74" rx="4" fill="none" stroke="var(--line)"/><line x1="160" y1="64" x2="262" y2="64" stroke="var(--dim)"/><line x1="160" y1="8" x2="160" y2="64" stroke="var(--dim)"/>
+            <rect x="300" width="120" height="74" rx="4" fill="none" stroke="var(--line)"/><line x1="310" y1="64" x2="412" y2="64" stroke="var(--dim)"/><line x1="310" y1="8" x2="310" y2="64" stroke="var(--dim)"/>
+            <g fill="var(--amber)"><circle cx="322" cy="54" r="3"/><circle cx="338" cy="47" r="3"/><circle cx="352" cy="42" r="3"/><circle cx="366" cy="33" r="3"/><circle cx="382" cy="26" r="3"/><circle cx="398" cy="16" r="3"/></g>
+            <line x1="316" y1="58" x2="406" y2="14" stroke="var(--teal)" stroke-width="2"/>
+            <g font-family="JetBrains Mono, monospace" font-size="10.5" fill="var(--faint)"><text x="60" y="42" text-anchor="middle">data</text><text x="210" y="42" text-anchor="middle">+ aes</text></g>
+            <text x="135" y="40" fill="var(--dim)" font-size="14">→</text><text x="285" y="40" fill="var(--dim)" font-size="14">→</text>
+          </g>
+        </svg>
+      </div>
+      <div class="foot">
+        <div class="tags"><span>aes</span><span>geom_*</span><span>facet</span><span>scale</span><span>theme</span><span>ggsave</span><span>qPCR</span></div>
+        <span class="go">17 章 + qPCR 範例 + 練習 <i>→</i></span>
       </div>
     </a>
   </div>
