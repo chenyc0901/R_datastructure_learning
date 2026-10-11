@@ -760,8 +760,22 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     mark();
     if (v.readyState > 0) { try { v.currentTime = 0; } catch (e) {} }
     showWait('載入中…');
+    start();
+  }
+
+  /* 預設帶聲音播。瀏覽器對「沒有使用者手勢就出聲」有封鎖政策（Chrome 看站點
+     互動分數、Safari／iOS 一律擋），被擋下時 play() 會 reject —— 這時退回靜音
+     照常播完，並把開聲音的提示亮回來，而不是讓畫面卡在那裡不動。
+     從 hero 按鈕開啟時本身就是使用者手勢，聲音一定開得成。 */
+  function start(){
+    setSound(true);
     const p = v.play();
-    if (p && p.catch) p.catch(() => showWait(BLOCKED, 1));
+    if (!p || !p.catch) return;
+    p.catch(() => {
+      setSound(false);
+      const q = v.play();
+      if (q && q.catch) q.catch(() => showWait(BLOCKED, 1));
+    });
   }
 
   function close(){
