@@ -127,8 +127,99 @@ html:root{--f-body:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,-
 html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
 .lv,.big,.rank,.ch-h h2,.hero h1,.brand h1,.mission h2,.card h3,.boss h3{font-weight:700}
 </style>
+<style id="intro-css">
+/* ---------- 課程介紹影片：首次到訪自動跳出，之後用 hero 的按鈕重看 ---------- */
+.ib-cta{display:inline-flex;align-items:center;gap:14px;margin-top:26px;padding:12px 22px 12px 14px;
+  font:inherit;color:var(--ink);text-align:left;cursor:pointer;
+  border:1px solid var(--line);background:linear-gradient(100deg,color-mix(in srgb,var(--teal) 11%,var(--panel)) 0%,var(--panel) 65%);
+  transition:border-color .25s,transform .25s}
+.ib-cta:hover,.ib-cta:focus-visible{border-color:var(--teal);transform:translateY(-2px);outline:none}
+.ib-cta .pv{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--teal) 55%,transparent);color:var(--teal)}
+.ib-cta .pv svg{display:block;margin-left:2px}
+.ib-cta b{font-size:16px;font-weight:700;display:block}
+.ib-cta .t{display:block;margin-top:1px;font-family:var(--f-code);font-size:12.5px;letter-spacing:.06em;color:var(--dim)}
+.ib-cta:hover .pv{background:color-mix(in srgb,var(--teal) 16%,transparent)}
+
+.ib{position:fixed;inset:0;z-index:999;display:grid;place-items:center;padding:clamp(14px,3.2vw,42px);
+  background:color-mix(in srgb,var(--bg) 90%,#000);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  animation:ibIn .34s ease both}
+@keyframes ibIn{from{opacity:0}}
+.ib.closing{animation:ibOut .28s ease both}
+@keyframes ibOut{to{opacity:0}}
+.ib-box{width:min(100%,1180px);display:flex;flex-direction:column;gap:13px;animation:ibUp .5s cubic-bezier(.2,.7,.2,1) both}
+@keyframes ibUp{from{opacity:.001;transform:translateY(16px) scale(.985)}}
+.ib-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 18px;
+  font-family:var(--f-code);font-size:13px;letter-spacing:.08em;color:var(--dim)}
+.ib-head .k{display:flex;align-items:center;gap:9px;color:var(--teal)}
+.ib-head .k i{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 12px var(--teal);animation:pulse 1.8s ease-in-out infinite}
+.ib-skip{font:inherit;font-family:var(--f-code);letter-spacing:.08em;color:var(--dim);cursor:pointer;
+  padding:7px 15px;border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 60%,transparent);
+  transition:color .2s,border-color .2s}
+.ib-skip:hover,.ib-skip:focus-visible{color:var(--ink);border-color:var(--dim);outline:none}
+.ib-skip kbd{font:inherit;color:var(--faint);margin-left:9px}
+
+.ib-stage{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);background:#000;overflow:hidden}
+.ib-stage video{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+.ib-tap{position:absolute;inset:0;border:0;padding:0;background:none;cursor:pointer}
+.ib-tap[hidden]{display:none!important}
+@keyframes ibRing{50%{border-color:var(--teal);box-shadow:0 0 0 4px color-mix(in srgb,var(--teal) 12%,transparent)}}
+/* 影片載入中（或自動播放被擋下）時蓋在上面的狀態層 */
+.ib-wait{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--f-code);font-size:13px;letter-spacing:.1em;color:var(--dim);
+  background:color-mix(in srgb,var(--bg) 55%,transparent);border:0;width:100%;height:100%;
+  pointer-events:none;cursor:default}
+.ib-wait.tap{pointer-events:auto;cursor:pointer;color:var(--ink);font-size:15px}
+.ib-wait[hidden]{display:none!important}
+
+.ib-ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.ib-sound{display:inline-flex;align-items:center;gap:9px;font:inherit;font-family:var(--f-code);font-size:13px;
+  letter-spacing:.06em;color:var(--ink);cursor:pointer;padding:8px 16px;
+  border:1px solid color-mix(in srgb,var(--teal) 45%,transparent);
+  background:color-mix(in srgb,var(--teal) 10%,var(--panel));transition:border-color .2s,background .2s;
+  animation:ibRing 2.4s ease-in-out infinite}
+.ib-sound:hover,.ib-sound:focus-visible{border-color:var(--teal);outline:none}
+.ib-sound.on{color:var(--dim);border-color:var(--line);background:var(--panel);animation:none}
+.ib-prog{flex:1 1 200px;min-width:150px;display:flex;align-items:center;gap:13px}
+.ib-bar{flex:1;height:3px;background:var(--line);overflow:hidden}
+.ib-bar i{display:block;height:100%;width:0;background:var(--teal);box-shadow:0 0 10px var(--teal)}
+.ib-time{font-family:var(--f-code);font-size:12.5px;letter-spacing:.08em;color:var(--faint);font-variant-numeric:tabular-nums}
+@media (max-width:560px){
+  .ib-head{font-size:12px}
+  .ib-cta{width:100%}
+  .ib-box{gap:11px}
+  .ib-ctrl{gap:10px 12px}
+  .ib-sound{flex:none;padding:8px 13px}
+  .ib-prog{flex:1 1 120px;gap:10px}
+  .ib-time{font-size:12px}
+}
+</style>
 </head>
 <body>
+
+<!-- 課程介紹影片（首次到訪自動跳出；之後由 hero 的「課程介紹影片」按鈕開啟） -->
+<div class="ib" id="intro" hidden role="dialog" aria-modal="true" aria-label="課程介紹影片">
+  <div class="ib-box">
+    <div class="ib-head">
+      <span class="k"><i></i>課程介紹 · 35 秒</span>
+      <button class="ib-skip" id="ibSkip" type="button">跳過<kbd>ESC</kbd></button>
+    </div>
+    <div class="ib-stage">
+      <video id="ibVideo" poster="media/intro-poster.jpg" preload="none" playsinline muted
+             width="1920" height="1080" aria-label="大數據分析與實踐 課程介紹影片"></video>
+      <!-- 整片畫面都能點開聲音，純屬滑鼠／觸控的方便；鍵盤與輔助技術走下面的聲音按鈕 -->
+      <button class="ib-tap" id="ibTap" type="button" hidden tabindex="-1" aria-hidden="true"></button>
+      <button class="ib-wait" id="ibWait" type="button" hidden>載入中…</button>
+    </div>
+    <div class="ib-ctrl">
+      <button class="ib-sound" id="ibSound" type="button" aria-pressed="false"><span id="ibSoundT">🔇 點我開聲音</span></button>
+      <div class="ib-prog">
+        <div class="ib-bar" aria-hidden="true"><i id="ibFill"></i></div>
+        <span class="ib-time" id="ibTime">0:00 / 0:35</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <header class="hero">
   <canvas id="viz" aria-hidden="true"></canvas>
@@ -169,6 +260,10 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
         <div><small>TOOLKIT</small><span>R · RStudio · Colab + AI</span></div>
         <div><small>MATERIALS</small><span>10 個互動單元</span></div>
       </div>
+      <button class="ib-cta rise d4" id="ibOpen" type="button">
+        <span class="pv"><svg width="13" height="15" viewBox="0 0 13 15" aria-hidden="true"><path d="M1 1.3 11.6 7.5 1 13.7Z" fill="currentColor"/></svg></span>
+        <span><b>課程介紹影片</b><span class="t">35 秒 · 這學期會做什麼</span></span>
+      </button>
     </div>
 
     <div class="stage rise d4" id="stage" aria-hidden="true">
@@ -611,6 +706,109 @@ html{-webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
     // start from the histogram already formed so the first frame reads as a chart
     phase = 1; setTargets(1); P.forEach(p => { p.x = p.tx + (Math.random() - .5) * 40; p.y = p.ty + (Math.random() - .5) * 40; });
     draw(false); requestAnimationFrame(frame);
+  }
+})();
+</script>
+
+<script>
+/* 課程介紹影片：第一次到訪自動跳出一次，之後只在使用者按 hero 的按鈕時播放。
+   偏好減少動態效果、或瀏覽器回報省流量／2G 連線時，不自動跳出（按鈕照常可用）。 */
+(() => {
+  const KEY = 'rdl-intro-v1';
+  const box = document.getElementById('intro'); if (!box) return;
+  const v = document.getElementById('ibVideo'), skip = document.getElementById('ibSkip');
+  const sound = document.getElementById('ibSound'), soundT = document.getElementById('ibSoundT');
+  const tap = document.getElementById('ibTap'), wait = document.getElementById('ibWait');
+  const fill = document.getElementById('ibFill'), time = document.getElementById('ibTime');
+  const openBtn = document.getElementById('ibOpen');
+
+  const conn = navigator.connection || {};
+  const thrifty = conn.saveData === true || /(^|-)2g$/.test(conn.effectiveType || '');
+  // 手機與小平板給 720p：版面上影片頂多就那麼寬，1080p 只是多載 3MB
+  const source = () => (thrifty || Math.max(innerWidth, innerHeight) <= 1000)
+    ? 'media/intro-720.mp4' : 'media/intro-1080.mp4';
+
+  const seen = () => { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } };
+  const mark = () => { try { localStorage.setItem(KEY, '1'); } catch (e) {} };
+
+  const fmt = (s, r) => { if (!(isFinite(s) && s > 0)) return '0:00';
+    const n = r ? Math.round(s) : Math.floor(s);
+    return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); };
+  // 只有「自動播放被擋下」時這層才是可按的按鈕，單純緩衝中不吃點擊
+  const showWait = (t, tappable) => {
+    wait.textContent = t; wait.classList.toggle('tap', !!tappable);
+    wait.tabIndex = tappable ? 0 : -1; wait.hidden = false;
+  };
+  const BLOCKED = '▶ 點一下播放';
+
+  function setSound(on){
+    v.muted = !on; if (on) v.volume = 1;
+    sound.classList.toggle('on', on);
+    sound.setAttribute('aria-pressed', String(on));
+    soundT.textContent = on ? '🔊 聲音開啟' : '🔇 點我開聲音';
+    tap.hidden = on || v.paused;
+  }
+
+  let lastFocus = null, closing = 0;
+  function open(){
+    if (!box.hidden) return;
+    lastFocus = document.activeElement;
+    if (!v.getAttribute('src')) v.setAttribute('src', source());
+    box.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    skip.focus({ preventScroll: true });
+    mark();
+    if (v.readyState > 0) { try { v.currentTime = 0; } catch (e) {} }
+    showWait('載入中…');
+    const p = v.play();
+    if (p && p.catch) p.catch(() => showWait(BLOCKED, 1));
+  }
+
+  function close(){
+    if (box.hidden || closing) return;
+    closing = 1; box.classList.add('closing'); v.pause();
+    setTimeout(() => {
+      box.hidden = true; box.classList.remove('closing'); closing = 0;
+      document.documentElement.style.overflow = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    }, 280);
+  }
+
+  v.addEventListener('playing', () => { wait.hidden = true; tap.hidden = !v.muted; });
+  v.addEventListener('waiting', () => showWait('載入中…'));
+  v.addEventListener('pause', () => { if (!v.ended) tap.hidden = true; });
+  v.addEventListener('ended', close);
+  v.addEventListener('timeupdate', () => {
+    const d = v.duration || 34.88;
+    fill.style.width = Math.min(100, v.currentTime / d * 100) + '%';
+    time.textContent = fmt(v.currentTime) + ' / ' + fmt(d, 1);
+  });
+
+  // 自動播放被擋下時，這一下點擊是使用者手勢，可以直接連聲音一起開
+  wait.addEventListener('click', () => { setSound(true); wait.hidden = true; v.play().catch(() => showWait(BLOCKED, 1)); });
+  tap.addEventListener('click', () => setSound(true));
+  sound.addEventListener('click', () => setSound(v.muted));
+  skip.addEventListener('click', close);
+  box.addEventListener('click', e => { if (e.target === box) close(); });
+  if (openBtn) openBtn.addEventListener('click', open);
+
+  addEventListener('keydown', e => {
+    if (box.hidden) return;
+    if (e.key === 'Tab') {              // 焦點鎖在對話框內
+      const f = [...box.querySelectorAll('button')].filter(b => !b.hidden && b.offsetParent && b.tabIndex >= 0);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1], a = document.activeElement;
+      if (e.shiftKey && (a === first || !box.contains(a))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (a === last || !box.contains(a))) { e.preventDefault(); first.focus(); }
+      return;
+    }
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); v.paused ? v.play() : v.pause(); }
+    else if (e.key === 'm' || e.key === 'M') { e.preventDefault(); setSound(v.muted); }
+  });
+
+  if (!seen() && !thrifty && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setTimeout(open, 600);   // 先讓首頁的標題進場，再蓋上影片
   }
 })();
 </script>
