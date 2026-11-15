@@ -300,6 +300,7 @@ async function runStep(i){
   const g = gen; idx = Math.max(0, Math.min(LIST.length - 1, i)); if (mode === 'tour') { cfg.idx = idx; save(); }
   const st = LIST[idx]; ptr.hidden = true; paintUI(); if (mode === 'ex') hilite(st.hl);
   try {
+    if (st.go) { const e = resolve(st.go); if (e) e.click(); await sleep(300, g); }   // 先切到要講的那一關／那個分頁
     await focusOn(st.at, g);
     await speak(st.say, g);
     for (const a of st.act || []) await doAct(a, g);
