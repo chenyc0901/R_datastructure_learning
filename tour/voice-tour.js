@@ -8,8 +8,8 @@
 (() => {
 'use strict';
 if (window.VoiceTour) return;
-const CSS = `.vt-launch,.vt-panel,.vt-ring,.vt-ptr{--vt-panel:#fbfcfd;--vt-ink:#16202b;--vt-line:#d3dae2;--vt-accent:#1d5fae;--vt-on:#fff;--vt-soft:#dde9f7;--vt-amber:#d18a00;--vt-muted:#45515e}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.vt-launch,.vt-panel,.vt-ring,.vt-ptr){--vt-panel:#161d25;--vt-ink:#e3e9f0;--vt-line:#283340;--vt-accent:#6aa5ec;--vt-on:#0b1622;--vt-soft:#1b2c42;--vt-amber:#e9b949;--vt-muted:#93a1b1}}
+const CSS = `.vt-launch,.vt-panel,.vt-ring,.vt-ptr,.vt-exbtn,.vt-sol{--vt-panel:#fbfcfd;--vt-ink:#16202b;--vt-line:#d3dae2;--vt-accent:#1d5fae;--vt-on:#fff;--vt-soft:#dde9f7;--vt-amber:#d18a00;--vt-muted:#45515e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.vt-launch,.vt-panel,.vt-ring,.vt-ptr,.vt-exbtn,.vt-sol){--vt-panel:#161d25;--vt-ink:#e3e9f0;--vt-line:#283340;--vt-accent:#6aa5ec;--vt-on:#0b1622;--vt-soft:#1b2c42;--vt-amber:#e9b949;--vt-muted:#93a1b1}}
 .vt-panel,.vt-panel *,.vt-launch{box-sizing:border-box}
 .vt-panel button,.vt-launch{font:inherit;cursor:pointer;color:var(--vt-ink)}
 .vt-panel [hidden],.vt-ring[hidden],.vt-ptr[hidden]{display:none!important}
@@ -54,7 +54,15 @@ body.vt-on .rstat{bottom:calc(var(--vt-h,190px) + 70px)}
   .vt-row .vt-sp{display:none}
 }
 @media (prefers-reduced-motion: reduce){.vt-ring,.vt-ptr{transition:none}.vt-ring.vt-ask,.vt-row button.vt-pulse{animation:none}}
-@media print{.vt-launch,.vt-panel,.vt-ring,.vt-ptr{display:none!important}}`;
+.vt-exbtn{margin-left:8px;border:1px solid var(--vt-accent);background:var(--vt-panel);color:var(--vt-accent);border-radius:999px;padding:3px 12px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.vt-exbtn:hover{background:var(--vt-soft)}
+.vt-sol{margin:12px 0;border:1px solid var(--vt-line);border-radius:12px;background:var(--vt-panel);color:var(--vt-ink);overflow:hidden}
+.vt-sol-h{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:13px;font-weight:700;border-bottom:1px solid var(--vt-line);color:var(--vt-muted)}
+.vt-sol pre{margin:0;padding:8px 0;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,"Noto Sans TC",monospace;font-size:13.5px;line-height:1.7;background:none;border:0}
+.vt-sol .ln{display:block;padding:0 12px;white-space:pre;border-left:4px solid transparent;min-height:1.7em;transition:background .25s}
+.vt-sol .ln.hl{background:color-mix(in srgb,var(--vt-amber) 24%,transparent);border-left-color:var(--vt-amber)}
+.vt-sol.vt-dim .ln:not(.hl){opacity:.5}
+@media print{.vt-launch,.vt-panel,.vt-ring,.vt-ptr,.vt-exbtn,.vt-sol{display:none!important}}`;
 const q = (s, r = document) => r.querySelector(s);
 const qa = (s, r = document) => [...r.querySelectorAll(s)];
 /* ---------- 講稿裡找元素的小工具 ---------- */
@@ -80,7 +88,8 @@ const H = { cell, cellRun, sub, nth, inW, after, btn, std, CTRL, q, qa };
 window.VoiceTour = { init(CFG){
 if (window.VoiceTour.steps) return;
 const st = document.createElement('style'); st.id = 'vt-css'; st.textContent = CSS; document.head.append(st);
-const STEPS = CFG.steps(H), CHAPTERS = CFG.chapters;
+const STEPS = CFG.steps(H), CHAPTERS = CFG.chapters, EXPLAIN = CFG.explain || {};
+let LIST = STEPS, mode = 'tour', solBox = null;
 /* ============================================================ 引擎 ============================================================ */
 const KEY = 'vt:' + location.pathname;
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
@@ -130,7 +139,7 @@ const clipId = t => { let a = 0xdeadbeef, b = 0x41c6ce57; for (let i = 0; i < t.
   a = Math.imul(a ^ (a >>> 16), 2246822507) ^ Math.imul(b ^ (b >>> 13), 3266489909); b = Math.imul(b ^ (b >>> 16), 2246822507) ^ Math.imul(a ^ (a >>> 13), 3266489909);
   return ((b >>> 0).toString(16).padStart(8, '0') + (a >>> 0).toString(16).padStart(8, '0')).slice(0, 12); };
 const clipURL = t => AUDIO_DIR + clipId(t) + '.mp3';
-const allTexts = () => STEPS.flatMap(s => [s.say, ...(s.act || []).filter(a => a[0] === 'say').map(a => a[1]), s.wait && s.wait.then].filter(Boolean));
+const allTexts = () => STEPS.flatMap(s => [s.say, ...(s.act || []).filter(a => a[0] === 'say').map(a => a[1]), s.wait && s.wait.then].filter(Boolean)).concat(Object.values(EXPLAIN).flatMap(v => v.map(x => x.say)));
 const aud = new Audio(); aud.preload = 'auto';
 let recFail = 0;
 const useRec = () => cfg.voice === REC && !cfg.mute && recFail < 3;
@@ -276,10 +285,11 @@ function waitUser(w, g){
 
 /* ---------- 流程 ---------- */
 function paintUI(){
-  const st = STEPS[idx];
-  pos.textContent = (idx + 1) + ' / ' + STEPS.length; bar.style.width = ((idx + 1) / STEPS.length * 100) + '%'; sCh.value = st.ch;
+  const st = LIST[idx];
+  pos.textContent = (mode === 'ex' ? '講解 ' : '') + (idx + 1) + ' / ' + LIST.length; bar.style.width = ((idx + 1) / LIST.length * 100) + '%';
+  sCh.hidden = mode !== 'tour'; if (mode === 'tour') sCh.value = st.ch;
   bPlay.textContent = ended ? '↺ 重新開始' : holding ? '繼續 ▶' : paused ? '▶ 繼續' : '⏸ 暫停';
-  bNext.classList.toggle('vt-pulse', holding); bNext.disabled = idx >= STEPS.length - 1;
+  bNext.classList.toggle('vt-pulse', holding); bNext.disabled = idx >= LIST.length - 1;
   q('[data-a=prev]', panel).disabled = idx <= 0;
   bMute.textContent = cfg.mute ? '🔇' : '🔊'; bMute.setAttribute('aria-pressed', String(cfg.mute)); bMute.title = cfg.mute ? '開啟聲音' : '靜音（只看字幕）';
 }
@@ -287,8 +297,8 @@ function interrupt(){ gen++; cleanups.splice(0).forEach(f => f()); if (cutNow) c
 function setPaused(p){ paused = p; if (p) { if (cutNow) cutNow(); } else resumeWaiters.splice(0).forEach(r => r()); paintUI(); }
 async function runStep(i){
   interrupt(); if (paused) setPaused(false);
-  const g = gen; idx = Math.max(0, Math.min(STEPS.length - 1, i)); cfg.idx = idx; save();
-  const st = STEPS[idx]; ptr.hidden = true; paintUI();
+  const g = gen; idx = Math.max(0, Math.min(LIST.length - 1, i)); if (mode === 'tour') { cfg.idx = idx; save(); }
+  const st = LIST[idx]; ptr.hidden = true; paintUI(); if (mode === 'ex') hilite(st.hl);
   try {
     await focusOn(st.at, g);
     await speak(st.say, g);
@@ -296,24 +306,63 @@ async function runStep(i){
     if (st.wait) { setCap(st.say, '👉 換你操作看看（或按「下一步」跳過）'); await waitUser(st.wait, g); await sleep(700, g); if (st.wait.then) await speak(st.wait.then, g); }
     if (st.hold) { holding = true; setCap(st.say, '👉 試完之後，按「下一步 ▶」繼續'); paintUI(); return; }
     await sleep(500, g);
-    if (idx + 1 < STEPS.length) runStep(idx + 1);
-    else { ended = true; cfg.idx = 0; save(); ptr.hidden = true; paintUI(); }
+    if (idx + 1 < LIST.length) runStep(idx + 1);
+    else { ended = true; if (mode === 'tour') { cfg.idx = 0; save(); } else hilite(null); ptr.hidden = true; paintUI(); }
   } catch (e) { if (e !== ABORT) console.error('[語音導覽]', e); }
 }
-function start(i){
+function start(i, list, m){
+  if (active) stop();
+  LIST = list || STEPS; mode = m || 'tour';
   active = true; panel.hidden = false; document.body.classList.add('vt-on'); measure(); paintNote();
   cancelAnimationFrame(raf); track();
   if (synth) { try { synth.cancel(); synth.resume(); } catch (e) {} }
-  if (useRec()) { try { aud.muted = true; aud.src = clipURL(sentences(STEPS[Math.max(0, i)].say)[0]); const p = aud.play(); if (p && p.then) p.then(() => { if (aud.muted) { aud.pause(); aud.muted = false; } }).catch(() => {}); } catch (e) {} }
+  if (useRec()) { try { aud.muted = true; aud.src = clipURL(sentences(LIST[Math.max(0, i)].say)[0]); const p = aud.play(); if (p && p.then) p.then(() => { if (aud.muted) { aud.pause(); aud.muted = false; } }).catch(() => {}); } catch (e) {} }
   runStep(i);
 }
 function stop(){
   interrupt(); if (paused) setPaused(false);
   active = false; cancelAnimationFrame(raf); panel.hidden = true; ring.hidden = true; ptr.hidden = true; ringSrc = ringEl = null;
   document.body.classList.remove('vt-on'); paintLaunch();
+  if (solBox) { solBox.remove(); solBox = null; } LIST = STEPS; mode = 'tour';
 }
 
 launch.addEventListener('click', () => start(cfg.idx > 0 && cfg.idx < STEPS.length - 1 ? cfg.idx : 0));
+
+/* ---------- 練習題講解：每題一顆「聽講解」，和「看解答」用同一個密碼 ---------- */
+function hilite(code){
+  if (!solBox) return;
+  const frags = code ? [].concat(code) : [];
+  let any = false;
+  qa('.ln', solBox).forEach(l => { const on = frags.some(f => l.textContent.includes(f)); l.classList.toggle('hl', on); any = any || on; });
+  solBox.classList.toggle('vt-dim', any);
+  const first = q('.ln.hl', solBox), pre = q('pre', solBox);
+  if (first && pre) pre.scrollLeft = 0;
+}
+function solutionOf(box){ try { const X = (typeof EX !== 'undefined' && EX) || window.PAGE_EX || {}; return (X[box.dataset.ex || box.id] || {}).solution || ''; } catch (e) { return ''; } }
+function explain(id){
+  const box = document.getElementById(id), segs = EXPLAIN[id]; if (!box || !segs) return;
+  if (active) stop();
+  const code = solutionOf(box).replace(/\s+$/, '');
+  if (code) {
+    solBox = document.createElement('div'); solBox.className = 'vt-sol';
+    const h = document.createElement('div'); h.className = 'vt-sol-h'; h.textContent = '🔊 參考解答 · 講解中（講到哪一行，哪一行會亮起來）';
+    const pre = document.createElement('pre');
+    code.split('\n').forEach(t => { const l = document.createElement('span'); l.className = 'ln'; l.textContent = t || ' '; pre.append(l); });
+    solBox.append(h, pre);
+    const cellEl = q('div.cell', box); if (cellEl) cellEl.before(solBox); else box.append(solBox);
+  }
+  start(0, segs.map(s => ({ ch: 'ex', at: s.code && code ? () => solBox : () => box, say: s.say, hl: s.code || null })), 'ex');
+}
+function gated(fn){   // 各頁的 askPass 有兩種寫法：askPass(then) 或 askPass(密碼, then)
+  try { if (typeof askPass === 'function') { if (askPass.length <= 1) return askPass(fn); if (typeof SOL_PASS !== 'undefined') return askPass(SOL_PASS, fn); } } catch (e) {}
+  fn();
+}
+Object.keys(EXPLAIN).forEach(id => {
+  const box = document.getElementById(id), head = box && q('.ex-h', box); if (!head) return;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'vt-exbtn'; b.textContent = '🔊 聽講解'; b.title = '語音講解這一題的解法（需要和「看解答」相同的密碼）';
+  b.addEventListener('click', () => gated(() => explain(id)));
+  head.append(b);
+});
 panel.addEventListener('click', e => {
   const b = e.target.closest('button[data-a]'); if (!b) return;
   const a = b.dataset.a;
@@ -330,6 +379,6 @@ addEventListener('resize', measure);
 addEventListener('pagehide', () => { try { aud.pause(); } catch (e) {} if (synth) synth.cancel(); });
 document.addEventListener('keydown', e => { if (active && e.key === 'Escape' && !q('.modal,.drawer.open')) stop(); });
 
-Object.assign(window.VoiceTour, { start, stop, steps: STEPS, clips: () => [...new Set(allTexts().flatMap(sentences))].map(t => ({ id: clipId(t), text: t })) });
+Object.assign(window.VoiceTour, { start, stop, explain, explains: EXPLAIN, steps: STEPS, clips: () => [...new Set(allTexts().flatMap(sentences))].map(t => ({ id: clipId(t), text: t })) });
 } };
 })();

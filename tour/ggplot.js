@@ -93,4 +93,151 @@ VoiceTour.init({
     { ch: 'g16', at: '#g17 .ch-h',
       say: '最後是總整理與速查表：什麼資料用什麼 geom，還有常見的錯誤。不知道該畫哪一種圖，可以回統計圖鑑查選圖決策樹；要做統計檢定，看 p 值教室。導覽到這裡結束，六個練習等你回頭挑戰。' },
   ]; },
+  /* 練習題講解（每題：要標亮的解答片段 code、要唸的話 say）。魔王關不講解。 */
+  explain: {
+    "gx1": [
+      {
+        "say": "練習一的講解。畫糖化血色素的直方圖，兩組用不同的顏色。照圖形文法，一層一層寫。"
+      },
+      {
+        "code": "p <- ggplot(lab, aes(x = hba1c, fill = group)) +",
+        "say": "第一層，資料和對應。x 對應到 hba1c；fill 對應到 group，讓兩組的柱子填上不同顏色。直方圖只需要 x，y 會由它自己數出來。"
+      },
+      {
+        "code": "geom_histogram(binwidth = 0.5, alpha = 0.6, position = \"identity\") +",
+        "say": "第二層，直方圖。binwidth 是每一格的寬度。position 設成 identity，意思是兩組的柱子各畫各的、互相重疊，而不是疊上去；所以要搭配 alpha，設成半透明，才看得到後面那一組。"
+      },
+      {
+        "code": "labs(x = \"HbA1c (%)\")",
+        "say": "第三層，用 labs 設定 x 軸的標籤。"
+      },
+      {
+        "say": "要注意兩件事：圖層之間用加號，而且加號放在行尾。還有，柱子的填色是 fill，不是 colour；colour 管的是外框。"
+      }
+    ],
+    "gx2": [
+      {
+        "say": "練習二的講解。盒形圖加上每個人的點，是比較組別最推薦的畫法。"
+      },
+      {
+        "code": "p <- ggplot(lab, aes(x = group, y = hba1c, fill = group)) +",
+        "say": "三個對應都寫在 ggplot 裡：x 是組別，y 是數值，fill 也是組別。寫在這裡，後面每一個圖層都會用到。"
+      },
+      {
+        "code": "geom_boxplot() +",
+        "say": "第一個圖層，盒形圖。"
+      },
+      {
+        "code": "geom_jitter(width = 0.15) +",
+        "say": "第二個圖層，geom_jitter 把每個人畫成一個點，並且左右稍微抖開，才不會全部疊在同一條直線上。width 控制抖開的寬度。"
+      },
+      {
+        "code": "labs(y = \"HbA1c (%)\")",
+        "say": "最後設定 y 軸的標籤。"
+      },
+      {
+        "say": "圖層的順序就是繪製的順序：盒形圖先畫，點後畫，所以點會蓋在盒子上面。"
+      }
+    ],
+    "gx3": [
+      {
+        "say": "練習三的講解。這一題把好幾個元件組合在一起：散佈圖、參考線、自訂顏色和分面。"
+      },
+      {
+        "code": "p <- ggplot(lab, aes(x = hba1c, y = glucose, colour = group)) +",
+        "say": "先是對應。點的顏色是 colour，對應到 group。"
+      },
+      {
+        "code": "geom_hline(yintercept = 126, linetype = \"dashed\") +",
+        "say": "畫完點之後，用 geom_hline 加一條水平線。yintercept 是線的高度，linetype 設成 dashed 是虛線。"
+      },
+      {
+        "code": "scale_colour_manual(values = c(control = \"steelblue\", diabetes = \"tomato\")) +",
+        "say": "顏色用 scale_colour_manual 自己指定。values 是一個有名字的向量：名字是組別，值是顏色。這樣寫最保險，不會因為順序而配錯顏色。"
+      },
+      {
+        "code": "facet_wrap(~ sex) +",
+        "say": "facet_wrap 依性別分成兩張小圖。注意欄名前面要有波浪號。"
+      },
+      {
+        "code": "labs(x = \"HbA1c (%)\", y = \"Glucose (mg/dL)\")",
+        "say": "最後設定兩個座標軸的標籤。"
+      },
+      {
+        "say": "要注意名稱的搭配：aes 裡用的是 colour，尺度就要用 scale_colour。如果用的是 fill，就要用 scale_fill。兩邊對不上，設定就不會生效。"
+      }
+    ],
+    "gx4": [
+      {
+        "say": "練習四的講解。兩個類別變數，用分組長條圖。"
+      },
+      {
+        "code": "p <- ggplot(lab, aes(x = blood, fill = group)) +",
+        "say": "x 是血型，fill 是組別。這裡沒有 y，因為接下來的 geom_bar 會自己數每一類有幾個人。"
+      },
+      {
+        "code": "geom_bar(position = \"dodge\") +",
+        "say": "geom_bar 預設會把兩組疊起來。position 設成 dodge，才會並排。"
+      },
+      {
+        "code": "scale_fill_manual(values = c(control = \"steelblue\", diabetes = \"tomato\")) +",
+        "say": "長條的填色用的是 fill，所以這裡用 scale_fill_manual 指定顏色，寫法和上一題一樣，是有名字的向量。"
+      },
+      {
+        "code": "labs(y = \"Count\")",
+        "say": "最後設定 y 軸的標籤。"
+      },
+      {
+        "say": "常見的錯誤是用了 geom_col。geom_col 需要你自己提供 y 的數字；要讓 ggplot 幫你數，要用 geom_bar。"
+      }
+    ],
+    "gx5": [
+      {
+        "say": "練習五的講解。Bland Altman 圖用來看兩種測量方法一不一致。前面幾行是範例 15-2 的準備工作，已經算好三樣東西：每個檢體兩種方法的平均和差值、平均差 bias，還有兩條一致性界限 loa。"
+      },
+      {
+        "code": "p <- ggplot(ba, aes(x = avg, y = diff)) +",
+        "say": "畫圖的部分：x 是兩個方法的平均，y 是兩個方法的差。"
+      },
+      {
+        "code": "geom_point() +",
+        "say": "每個檢體畫成一個點。"
+      },
+      {
+        "code": "geom_hline(yintercept = bias) +",
+        "say": "第一條水平線畫在平均差的位置。如果兩個方法完全一致，這條線應該在 0。"
+      },
+      {
+        "code": "geom_hline(yintercept = loa, linetype = \"dashed\")",
+        "say": "第二個 geom_hline 畫一致性界限。loa 是長度為 2 的向量，所以一次就畫出上下兩條虛線。"
+      },
+      {
+        "say": "這一題的小技巧是：yintercept 可以放一個向量，一次畫好幾條線。"
+      }
+    ],
+    "gx6": [
+      {
+        "say": "練習六的講解。前面那一大段管線，是題目已經幫你算好的 fc，和步驟七一樣，不用改。你要寫的只有最後畫圖的部分。"
+      },
+      {
+        "code": "p <- ggplot(fc, aes(x = condition, y = -ddct, colour = condition)) +",
+        "say": "x 是條件，顏色也依照條件。重點在 y：寫的是負的 ddct。倍數變化等於 2 的負 delta delta Ct 次方，所以取以 2 為底的對數之後，剛好就是負的 delta delta Ct。aes 裡面可以直接寫運算式，不用先另外算一欄。"
+      },
+      {
+        "code": "geom_hline(yintercept = 0) +",
+        "say": "畫完點之後，加一條高度是 0 的水平線。在對數尺度上，0 代表沒有變化；往上 1 格是增加 2 倍，往下 1 格是減少一半，上下對稱。"
+      },
+      {
+        "code": "facet_wrap(~ gene) +",
+        "say": "用 facet_wrap 依基因分面，每個基因一張小圖。"
+      },
+      {
+        "code": "labs(y = \"log2 fold change\")",
+        "say": "最後設定 y 軸的標籤。"
+      },
+      {
+        "say": "為什麼要用對數尺度？因為在原本的尺度上，增加 2 倍是從 1 到 2，減少一半卻是從 1 到 0.5，看起來不對稱，會低估下降的幅度。"
+      }
+    ]
+  },
 });

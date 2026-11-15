@@ -68,4 +68,159 @@ VoiceTour.init({
     { ch: 'ch8', at: sub('8-3'),
       say: '最後一節是常見的誤導圖，提醒你畫圖和看圖時要注意的地方。導覽到這裡結束，七個練習等你回頭挑戰。' },
   ],
+  /* 練習題講解（每題：要標亮的解答片段 code、要唸的話 say）。魔王關不講解。 */
+  explain: {
+    "ex1": [
+      {
+        "say": "練習一的講解。要畫年齡和膽固醇的散佈圖，並且把標題、座標軸標籤和點的樣式都設定好。"
+      },
+      {
+        "code": "lab <- read.csv(\"data/lab.csv\")",
+        "say": "先讀入資料。"
+      },
+      {
+        "code": "plot(lab$age, lab$chol,",
+        "say": "plot 的前兩個參數，第一個是橫軸，第二個是縱軸。題目說橫軸是年齡，所以 age 放前面。"
+      },
+      {
+        "code": "main = \"Age and cholesterol\"",
+        "say": "接下來三個參數是文字：main 是標題，xlab 是 x 軸的標籤，ylab 是 y 軸的標籤。標籤記得寫上單位。"
+      },
+      {
+        "code": "pch = 16, col = \"tomato\"",
+        "say": "最後是點的樣式：pch 等於 16 是實心圓，col 是顏色，這裡可以換成你喜歡的顏色。"
+      },
+      {
+        "say": "常見的錯誤是把 x 和 y 的順序放反，還有標籤的文字和題目要求的不完全一樣，大小寫和括號都要一致。"
+      }
+    ],
+    "ex2": [
+      {
+        "say": "練習二的講解。要畫膽固醇的直方圖，在上面標出中位數，另外算出標準差。"
+      },
+      {
+        "code": "med <- median(lab$chol)",
+        "say": "先把兩個統計量算好、存起來：median 是中位數，sd 是標準差。"
+      },
+      {
+        "code": "hist(lab$chol, breaks = 8",
+        "say": "再用 hist 畫直方圖。breaks 等於 8 是建議 R 大約切成 8 格，main 和 xlab 是標題和 x 軸標籤。"
+      },
+      {
+        "code": "abline(v = med, col = \"red\", lwd = 2)",
+        "say": "最後用 abline 加上一條線。v 代表垂直線，畫在中位數的位置；lwd 是線的粗細。要注意順序：abline 是加在已經存在的圖上，所以一定要寫在 hist 的後面。"
+      },
+      {
+        "say": "常見的錯誤是把 v 寫成 h，那樣會畫出水平線。"
+      }
+    ],
+    "ex3": [
+      {
+        "say": "練習三的講解。類別資料的標準流程：先數，再算比例，最後畫長條圖。"
+      },
+      {
+        "code": "tab <- table(lab$group)",
+        "say": "table 數出每個組別各有幾個人。"
+      },
+      {
+        "code": "pct <- round(prop.table(tab) * 100, 1)",
+        "say": "prop.table 把人數換成比例，乘以 100 變成百分比，再用 round 取到小數第一位。"
+      },
+      {
+        "code": "barplot(tab, col = c(\"steelblue\", \"tomato\")",
+        "say": "barplot 直接吃 table 的結果來畫長條圖。兩個顏色會依序給兩個組別。"
+      },
+      {
+        "say": "要注意，畫長條圖用的是 tab，不是原始的 group 那一欄。barplot 需要的是已經數好的數字。"
+      }
+    ],
+    "ex4": [
+      {
+        "say": "練習四的講解。比較男女的糖化血色素，要一張圖、每組的中位數，還有檢定的 p 值。"
+      },
+      {
+        "code": "boxplot(hba1c ~ sex, data = lab",
+        "say": "盒形圖用公式的寫法：波浪號左邊是數值，右邊是分組，讀成「hba1c 依照 sex 分組」。data 等於 lab，告訴 R 這些欄位去哪裡找。"
+      },
+      {
+        "code": "med <- tapply(lab$hba1c, lab$sex, median)",
+        "say": "每個性別的中位數，用 tapply：數值、分組、函式。"
+      },
+      {
+        "code": "p <- t.test(hba1c ~ sex, data = lab)$p.value",
+        "say": "t.test 也可以用同樣的公式寫法，預設就是 Welch t 檢定。它的結果是一個 list，用錢字號 p.value 取出 p 值。"
+      },
+      {
+        "say": "這一題的重點是，畫圖和檢定可以用同一個公式，寫法一致，不容易錯。"
+      }
+    ],
+    "ex5": [
+      {
+        "say": "練習五的講解。看年齡和膽固醇有沒有關係，需要三樣東西：散佈圖、迴歸線、相關係數。"
+      },
+      {
+        "code": "plot(chol ~ age, data = lab",
+        "say": "散佈圖用公式寫法：波浪號左邊是 y，右邊是 x，所以膽固醇在縱軸，年齡在橫軸。"
+      },
+      {
+        "code": "fit <- lm(chol ~ age, data = lab)",
+        "say": "lm 用同一個公式做線性迴歸，結果存成 fit。"
+      },
+      {
+        "code": "abline(fit",
+        "say": "把 fit 直接交給 abline，它就會把迴歸線畫在圖上。"
+      },
+      {
+        "code": "r <- round(cor(lab$age, lab$chol), 2)",
+        "say": "cor 算相關係數，再取到小數第二位。"
+      },
+      {
+        "say": "最容易搞混的是順序：公式寫法是 y 在前面，一般的 plot 加兩個向量，則是 x 在前面。"
+      }
+    ],
+    "ex6": [
+      {
+        "say": "練習六的講解。在同一張圖上畫兩位病人的曲線。觀念是：plot 開一張新圖，後面的函式都只是往上加。"
+      },
+      {
+        "code": "plot(og$time, og$P01, type = \"b\", ylim = c(80, 200)",
+        "say": "第一步，用 plot 畫 P01。type 等於 b，是點和線都要。最重要的是 ylim：座標軸的範圍由第一張圖決定，所以要先設得夠大，能容納兩條線。"
+      },
+      {
+        "code": "lines(og$time, og$P03, type = \"b\"",
+        "say": "第二步，用 lines 把 P03 加上去，換一個顏色和點的形狀，才分得出來。"
+      },
+      {
+        "code": "abline(h = 140, lty = 2)",
+        "say": "第三步，abline 畫水平參考線。h 代表水平，lty 等於 2 是虛線。"
+      },
+      {
+        "code": "legend(\"topright\"",
+        "say": "第四步，加上圖例。圖例的文字、顏色和點的形狀，都要和前面畫線時用的一致，順序也要一樣。"
+      },
+      {
+        "say": "常見的錯誤是第二條線也用 plot 來畫，那樣會開一張新圖，把第一條線蓋掉。"
+      }
+    ],
+    "ex7": [
+      {
+        "say": "練習七的講解。兩個類別變數的交叉分析：血型和組別。"
+      },
+      {
+        "code": "tab <- table(lab$blood, lab$group)",
+        "say": "table 放兩個變數，就會做出交叉表。第一個變數變成列，第二個變成欄，所以血型是列，組別是欄。"
+      },
+      {
+        "code": "barplot(tab, beside = TRUE, legend.text = TRUE",
+        "say": "把交叉表交給 barplot。beside 等於 TRUE 是並排，不寫的話會疊起來。legend.text 等於 TRUE，會自動用列的名字，也就是血型，當成圖例。"
+      },
+      {
+        "code": "pct <- round(prop.table(tab, 2) * 100, 1)",
+        "say": "最後算百分比。prop.table 的第二個參數決定以什麼為分母：2 代表每一欄，也就是每個組別，各自加起來是百分之百。"
+      },
+      {
+        "say": "最容易錯的就是那個 2。寫成 1，會變成每一種血型加起來是百分之百，回答的是完全不同的問題。"
+      }
+    ]
+  },
 });
