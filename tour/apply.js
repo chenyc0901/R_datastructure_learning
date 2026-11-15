@@ -1,0 +1,66 @@
+/* R 寶的 apply 工廠 · 語音導覽講稿 */
+VoiceTour.init({
+  chapters: [['c0', '開場：這一頁怎麼用'], ['ch1', '01 原理：函式也是值'], ['ch2', '02 lapply'], ['ch3', '03 sapply 與 vapply'], ['ch4', '04 apply：矩陣'], ['ch5', '05 mapply 與 Map'], ['ch6', '06 tapply 與 split'], ['ch7', '07 Filter、Reduce、do.call'], ['ch8', '08 大魔王與總整理']],
+  steps: ({ cell, std }) => [
+    std.hero('c0', ' R 寶的 apply 工廠'),
+    std.toc('c0'),
+    std.run('c0', '範例 1-1'),
+
+    { ch: 'ch1', at: '#ch1 .ch-h',
+      say: '第一章，原理。apply 家族做的事，就是把「走訪、計算、收集」這三步的迴圈藏起來。關鍵觀念是：在 R 裡，函式也是一種值，可以存進變數，也可以當成參數，傳給另一個函式。' },
+    { ch: 'ch1', at: cell('範例 1-4'),
+      say: '這一格帶你親手做一個 lapply：先準備容器，用 for 走訪每個元素，把函式套上去，再把結果收集起來。看懂這一格，後面每一個 apply 家族的函式，都只是它的變化。' },
+    { ch: 'ch1', at: '#fac',
+      say: '這是 R 寶工廠的動畫。看我按「播放」。',
+      act: [['click', '#fac .go'],
+            ['say', 'R 寶把輸入的元素一個一個拿起來，交給函式計算，再把結果放進輸出的容器。lapply 的結果，一律裝在 list 裡。'],
+            ['pause', 1500],
+            ['click', '#fac .seg [data-i="1"]'], ['click', '#fac .go'],
+            ['say', '換成 sapply。它做的事一樣，只是最後會把結果簡化成向量。']] },
+    { ch: 'ch1', at: '#fac',
+      say: '換你。請點上面的「vapply 檢查」，再按「播放」。',
+      wait: { on: '#fac .go', ev: 'click', then: 'vapply 會檢查每一次回傳的東西，和事先說好的形狀一不一樣。' } },
+    std.ex('ch1', '#ex1', '這是練習一。'),
+
+    { ch: 'ch2', at: '#ch2 .ch-h',
+      say: '第二章，lapply。L 代表 list：不管函式回傳什麼，結果一律裝進 list。它最適合長度不一的資料，例如每位病人量的次數不一樣。' },
+    { ch: 'ch2', at: cell('範例 2-2'),
+      say: '要給函式額外的參數，直接寫在後面就好。函式也可以當場寫、不取名字，叫做匿名函式，下一格就是例子。' },
+
+    { ch: 'ch3', at: '#ch3 .tblwrap',
+      say: '第三章，sapply 和 vapply。sapply 會自動簡化結果：每次回傳一個值，就變成向量；每次回傳好幾個值，就變成矩陣；長度不一樣，就維持 list。' },
+    { ch: 'ch3', at: cell('範例 3-3'),
+      say: '但這也是陷阱：結果的形狀由資料決定。資料剛好是空的時候，得到的東西就和平常不一樣，後面的程式可能因此出錯。' },
+    { ch: 'ch3', at: cell('範例 3-4'),
+      say: 'vapply 要你事先說好每次回傳什麼，形狀不對就直接報錯。所以在 Console 隨手看結果，用 sapply；寫進函式或分析流程，用 vapply。' },
+
+    { ch: 'ch4', at: '#apv',
+      say: '第四章，apply，用在矩陣。MARGIN 等於 1 是一列一列算，等於 2 是一欄一欄算。看我按「播放」。',
+      act: [['click', '#apv .go'], ['pause', 1800],
+            ['say', '現在是每一列算一次平均，結果是一個有名字的向量。換成 MARGIN 等於 2。'],
+            ['click', '#apv [data-m="2"]'], ['click', '#apv .go'], ['pause', 1500],
+            ['say', '這次變成一欄一欄切。']] },
+    { ch: 'ch4', at: '#apv',
+      say: '換你。請點上面的「range」，再按「播放」，看看函式一次回傳兩個值的時候，結果長什麼樣子。',
+      wait: { on: '#apv .go', ev: 'click', then: '函式回傳好幾個值的時候，結果會轉過來：每一次的結果變成一欄。這是 apply 最容易搞混的地方。' } },
+    { ch: 'ch4', at: '#ch4 .note.warn',
+      say: '要注意：apply 不適合 data frame。只要有一欄是文字，全部的數字都會被轉成文字。data frame 的每一欄，請用 sapply 或 lapply。另外，列和欄的總和與平均，有現成的 rowSums、colMeans 這些函式，比 apply 快很多。' },
+
+    { ch: 'ch5', at: '#ch5 .ch-h',
+      say: '第五章，mapply 和 Map：好幾組資料並排走。第 i 次，同時拿第一組的第 i 個，和第二組的第 i 個。Map 做一樣的事，但結果一律是 list。要注意，各組的長度要一樣。' },
+
+    { ch: 'ch6', at: '#sac',
+      say: '第六章，tapply 和 split，做分組計算。這個動畫分成四步，看我一步一步按。',
+      act: [['click', '#sac .go'], ['say', '第二步，split：照病房把資料拆成幾組。'],
+            ['click', '#sac .go'], ['say', '第三步，apply：每一組各算一次平均。'],
+            ['click', '#sac .go'], ['say', '第四步，combine：把每組的結果合併成一個有名字的向量。tapply 一步就做完這三件事。之後學 dplyr 的 group_by 加 summarise，背後是同樣的概念。']] },
+
+    { ch: 'ch7', at: '#ch7 .ch-h',
+      say: '第七章，三個好用的工具。Filter 留下符合條件的元素。Reduce 把一串東西兩兩合併成一個，例如找出三次實驗都出現的基因。do.call 把一個 list 攤開，當成函式的參數。' },
+
+    { ch: 'ch8', at: '#ch8 .ch-h',
+      say: '第八章是大魔王：多位病人的 HBB 基因篩檢。規則是不准寫迴圈，只用 apply 家族完成整個流程。下面的表格，把要做的事、思路和工具都列出來了。' },
+    { ch: 'ch8', at: '#sum .tblwrap',
+      say: '最後是總整理表：左邊是手上的資料，中間是想要的結果，右邊是該用的函式。原則是先想向量化，再想 apply 家族，最後才是 for 迴圈。導覽到這裡結束，八個練習等你回頭挑戰。' },
+  ],
+});

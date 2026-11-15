@@ -1,0 +1,67 @@
+/* R 寶的資料倉庫 · 語音導覽講稿 */
+VoiceTour.init({
+  chapters: [['c0', '開場：這一頁怎麼用'], ['ch1', '01 套件：install 與 library'], ['ch2', '02 ::、require、Bioconductor'], ['ch3', '03 工作目錄與路徑'], ['ch4', '04 文字檔'], ['ch5', '05 CSV 與 data.frame'], ['ch6', '06 TSV 與遺漏值'], ['ch7', '07 RDS 與 source'], ['ch8', '08 大魔王與總整理']],
+  steps: ({ cell, std, nth, btn }) => [
+    std.hero('c0', ' R 寶的資料倉庫'),
+    std.toc('c0'),
+    { ch: 'c0', at: '#intro .note.lab',
+      say: '這一頁是一台模擬的電腦。R 寶的電腦裡有一個專案資料夾，放著檢驗科送來的資料。要記得：每一格範例，都像是重新打開一次 RStudio，所以上一格載入的套件、做好的變數，下一格不會留著。' },
+    std.run('c0', '範例 1-1'),
+    { ch: 'c0', at: '#pcBtn',
+      say: '角落的「專案檔案」按鈕，可以看到這個模擬專案資料夾裡有哪些檔案。', act: [['point', '#pcBtn']] },
+
+    { ch: 'ch1', at: '#ch1 .ch-h',
+      say: '第一章，套件是什麼。套件就是別人寫好的工具箱。要用它有兩個動作：install.packages 是安裝，每台電腦做一次；library 是載入，每次打開 R 都要做。' },
+    { ch: 'ch1', at: '#shelf',
+      say: '用書架來想。安裝是把書買回來放上書架，載入是把書從書架拿到桌上。看我示範：先按 install.packages。',
+      act: [['click', '#shelf [data-act="install"]'], ['say', '書放上書架了，但還沒拿到桌上。接著按 library。'],
+            ['click', '#shelf [data-act="library"]'], ['say', '書到桌上了，現在才能用它的函式。'],
+            ['click', '#shelf [data-act="use"]'], ['pause', 700],
+            ['say', '最後我按「關掉 R 再打開」。'],
+            ['click', '#shelf [data-act="restart"]'],
+            ['say', '桌上的書被收走了，但書架上還在。所以不用重新安裝，只要再 library 一次。']] },
+    { ch: 'ch1', at: '#shelf', hold: true,
+      say: '換你。請在上面選另一本書，例如 dplyr，先不安裝，直接按「用它的函式」，看看會出現什麼錯誤訊息。' + std.hold },
+    { ch: 'ch1', at: '#ch1 .note.warn',
+      say: '兩個常見的錯誤：install.packages 裡的套件名稱要加引號；套件名稱有分大小寫，打錯就找不到。' },
+    std.ex('ch1', '#ex1', '這是練習一。'),
+
+    { ch: 'ch2', at: '#ch2 .ch-h',
+      say: '第二章。套件名稱加兩個冒號再加函式名稱，不用 library 也能呼叫，而且一眼看得出函式來自哪個套件。兩個套件有同名的函式時，後載入的會蓋掉先載入的，這時用兩個冒號指名道姓最安全。另外，生物資訊的套件大多放在 Bioconductor，要用 BiocManager 來安裝。' },
+
+    { ch: 'ch3', at: '#ch3 .ch-h',
+      say: '第三章，工作目錄與路徑。R 找檔案時，是從工作目錄出發的。絕對路徑從最上層寫起，相對路徑從工作目錄寫起。' },
+    { ch: 'ch3', at: '#pathnav',
+      say: '這個路徑導航，會一步一步告訴你 R 怎麼解讀一條路徑。看我點幾個例子。',
+      act: [['click', btn('#pathnav', 'qpcr.csv')], ['say', '只寫檔名，R 會直接在工作目錄裡找；檔案其實在 data 資料夾裡，所以找不到。'],
+            ['click', btn('#pathnav', '../Downloads')], ['say', '兩個點代表往上一層資料夾。'],
+            ['click', btn('#pathnav', 'data\\qpcr.csv')], ['say', '最後這個是 Windows 的反斜線，在 R 的字串裡會出問題，要改成一般的斜線。']] },
+    { ch: 'ch3', at: '#pathnav', hold: true,
+      say: '換你。上面的輸入框可以自己打路徑，或者把其他幾個例子都點點看。' + std.hold },
+    { ch: 'ch3', at: cell('範例 3-5'),
+      say: '另外提醒：setwd 能不用就不用。把路徑寫死在程式裡，換一台電腦就不能跑了。用專案資料夾加上相對路徑，才是好習慣。' },
+
+    { ch: 'ch4', at: '#ch4 .ch-h',
+      say: '第四章，文字檔。readLines 把檔案一行一行讀進來，變成文字向量，很適合讀 FASTA 這種序列檔。writeLines 和 cat 則用來寫出文字檔。' },
+
+    { ch: 'ch5', at: '#csvw',
+      say: '第五章，CSV 和 data frame。CSV 就是用逗號分隔的純文字表格。左邊是檔案的內容，右邊是讀進 R 之後的樣子。看我把 header 改成 FALSE。',
+      act: [['click', '#csvw [data-v="0"]'], ['say', '第一行不再被當成欄名，而是被當成資料。改回來，再把分隔符號換成分號。'],
+            ['click', '#csvw [data-v="1"]'], ['click', '#csvw [data-v=";"]'],
+            ['say', '分隔符號設錯，整行就切不開，全部擠在同一欄。所以讀檔之前，要先看清楚檔案長什麼樣子。'],
+            ['click', '#csvw [data-v=","]']] },
+    { ch: 'ch5', at: cell('範例 5-5'),
+      say: '寫出 CSV 的時候，記得加上 row.names 等於 FALSE，不然檔案會多出一欄沒有用的列編號。另外，篩選資料時要小心遺漏值 NA。' },
+
+    { ch: 'ch6', at: '#ch6 .ch-h',
+      say: '第六章，其他格式和遺漏值。用 tab 分隔的檔案用 read.delim，用空白分隔的用 read.table。儀器匯出的檔案，遺漏值不一定寫成 NA，可以用 na.strings 告訴 R 哪些寫法代表遺漏。原則是：先看檔案長怎樣，再選對的函式和參數。' },
+
+    { ch: 'ch7', at: '#ch7 .ch-h',
+      say: '第七章。saveRDS 把一個 R 物件原封不動存下來，型別、factor 的順序都會保留，用 readRDS 讀回來；缺點是別的軟體打不開。source 則是執行一個點 R 檔，可以把自己常用的函式放在裡面，重複使用。' },
+
+    { ch: 'ch8', at: '#ch8 .ch-h',
+      say: '第八章是大魔王：批次讀取整個資料夾。流程是用 list.files 列出檔案，用 lapply 一個一個讀進來，再用 do.call 加 rbind 接成一張大表。這也是上一個單元 apply 家族最實用的地方。' },
+    { ch: 'ch8', at: '#sum .ch-h',
+      say: '最後的總整理，教你專案資料夾怎麼放，讓別人、還有三個月後的你，打開就能跑。導覽到這裡結束，八個練習等你回頭挑戰。' },
+  ],
+});
