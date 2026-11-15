@@ -10,6 +10,7 @@
 if (window.VoiceTour) return;
 const CSS = `.vt-launch,.vt-panel,.vt-ring,.vt-ptr,.vt-exbtn,.vt-sol{--vt-panel:#fbfcfd;--vt-ink:#16202b;--vt-line:#d3dae2;--vt-accent:#1d5fae;--vt-on:#fff;--vt-soft:#dde9f7;--vt-amber:#d18a00;--vt-muted:#45515e}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.vt-launch,.vt-panel,.vt-ring,.vt-ptr,.vt-exbtn,.vt-sol){--vt-panel:#161d25;--vt-ink:#e3e9f0;--vt-line:#283340;--vt-accent:#6aa5ec;--vt-on:#0b1622;--vt-soft:#1b2c42;--vt-amber:#e9b949;--vt-muted:#93a1b1}}
+:root[data-theme="dark"] :is(.vt-launch,.vt-panel,.vt-ring,.vt-ptr,.vt-exbtn,.vt-sol){--vt-panel:#161d25;--vt-ink:#e3e9f0;--vt-line:#283340;--vt-accent:#6aa5ec;--vt-on:#0b1622;--vt-soft:#1b2c42;--vt-amber:#e9b949;--vt-muted:#93a1b1}
 .vt-panel,.vt-panel *,.vt-launch{box-sizing:border-box}
 .vt-panel button,.vt-launch{font:inherit;cursor:pointer;color:var(--vt-ink)}
 .vt-panel [hidden],.vt-ring[hidden],.vt-ptr[hidden]{display:none!important}
