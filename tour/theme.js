@@ -34,11 +34,11 @@ svg .th-ink{fill:var(--ink,var(--text,currentColor))}
 :root[data-theme="dark"] .coin-row .h{color:#2a1d00}
 :root[data-theme="dark"] .prompt-h .k{color:#190f35}
 /* --- 切換鈕 --- */
-.th-toggle{position:fixed;left:18px;bottom:70px;z-index:939;width:42px;height:42px;border-radius:50%;border:1px solid #d3dae2;background:#fbfcfd;color:#16202b;font-size:19px;line-height:1;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0}
+.th-toggle{position:fixed;right:18px;top:14px;z-index:939;width:42px;height:42px;border-radius:50%;border:1px solid #d3dae2;background:#fbfcfd;color:#16202b;font-size:19px;line-height:1;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0}
 :root[data-theme="dark"] .th-toggle{background:#161d25;color:#e3e9f0;border-color:#283340}
 .th-toggle:focus-visible{outline:2px solid #6aa5ec;outline-offset:2px}
-body.vt-on .th-toggle{bottom:calc(var(--vt-h,190px) + 14px)}
-@media (max-width:720px){.th-toggle{left:12px;bottom:62px;width:38px;height:38px;font-size:17px}}
+body:has(.drawer.open) .th-toggle{display:none}
+@media (max-width:720px){.th-toggle{right:10px;top:10px;width:38px;height:38px;font-size:17px}}
 @media print{.th-toggle{display:none!important}}
 `;
 document.head.append(css);
